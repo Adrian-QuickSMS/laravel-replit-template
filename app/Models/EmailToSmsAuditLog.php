@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class EmailToSmsAuditLog extends Model
@@ -11,15 +12,17 @@ class EmailToSmsAuditLog extends Model
     protected $table = 'email_to_sms_audit_log';
     protected $keyType = 'string';
     public $incrementing = false;
+    public $timestamps = false;
 
     protected $fillable = [
         'account_id',
-        'user_id',
         'setup_id',
         'reporting_group_id',
         'action',
-        'entity_type',
-        'changes',
+        'user_id',
+        'user_name',
+        'details',
+        'metadata',
         'ip_address',
         'user_agent',
     ];
@@ -27,10 +30,10 @@ class EmailToSmsAuditLog extends Model
     protected $casts = [
         'id' => 'string',
         'account_id' => 'string',
-        'user_id' => 'string',
         'setup_id' => 'string',
         'reporting_group_id' => 'string',
-        'changes' => 'array',
+        'user_id' => 'string',
+        'metadata' => 'array',
     ];
 
     protected static function boot()
@@ -42,31 +45,41 @@ class EmailToSmsAuditLog extends Model
                 $model->id = (string) Str::uuid();
             }
         });
+
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('email_to_sms_audit_log.account_id', $tenantId);
+            } else {
+                $builder->whereRaw('1 = 0');
+            }
+        });
     }
 
-    public function account(): BelongsTo
+    public function setup(): BelongsTo
     {
-        return $this->belongsTo(Account::class, 'account_id');
+        return $this->belongsTo(EmailToSmsSetup::class, 'setup_id');
     }
 
     public static function logAction(
         string $accountId,
         string $action,
-        string $entityType,
         ?string $setupId = null,
         ?string $reportingGroupId = null,
-        ?array $changes = null
+        ?string $details = null,
+        ?array $metadata = null
     ): self {
-        return static::create([
+        return static::withoutGlobalScopes()->create([
             'account_id' => $accountId,
-            'user_id' => session('customer_user_id'),
             'setup_id' => $setupId,
             'reporting_group_id' => $reportingGroupId,
             'action' => $action,
-            'entity_type' => $entityType,
-            'changes' => $changes,
+            'user_id' => session('customer_user_id'),
+            'user_name' => session('customer_user_name'),
+            'details' => $details,
+            'metadata' => $metadata,
             'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
+            'user_agent' => substr((string) request()->userAgent(), 0, 500),
         ]);
     }
 }

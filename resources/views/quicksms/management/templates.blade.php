@@ -5,13 +5,18 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-#apiStructureModal pre code,
-#apiStructureModal pre code * {
-    color: #f8f9fa !important;
-    background: transparent !important;
-}
-#apiStructureModal pre {
-    background-color: #1a1a1a !important;
+.api-code-block {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.8rem;
+    color: #cdd6f4;
+    line-height: 1.5;
 }
 #rcsWizardModal {
     z-index: 1060 !important;
@@ -107,15 +112,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 14%; }  /* Name */
-.templates-table thead th:nth-child(2) { width: 10%; } /* ID */
-.templates-table thead th:nth-child(3) { width: 6%; }  /* Ver */
-.templates-table thead th:nth-child(4) { width: 10%; } /* Channel */
-.templates-table thead th:nth-child(5) { width: 8%; }  /* Trigger */
-.templates-table thead th:nth-child(6) { width: 18%; } /* Preview */
-.templates-table thead th:nth-child(7) { width: 12%; } /* Scope */
-.templates-table thead th:nth-child(8) { width: 7%; }  /* Status */
-.templates-table thead th:nth-child(9) { width: 10%; } /* Updated */
+.templates-table thead th:first-child { width: 16%; }  /* Name */
+.templates-table thead th:nth-child(2) { width: 6%; }  /* Ver */
+.templates-table thead th:nth-child(3) { width: 11%; } /* Channel */
+.templates-table thead th:nth-child(4) { width: 8%; }  /* Trigger */
+.templates-table thead th:nth-child(5) { width: 20%; } /* Preview */
+.templates-table thead th:nth-child(6) { width: 14%; } /* Scope */
+.templates-table thead th:nth-child(7) { width: 8%; }  /* Status */
+.templates-table thead th:nth-child(8) { width: 11%; } /* Updated */
 .templates-table thead th:last-child { 
     width: 40px; 
     background: #f8f9fa;
@@ -232,6 +236,14 @@
 .badge-paused {
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
+}
+.badge-suspended {
+    background: rgba(255, 191, 0, 0.15);
+    color: #cc9900;
+}
+.badge-suspended-admin {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
 }
 .badge-archived {
     background: rgba(220, 53, 69, 0.15);
@@ -704,7 +716,7 @@
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
+                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name...">
                     </div>
                 </div>
             </div>
@@ -759,6 +771,7 @@
                                 </div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="paused" id="statusPaused"><label class="form-check-label small" for="statusPaused">Paused</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="archived" id="statusArchived"><label class="form-check-label small" for="statusArchived">Archived</label></div>
                             </div>
@@ -804,7 +817,6 @@
                     <thead>
                         <tr>
                             <th data-sort="name" onclick="sortTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="templateId" onclick="sortTable('templateId')">ID <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="version" onclick="sortTable('version')">Ver <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
@@ -2072,22 +2084,22 @@
                                 </ul>
                                 <div class="tab-content" id="apiCodeTabContent">
                                     <div class="tab-pane fade show active" id="curl-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCurl"></code></pre>
+                                        <div id="apiCodeCurl" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="python-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePython"></code></pre>
+                                        <div id="apiCodePython" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="nodejs-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeNodejs"></code></pre>
+                                        <div id="apiCodeNodejs" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="php-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePhp"></code></pre>
+                                        <div id="apiCodePhp" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="java-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeJava"></code></pre>
+                                        <div id="apiCodeJava" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="csharp-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCsharp"></code></pre>
+                                        <div id="apiCodeCsharp" class="api-code-block"></div>
                                     </div>
                                 </div>
                             </div>
@@ -2424,174 +2436,11 @@ var tplRichRcsPreviewMode = 'rcs';
 var templateRcsPayload = null;
 var isTemplateWizardContext = true;
 
-var mockTemplates = [
-    {
-        id: 1,
-        templateId: '10483726',
-        name: 'Welcome Message',
-        channel: 'sms',
-        trigger: 'portal',
-        content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.',
-        contentType: 'text',
-        accessScope: 'All Sub-accounts',
-        subAccounts: ['all'],
-        status: 'live',
-        version: 3,
-        lastUpdated: '2026-01-05'
-    },
-    {
-        id: 2,
-        templateId: '20957341',
-        name: 'Appointment Reminder',
-        channel: 'basic_rcs',
-        trigger: 'api',
-        content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.',
-        contentType: 'text',
-        accessScope: 'Marketing Team',
-        subAccounts: ['marketing'],
-        status: 'live',
-        version: 2,
-        lastUpdated: '2026-01-04'
-    },
-    {
-        id: 3,
-        templateId: '38472615',
-        name: 'Product Showcase',
-        channel: 'rich_rcs',
-        trigger: 'portal',
-        content: '',
-        contentType: 'rich_card',
-        accessScope: 'Sales, Support',
-        subAccounts: ['sales', 'support'],
-        status: 'draft',
-        version: 1,
-        lastUpdated: '2026-01-06'
-    },
-    {
-        id: 4,
-        templateId: '47291830',
-        name: 'Holiday Promotions',
-        channel: 'rich_rcs',
-        trigger: 'api',
-        content: '',
-        contentType: 'carousel',
-        accessScope: 'Marketing Team',
-        subAccounts: ['marketing'],
-        status: 'draft',
-        version: 4,
-        lastUpdated: '2025-12-20'
-    },
-    {
-        id: 5,
-        templateId: '56384029',
-        name: 'Order Confirmation',
-        channel: 'sms',
-        trigger: 'email',
-        content: 'Order #{OrderID} confirmed! Your items will ship within 2 business days. Track at: {TrackingURL}',
-        contentType: 'text',
-        accessScope: 'All Sub-accounts',
-        subAccounts: ['all'],
-        status: 'live',
-        version: 1,
-        lastUpdated: '2026-01-03'
-    },
-    {
-        id: 6,
-        templateId: '69102847',
-        name: 'Password Reset',
-        channel: 'sms',
-        trigger: 'api',
-        content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.',
-        contentType: 'text',
-        accessScope: 'IT Security',
-        subAccounts: ['it'],
-        status: 'archived',
-        version: 5,
-        lastUpdated: '2025-11-15'
-    },
-    {
-        id: 7,
-        templateId: '71829364',
-        name: 'Flash Sale Alert',
-        channel: 'basic_rcs',
-        trigger: 'portal',
-        content: 'Flash Sale! 50% off all items for the next 24 hours. Shop now at {ShopURL}. Limited stock available!',
-        contentType: 'text',
-        accessScope: 'Marketing Team',
-        subAccounts: ['marketing'],
-        status: 'draft',
-        version: 1,
-        lastUpdated: '2026-01-07'
-    },
-    {
-        id: 8,
-        templateId: '82946150',
-        name: 'Customer Feedback',
-        channel: 'rich_rcs',
-        trigger: 'email',
-        content: '',
-        contentType: 'rich_card',
-        accessScope: 'Support Team',
-        subAccounts: ['support'],
-        status: 'live',
-        version: 2,
-        lastUpdated: '2026-01-02'
-    }
-];
+var mockTemplates = @json($templates ?? []);
 
-var mockVersionHistory = {
-    1: [
-        { version: 3, status: 'live', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.', channel: 'sms', trigger: 'portal', changeNote: 'Added opt-out instructions', editedBy: 'John Smith', editedAt: '2026-01-05 14:32:00', userId: 'user1' },
-        { version: 2, status: 'archived', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Personalized greeting', editedBy: 'Sarah Jones', editedAt: '2026-01-03 10:15:00', userId: 'user2' },
-        { version: 1, status: 'archived', content: 'Welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2026-01-01 09:00:00', userId: 'user1' }
-    ],
-    2: [
-        { version: 2, status: 'live', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Added confirmation prompt', editedBy: 'Mike Wilson', editedAt: '2026-01-04 16:45:00', userId: 'user3' },
-        { version: 1, status: 'archived', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Initial version', editedBy: 'Mike Wilson', editedAt: '2026-01-02 11:30:00', userId: 'user3' }
-    ],
-    4: [
-        { version: 4, status: 'draft', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Updated carousel images for winter sale', editedBy: 'Lisa Chen', editedAt: '2025-12-20 09:15:00', userId: 'user6' },
-        { version: 3, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Added third carousel card', editedBy: 'Lisa Chen', editedAt: '2025-12-15 14:30:00', userId: 'user6' },
-        { version: 2, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Changed to carousel format', editedBy: 'Mike Wilson', editedAt: '2025-12-10 11:00:00', userId: 'user3' },
-        { version: 1, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Initial rich card version', editedBy: 'John Smith', editedAt: '2025-12-01 10:00:00', userId: 'user1' }
-    ],
-    6: [
-        { version: 5, status: 'archived', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Archived - replaced by new auth system', editedBy: 'Emily Brown', editedAt: '2025-11-15 08:00:00', userId: 'user4' },
-        { version: 4, status: 'archived', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Added security warning', editedBy: 'Emily Brown', editedAt: '2025-10-20 14:20:00', userId: 'user4' },
-        { version: 3, status: 'archived', content: 'Your verification code is {Code}. Expires in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Shortened expiry text', editedBy: 'David Lee', editedAt: '2025-09-15 10:00:00', userId: 'user5' },
-        { version: 2, status: 'archived', content: 'Your verification code is {Code}. This code will expire in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Added expiry info', editedBy: 'Emily Brown', editedAt: '2025-08-01 09:30:00', userId: 'user4' },
-        { version: 1, status: 'archived', content: 'Your verification code is {Code}.', channel: 'sms', trigger: 'api', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2025-07-15 15:00:00', userId: 'user1' }
-    ],
-    8: [
-        { version: 2, status: 'live', content: '', channel: 'rich_rcs', trigger: 'email', changeNote: 'Updated feedback survey link', editedBy: 'Sarah Jones', editedAt: '2026-01-02 15:45:00', userId: 'user2' },
-        { version: 1, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'email', changeNote: 'Initial customer feedback template', editedBy: 'Sarah Jones', editedAt: '2025-12-28 10:30:00', userId: 'user2' }
-    ]
-};
+var mockVersionHistory = {};
 
-var mockAuditLog = {
-    1: [
-        { action: 'launched', version: 3, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-05 14:35:00', details: 'Published version 3 as Live' },
-        { action: 'edited', version: 3, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-05 14:32:00', details: 'Added opt-out instructions' },
-        { action: 'edited', version: 2, userId: 'user2', userName: 'Sarah Jones', timestamp: '2026-01-03 10:15:00', details: 'Personalized greeting' },
-        { action: 'created', version: 1, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-01 09:00:00', details: 'Template created' }
-    ],
-    2: [
-        { action: 'launched', version: 2, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-04 16:50:00', details: 'Published version 2 as Live' },
-        { action: 'edited', version: 2, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-04 16:45:00', details: 'Added confirmation prompt' },
-        { action: 'created', version: 1, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-02 11:30:00', details: 'Template created' }
-    ],
-    6: [
-        { action: 'archived', version: 5, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-11-15 08:00:00', details: 'Template archived - replaced by new auth system' },
-        { action: 'permissions', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-25 11:00:00', details: 'Restricted access to IT Security only' },
-        { action: 'launched', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-20 14:25:00', details: 'Published version 4 as Live' },
-        { action: 'edited', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-20 14:20:00', details: 'Added security warning' },
-        { action: 'edited', version: 3, userId: 'user5', userName: 'David Lee', timestamp: '2025-09-15 10:00:00', details: 'Shortened expiry text' },
-        { action: 'launched', version: 3, userId: 'user5', userName: 'David Lee', timestamp: '2025-09-15 10:05:00', details: 'Published version 3 as Live' },
-        { action: 'edited', version: 2, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-08-01 09:30:00', details: 'Added expiry info' },
-        { action: 'launched', version: 2, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-08-01 09:35:00', details: 'Published version 2 as Live' },
-        { action: 'created', version: 1, userId: 'user1', userName: 'John Smith', timestamp: '2025-07-15 15:00:00', details: 'Template created' }
-    ]
-};
+var mockAuditLog = {};
 
 var currentVersionHistory = {
     templateId: null,
@@ -2636,7 +2485,7 @@ var appliedFilters = {
 var filterLabels = {
     channels: { 'sms': 'SMS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' },
     triggers: { 'api': 'API', 'portal': 'Portal', 'email': 'Email-to-SMS' },
-    statuses: { 'draft': 'Draft', 'live': 'Live', 'paused': 'Paused', 'archived': 'Archived' },
+    statuses: { 'draft': 'Draft', 'live': 'Live', 'suspended': 'Suspended', 'paused': 'Paused', 'archived': 'Archived' },
     subAccounts: { 'marketing': 'Marketing Team', 'sales': 'Sales', 'support': 'Support Team', 'it': 'IT Security', 'all': 'All Sub-accounts' }
 };
 
@@ -2692,9 +2541,25 @@ window.toggleActionMenu = function(btn, event) {
     }
 };
 
+function closeAllActionMenus() {
+    if (activeMenu) {
+        activeMenu.classList.remove('show');
+        activeMenu.style.cssText = '';
+        activeMenu = null;
+    }
+    document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
     setupEventListeners();
+
+    document.addEventListener('show.bs.modal', function() {
+        closeAllActionMenus();
+    });
     
     // Close menus when clicking outside
     document.addEventListener('click', function(e) {
@@ -3629,18 +3494,20 @@ function getTriggerIcon(trigger) {
     return '';
 }
 
-function getStatusLabel(status) {
-    return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function getStatusBadgeClass(status) {
+function getStatusBadgeClass(status, suspendedBy) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
+        case 'suspended': return suspendedBy === 'admin' ? 'badge-suspended-admin' : 'badge-suspended';
         case 'paused': return 'badge-paused';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
+}
+
+function getStatusLabel(status, suspendedBy) {
+    if (status === 'suspended' && suspendedBy === 'admin') return 'Suspended (Admin)';
+    return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function getContentPreview(template) {
@@ -3673,7 +3540,7 @@ function renderTemplates() {
             return false;
         }
         
-        var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search);
+        var matchSearch = !search || t.name.toLowerCase().includes(search);
         var matchChannel = appliedFilters.channels.length === 0 || appliedFilters.channels.includes(t.channel);
         var matchTrigger = appliedFilters.triggers.length === 0 || appliedFilters.triggers.includes(t.trigger);
         var matchStatus = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(t.status);
@@ -3720,14 +3587,13 @@ function renderTemplates() {
         var rowClass = isArchived ? 'archived-row' : '';
         
         html += '<tr class="' + rowClass + '">';
-        html += '<td><span class="template-name">' + template.name + '</span></td>';
-        html += '<td><span class="template-id">' + template.templateId + '</span></td>';
+        html += '<td><span class="template-name" title="' + template.name.replace(/"/g, '&quot;') + '">' + template.name + '</span></td>';
         html += '<td><span class="version-text">v' + template.version + '</span></td>';
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
         html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
+        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span></td>';
         html += '<td>' + formatDate(template.lastUpdated) + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
@@ -3737,7 +3603,7 @@ function renderTemplates() {
         html += '<ul class="dropdown-menu dropdown-menu-end">';
         
         if (!isArchived) {
-            html += '<li><a class="dropdown-item" href="/management/templates/' + template.templateId.replace('TPL-', '') + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/management/templates/' + (template.uuid || template.templateId.replace('TPL-', '')) + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         html += '<li><a class="dropdown-item" href="#" onclick="duplicateTemplate(' + template.id + '); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(' + template.id + '); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
@@ -3749,7 +3615,18 @@ function renderTemplates() {
         }
         if (!isArchived) {
             html += '<li><hr class="dropdown-divider"></li>';
-            html += '<li><a class="dropdown-item text-warning" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            if (template.status === 'live') {
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(' + template.id + '); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+            } else if (template.status === 'suspended') {
+                if (template.suspendedBy === 'admin') {
+                    html += '<li><span class="dropdown-item text-muted disabled" style="cursor: not-allowed; opacity: 0.6;"><i class="fas fa-lock me-2"></i>Admin Suspended</span></li>';
+                } else {
+                    html += '<li><a class="dropdown-item text-success" href="#" onclick="unsuspendTemplate(' + template.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Unsuspend</a></li>';
+                }
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            } else if (template.status === 'draft') {
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            }
         }
         
         html += '</ul>';
@@ -3764,30 +3641,89 @@ function renderTemplates() {
 function editTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (template) {
-        var templateIdNum = template.templateId.replace('TPL-', '');
-        window.location.href = '/management/templates/' + templateIdNum + '/edit';
+        var editId = template.uuid || template.templateId.replace('TPL-', '');
+        window.location.href = '/management/templates/' + editId + '/edit';
     }
 }
 
 function duplicateTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
-    if (!template) return;
-    
-    var newId = mockTemplates.length + 1;
-    var newTemplateId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    
-    var duplicate = Object.assign({}, template, {
-        id: newId,
-        templateId: newTemplateId,
-        name: template.name + ' (Copy)',
-        status: 'draft',
-        version: 1,
-        lastUpdated: new Date().toISOString().split('T')[0]
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (!result.data) {
+            showToast('Failed to load template for duplication', 'danger');
+            return;
+        }
+        var src = result.data;
+        var payload = {
+            name: src.name + ' (Copy)',
+            description: src.description || '',
+            type: src.type,
+            content: src.content || '',
+            status: 'draft'
+        };
+        if (src.rcs_content) payload.rcs_content = src.rcs_content;
+        if (src.category) payload.category = src.category;
+        if (src.tags && src.tags.length) payload.tags = src.tags;
+        if (src.sender_id_id) payload.sender_id_id = src.sender_id_id;
+        if (src.rcs_agent_id) payload.rcs_agent_id = src.rcs_agent_id;
+        if (src.opt_out_enabled) {
+            payload.opt_out_enabled = true;
+            if (src.opt_out_method) payload.opt_out_method = src.opt_out_method;
+            if (src.opt_out_number_id) payload.opt_out_number_id = src.opt_out_number_id;
+            if (src.opt_out_keyword) payload.opt_out_keyword = src.opt_out_keyword;
+            if (src.opt_out_text) payload.opt_out_text = src.opt_out_text;
+            if (src.opt_out_list_id) payload.opt_out_list_id = src.opt_out_list_id;
+            if (src.opt_out_url_enabled) payload.opt_out_url_enabled = true;
+            if (src.opt_out_screening_list_ids && src.opt_out_screening_list_ids.length) payload.opt_out_screening_list_ids = src.opt_out_screening_list_ids;
+        }
+        if (src.trackable_link_enabled) {
+            payload.trackable_link_enabled = true;
+            if (src.trackable_link_domain) payload.trackable_link_domain = src.trackable_link_domain;
+        }
+        if (src.message_expiry_enabled) {
+            payload.message_expiry_enabled = true;
+            if (src.message_expiry_value) payload.message_expiry_value = src.message_expiry_value;
+        }
+        if (src.social_hours_enabled) {
+            payload.social_hours_enabled = true;
+            if (src.social_hours_from) payload.social_hours_from = src.social_hours_from;
+            if (src.social_hours_to) payload.social_hours_to = src.social_hours_to;
+        }
+
+        return fetch('/api/message-templates', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+    })
+    .then(function(response) {
+        if (!response) return;
+        return response.json();
+    })
+    .then(function(result) {
+        if (!result) return;
+        if (result.data) {
+            showToast('Template duplicated as "' + result.data.name + '"', 'success');
+            setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+            showToast(result.message || 'Duplication failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Duplication failed: ' + err.message, 'danger');
     });
-    
-    mockTemplates.push(duplicate);
-    renderTemplates();
-    showToast('Template duplicated as "' + duplicate.name + '"', 'success');
 }
 
 var currentPermissions = {
@@ -4125,19 +4061,19 @@ function viewApiStructure(id) {
     }
     
     document.getElementById('apiTemplateName').textContent = template.name;
-    document.getElementById('apiTemplateIdBadge').textContent = 'ID: ' + template.templateId;
+    document.getElementById('apiTemplateIdBadge').textContent = 'ID: ' + (template.uuid || template.templateId);
     document.getElementById('apiChannelBadge').textContent = getChannelLabel(template.channel);
     document.getElementById('apiChannelBadge').className = 'badge ' + getChannelBadgeClass(template.channel);
     document.getElementById('apiVersionBadge').textContent = 'v' + template.version;
     
-    var placeholders = extractPlaceholders(template.content);
+    var placeholders = extractPlaceholders(template.content, template.rcsContent);
     var hasPlaceholders = placeholders.length > 0;
     
     if (hasPlaceholders) {
         document.getElementById('apiNoPlaceholders').classList.add('d-none');
         document.getElementById('apiPlaceholdersList').classList.remove('d-none');
         document.getElementById('apiPlaceholderChips').innerHTML = placeholders.map(function(ph) {
-            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + ph + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>' + '{' + '{' + ph + '}' + '}' + '</span>';
         }).join('');
     } else {
         document.getElementById('apiNoPlaceholders').classList.remove('d-none');
@@ -4176,26 +4112,44 @@ function viewApiStructure(id) {
     new bootstrap.Modal(document.getElementById('apiStructureModal')).show();
 }
 
-function extractPlaceholders(content) {
-    var regex = /\{([A-Za-z][A-Za-z0-9_]*)\}/g;
+function extractPlaceholders(content, rcsContent) {
+    var allText = (content || '');
+    if (rcsContent && rcsContent.cards && Array.isArray(rcsContent.cards)) {
+        rcsContent.cards.forEach(function(card) {
+            allText += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+            if (card.media && card.media.url) allText += ' ' + card.media.url;
+            if (card.buttons && Array.isArray(card.buttons)) {
+                card.buttons.forEach(function(btn) {
+                    allText += ' ' + (btn.label || '');
+                    if (btn.action && btn.action.url) allText += ' ' + btn.action.url;
+                });
+            }
+        });
+    }
+    var regex = /\{\{(Field_\d+)\}\}/g;
     var matches = [];
     var match;
-    while ((match = regex.exec(content)) !== null) {
+    while ((match = regex.exec(allText)) !== null) {
         if (!matches.includes(match[1])) {
             matches.push(match[1]);
         }
     }
+    matches.sort(function(a, b) {
+        return parseInt(a.replace('Field_', '')) - parseInt(b.replace('Field_', ''));
+    });
     return matches;
 }
 
 function generateApiCodeExamples(template, placeholders) {
     var hasPlaceholders = placeholders.length > 0;
+    var realId = template.uuid || template.templateId;
     var msisdnType = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     var msisdnPy = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     
+    var sampleValues = ['John', 'ORD-12345', 'Premium', '29.99', 'London', '10:00 AM', 'example.com', 'ABC123', 'Thank you', 'Active'];
     var placeholderObj = {};
-    placeholders.forEach(function(ph) {
-        placeholderObj[ph] = 'Example ' + ph;
+    placeholders.forEach(function(ph, i) {
+        placeholderObj[ph] = sampleValues[i] || 'value' + (i + 1);
     });
     var placeholderJson = JSON.stringify(placeholderObj, null, 2);
     var placeholderJsonInline = JSON.stringify(placeholderObj);
@@ -4204,7 +4158,7 @@ function generateApiCodeExamples(template, placeholders) {
         '  -H "Authorization: Bearer YOUR_API_KEY" \\\n' +
         '  -H "Content-Type: application/json" \\\n' +
         '  -d \'{\n' +
-        '    "template_id": "' + template.templateId + '",\n' +
+        '    "template_id": "' + realId + '",\n' +
         '    "msisdn": ' + msisdnType;
     if (hasPlaceholders) {
         curlCode += ',\n    "placeholders": ' + placeholderJson.replace(/\n/g, '\n    ');
@@ -4218,7 +4172,7 @@ function generateApiCodeExamples(template, placeholders) {
         '    "Content-Type": "application/json"\n' +
         '}\n\n' +
         'payload = {\n' +
-        '    "template_id": "' + template.templateId + '",\n' +
+        '    "template_id": "' + realId + '",\n' +
         '    "msisdn": ' + msisdnPy;
     if (hasPlaceholders) {
         pythonCode += ',\n    "placeholders": ' + placeholderJsonInline;
@@ -4229,7 +4183,7 @@ function generateApiCodeExamples(template, placeholders) {
     
     var nodejsCode = 'const axios = require(\'axios\');\n\n' +
         'const payload = {\n' +
-        '  template_id: "' + template.templateId + '",\n' +
+        '  template_id: "' + realId + '",\n' +
         '  msisdn: ' + msisdnType;
     if (hasPlaceholders) {
         nodejsCode += ',\n  placeholders: ' + placeholderJsonInline;
@@ -4248,11 +4202,11 @@ function generateApiCodeExamples(template, placeholders) {
     var phpCode = '<' + '?php\n\n' +
         '$curl = curl_init();\n\n' +
         '$payload = [\n' +
-        '    "template_id" => "' + template.templateId + '",\n' +
+        '    "template_id" => "' + realId + '",\n' +
         '    "msisdn" => ' + phpMsisdn;
     if (hasPlaceholders) {
-        var phpPlaceholders = placeholders.map(function(ph) {
-            return '"' + ph + '" => "Example ' + ph + '"';
+        var phpPlaceholders = placeholders.map(function(ph, i) {
+            return '"' + ph + '" => "' + (sampleValues[i] || 'value' + (i+1)) + '"';
         }).join(', ');
         phpCode += ',\n    "placeholders" => [' + phpPlaceholders + ']';
     }
@@ -4275,7 +4229,7 @@ function generateApiCodeExamples(template, placeholders) {
         'public class QuickSMSExample {\n' +
         '    public static void main(String[] args) throws Exception {\n' +
         '        String json = """{\n' +
-        '            "template_id": "' + template.templateId + '",\n' +
+        '            "template_id": "' + realId + '",\n' +
         '            "msisdn": ' + msisdnType;
     if (hasPlaceholders) {
         javaCode += ',\n            "placeholders": ' + placeholderJsonInline;
@@ -4296,12 +4250,12 @@ function generateApiCodeExamples(template, placeholders) {
     
     var csharpCode = 'using System.Net.Http;\nusing System.Text;\nusing System.Text.Json;\n\n' +
         'var payload = new {\n' +
-        '    template_id = "' + template.templateId + '",\n' +
+        '    template_id = "' + realId + '",\n' +
         '    msisdn = ' + (hasPlaceholders ? '"+447700900123"' : 'new[] { "+447700900123", "+447700900456" }');
     if (hasPlaceholders) {
         csharpCode += ',\n    placeholders = new {\n';
         placeholders.forEach(function(ph, i) {
-            csharpCode += '        ' + ph + ' = "Example ' + ph + '"' + (i < placeholders.length - 1 ? ',' : '') + '\n';
+            csharpCode += '        ' + ph + ' = "' + (sampleValues[i] || 'value' + (i+1)) + '"' + (i < placeholders.length - 1 ? ',' : '') + '\n';
         });
         csharpCode += '    }';
     }
@@ -4315,23 +4269,104 @@ function generateApiCodeExamples(template, placeholders) {
         'var result = await response.Content.ReadAsStringAsync();\n' +
         'Console.WriteLine(result);';
     
-    document.getElementById('apiCodeCurl').textContent = curlCode;
-    document.getElementById('apiCodePython').textContent = pythonCode;
-    document.getElementById('apiCodeNodejs').textContent = nodejsCode;
-    document.getElementById('apiCodePhp').textContent = phpCode;
-    document.getElementById('apiCodeJava').textContent = javaCode;
-    document.getElementById('apiCodeCsharp').textContent = csharpCode;
+    var allCodes = {
+        apiCodeCurl: curlCode,
+        apiCodePython: pythonCode,
+        apiCodeNodejs: nodejsCode,
+        apiCodePhp: phpCode,
+        apiCodeJava: javaCode,
+        apiCodeCsharp: csharpCode
+    };
+    Object.keys(allCodes).forEach(function(elId) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        var raw = allCodes[elId];
+        el.setAttribute('data-raw', raw);
+        el.innerHTML = highlightCode(raw);
+    });
+}
+
+function highlightCode(code) {
+    var lines = code.split('\n');
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var parts = [];
+        var remaining = line;
+        var safeStr = function(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        var keyValRegex = /"([^"\\]*(?:\\.[^"\\]*)*)"(\s*(?::|=>|=)\s*)"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+        var lastIndex = 0;
+        var m;
+        while ((m = keyValRegex.exec(remaining)) !== null) {
+            if (m.index > lastIndex) {
+                parts.push(safeStr(remaining.substring(lastIndex, m.index)));
+            }
+            parts.push('<span style="color:#f5c2e7;">"' + safeStr(m[1]) + '"</span>');
+            parts.push(safeStr(m[2]));
+            parts.push('<span style="color:#a6e3a1;">"' + safeStr(m[3]) + '"</span>');
+            lastIndex = m.index + m[0].length;
+        }
+        if (lastIndex < remaining.length) {
+            parts.push(safeStr(remaining.substring(lastIndex)));
+        }
+        result.push(parts.join(''));
+    }
+    return result.join('\n');
 }
 
 function copyApiCode() {
-    var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
+    var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active .api-code-block');
     if (activePane) {
-        navigator.clipboard.writeText(activePane.textContent).then(function() {
+        var raw = activePane.getAttribute('data-raw') || activePane.textContent;
+        navigator.clipboard.writeText(raw).then(function() {
             showToast('Code copied to clipboard', 'success');
         }).catch(function() {
             showToast('Failed to copy code', 'warning');
         });
     }
+}
+
+function updateTemplateStatus(id, newStatus, successMessage) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.data) {
+            showToast(successMessage, 'success');
+            setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+            showToast(result.message || 'Status update failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Status update failed: ' + err.message, 'danger');
+    });
+}
+
+function suspendTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    updateTemplateStatus(id, 'suspended', 'Template "' + template.name + '" has been suspended');
+}
+
+function unsuspendTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    updateTemplateStatus(id, 'active', 'Template "' + template.name + '" is now Live again');
 }
 
 function archiveTemplate(id) {
@@ -4350,21 +4385,14 @@ function executeArchiveTemplate() {
     var modal = bootstrap.Modal.getInstance(document.getElementById('archiveConfirmModal'));
     modal.hide();
     
-    template.status = 'archived';
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    renderTemplates();
-    showToast('Template "' + template.name + '" has been archived', 'success');
+    updateTemplateStatus(id, 'archived', 'Template "' + template.name + '" has been archived');
 }
 
 function goLiveTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template || template.status === 'archived') return;
     
-    template.status = 'live';
-    template.version = template.version + 1;
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    renderTemplates();
-    showToast('Template "' + template.name + '" is now Live (v' + template.version + ')', 'success');
+    updateTemplateStatus(id, 'active', 'Template "' + template.name + '" is now Live (v' + template.version + ')');
 }
 
 function showToast(message, type) {
@@ -5113,20 +5141,45 @@ document.addEventListener('DOMContentLoaded', function() {
 function viewVersionHistory(templateId) {
     var template = mockTemplates.find(function(t) { return t.id === templateId; });
     if (!template) return;
-    
+
+    var uuid = template.uuid;
+    if (!uuid) return;
+
     currentVersionHistory.templateId = templateId;
-    currentVersionHistory.versions = mockVersionHistory[templateId] || generateDefaultVersionHistory(template);
-    currentVersionHistory.auditLog = mockAuditLog[templateId] || generateDefaultAuditLog(template);
-    
+
     document.getElementById('vhTemplateName').textContent = template.name;
     document.getElementById('vhTemplateId').textContent = template.templateId;
-    
+
+    currentVersionHistory.versions = generateDefaultVersionHistory(template);
+    currentVersionHistory.auditLog = generateDefaultAuditLog(template);
     renderVersionsTable();
     renderAuditTimeline();
-    
+
     document.getElementById('versions-tab').click();
-    
     new bootstrap.Modal(document.getElementById('versionHistoryModal')).show();
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken };
+
+    Promise.all([
+        fetch('/api/message-templates/' + uuid + '/versions', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/message-templates/' + uuid + '/audit-log', { headers: headers }).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        var versionsData = results[0].data || [];
+        var auditData = results[1].data || [];
+
+        if (versionsData.length > 0) {
+            currentVersionHistory.versions = versionsData;
+        }
+        if (auditData.length > 0) {
+            currentVersionHistory.auditLog = auditData;
+        }
+
+        renderVersionsTable();
+        renderAuditTimeline();
+    }).catch(function(err) {
+        console.error('[VersionHistory] Failed to load:', err);
+    });
 }
 
 function generateDefaultVersionHistory(template) {
@@ -5179,15 +5232,19 @@ function renderVersionsTable() {
         html += '<td class="small">' + (v.changeNote || '<span class="text-muted fst-italic">No summary</span>') + '</td>';
         
         html += '<td>';
-        html += '<span class="badge rounded-pill ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span>';
+        if (isCurrent) {
+            html += '<span class="badge rounded-pill ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span>';
+        } else {
+            html += '<span class="badge rounded-pill badge-draft">Previous</span>';
+        }
         html += '</td>';
         
         html += '<td class="text-end">';
         html += '<div class="dropdown">';
-        html += '<button class="btn btn-link p-0 text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
+        html += '<button class="btn btn-link p-0" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" aria-expanded="false" style="color: #6c757d; font-size: 1rem;">';
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
-        html += '<ul class="dropdown-menu dropdown-menu-end">';
+        html += '<ul class="dropdown-menu dropdown-menu-end" style="z-index: 1060;">';
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersion(' + v.version + '); return false;"><i class="fas fa-eye me-2"></i>View version</a></li>';
         
         if (!isCurrent && !isArchived) {
@@ -5309,11 +5366,11 @@ function viewVersion(versionNum) {
         contentPreview.innerHTML = '<p class="text-muted mb-0 fst-italic">Rich RCS content (not displayed in text view)</p>';
     }
     
-    var placeholders = extractPlaceholders(versionData.content || '');
+    var placeholders = extractPlaceholders(versionData.content || '', null);
     var placeholderContainer = document.getElementById('vvPlaceholders');
     if (placeholders.length > 0) {
         placeholderContainer.innerHTML = placeholders.map(function(p) {
-            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + p + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>' + '{' + '{' + p + '}' + '}' + '</span>';
         }).join('');
     } else {
         placeholderContainer.innerHTML = '<span class="text-muted">None</span>';
@@ -5332,10 +5389,6 @@ function viewVersion(versionNum) {
     new bootstrap.Modal(document.getElementById('viewVersionModal')).show();
 }
 
-function extractPlaceholders(content) {
-    var matches = content.match(/\{(\w+)\}/g) || [];
-    return matches.map(function(m) { return m.replace(/[{}]/g, ''); });
-}
 
 function initiateRollback(versionNum) {
     var versionData = currentVersionHistory.versions.find(function(v) { return v.version === versionNum; });
@@ -5374,94 +5427,40 @@ function rollbackFromViewVersion() {
 
 function confirmRollback() {
     if (!rollbackTarget.templateId || !rollbackTarget.version || !rollbackTarget.data) return;
-    
+
     var template = mockTemplates.find(function(t) { return t.id === rollbackTarget.templateId; });
-    if (!template) return;
-    
-    var changeNote = document.getElementById('rbChangeNote').value.trim() || 'Rolled back from version ' + rollbackTarget.version;
-    var setLive = document.getElementById('rbSetLive').checked;
-    
-    var newVersion = template.version + 1;
-    
-    var newVersionEntry = {
-        version: newVersion,
-        status: setLive ? 'live' : 'draft',
-        content: rollbackTarget.data.content,
-        channel: rollbackTarget.data.channel,
-        trigger: rollbackTarget.data.trigger,
-        changeNote: changeNote,
-        editedBy: 'Current User',
-        editedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        userId: 'current'
-    };
-    
-    if (!mockVersionHistory[rollbackTarget.templateId]) {
-        mockVersionHistory[rollbackTarget.templateId] = generateDefaultVersionHistory(template);
-    }
-    mockVersionHistory[rollbackTarget.templateId].unshift(newVersionEntry);
-    
-    if (setLive) {
-        mockVersionHistory[rollbackTarget.templateId].forEach(function(v) {
-            if (v.version !== newVersion && v.status === 'live') {
-                v.status = 'draft';
-            }
-        });
-    }
-    
-    var auditEntry = {
-        action: 'rolled-back',
-        version: newVersion,
-        userId: 'current',
-        userName: 'Current User',
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        details: 'Rolled back to version ' + rollbackTarget.version + '. ' + changeNote
-    };
-    
-    if (!mockAuditLog[rollbackTarget.templateId]) {
-        mockAuditLog[rollbackTarget.templateId] = generateDefaultAuditLog(template);
-    }
-    mockAuditLog[rollbackTarget.templateId].unshift(auditEntry);
-    
-    if (setLive) {
-        var launchEntry = {
-            action: 'launched',
-            version: newVersion,
-            userId: 'current',
-            userName: 'Current User',
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            details: 'Published version ' + newVersion + ' as Live'
-        };
-        mockAuditLog[rollbackTarget.templateId].unshift(launchEntry);
-    }
-    
-    template.version = newVersion;
-    template.content = rollbackTarget.data.content;
-    template.channel = rollbackTarget.data.channel;
-    
-    if (setLive) {
-        template.status = 'live';
-    } else {
-        template.status = 'draft';
-    }
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    
-    var statusBadge = document.getElementById('vhCurrentStatus');
-    statusBadge.textContent = getStatusLabel(template.status);
-    statusBadge.className = 'badge ' + getStatusBadgeClass(template.status).replace('badge-', 'bg-');
-    
-    bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal')).hide();
-    
-    currentVersionHistory.versions = mockVersionHistory[rollbackTarget.templateId];
-    currentVersionHistory.auditLog = mockAuditLog[rollbackTarget.templateId];
-    
-    renderVersionsTable();
-    renderAuditTimeline();
-    
-    renderTemplates();
-    
-    showToast('Rollback complete. Created v' + newVersion + ' from v' + rollbackTarget.version + '.', 'success');
-    
-    rollbackTarget = { templateId: null, version: null, data: null };
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid + '/rollback/' + rollbackTarget.version, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.data) {
+            template.version = result.data.version;
+            template.content = result.data.content || template.content;
+            template.lastUpdated = new Date().toISOString().split('T')[0];
+
+            bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('versionHistoryModal')).hide();
+
+            renderTemplates();
+            showToast('Rollback complete. Created v' + result.data.version + ' from v' + rollbackTarget.version + '.', 'success');
+            rollbackTarget = { templateId: null, version: null, data: null };
+        } else {
+            alert(result.message || 'Rollback failed.');
+        }
+    })
+    .catch(function(err) {
+        alert('Rollback failed: ' + err.message);
+    });
 }
 </script>
 @endpush

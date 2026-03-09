@@ -40,7 +40,8 @@ class OptOutService
     public function getAvailableOptOutNumbers(string $accountId, $user): array
     {
         // VMNs usable by this user
-        $vmns = PurchasedNumber::usableByUser($user)
+        $vmns = PurchasedNumber::withoutGlobalScope('tenant')
+            ->usableByUser($user)
             ->vmns()
             ->active()
             ->select('id', 'number', 'friendly_name', 'country_iso')
@@ -57,10 +58,11 @@ class OptOutService
             ->toArray();
 
         // Shortcodes usable by this user
-        $shortcodes = PurchasedNumber::usableByUser($user)
+        $shortcodes = PurchasedNumber::withoutGlobalScope('tenant')
+            ->usableByUser($user)
             ->shortcodes()
             ->active()
-            ->with('keywords')
+            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')->where('account_id', $accountId)])
             ->select('id', 'number', 'friendly_name', 'number_type', 'country_iso')
             ->orderBy('number')
             ->get()
@@ -136,14 +138,15 @@ class OptOutService
             }
         }
 
-        // In-flight uniqueness: check no other active campaign uses this keyword on this number
+        // In-flight uniqueness: check no other actively-sending campaign uses this keyword on this number
         $conflictQuery = Campaign::withoutGlobalScopes()
             ->where('opt_out_number_id', $numberId)
             ->where('opt_out_keyword', $keyword)
-            ->whereNotIn('status', [
-                Campaign::STATUS_COMPLETED,
-                Campaign::STATUS_CANCELLED,
-                Campaign::STATUS_FAILED,
+            ->whereIn('status', [
+                Campaign::STATUS_QUEUED,
+                Campaign::STATUS_SENDING,
+                Campaign::STATUS_SCHEDULED,
+                Campaign::STATUS_PAUSED,
             ]);
 
         if ($excludeCampaignId) {
@@ -194,7 +197,7 @@ class OptOutService
      */
     public function generateOptOutText(string $keyword, string $number): string
     {
-        return "Reply {$keyword} to {$number} to opt out";
+        return "OptOut, {$keyword} to {$number}";
     }
 
     // =====================================================

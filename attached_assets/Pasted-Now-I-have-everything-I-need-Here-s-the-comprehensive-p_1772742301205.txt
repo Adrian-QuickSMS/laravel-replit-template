@@ -1,0 +1,228 @@
+Now I have everything I need. Here's the comprehensive prompt for Replit:
+
+---
+
+Here's your **Replit prompt for wiring the Email-to-SMS UI to the backend**:
+
+---
+
+## Prompt for Replit
+
+```
+Wire the Email-to-SMS module UI to the real Laravel backend API endpoints. The backend controllers, models, migrations, and routes are already fully built. The UI blade views exist but some still use mock data from the JS service layer. Your job is to ensure every button, form, table, and action in both the Customer Portal and Admin Portal correctly calls the real API and handles responses.
+
+### ARCHITECTURE OVERVIEW
+
+**Tech Stack:** Laravel (Blade templates + jQuery/vanilla JS), PostgreSQL, session-based auth.
+
+**Service Layer:** `public/js/services/email-to-sms-service.js` — an IIFE module (`EmailToSmsService`) that already has `config.useMockData = false` and `config.baseUrl = '/api/email-to-sms'`. It contains residual mock data arrays that should be cleaned up or ignored since `useMockData` is false.
+
+**Authentication:** Customer portal uses `customer.auth` middleware (session-based, tenant ID via `session('customer_tenant_id')`). Admin portal uses `admin.auth` middleware.
+
+### CUSTOMER PORTAL — Routes & API Endpoints
+
+**Page Routes (GET, return Blade views):**
+- `/management/email-to-sms` → Overview page (3 tabs: Addresses, Reporting Groups, Audit Log)
+- `/management/email-to-sms/standard/create` → Standard setup wizard
+- `/management/email-to-sms/create-mapping` → Contact List setup wizard  
+- `/management/email-to-sms/standard/{id}/edit` → Edit standard setup
+- `/management/email-to-sms/contact-list/{id}/edit` → Edit contact list setup
+
+**API Endpoints (JSON, prefix: `/api/email-to-sms`):**
+
+Setups (Standard):
+- `GET    /api/email-to-sms/overview` → Unified listing of all setups (both types)
+- `GET    /api/email-to-sms/setups` → List setups (accepts `?type=standard&search=&status=&sub_account_id=&sort=&dir=`)
+- `POST   /api/email-to-sms/setups` → Create setup (body: name, description, sub_account_id, type, allowed_sender_emails[], sender_id_template_id, sender_id, multiple_sms_enabled, delivery_reports_enabled, delivery_reports_email, reporting_group_id, contact_book_list_ids[], opt_out_mode, opt_out_list_ids[])
+- `GET    /api/email-to-sms/setups/{id}` → Get single setup
+- `PUT    /api/email-to-sms/setups/{id}` → Update setup
+- `DELETE /api/email-to-sms/setups/{id}` → Delete setup
+- `POST   /api/email-to-sms/setups/{id}/suspend` → Suspend
+- `POST   /api/email-to-sms/setups/{id}/reactivate` → Reactivate
+- `POST   /api/email-to-sms/setups/{id}/archive` → Archive
+- `POST   /api/email-to-sms/setups/{id}/unarchive` → Unarchive
+
+Setups (Contact List aliases — same controller, auto-sets type=contact_list):
+- `GET    /api/email-to-sms/contact-list-setups` → List contact_list setups
+- `POST   /api/email-to-sms/contact-list-setups` → Create contact_list setup
+- `GET    /api/email-to-sms/contact-list-setups/{id}` → Show
+- `PUT    /api/email-to-sms/contact-list-setups/{id}` → Update
+- `POST   /api/email-to-sms/contact-list-setups/{id}/archive` → Archive
+- `POST   /api/email-to-sms/contact-list-setups/{id}/unarchive` → Unarchive
+
+Reporting Groups:
+- `GET    /api/email-to-sms/reporting-groups` → List groups (accepts `?search=&include_archived=`)
+- `POST   /api/email-to-sms/reporting-groups` → Create (body: name, description)
+- `GET    /api/email-to-sms/reporting-groups/{id}` → Show
+- `PUT    /api/email-to-sms/reporting-groups/{id}` → Update
+- `DELETE /api/email-to-sms/reporting-groups/{id}` → Delete
+- `POST   /api/email-to-sms/reporting-groups/{id}/archive` → Archive
+- `POST   /api/email-to-sms/reporting-groups/{id}/unarchive` → Unarchive
+
+Helpers:
+- `GET    /api/email-to-sms/templates/senderids` → Approved sender IDs for dropdown
+- `GET    /api/email-to-sms/subaccounts` → Sub-accounts for dropdown
+- `GET    /api/email-to-sms/account/flags` → Account feature flags (dynamic_senderid_allowed, max limits, etc.)
+
+### ADMIN PORTAL — Routes & API Endpoints
+
+**Page Routes (GET, admin layout):**
+- `/admin/assets/email-to-sms` → Admin overview (cross-account view with filters)
+- `/admin/assets/email-to-sms/standard/{id}/edit` → Admin edit standard setup
+- `/admin/assets/email-to-sms/contact-list/{id}/edit` → Admin edit contact list setup
+
+**API Endpoints (JSON, prefix: `/admin/api/email-to-sms`):**
+- `GET    /admin/api/email-to-sms/overview` → Cross-account listing (accepts `?search=&account_id=&type=&status=&date_from=&date_to=&sort=&dir=&include_archived=`)
+- `GET    /admin/api/email-to-sms/accounts` → Accounts that have email-to-sms setups (for filter dropdown)
+- `GET    /admin/api/email-to-sms/reporting-groups` → All reporting groups (accepts `?account_id=&include_archived=`)
+- `GET    /admin/api/email-to-sms/setups/{id}` → Show single setup (cross-account, no tenant restriction)
+- `PUT    /admin/api/email-to-sms/setups/{id}` → Update (admin can change status directly: active/suspended/archived)
+- `POST   /admin/api/email-to-sms/setups/{id}/suspend` → Suspend
+- `POST   /admin/api/email-to-sms/setups/{id}/reactivate` → Reactivate
+- `DELETE /admin/api/email-to-sms/setups/{id}` → Delete (soft delete)
+
+### API RESPONSE FORMAT
+
+All endpoints return consistent JSON:
+```json
+{
+  "success": true,
+  "data": { ... },        // object or array
+  "total": 5,             // for list endpoints
+  "message": "..."        // for mutations
+}
+```
+
+Error responses:
+```json
+{
+  "success": false,
+  "error": "A setup with this name already exists"
+}
+```
+
+### SETUP DATA SHAPE (API response fields)
+
+Customer portal `transformSetup()` returns:
+- id, name, description, subaccountId, subaccountName, generatedEmailAddress, originatingEmails[], allowedEmails[], senderIdTemplateId, senderId, multipleSmsEnabled, deliveryReportsEnabled, deliveryReportsEmail, status, type, reportingGroupId, reportingGroupName, contactBookListIds[], optOutMode, optOutListIds[], createdAt, updatedAt, created, lastUpdated
+
+Overview endpoint returns:
+- id, name, description, type ("Standard" | "Contact List"), originatingEmails[], allowedSenders[], senderId, subAccount, reportingGroup, status, created, lastUsed, messagesSent, optOut, optOutMode, sourceType, sourceId
+
+### DB SCHEMA (tables already created via migration)
+
+**email_to_sms_setups:** id(uuid PK), account_id, sub_account_id, name, description, type(standard|contact_list), generated_email_address, originating_emails(jsonb), allowed_sender_emails(jsonb), sender_id_template_id, sender_id, multiple_sms_enabled, delivery_reports_enabled, delivery_reports_email, status(active|suspended|archived), reporting_group_id, contact_book_list_ids(jsonb), opt_out_mode(NONE|SELECTED), opt_out_list_ids(jsonb), timestamps, soft_deletes. Row Level Security enabled.
+
+**email_to_sms_reporting_groups:** id(uuid PK), account_id, name, description, status(active|archived), timestamps, soft_deletes. Row Level Security enabled.
+
+**email_to_sms_audit_log:** id(uuid PK), account_id, user_id, setup_id, reporting_group_id, action, entity_type, changes(jsonb), ip_address, user_agent, timestamps. Row Level Security enabled.
+
+### BLADE VIEW FILES TO WIRE
+
+**Customer Portal:**
+1. `resources/views/quicksms/management/email-to-sms.blade.php` — Main overview with 3 tabs (Addresses table, Reporting Groups table, Audit Log). Wire: load data on page load, search/filter, sort columns, action dropdowns (Edit, Suspend, Reactivate, Archive, Delete), "New Setup" button, tab switching.
+
+2. `resources/views/quicksms/management/email-to-sms-standard-wizard.blade.php` — Multi-step wizard for creating standard setups. Wire: load sender IDs + subaccounts + account flags on init, form validation, POST to create, redirect on success.
+
+3. `resources/views/quicksms/management/email-to-sms-mapping-wizard.blade.php` — Multi-step wizard for contact list setups. Wire: load contact lists + opt-out lists + sender IDs + subaccounts, form validation, POST to create (type=contact_list), redirect on success.
+
+4. `resources/views/quicksms/management/standard-email-to-sms-form.blade.php` — Edit form partial. Wire: GET setup by ID, populate form, PUT to update, handle errors.
+
+**Admin Portal:**
+5. `resources/views/admin/assets/email-to-sms.blade.php` — Cross-account overview with advanced filters (account, type, status, date range). Wire: load data from admin API, account filter dropdown from /accounts endpoint, action dropdowns, click-to-edit navigation.
+
+6. `resources/views/admin/assets/email-to-sms-standard-edit.blade.php` — Admin edit for standard setups. Wire: GET setup by ID (no tenant restriction), populate wizard, PUT to update, status change buttons.
+
+7. `resources/views/admin/assets/email-to-sms-contact-list-edit.blade.php` — Admin edit for contact list setups. Wire: same as above for contact_list type.
+
+### JS SERVICE LAYER (`public/js/services/email-to-sms-service.js`)
+
+The service already has the correct endpoint configuration:
+```js
+config.baseUrl = '/api/email-to-sms';
+config.endpoints = {
+    list: '/setups',
+    create: '/setups',
+    update: '/setups/{id}',
+    get: '/setups/{id}',
+    archive: '/setups/{id}/archive',
+    unarchive: '/setups/{id}/unarchive',
+    suspend: '/setups/{id}/suspend',
+    reactivate: '/setups/{id}/reactivate',
+    templates: '/templates/senderids',
+    subaccounts: '/subaccounts',
+    accountFlags: '/account/flags'
+};
+```
+
+Ensure all JS functions in the service and in the blade `<script>` sections:
+1. Use these real endpoints (not mock data)
+2. Include CSRF token in all POST/PUT/DELETE requests: `headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }`
+3. Handle loading states (show spinner, disable buttons)
+4. Handle error responses (show toast/alert with error message)
+5. Handle empty states gracefully
+6. Refresh table data after mutations (create/update/delete/suspend/reactivate)
+
+### WIRING CHECKLIST
+
+For each view, ensure:
+
+**Tables/Lists:**
+- [ ] Fetch data from correct API endpoint on page load
+- [ ] Search input triggers filtered API call (debounced, 300ms)
+- [ ] Status filter chips call API with `?status=` param
+- [ ] Column sort headers call API with `?sort=&dir=` params
+- [ ] Table rows render from API response data (not hardcoded HTML)
+- [ ] Empty state shown when data array is empty
+- [ ] Loading skeleton/spinner shown during fetch
+
+**Action Buttons (per row):**
+- [ ] Edit → navigates to correct edit URL with setup ID
+- [ ] Suspend → POST to /setups/{id}/suspend, refresh table
+- [ ] Reactivate → POST to /setups/{id}/reactivate, refresh table
+- [ ] Archive → POST to /setups/{id}/archive with confirmation dialog, refresh table
+- [ ] Delete → DELETE to /setups/{id} with confirmation dialog, refresh table
+- [ ] Copy Email → copy generatedEmailAddress to clipboard with toast feedback
+
+**Create/Edit Wizards:**
+- [ ] On init, fetch sender IDs from /templates/senderids and populate dropdown
+- [ ] On init, fetch subaccounts from /subaccounts and populate dropdown
+- [ ] On init, fetch account flags from /account/flags to show/hide conditional fields
+- [ ] For edit mode: fetch setup by ID and populate all form fields
+- [ ] Form submit sends POST (create) or PUT (edit) with all fields
+- [ ] Validation errors from API (422) displayed next to fields
+- [ ] Success → redirect to overview page with success toast
+- [ ] "Cancel" button → navigate back without saving
+
+**Reporting Groups Tab:**
+- [ ] Fetch groups from /reporting-groups on tab activation
+- [ ] Create modal → POST to /reporting-groups
+- [ ] Edit inline or modal → PUT to /reporting-groups/{id}
+- [ ] Archive → POST to /reporting-groups/{id}/archive
+- [ ] Delete → DELETE to /reporting-groups/{id}
+- [ ] Show linked addresses count from API response
+
+**Admin-Specific:**
+- [ ] Account filter dropdown populated from /admin/api/email-to-sms/accounts
+- [ ] Type filter works with display values ("Standard", "Contact List")
+- [ ] Date range picker filters call API with date_from/date_to params
+- [ ] Admin edit pages use /admin/api/email-to-sms/setups/{id} endpoints (not customer endpoints)
+- [ ] Admin can change status directly (active/suspended/archived dropdown)
+
+### IMPORTANT NOTES
+
+1. All API endpoints already work and return real data — do NOT create new controllers or routes
+2. Do NOT modify any PHP files (controllers, models, migrations, routes) — they are complete
+3. CSRF token meta tag exists in layouts: `<meta name="csrf-token" content="{{ csrf_token() }}">`
+4. Use jQuery `$.ajax()` or vanilla `fetch()` — both are available
+5. The admin portal uses a different layout (`layouts.admin`) with navy blue theme (`--admin-primary: #1e3a5f`)
+6. The customer portal uses `layouts.quicksms` with purple theme (`--primary: #886CC0`)
+7. Toast notifications use `toastr` library (already loaded): `toastr.success('message')`, `toastr.error('message')`
+8. Confirmation dialogs should use SweetAlert2 (already loaded): `Swal.fire({ ... })`
+9. Maintain existing CSS classes and HTML structure — only modify `<script>` blocks and dynamic rendering logic
+10. All UUIDs are strings — ensure ID comparisons use string comparison
+```
+
+---
+
+This prompt gives Replit the complete API contract, data shapes, file locations, and a wiring checklist so it can systematically connect each UI element to the correct backend endpoint without needing to guess or explore the codebase.

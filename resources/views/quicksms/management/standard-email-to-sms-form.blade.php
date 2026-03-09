@@ -271,14 +271,11 @@
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Subaccount <span class="text-danger">*</span></label>
+                                                <label class="form-label">Account <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="stdFormSubaccount">
-                                                    <option value="">Select subaccount...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing Team</option>
-                                                    <option value="support">Support Team</option>
+                                                    <option value="">Loading accounts...</option>
                                                 </select>
-                                                <div class="invalid-feedback">Please select a subaccount.</div>
+                                                <div class="invalid-feedback">Please select an account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -331,17 +328,20 @@
                                         
                                         <div class="row g-3 mb-4">
                                             <div class="col-md-6">
-                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                                <label class="form-label">SMS SenderID <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="stdFormSenderId">
-                                                    <option value="">Select SenderID...</option>
-                                                    <option value="QuickSMS">QuickSMS</option>
-                                                    <option value="ALERTS">ALERTS</option>
-                                                    <option value="NHS">NHS</option>
-                                                    <option value="INFO">INFO</option>
-                                                    <option value="Pharmacy">Pharmacy</option>
+                                                    <option value="">Loading SenderIDs...</option>
                                                 </select>
                                                 <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                                 <div class="invalid-feedback">Please select a SenderID.</div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label class="form-label">RCS Agent <span class="text-muted fw-normal">(Optional)</span></label>
+                                                <select class="form-select" id="stdFormRcsAgent">
+                                                    <option value="">None – SMS only</option>
+                                                </select>
+                                                <small class="text-muted">Select an approved RCS agent to send via Basic RCS with SMS fallback.</small>
                                             </div>
                                             
                                             <div class="col-md-6">
@@ -422,8 +422,12 @@
                                         <div class="review-section">
                                             <h6><i class="fas fa-sms me-2"></i>Message Settings</h6>
                                             <div class="review-row">
-                                                <span class="review-label">SenderID</span>
+                                                <span class="review-label">SMS SenderID</span>
                                                 <span class="review-value" id="reviewSenderId">-</span>
+                                            </div>
+                                            <div class="review-row">
+                                                <span class="review-label">RCS Agent</span>
+                                                <span class="review-value" id="reviewRcsAgent">None – SMS only</span>
                                             </div>
                                             <div class="review-row">
                                                 <span class="review-label">Subject as SenderID</span>
@@ -461,6 +465,66 @@ $(document).ready(function() {
     var editingId = $('#stdFormEditingId').val() || null;
     var setupCreated = false;
     var stepValidated = [false, false, false];
+    
+    function loadFormAccounts() {
+        return EmailToSmsService.getSubaccounts().then(function(response) {
+            var $select = $('#stdFormSubaccount');
+            var currentVal = $select.val();
+            $select.empty().append('<option value="">Select account...</option>');
+            if (response.success && response.data) {
+                response.data.forEach(function(account) {
+                    $select.append('<option value="' + account.id + '">' + account.name + '</option>');
+                });
+            }
+            if (currentVal) {
+                $select.val(currentVal);
+            } else if (response.data && response.data.length === 1) {
+                $select.val(response.data[0].id);
+            }
+        }).catch(function() {
+            $('#stdFormSubaccount').empty().append('<option value="">No accounts available</option>');
+        });
+    }
+    var formAccountsLoaded = loadFormAccounts();
+
+    function loadFormSenderIds() {
+        return EmailToSmsService.getTemplatesForSenderIdDropdown().then(function(response) {
+            var $select = $('#stdFormSenderId');
+            var currentVal = $select.val();
+            $select.empty().append('<option value="">Select SenderID...</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(sid) {
+                    $select.append('<option value="' + sid.id + '">' + (sid.senderId || sid.name) + '</option>');
+                });
+            } else {
+                $select.append('<option value="" disabled>No approved SenderIDs found</option>');
+            }
+            if (currentVal) $select.val(currentVal);
+        }).catch(function() {
+            $('#stdFormSenderId').empty().append('<option value="">Select SenderID...</option>').append('<option value="" disabled>Failed to load</option>');
+        });
+    }
+
+    function loadFormRcsAgents() {
+        return $.ajax({
+            url: '/api/rcs-agents/approved',
+            method: 'GET',
+            dataType: 'json'
+        }).then(function(response) {
+            var $select = $('#stdFormRcsAgent');
+            $select.empty().append('<option value="">None – SMS only</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(agent) {
+                    $select.append('<option value="' + (agent.uuid || agent.id) + '">' + agent.name + '</option>');
+                });
+            }
+        }).catch(function() {
+            $('#stdFormRcsAgent').empty().append('<option value="">None – SMS only</option>');
+        });
+    }
+
+    var formSenderIdsLoaded = loadFormSenderIds();
+    loadFormRcsAgents();
     
     function escapeHtml(text) {
         var div = document.createElement('div');
@@ -566,7 +630,9 @@ $(document).ready(function() {
             $('#reviewAllowedSenders').text('All senders allowed');
         }
         
-        $('#reviewSenderId').text($('#stdFormSenderId').val() || '-');
+        $('#reviewSenderId').text($('#stdFormSenderId option:selected').text() || '-');
+        var rcsVal = $('#stdFormRcsAgent').val();
+        $('#reviewRcsAgent').text(rcsVal ? $('#stdFormRcsAgent option:selected').text() : 'None – SMS only');
         $('#reviewSubjectAsSenderId').text($('#stdFormSubjectAsSenderId').is(':checked') ? 'Yes' : 'No');
         $('#reviewMultipleSms').text($('#stdFormMultipleSms').is(':checked') ? 'Yes' : 'No');
         
@@ -650,7 +716,9 @@ $(document).ready(function() {
             description: $('#stdFormDescription').val().trim(),
             subaccountId: $('#stdFormSubaccount').val(),
             allowedEmails: stdFormAllowedEmails.slice(),
-            senderIdTemplateId: 'tpl-' + $('#stdFormSenderId').val().toLowerCase().replace(/\s+/g, '-'),
+            senderIdTemplateId: $('#stdFormSenderId').val() || null,
+            senderId: $('#stdFormSenderId option:selected').text() || null,
+            rcsAgentId: $('#stdFormRcsAgent').val() || null,
             subjectOverridesSenderId: $('#stdFormSubjectAsSenderId').is(':checked'),
             multipleSmsEnabled: $('#stdFormMultipleSms').is(':checked'),
             deliveryReportsEnabled: $('#stdFormDeliveryReports').is(':checked'),
@@ -841,13 +909,16 @@ $(document).ready(function() {
     });
     
     if (editingId) {
-        EmailToSmsService.getEmailToSmsSetup(editingId).then(function(response) {
+        Promise.all([formAccountsLoaded, formSenderIdsLoaded]).then(function() {
+            return EmailToSmsService.getEmailToSmsSetup(editingId);
+        }).then(function(response) {
             if (response.success && response.data) {
                 var item = response.data;
                 $('#stdFormName').val(item.name);
                 $('#stdFormDescription').val(item.description || '').trigger('input');
                 $('#stdFormSubaccount').val(item.subaccountId);
-                $('#stdFormSenderId').val(item.senderId);
+                $('#stdFormSenderId').val(item.senderIdTemplateId || item.senderId);
+                if (item.rcsAgentId) $('#stdFormRcsAgent').val(item.rcsAgentId);
                 $('#stdFormSubjectAsSenderId').prop('checked', item.subjectOverridesSenderId);
                 $('#stdFormMultipleSms').prop('checked', item.multipleSmsEnabled);
                 $('#stdFormDeliveryReports').prop('checked', item.deliveryReportsEnabled);

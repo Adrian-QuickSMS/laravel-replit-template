@@ -626,7 +626,7 @@ $(document).ready(function() {
         'john@techstart.io': { password: 'Demo123!', name: 'John Smith', company: 'TechStart Solutions', mobile: '7911123456', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['developers'], dev_bypass_enabled: true },
         'sarah@edulearn.ac.uk': { password: 'Demo123!', name: 'Sarah Johnson', company: 'EduLearn Institute', mobile: '7922234567', mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false },
         'mike@greenenergy.com': { password: 'Demo123!', name: 'Mike Wilson', company: 'GreenEnergy Co', mobile: null, mfa_enabled: true, totp_enabled: true, rcs_enabled: false, groups: ['qa_team'], dev_bypass_enabled: true },
-        'demo@quicksms.io': { password: 'demo123', name: 'Demo User', company: 'QuickSMS Demo', mobile: '7900000000', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['internal_testers'], dev_bypass_enabled: true },
+        'demo@quicksms.com': { password: 'demo123', name: 'Demo User', company: 'QuickSMS Demo', mobile: '7900000000', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['internal_testers'], dev_bypass_enabled: true },
         // Test user for policy enforcement - enrolled only in SMS (no TOTP), to test when authenticator-only policy is enforced
         'policy-test@example.com': { password: 'test123', name: 'Policy Test User', company: 'Test Corp', mobile: null, mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false }
     };

@@ -57,7 +57,6 @@ $permissions = [
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #ced4da;
-    overflow: hidden;
 }
 .table-container .card-header {
     background: #fff;
@@ -117,8 +116,12 @@ $permissions = [
     line-height: 1.4;
 }
 .badge-status-draft {
-    background-color: #e9ecef;
-    color: #495057;
+    background-color: #dbe9ff;
+    color: #1a4d8f;
+}
+.badge-pastel-danger {
+    background-color: #f8d7da;
+    color: #842029;
 }
 .badge-channel-sms {
     background-color: #d4edda;
@@ -165,6 +168,10 @@ $permissions = [
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="background: #fff; border-bottom: none;">
                     <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
                     <div class="d-flex align-items-center gap-2">
+                        <div class="form-check form-switch mb-0 me-2">
+                            <input class="form-check-input" type="checkbox" id="showArchivedToggle">
+                            <label class="form-check-label small text-muted" for="showArchivedToggle">Archived</label>
+                        </div>
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                             <span id="activeFiltersBadge" class="badge bg-primary ms-1 d-none">0</span>
@@ -341,7 +348,7 @@ $permissions = [
                         </div>
                     </div>
 
-                    <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden;">
+                    <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: visible;">
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
                                 <tr>
@@ -402,13 +409,30 @@ $permissions = [
                                     data-status="{{ $campaign['status'] }}"
                                     data-recipients-total="{{ $campaign['recipients_total'] }}"
                                     data-recipients-delivered="{{ $campaign['recipients_delivered'] ?? '' }}"
+                                    data-recipients-failed="{{ $campaign['recipients_failed'] ?? 0 }}"
                                     data-send-date="{{ $campaign['send_date'] }}"
                                     data-sender-id="{{ $campaign['sender_id'] }}"
                                     data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
+                                    data-rcs-agent-logo="{{ $campaign['rcs_agent_logo'] ?? '' }}"
+                                    data-rcs-agent-tagline="{{ $campaign['rcs_agent_tagline'] ?? '' }}"
+                                    data-rcs-agent-brand-color="{{ $campaign['rcs_agent_brand_color'] ?? '#886CC0' }}"
                                     data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
                                     data-template="{{ $campaign['template'] ?? '' }}"
                                     data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
-                                    data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}">
+                                    data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}"
+                                    data-message-content="{{ $campaign['message_content'] ?? '' }}"
+                                    data-rcs-content="{{ isset($campaign['rcs_content']) ? json_encode($campaign['rcs_content']) : '' }}"
+                                    data-estimated-cost="{{ $campaign['estimated_cost'] ?? '' }}"
+                                    data-actual-cost="{{ $campaign['actual_cost'] ?? '' }}"
+                                    data-currency="{{ $campaign['currency'] ?? 'GBP' }}"
+                                    data-segment-count="{{ $campaign['segment_count'] ?? 1 }}"
+                                    data-total-recipients-raw="{{ $campaign['total_recipients_raw'] ?? 0 }}"
+                                    data-total-opted-out="{{ $campaign['total_opted_out'] ?? 0 }}"
+                                    data-total-invalid="{{ $campaign['total_invalid'] ?? 0 }}"
+                                    data-recipient-sources="{{ isset($campaign['recipient_sources']) ? json_encode($campaign['recipient_sources']) : '' }}"
+                                    data-fallback-sms-count="{{ $campaign['fallback_sms_count'] ?? 0 }}"
+                                    data-sent-count="{{ $campaign['sent_count'] ?? 0 }}"
+                                    data-pending-count="{{ $campaign['pending_count'] ?? 0 }}">
                                     <td class="py-2">
                                         <h6 class="mb-0 fs-6">{{ $campaign['name'] }}</h6>
                                     </td>
@@ -423,7 +447,7 @@ $permissions = [
                                     </td>
                                     <td class="py-2">
                                         @if($campaign['status'] === 'draft')
-                                            <span class="badge badge-pastel-secondary">Draft</span>
+                                            <span class="badge badge-status-draft">Draft</span>
                                         @elseif($campaign['status'] === 'pending')
                                             <span class="badge badge-pastel-warning">Pending</span>
                                         @elseif($campaign['status'] === 'scheduled')
@@ -431,7 +455,9 @@ $permissions = [
                                         @elseif($campaign['status'] === 'sending')
                                             <span class="badge badge-pastel-primary">Sending</span>
                                         @elseif($campaign['status'] === 'cancelled')
-                                            <span class="badge badge-pastel-secondary">Cancelled</span>
+                                            <span class="badge badge-pastel-danger">Cancelled</span>
+                                        @elseif($campaign['status'] === 'archived')
+                                            <span class="badge badge-pastel-secondary">Archived</span>
                                         @else
                                             <span class="badge badge-pastel-success">Complete</span>
                                         @endif
@@ -444,7 +470,34 @@ $permissions = [
                                         @endif
                                     </td>
                                     <td class="py-2">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
-                                    <td class="py-2"></td>
+                                    <td class="py-2 text-end" style="white-space: nowrap;">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation();" style="font-size: 1.1rem; line-height: 1;">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 140px;">
+                                                @if($campaign['status'] === 'draft')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="event.stopPropagation(); confirmDeleteDbCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                @elseif($campaign['status'] === 'scheduled')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-warning" href="#" onclick="event.stopPropagation(); confirmCancelFromTable('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-times-circle me-2"></i>Cancel</a></li>
+                                                @elseif($campaign['status'] === 'pending' || $campaign['status'] === 'sending')
+                                                    <li><a class="dropdown-item text-warning" href="#" onclick="event.stopPropagation(); confirmCancelFromTable('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-times-circle me-2"></i>Cancel</a></li>
+                                                @elseif($campaign['status'] === 'cancelled')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @elseif($campaign['status'] === 'complete')
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @elseif($campaign['status'] === 'failed')
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr id="emptyStateRow">
@@ -467,6 +520,20 @@ $permissions = [
                             </button>
                         </div>
                     </div>
+                    @if(isset($paginator) && $paginator->hasPages())
+                    <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                        <div class="small text-muted">
+                            Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }} campaigns
+                        </div>
+                        <div>
+                            {{ $paginator->onEachSide(1)->links('pagination::bootstrap-5') }}
+                        </div>
+                    </div>
+                    @elseif(isset($paginator))
+                    <div class="small text-muted mt-3 px-2">
+                        {{ $paginator->total() }} {{ Str::plural('campaign', $paginator->total()) }} total
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -909,8 +976,50 @@ $permissions = [
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDeleteDraft()">
-                    <i class="fas fa-trash me-1"></i>Delete Draft
+                <button type="button" class="btn btn-danger" onclick="pendingDeleteDbCampaignId ? executeDeleteDbCampaign() : confirmDeleteDraft()">
+                    <i class="fas fa-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="archiveCampaignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-archive me-2 text-muted"></i>Archive Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive <strong id="archiveCampaignName">this campaign</strong>?</p>
+                <p class="text-muted small mb-0">Archived campaigns will be hidden from the campaign list.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="executeArchiveCampaign()">
+                    <i class="fas fa-archive me-1"></i>Archive
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelCampaignFromTableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Cancel Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel <strong id="cancelFromTableName">this campaign</strong>?</p>
+                <p class="text-muted small mb-0">The campaign will not be sent. You can archive it afterwards.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep Campaign</button>
+                <button type="button" class="btn btn-danger" onclick="executeCancelFromTable()">
+                    <i class="fas fa-times-circle me-1"></i>Cancel Campaign
                 </button>
             </div>
         </div>
@@ -955,6 +1064,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (drawerEl) {
         campaignDrawer = new bootstrap.Offcanvas(drawerEl);
     }
+
+    var campaignTable = document.getElementById('campaignsTable');
+    if (campaignTable) {
+        campaignTable.addEventListener('click', function(e) {
+            var clickedToggle = e.target.closest('[data-bs-toggle="dropdown"]');
+            if (!clickedToggle) return;
+            var allToggles = campaignTable.querySelectorAll('[data-bs-toggle="dropdown"]');
+            allToggles.forEach(function(toggle) {
+                if (toggle !== clickedToggle) {
+                    var instance = bootstrap.Dropdown.getInstance(toggle);
+                    if (instance) instance.hide();
+                }
+            });
+        }, true);
+    }
     
     var searchInput = document.getElementById('campaignSearch');
     if (searchInput) {
@@ -964,6 +1088,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 filterCampaigns();
             }
         });
+    }
+
+    var archivedToggle = document.getElementById('showArchivedToggle');
+    if (archivedToggle) {
+        archivedToggle.addEventListener('change', filterCampaigns);
     }
     
     var applyBtn = document.getElementById('btnApplyFilters');
@@ -1014,7 +1143,69 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     loadDraftsFromStorage();
+    restoreFiltersFromUrl();
+    filterCampaigns();
 });
+
+function restoreFiltersFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var hasFilters = false;
+
+    var statusParam = params.get('status');
+    if (statusParam) {
+        statusParam.split(',').forEach(function(s) {
+            var cb = document.querySelector('[data-filter="statuses"] input[value="' + s + '"]');
+            if (cb) cb.checked = true;
+        });
+        updateDropdownLabel(document.querySelector('[data-filter="statuses"]'));
+        hasFilters = true;
+    }
+
+    var channelParam = params.get('channel');
+    if (channelParam) {
+        channelParam.split(',').forEach(function(c) {
+            var cb = document.querySelector('[data-filter="channels"] input[value="' + c + '"]');
+            if (cb) cb.checked = true;
+        });
+        updateDropdownLabel(document.querySelector('[data-filter="channels"]'));
+        hasFilters = true;
+    }
+
+    var dateFrom = params.get('date_from');
+    if (dateFrom) {
+        document.getElementById('filterDateFrom').value = dateFrom;
+        hasFilters = true;
+    }
+
+    var dateTo = params.get('date_to');
+    if (dateTo) {
+        document.getElementById('filterDateTo').value = dateTo;
+        hasFilters = true;
+    }
+
+    var searchParam = params.get('search');
+    if (searchParam) {
+        document.getElementById('campaignSearch').value = searchParam;
+    }
+
+    if (hasFilters) {
+        var filtersPanel = document.getElementById('filtersPanel');
+        if (filtersPanel) {
+            new bootstrap.Collapse(filtersPanel, { show: true });
+        }
+        activeFilters = {
+            statuses: statusParam ? statusParam.split(',') : [],
+            channels: channelParam ? channelParam.split(',') : [],
+            senderIds: [],
+            rcsAgents: [],
+            dateFrom: dateFrom || '',
+            dateTo: dateTo || '',
+            tracking: [],
+            optout: []
+        };
+        updateFilterBadge();
+    }
+}
 
 function loadDraftsFromStorage() {
     var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
@@ -1035,17 +1226,35 @@ function loadDraftsFromStorage() {
         
         var row = document.createElement('tr');
         row.setAttribute('data-id', draft.id);
-        row.setAttribute('data-name', draft.name.toLowerCase());
+        row.setAttribute('data-name', draft.name);
         row.setAttribute('data-channel', draft.channel);
         row.setAttribute('data-status', 'draft');
         row.setAttribute('data-sender-id', draft.sender_id || '');
-        row.setAttribute('data-rcs-agent', draft.rcs_agent || '');
+        row.setAttribute('data-rcs-agent', draft.rcs_agent || (draft.config ? draft.config.rcs_agent_display_name || '' : ''));
+        row.setAttribute('data-rcs-agent-logo', draft.rcs_agent_logo || (draft.config ? draft.config.rcs_agent_logo || '' : ''));
+        row.setAttribute('data-rcs-agent-tagline', draft.rcs_agent_tagline || (draft.config ? draft.config.rcs_agent_tagline || '' : ''));
+        row.setAttribute('data-rcs-agent-brand-color', draft.rcs_agent_brand_color || (draft.config ? draft.config.rcs_agent_brand_color || '' : ''));
         row.setAttribute('data-send-date', draft.created_at);
         row.setAttribute('data-recipients-total', draft.recipients);
+        row.setAttribute('data-recipients-delivered', '');
+        row.setAttribute('data-recipients-failed', '0');
         row.setAttribute('data-has-tracking', draft.has_tracking);
         row.setAttribute('data-has-optout', draft.has_optout);
         row.setAttribute('data-tags', '');
         row.setAttribute('data-template', draft.template || '');
+        row.setAttribute('data-message-content', draft.message_content || '');
+        row.setAttribute('data-rcs-content', draft.rcs_content ? JSON.stringify(draft.rcs_content) : (draft.config && draft.config.rcs_content ? JSON.stringify(draft.config.rcs_content) : ''));
+        row.setAttribute('data-estimated-cost', '');
+        row.setAttribute('data-actual-cost', '');
+        row.setAttribute('data-currency', 'GBP');
+        row.setAttribute('data-segment-count', '1');
+        row.setAttribute('data-total-recipients-raw', draft.config ? (draft.config.recipient_count || draft.recipients || 0) : 0);
+        row.setAttribute('data-total-opted-out', '0');
+        row.setAttribute('data-total-invalid', draft.config ? (draft.config.invalid_count || 0) : 0);
+        row.setAttribute('data-recipient-sources', draft.config && draft.config.sources ? JSON.stringify(Object.keys(draft.config.sources).filter(function(k) { return draft.config.sources[k] > 0; })) : '');
+        row.setAttribute('data-fallback-sms-count', '0');
+        row.setAttribute('data-sent-count', '0');
+        row.setAttribute('data-pending-count', '0');
         row.className = 'campaign-row';
         row.style.cursor = 'pointer';
         row.onclick = function() { openCampaignDrawer(draft.id); };
@@ -1054,17 +1263,19 @@ function loadDraftsFromStorage() {
             '<h6 class="mb-0 fs-6">' + escapeHtml(draft.name) + '</h6>' +
             '</td>' +
             '<td class="py-2"><span class="badge ' + channelBadgeClass + '">' + channelLabel + '</span></td>' +
-            '<td class="py-2"><span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
+            '<td class="py-2"><span class="badge" style="background-color: #dbe9ff; color: #1a4d8f;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
             '<td class="py-2">' + draft.recipients + '</td>' +
             '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
-            '<td class="py-2 text-end">' +
-            '<div class="d-flex gap-1 justify-content-end flex-nowrap">' +
-            '<a href="/messages/send?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();" title="Edit Draft">' +
-            '<i class="fas fa-edit"></i>' +
-            '</a>' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name) + '\');" title="Delete Draft">' +
-            '<i class="fas fa-trash"></i>' +
+            '<td class="py-2 text-end" style="white-space: nowrap;">' +
+            '<div class="dropdown">' +
+            '<button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation();" style="font-size: 1.1rem; line-height: 1;">' +
+            '<i class="fas fa-ellipsis-v"></i>' +
             '</button>' +
+            '<ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 140px;">' +
+            '<li><a class="dropdown-item" href="/messages/send?edit=' + draft.id + '" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>' +
+            '<li><hr class="dropdown-divider"></li>' +
+            '<li><a class="dropdown-item text-danger" href="#" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name).replace(/'/g, "\\'") + '\');"><i class="fas fa-trash me-2"></i>Delete</a></li>' +
+            '</ul>' +
             '</div>' +
             '</td>';
         
@@ -1118,6 +1329,128 @@ function confirmDeleteDraft() {
         visibleCountEl.textContent = totalRows;
         totalCountEl.textContent = totalRows;
     }
+}
+
+var pendingDeleteDbCampaignId = null;
+var pendingDeleteDbCampaignName = '';
+
+function confirmDeleteDbCampaign(campaignId, campaignName) {
+    pendingDeleteDbCampaignId = campaignId;
+    pendingDeleteDbCampaignName = campaignName;
+    document.getElementById('deleteDraftName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('deleteDraftModal'));
+    modal.show();
+}
+
+function executeDeleteDbCampaign() {
+    if (!pendingDeleteDbCampaignId) return;
+
+    fetch('/api/campaigns/' + pendingDeleteDbCampaignId, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Delete failed');
+        return r.json();
+    })
+    .then(function() {
+        var row = document.querySelector('tr[data-id="' + pendingDeleteDbCampaignId + '"]');
+        if (row) row.remove();
+        bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
+        pendingDeleteDbCampaignId = null;
+        showToast('Campaign deleted', 'success');
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
+        pendingDeleteDbCampaignId = null;
+        showToast('Failed to delete campaign', 'error');
+    });
+}
+
+var pendingArchiveCampaignId = null;
+
+function confirmArchiveCampaign(campaignId, campaignName) {
+    pendingArchiveCampaignId = campaignId;
+    document.getElementById('archiveCampaignName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('archiveCampaignModal'));
+    modal.show();
+}
+
+function executeArchiveCampaign() {
+    if (!pendingArchiveCampaignId) return;
+
+    fetch('/api/campaigns/' + pendingArchiveCampaignId + '/archive', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Archive failed');
+        return r.json();
+    })
+    .then(function() {
+        var row = document.querySelector('tr[data-id="' + pendingArchiveCampaignId + '"]');
+        if (row) {
+            row.dataset.status = 'archived';
+            var statusCell = row.querySelector('td:nth-child(3) .badge');
+            if (statusCell) {
+                statusCell.className = 'badge badge-pastel-secondary';
+                statusCell.textContent = 'Archived';
+            }
+            var showArchived = document.getElementById('showArchivedToggle').checked;
+            if (!showArchived) row.style.display = 'none';
+        }
+        bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
+        pendingArchiveCampaignId = null;
+        showToast('Campaign archived', 'success');
+        filterCampaigns();
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
+        pendingArchiveCampaignId = null;
+        showToast('Failed to archive campaign', 'error');
+    });
+}
+
+var pendingCancelFromTableId = null;
+
+function confirmCancelFromTable(campaignId, campaignName) {
+    pendingCancelFromTableId = campaignId;
+    document.getElementById('cancelFromTableName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('cancelCampaignFromTableModal'));
+    modal.show();
+}
+
+function executeCancelFromTable() {
+    if (!pendingCancelFromTableId) return;
+
+    fetch('/api/campaigns/' + pendingCancelFromTableId + '/cancel', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Cancel failed');
+        return r.json();
+    })
+    .then(function() {
+        bootstrap.Modal.getInstance(document.getElementById('cancelCampaignFromTableModal')).hide();
+        pendingCancelFromTableId = null;
+        showToast('Campaign cancelled', 'success');
+        setTimeout(function() { window.location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('cancelCampaignFromTableModal')).hide();
+        pendingCancelFromTableId = null;
+        showToast('Failed to cancel campaign', 'error');
+    });
 }
 
 function updateDropdownLabel(dropdown) {
@@ -1200,10 +1533,11 @@ function filterCampaigns() {
     var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
     var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
     var visibleCount = 0;
+    var showArchived = document.getElementById('showArchivedToggle').checked;
     var hasActiveFilters = Object.values(activeFilters).some(function(v) { 
         return Array.isArray(v) ? v.length > 0 : v !== ''; 
     });
-    console.log('[CampaignHistory] Search term:', searchTerm, 'Has active filters:', hasActiveFilters, 'Rows found:', rows.length);
+    console.log('[CampaignHistory] Search term:', searchTerm, 'Has active filters:', hasActiveFilters, 'Rows found:', rows.length, 'Show archived:', showArchived);
     
     rows.forEach(function(row) {
         var name = (row.dataset.name || '').toLowerCase();
@@ -1216,6 +1550,11 @@ function filterCampaigns() {
         var sendDate = row.dataset.sendDate || '';
         var hasTracking = row.dataset.hasTracking || '';
         var hasOptout = row.dataset.hasOptout || '';
+
+        if (status === 'archived' && !showArchived) {
+            row.style.display = 'none';
+            return;
+        }
         
         var searchable = name + ' ' + senderId.toLowerCase() + ' ' + rcsAgent.toLowerCase() + ' ' + tags + ' ' + template + ' ' + channel.toLowerCase().replace('_', ' ') + ' ' + status.toLowerCase();
         var matchesSearch = searchTerm === '' || searchable.includes(searchTerm);
@@ -1273,44 +1612,26 @@ var activeFilters = {};
 
 window.applyFilters = function() {
     console.log('[CampaignHistory] Apply Filters clicked');
-    activeFilters = {
-        statuses: getCheckedValues('[data-filter="statuses"]'),
-        channels: getCheckedValues('[data-filter="channels"]'),
-        senderIds: getCheckedValues('[data-filter="senderIds"]'),
-        rcsAgents: getCheckedValues('[data-filter="rcsAgents"]'),
-        dateFrom: document.getElementById('filterDateFrom').value,
-        dateTo: document.getElementById('filterDateTo').value,
-        tracking: getCheckedValues('[data-filter="tracking"]'),
-        optout: getCheckedValues('[data-filter="optout"]')
-    };
-    console.log('[CampaignHistory] Active Filters:', activeFilters);
-    
-    updateFilterBadge();
-    filterCampaigns();
+    var statuses = getCheckedValues('[data-filter="statuses"]');
+    var channels = getCheckedValues('[data-filter="channels"]');
+    var dateFrom = document.getElementById('filterDateFrom').value;
+    var dateTo = document.getElementById('filterDateTo').value;
+    var searchVal = document.getElementById('campaignSearch').value.trim();
+
+    var params = new URLSearchParams();
+    if (statuses.length > 0) params.set('status', statuses.join(','));
+    if (channels.length > 0) params.set('channel', channels.join(','));
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    if (searchVal) params.set('search', searchVal);
+
+    var qs = params.toString();
+    window.location.href = '{{ route("messages.campaign-history") }}' + (qs ? '?' + qs : '');
 };
 
 window.resetFilters = function() {
     console.log('[CampaignHistory] Reset Filters clicked');
-    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
-        cb.checked = false;
-    });
-    
-    document.querySelectorAll('.multiselect-dropdown .dropdown-label').forEach(function(label) {
-        var dropdown = label.closest('.multiselect-dropdown');
-        var filter = dropdown ? dropdown.dataset.filter : '';
-        if (filter === 'statuses') label.textContent = 'All Statuses';
-        else if (filter === 'channels') label.textContent = 'All Channels';
-        else if (filter === 'senderIds') label.textContent = 'All Sender IDs';
-        else if (filter === 'rcsAgents') label.textContent = 'All Agents';
-        else label.textContent = 'Any';
-    });
-    
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-    
-    activeFilters = {};
-    updateFilterBadge();
-    filterCampaigns();
+    window.location.href = '{{ route("messages.campaign-history") }}';
 }
 
 function updateFilterBadge() {
@@ -1378,8 +1699,12 @@ function openCampaignDrawer(campaignId) {
     var recipientsTotal = parseInt(row.dataset.recipientsTotal) || 0;
     var recipientsDelivered = row.dataset.recipientsDelivered ? parseInt(row.dataset.recipientsDelivered) : null;
     var sendDate = row.dataset.sendDate;
-    var senderId = row.dataset.senderId || '-';
+    var senderIdRaw = row.dataset.senderId || '-';
+    var senderId = senderIdRaw.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
     var rcsAgent = row.dataset.rcsAgent || '';
+    var rcsAgentLogo = row.dataset.rcsAgentLogo || '';
+    var rcsAgentTagline = row.dataset.rcsAgentTagline || '';
+    var rcsAgentBrandColor = row.dataset.rcsAgentBrandColor || '#886CC0';
     var tags = row.dataset.tags || '';
     var template = row.dataset.template || '';
 
@@ -1390,7 +1715,9 @@ function openCampaignDrawer(campaignId) {
 
     var sendTimeLabel = document.getElementById('drawerSendTimeLabel');
     var sendTime = document.getElementById('drawerSendTime');
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        sendTimeLabel.textContent = 'Created:';
+    } else if (status === 'scheduled') {
         sendTimeLabel.textContent = 'Scheduled:';
     } else {
         sendTimeLabel.textContent = 'Sent:';
@@ -1435,7 +1762,15 @@ function openCampaignDrawer(campaignId) {
 
     var statusBadge = document.getElementById('drawerStatusBadge');
     statusBadge.className = 'badge';
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        statusBadge.style.background = '#dbe9ff';
+        statusBadge.style.color = '#1a4d8f';
+        statusBadge.textContent = 'Draft';
+    } else if (status === 'pending') {
+        statusBadge.style.background = '#fff3cd';
+        statusBadge.style.color = '#856404';
+        statusBadge.textContent = 'Pending';
+    } else if (status === 'scheduled') {
         statusBadge.style.background = '#fff3cd';
         statusBadge.style.color = '#856404';
         statusBadge.textContent = 'Scheduled';
@@ -1443,48 +1778,46 @@ function openCampaignDrawer(campaignId) {
         statusBadge.style.background = '#e0cffc';
         statusBadge.style.color = '#6f42c1';
         statusBadge.textContent = 'Sending';
+    } else if (status === 'cancelled') {
+        statusBadge.style.background = '#f8d7da';
+        statusBadge.style.color = '#842029';
+        statusBadge.textContent = 'Cancelled';
+    } else if (status === 'archived') {
+        statusBadge.style.background = '#e9ecef';
+        statusBadge.style.color = '#6c757d';
+        statusBadge.textContent = 'Archived';
     } else {
         statusBadge.style.background = '#d1f2eb';
         statusBadge.style.color = '#0d6e5a';
         statusBadge.textContent = 'Complete';
     }
 
-    // TODO: Replace with backend validity_window field
     var liveStateBadge = document.getElementById('drawerLiveStateBadge');
-    var campaignDate = new Date(sendDate);
-    var now = new Date();
-    var validityHours = 24;
-    var expiryDate = new Date(campaignDate.getTime() + (validityHours * 60 * 60 * 1000));
-    
     liveStateBadge.className = 'badge';
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        liveStateBadge.style.background = '#e9ecef';
+        liveStateBadge.style.color = '#6c757d';
+        liveStateBadge.textContent = 'Not Sent';
+    } else if (status === 'scheduled' || status === 'pending') {
         liveStateBadge.style.background = '#e9ecef';
         liveStateBadge.style.color = '#6c757d';
         liveStateBadge.textContent = 'Pending';
+    } else if (status === 'cancelled') {
+        liveStateBadge.style.background = '#f8d7da';
+        liveStateBadge.style.color = '#842029';
+        liveStateBadge.textContent = 'Cancelled';
+    } else if (status === 'archived') {
+        liveStateBadge.style.background = '#e9ecef';
+        liveStateBadge.style.color = '#6c757d';
+        liveStateBadge.textContent = 'Archived';
     } else if (status === 'sending') {
-        if (now < expiryDate) {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Live';
-        } else {
-            liveStateBadge.style.background = '#e9ecef';
-            liveStateBadge.style.color = '#6c757d';
-            liveStateBadge.textContent = 'Expired';
-        }
+        liveStateBadge.style.background = '#d1f2eb';
+        liveStateBadge.style.color = '#0d6e5a';
+        liveStateBadge.textContent = 'Live';
     } else {
-        if (recipientsDelivered !== null && recipientsDelivered >= recipientsTotal) {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Complete';
-        } else if (now > expiryDate) {
-            liveStateBadge.style.background = '#e9ecef';
-            liveStateBadge.style.color = '#6c757d';
-            liveStateBadge.textContent = 'Expired';
-        } else {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Complete';
-        }
+        liveStateBadge.style.background = '#d1f2eb';
+        liveStateBadge.style.color = '#0d6e5a';
+        liveStateBadge.textContent = 'Complete';
     }
 
     var failed = 0;
@@ -1492,10 +1825,14 @@ function openCampaignDrawer(campaignId) {
     var deliveredDisplay = document.getElementById('drawerRecipientsDelivered');
     var failedDisplay = document.getElementById('drawerRecipientsFailed');
     var rateDisplay = document.getElementById('drawerDeliveryRate');
+    var excludedTotal = (parseInt(row.dataset.totalOptedOut) || 0) + (parseInt(row.dataset.totalInvalid) || 0);
+    var actuallySent = recipientsTotal - excludedTotal;
+    if (actuallySent < 0) actuallySent = 0;
     
     if (recipientsDelivered !== null) {
-        failed = recipientsTotal - recipientsDelivered;
-        deliveryRate = recipientsTotal > 0 ? ((recipientsDelivered / recipientsTotal) * 100).toFixed(1) + '%' : '-';
+        failed = actuallySent - recipientsDelivered;
+        if (failed < 0) failed = 0;
+        deliveryRate = actuallySent > 0 ? ((recipientsDelivered / actuallySent) * 100).toFixed(1) + '%' : '-';
         deliveredDisplay.textContent = recipientsDelivered.toLocaleString();
         failedDisplay.textContent = failed.toLocaleString();
         rateDisplay.textContent = deliveryRate;
@@ -1507,16 +1844,39 @@ function openCampaignDrawer(campaignId) {
         rateDisplay.className = 'fs-4 fw-bold text-muted';
     }
 
-    updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
-    updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
+    var recipientsFailed = parseInt(row.dataset.recipientsFailed) || 0;
+    var estimatedCost = row.dataset.estimatedCost ? parseFloat(row.dataset.estimatedCost) : null;
+    var actualCost = row.dataset.actualCost ? parseFloat(row.dataset.actualCost) : null;
+    var currency = row.dataset.currency || 'GBP';
+    var messageContent = row.dataset.messageContent || '';
+    var rcsContentRaw = row.dataset.rcsContent || '';
+    var rcsContent = null;
+    if (rcsContentRaw) {
+        try { rcsContent = JSON.parse(rcsContentRaw); } catch(e) { rcsContent = null; }
+    }
+    var segmentCount = parseInt(row.dataset.segmentCount) || 1;
+    var totalRecipientsRaw = parseInt(row.dataset.totalRecipientsRaw) || 0;
+    var totalOptedOut = parseInt(row.dataset.totalOptedOut) || 0;
+    var totalInvalid = parseInt(row.dataset.totalInvalid) || 0;
+    var recipientSourcesRaw = row.dataset.recipientSources || '';
+    var recipientSources = null;
+    if (recipientSourcesRaw) {
+        try { recipientSources = JSON.parse(recipientSourcesRaw); } catch(e) { recipientSources = null; }
+    }
+    var fallbackSmsCount = parseInt(row.dataset.fallbackSmsCount) || 0;
+    var sentCount = parseInt(row.dataset.sentCount) || 0;
+    var pendingCount = parseInt(row.dataset.pendingCount) || 0;
+
+    updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered, recipientsFailed, pendingCount);
+    updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered, fallbackSmsCount);
     
     var hasTracking = row.dataset.hasTracking === 'yes';
     var hasOptout = row.dataset.hasOptout === 'yes';
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
-    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
+    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered, estimatedCost, actualCost, currency, segmentCount, fallbackSmsCount);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
-    updateMessagePreview(channel, senderId, rcsAgent, template);
-    updateRecipientBreakdown(recipientsTotal, recipientsDelivered);
+    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, rcsAgentLogo, rcsAgentTagline, rcsAgentBrandColor);
+    updateRecipientBreakdown(recipientsTotal, recipientsDelivered, totalRecipientsRaw, totalOptedOut, totalInvalid, recipientSources);
     updateStatusActions(status, row.dataset.id, name, sendDate);
     
     document.getElementById('recipientBreakdownBody').style.display = 'none';
@@ -1525,27 +1885,18 @@ function openCampaignDrawer(campaignId) {
     campaignDrawer.show();
 }
 
-function updateDeliveryOutcomes(status, total, delivered) {
+function updateDeliveryOutcomes(status, total, delivered, failed, pendingCount) {
     var outcomesCard = document.getElementById('deliveryOutcomesCard');
     
-    if (status === 'scheduled' || total === 0) {
+    if (status === 'draft' || status === 'scheduled' || status === 'pending' || total === 0) {
         outcomesCard.style.display = 'none';
         return;
     }
     outcomesCard.style.display = '';
     
-    // TODO: Replace with real pending/undeliverable data from backend
     var deliveredCount = delivered !== null ? delivered : 0;
-    var pending = 0;
-    var undeliverable = 0;
-    
-    if (status === 'sending') {
-        pending = Math.floor((total - deliveredCount) * 0.7);
-        undeliverable = Math.floor((total - deliveredCount) * 0.3);
-    } else {
-        pending = 0;
-        undeliverable = total - deliveredCount;
-    }
+    var pending = pendingCount || 0;
+    var undeliverable = failed || (total - deliveredCount - pending);
     
     var deliveredPct = total > 0 ? (deliveredCount / total * 100) : 0;
     var pendingPct = total > 0 ? (pending / total * 100) : 0;
@@ -1565,10 +1916,10 @@ function updateDeliveryOutcomes(status, total, delivered) {
     document.getElementById('outcomeUndeliverablePct').textContent = undeliverablePct.toFixed(1) + '%';
 }
 
-function updateChannelSplit(channel, status, total, delivered) {
+function updateChannelSplit(channel, status, total, delivered, fallbackSmsCount) {
     var channelCard = document.getElementById('channelSplitCard');
     
-    if (status === 'scheduled' || total === 0) {
+    if (status === 'draft' || status === 'scheduled' || status === 'pending' || total === 0) {
         channelCard.style.display = 'none';
         return;
     }
@@ -1578,14 +1929,13 @@ function updateChannelSplit(channel, status, total, delivered) {
     var rcsCount = 0;
     var deliveredCount = delivered !== null ? delivered : total;
     
-    // TODO: Replace with real channel split data from backend
     if (channel === 'sms_only') {
         smsCount = deliveredCount;
         rcsCount = 0;
     } else if (channel === 'basic_rcs' || channel === 'rich_rcs') {
-        // Mock: RCS campaigns typically have ~85% RCS success, 15% SMS fallback
-        rcsCount = Math.floor(deliveredCount * 0.85);
-        smsCount = deliveredCount - rcsCount;
+        smsCount = fallbackSmsCount || 0;
+        rcsCount = deliveredCount - smsCount;
+        if (rcsCount < 0) rcsCount = 0;
     }
     
     var smsPct = deliveredCount > 0 ? (smsCount / deliveredCount * 100) : 0;
@@ -1607,7 +1957,7 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     var rcsSeenMetrics = document.getElementById('rcsSeenMetrics');
     
     var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
-    var showSection = (hasTracking || isRcs) && status !== 'scheduled';
+    var showSection = (hasTracking || isRcs) && status !== 'scheduled' && status !== 'draft' && status !== 'pending';
     
     if (!showSection) {
         engagementCard.style.display = 'none';
@@ -1648,22 +1998,8 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     }
 }
 
-function updateCostSummary(channel, status, total, delivered) {
+function updateCostSummary(channel, status, total, delivered, estimatedCost, actualCost, currency, segmentCount, fallbackSmsCount) {
     var costCard = document.getElementById('costSummaryCard');
-    
-    if (status === 'scheduled') {
-        costCard.style.display = 'none';
-        return;
-    }
-    costCard.style.display = '';
-    
-    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
-    var isComplete = status === 'complete';
-    var deliveredCount = delivered !== null ? delivered : total;
-    
-    // TODO: Replace with real pricing from backend
-    var smsUnitPrice = 0.038;
-    var rcsUnitPrice = 0.025;
     
     var costLabel = document.getElementById('costLabel');
     var costStatusBadge = document.getElementById('costStatusBadge');
@@ -1672,8 +2008,34 @@ function updateCostSummary(channel, status, total, delivered) {
     var costDisclaimerText = document.getElementById('costDisclaimerText');
     var smsCostSection = document.getElementById('smsCostSection');
     var rcsCostSection = document.getElementById('rcsCostSection');
+    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
+    var isComplete = status === 'complete';
+    var currencySymbol = currency === 'GBP' ? '£' : (currency === 'USD' ? '$' : (currency === 'EUR' ? '€' : currency + ' '));
+
+    if (status === 'draft' || status === 'scheduled' || status === 'pending') {
+        if (estimatedCost !== null && estimatedCost > 0) {
+            costCard.style.display = '';
+            costLabel.textContent = 'Estimated Cost';
+            costStatusBadge.className = 'badge';
+            costStatusBadge.style.cssText = 'background-color: #fff3cd; color: #856404;';
+            costStatusBadge.textContent = 'Estimated';
+            costTotalLabel.textContent = 'Est. Total';
+            costDisclaimer.style.display = '';
+            costDisclaimerText.textContent = 'Estimate based on campaign configuration. Final cost may vary.';
+            smsCostSection.style.display = 'none';
+            rcsCostSection.style.display = 'none';
+            document.getElementById('costTotal').textContent = currencySymbol + estimatedCost.toFixed(2);
+        } else {
+            costCard.style.display = 'none';
+        }
+        return;
+    }
     
-    if (isComplete) {
+    costCard.style.display = '';
+    var deliveredCount = delivered !== null ? delivered : total;
+    var displayCost = isComplete && actualCost !== null ? actualCost : (estimatedCost !== null ? estimatedCost : 0);
+    
+    if (isComplete && actualCost !== null) {
         costLabel.textContent = 'Final Cost';
         costStatusBadge.className = 'badge';
         costStatusBadge.style.cssText = 'background-color: #d4edda; color: #155724;';
@@ -1690,36 +2052,24 @@ function updateCostSummary(channel, status, total, delivered) {
         costDisclaimerText.textContent = 'Final cost will be calculated when delivery completes.';
     }
     
-    var totalCost = 0;
-    
     if (!isRcs) {
         smsCostSection.style.display = '';
         rcsCostSection.style.display = 'none';
-        
         document.getElementById('smsCostCount').textContent = deliveredCount.toLocaleString() + ' msgs';
-        document.getElementById('smsCostUnit').textContent = '£' + smsUnitPrice.toFixed(3);
-        
-        totalCost = deliveredCount * smsUnitPrice;
+        document.getElementById('smsCostUnit').textContent = '';
     } else {
         smsCostSection.style.display = 'none';
         rcsCostSection.style.display = '';
-        
-        // Mock: 15% SMS fallback, 85% RCS
-        var smsFallbackCount = Math.floor(deliveredCount * 0.15);
-        var rcsCount = deliveredCount - smsFallbackCount;
-        
-        var smsFallbackCost = smsFallbackCount * smsUnitPrice;
-        var rcsCost = rcsCount * rcsUnitPrice;
-        totalCost = smsFallbackCost + rcsCost;
-        
-        document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsFallbackCost').textContent = '£' + smsFallbackCost.toFixed(2);
-        
+        var smsFallback = fallbackSmsCount || 0;
+        var rcsCount = deliveredCount - smsFallback;
+        if (rcsCount < 0) rcsCount = 0;
+        document.getElementById('rcsFallbackCount').textContent = smsFallback.toLocaleString() + ' msgs';
+        document.getElementById('rcsFallbackCost').textContent = '';
         document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsMessageCost').textContent = '£' + rcsCost.toFixed(2);
+        document.getElementById('rcsMessageCost').textContent = '';
     }
     
-    document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
+    document.getElementById('costTotal').textContent = currencySymbol + displayCost.toFixed(2);
 }
 
 function updateOptoutSummary(status, total, delivered, hasOptout) {
@@ -1755,6 +2105,11 @@ var currentCampaignChannel = 'sms_only';
 var currentCampaignSenderId = '';
 var currentCampaignRcsAgent = '';
 var currentCampaignTemplate = '';
+var currentCampaignMessageContent = '';
+var currentCampaignRcsContent = null;
+var currentCampaignRcsAgentLogo = '';
+var currentCampaignRcsAgentTagline = '';
+var currentCampaignRcsAgentBrandColor = '#886CC0';
 
 function toggleCampaignPreview(mode) {
     campaignPreviewMode = mode;
@@ -1778,10 +2133,10 @@ function toggleCampaignPreview(mode) {
         rcsBtn.style.color = '#886CC0';
     }
     
-    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate);
+    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate, currentCampaignMessageContent, currentCampaignRcsContent, currentCampaignRcsAgentLogo, currentCampaignRcsAgentTagline, currentCampaignRcsAgentBrandColor);
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template) {
+function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, agentLogo, agentTagline, agentBrandColor) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
     
@@ -1790,101 +2145,72 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
         return;
     }
     
-    // Store current campaign params for toggle use
     currentCampaignChannel = channel;
     currentCampaignSenderId = senderId;
     currentCampaignRcsAgent = rcsAgent;
     currentCampaignTemplate = template;
+    currentCampaignMessageContent = messageContent;
+    currentCampaignRcsContent = rcsContent;
+    currentCampaignRcsAgentLogo = agentLogo || '';
+    currentCampaignRcsAgentTagline = agentTagline || '';
+    currentCampaignRcsAgentBrandColor = agentBrandColor || '#886CC0';
     
-    // Show/hide toggle based on channel (RCS channels have SMS fallback)
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
         toggleContainer.classList.remove('d-none');
     } else {
         toggleContainer.classList.add('d-none');
-        campaignPreviewMode = 'rcs'; // Reset to RCS mode for non-RCS campaigns
+        campaignPreviewMode = 'rcs';
     }
     
-    // TODO: Replace with actual message content from backend (with placeholders, never real data)
-    var mockMessages = {
-        'Sale Announcement': { type: 'rich_card', title: 'Flash Sale!', description: 'Hi @{{firstName}}, enjoy 30% off today!', buttons: [{label: 'Shop Now', action: {type: 'url'}}, {label: 'View Details', action: {type: 'url'}}] },
-        'Flash Deal': { type: 'rich_card', title: 'Limited Offer', description: '@{{firstName}}, this deal expires soon!', buttons: [{label: 'Grab It', action: {type: 'url'}}] },
-        'Reminder': { type: 'text', body: 'Hi @{{firstName}}, reminder: your appointment is tomorrow at @{{time}}. Reply STOP to opt out.' },
-        'Product Showcase': { type: 'carousel', cards: [
-            { title: 'New Arrivals', description: 'Check out our latest @{{category}} collection!', buttons: [{label: 'Browse', action: {type: 'url'}}] },
-            { title: 'Featured Items', description: 'Handpicked just for you!', buttons: [{label: 'View', action: {type: 'url'}}] },
-            { title: 'Best Sellers', description: 'Our most popular products', buttons: [{label: 'Shop', action: {type: 'url'}}] }
-        ]},
-        'Weekend Deal': { type: 'text', body: '@{{firstName}}, weekend special: use code SAVE20 for 20% off! Shop now: @{{link}}' },
-        'VIP Invitation': { type: 'rich_card', title: 'VIP Access', description: 'Exclusive early access for you, @{{firstName}}!', buttons: [{label: 'Access Now', action: {type: 'url'}}] },
-        'Shipping Update': { type: 'text', body: 'Your order #@{{orderNumber}} has shipped! Track: @{{trackingLink}}' },
-        'Survey Request': { type: 'text', body: 'Hi @{{firstName}}, we value your feedback! Take our quick survey: @{{surveyLink}}' },
-        'Order Confirm': { type: 'text', body: 'Order confirmed! #@{{orderNumber}} - Total: @{{amount}}. Thank you for shopping!' },
-        'Appointment': { type: 'text', body: 'Reminder: @{{firstName}}, your appointment is on @{{date}} at @{{time}}.' },
-        'Product Launch': { type: 'rich_card', title: 'Introducing @{{productName}}', description: 'Be the first to experience our newest innovation!', buttons: [{label: 'Pre-order', action: {type: 'url'}}, {label: 'Learn More', action: {type: 'url'}}] }
-    };
-    
-    var defaultSms = 'Hi @{{firstName}}, thank you for being a valued customer! @{{message}} Reply STOP to opt out.';
-    var defaultBasic = 'Hi @{{firstName}}, @{{message}} Tap to learn more: @{{link}}';
+    var noContentMsg = 'No message content available.';
     
     var previewConfig = {
         senderId: senderId || 'QuickSMS',
         agent: {
-            name: rcsAgent || 'QuickSMS Brand',
-            logo: '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+            name: rcsAgent || senderId || 'QuickSMS',
+            logo: agentLogo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
             verified: true,
-            tagline: 'Business messaging'
+            tagline: agentTagline || 'Business messaging',
+            brand_color: agentBrandColor || '#886CC0'
         }
     };
-    
-    var msgData = mockMessages[template];
     
     if (channel === 'sms_only') {
         previewConfig.channel = 'sms';
         previewConfig.message = {
             type: 'text',
-            body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
+            content: { body: messageContent || noContentMsg }
         };
     } else if (channel === 'basic_rcs') {
-        // Check if user toggled to SMS fallback view
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = {
-                type: 'text',
-                body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
-            };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         } else {
             previewConfig.channel = 'basic_rcs';
-            previewConfig.message = {
-                type: 'text',
-                body: (msgData && msgData.type === 'text') ? msgData.body : defaultBasic
-            };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         }
     } else {
-        // Rich RCS - check if user toggled to SMS fallback view
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = {
-                type: 'text',
-                body: defaultSms
-            };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         } else {
             previewConfig.channel = 'rich_rcs';
-            if (msgData) {
-                previewConfig.message = msgData;
+            if (rcsContent && typeof rcsContent === 'object' && rcsContent.cards) {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsContent, previewConfig.agent);
+                if (rcsContent.type === 'carousel' || (rcsContent.cards && rcsContent.cards.length > 1)) {
+                    RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
+                }
+                return;
+            } else if (messageContent) {
+                previewConfig.message = { type: 'text', content: { body: messageContent } };
             } else {
-                previewConfig.message = {
-                    type: 'rich_card',
-                    title: 'Special Offer',
-                    description: 'Hi @{{firstName}}, check out this exclusive offer!',
-                    buttons: [{label: 'Learn More', action: {type: 'url'}}]
-                };
+                previewConfig.message = { type: 'text', content: { body: noContentMsg } };
             }
         }
     }
     
     container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
     
-    // Initialize carousel behavior if present
     if (previewConfig.message && previewConfig.message.type === 'carousel') {
         RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
     }
@@ -1903,23 +2229,18 @@ function toggleRecipientBreakdown() {
     }
 }
 
-function updateRecipientBreakdown(total, delivered) {
+function updateRecipientBreakdown(total, delivered, totalRaw, totalOptedOut, totalInvalid, recipientSources) {
     var container = document.getElementById('recipientSourcesContainer');
     
-    // TODO: Replace with actual recipient source data from backend
-    var allSources = [
-        { id: 'manual', label: 'Manual Entry', icon: 'fa-keyboard', color: 'primary' },
-        { id: 'upload', label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
-        { id: 'contacts', label: 'Contacts', icon: 'fa-address-book', color: 'success' },
-        { id: 'lists', label: 'Lists', icon: 'fa-list', color: 'warning' },
-        { id: 'dynamic', label: 'Dynamic Lists', icon: 'fa-magic', color: 'purple' },
-        { id: 'tags', label: 'Tags', icon: 'fa-tags', color: 'danger' }
-    ];
-    
-    // Mock: randomly select 1-3 sources for this campaign
-    var numSources = 1 + Math.floor(Math.random() * 3);
-    var shuffled = allSources.sort(function() { return 0.5 - Math.random(); });
-    var usedSources = shuffled.slice(0, numSources);
+    var sourceIcons = {
+        'manual': { label: 'Manual Entry', icon: 'fa-keyboard', color: 'primary' },
+        'upload': { label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
+        'csv': { label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
+        'contacts': { label: 'Contacts', icon: 'fa-address-book', color: 'success' },
+        'lists': { label: 'Lists', icon: 'fa-list', color: 'warning' },
+        'contact_lists': { label: 'Contact Lists', icon: 'fa-list', color: 'warning' },
+        'tags': { label: 'Tags', icon: 'fa-tags', color: 'danger' }
+    };
     
     var pastelColors = {
         'primary': { bg: '#cfe2ff', text: '#084298' },
@@ -1930,22 +2251,34 @@ function updateRecipientBreakdown(total, delivered) {
         'danger': { bg: '#f8d7da', text: '#842029' }
     };
     
-    var sourcesHtml = usedSources.map(function(src) {
-        var colors = pastelColors[src.color] || pastelColors['primary'];
-        return '<span class="badge" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
-               '<i class="fas ' + src.icon + ' me-1"></i>' + src.label + '</span>';
-    }).join('');
+    var sourcesHtml = '';
+    if (recipientSources && Array.isArray(recipientSources)) {
+        sourcesHtml = recipientSources.map(function(src) {
+            var sourceType = typeof src === 'string' ? src : (src.type || src.source || 'manual');
+            var sourceInfo = sourceIcons[sourceType] || { label: sourceType, icon: 'fa-users', color: 'primary' };
+            var colors = pastelColors[sourceInfo.color] || pastelColors['primary'];
+            return '<span class="badge me-1" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
+                   '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label + '</span>';
+        }).join('');
+    } else if (recipientSources && typeof recipientSources === 'object') {
+        Object.keys(recipientSources).forEach(function(key) {
+            var sourceInfo = sourceIcons[key] || { label: key, icon: 'fa-users', color: 'primary' };
+            var colors = pastelColors[sourceInfo.color] || pastelColors['primary'];
+            sourcesHtml += '<span class="badge me-1" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
+                   '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label + '</span>';
+        });
+    }
     
+    if (!sourcesHtml) {
+        sourcesHtml = '<span class="text-muted small">No source data available</span>';
+    }
     container.innerHTML = sourcesHtml;
     
-    // De-dup calculation (mock data)
-    var totalSelected = total + Math.floor(total * 0.15);
-    var invalidRate = 0.02 + (Math.random() * 0.03);
-    var optoutRate = 0.03 + (Math.random() * 0.04);
-    
-    var excludedInvalid = Math.floor(totalSelected * invalidRate);
-    var excludedOptout = Math.floor(totalSelected * optoutRate);
-    var uniqueSent = total;
+    var totalSelected = totalRaw || total;
+    var excludedInvalid = totalInvalid || 0;
+    var excludedOptout = totalOptedOut || 0;
+    var uniqueSent = totalSelected - excludedInvalid - excludedOptout;
+    if (uniqueSent < 0) uniqueSent = 0;
     
     document.getElementById('dedupTotalSelected').textContent = totalSelected.toLocaleString();
     document.getElementById('dedupUniqueSent').textContent = uniqueSent.toLocaleString();
@@ -2080,7 +2413,7 @@ function confirmCancelCampaign() {
         row.dataset.status = 'cancelled';
         var statusCell = row.querySelector('td:nth-child(3) .badge');
         if (statusCell) {
-            statusCell.className = 'badge badge-pastel-secondary';
+            statusCell.className = 'badge badge-pastel-danger';
             statusCell.textContent = 'Cancelled';
         }
     }

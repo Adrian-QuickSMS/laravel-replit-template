@@ -267,6 +267,10 @@
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
 }
+.badge-suspended-admin {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
 .badge-archived {
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
@@ -671,8 +675,6 @@
                                 <th data-sort="channel">Channel <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="trigger">Trigger <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="senderId">Sender / Agent <i class="fas fa-sort sort-icon"></i></th>
-                                <th>Preview</th>
-                                <th>Features</th>
                                 <th data-sort="accessScope">Scope <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="lastUpdated">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -872,6 +874,61 @@
                 <button type="button" class="btn btn-primary" onclick="confirmArchiveTemplate()">
                     <i class="fas fa-archive me-1"></i>Archive
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="adminVersionHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <div>
+                    <h5 class="modal-title mb-1">
+                        <i class="fas fa-history me-2 text-muted"></i>Version History
+                    </h5>
+                    <p class="text-muted small mb-0">Template: <span id="avhTemplateName" class="fw-medium">-</span></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-3 pt-2 border-bottom-0" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="avh-versions-tab" data-bs-toggle="tab" data-bs-target="#avh-versions-pane" type="button" role="tab">
+                            <i class="fas fa-code-branch me-1"></i>Versions
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="avh-audit-tab" data-bs-toggle="tab" data-bs-target="#avh-audit-pane" type="button" role="tab">
+                            <i class="fas fa-clipboard-list me-1"></i>Audit Log
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3">
+                    <div class="tab-pane fade show active" id="avh-versions-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 80px;">Version</th>
+                                        <th style="width: 140px;">Edited By</th>
+                                        <th style="width: 160px;">Edited At</th>
+                                        <th>Change Summary</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="avhVersionsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="avh-audit-pane" role="tabpanel">
+                        <div id="avhAuditTimeline">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1255,10 +1312,8 @@ function renderTemplates(templates) {
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
         html += '<td>' + getSenderAgentLabel(template) + '</td>';
-        html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
-        html += '<td class="features-cell">' + getFeaturesIcons(template) + '</td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
+        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span></td>';
         html += '<td>' + template.lastUpdated + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
@@ -1270,12 +1325,12 @@ function renderTemplates(templates) {
         html += '<li><a class="dropdown-item" href="#" onclick="viewTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
         
         if (!isArchived && AdminPermissions.canEdit()) {
-            html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.templateId + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.id + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
-        html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
         
-        html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
         
         if (!isArchived) {
             html += '<li><a class="dropdown-item" href="#" onclick="viewPermissions(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-lock me-2"></i>Permissions</a></li>';
@@ -1289,15 +1344,15 @@ function renderTemplates(templates) {
             html += '<li><hr class="dropdown-divider"></li>';
             
             if (template.status === 'live' && AdminPermissions.canSuspend()) {
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
             }
             
             if (template.status === 'suspended' && AdminPermissions.canReactivate()) {
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
             }
             
             if (AdminPermissions.canArchive()) {
-                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             }
         }
         
@@ -1445,15 +1500,17 @@ function getTriggerLabel(trigger) {
     }
 }
 
-function getStatusLabel(status) {
+function getStatusLabel(status, suspendedBy) {
+    if (status === 'suspended' && suspendedBy === 'customer') return 'Suspended (Customer)';
+    if (status === 'suspended') return 'Suspended (Admin)';
     return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function getStatusBadgeClass(status) {
+function getStatusBadgeClass(status, suspendedBy) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
-        case 'suspended': return 'badge-suspended';
+        case 'suspended': return (suspendedBy === 'customer') ? 'badge-suspended' : 'badge-suspended-admin';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
@@ -1495,6 +1552,17 @@ function getContentPreviewText(template) {
     }
 }
 
+function formatAdminTimestamp(ts) {
+    if (!ts) return '-';
+    try {
+        var d = new Date(ts);
+        if (isNaN(d.getTime())) return ts;
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return ts;
+    }
+}
+
 function escapeJs(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
@@ -1518,7 +1586,7 @@ async function viewTemplate(accountId, templateId) {
         document.getElementById('viewVersion').textContent = 'v' + template.version;
         document.getElementById('viewChannel').innerHTML = '<span class="badge rounded-pill ' + getChannelBadgeClass(template.channel) + '">' + getChannelLabel(template.channel) + '</span>';
         document.getElementById('viewTrigger').textContent = getTriggerLabel(template.trigger);
-        document.getElementById('viewStatus').innerHTML = '<span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span>';
+        document.getElementById('viewStatus').innerHTML = '<span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span>';
         document.getElementById('viewContent').textContent = template.content || (template.contentType === 'rich_card' ? 'Rich RCS Card' : 'Carousel');
         document.getElementById('viewSenderId').textContent = template.senderId || '-';
         document.getElementById('viewRcsAgent').textContent = template.rcsAgent || '-';
@@ -1645,19 +1713,104 @@ function archiveTemplate(accountId, templateId, name, accountName, currentStatus
 }
 
 function viewDuplicate(accountId, templateId, templateName) {
-    showToast('Duplicate is a customer action. Use impersonation to duplicate "' + templateName + '" for account ' + accountId + '.', 'info');
-    
+    if (!confirm('Duplicate "' + templateName + '"? A new draft copy will be created in the same account.')) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/admin/api/templates/' + accountId + '/' + templateId + '/duplicate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.success) {
+            showToast('Template duplicated as "' + result.data.name + '"', 'success');
+            setTimeout(function() { loadTemplates(); }, 800);
+        } else {
+            showToast(result.error || 'Duplicate failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Duplicate failed: ' + err.message, 'danger');
+    });
+
     AdminControlPlane.logAudit({
-        action: 'TEMPLATE_DUPLICATE_VIEWED',
-        severity: 'LOW',
+        action: 'TEMPLATE_DUPLICATED',
+        severity: 'MEDIUM',
         targetAccount: accountId,
-        details: { templateId: templateId, templateName: templateName, note: 'Admin viewed duplicate option - customer action' }
+        details: { templateId: templateId, templateName: templateName }
     });
 }
 
 function viewVersionHistory(accountId, templateId, templateName) {
-    showToast('Version history for "' + templateName + '" - feature coming soon. Use impersonation to access customer portal version history.', 'info');
-    
+    document.getElementById('avhTemplateName').textContent = templateName;
+    document.getElementById('avhVersionsTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>';
+    document.getElementById('avhAuditTimeline').innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</div>';
+
+    document.getElementById('avh-versions-tab').click();
+    new bootstrap.Modal(document.getElementById('adminVersionHistoryModal')).show();
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken };
+
+    Promise.all([
+        fetch('/admin/api/templates/' + accountId + '/' + templateId + '/versions', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/admin/api/templates/' + accountId + '/' + templateId + '/audit-log', { headers: headers }).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        var versions = results[0].data || [];
+        var auditEntries = results[1].data || [];
+
+        var vHtml = '';
+        if (versions.length === 0) {
+            vHtml = '<tr><td colspan="4" class="text-center text-muted py-4">No version history available</td></tr>';
+        } else {
+            versions.forEach(function(v, idx) {
+                vHtml += '<tr>';
+                vHtml += '<td class="fw-medium">v' + v.version;
+                if (idx === 0) vHtml += ' <small class="text-muted">(current)</small>';
+                vHtml += '</td>';
+                vHtml += '<td>' + (v.editedBy || v.edited_by || '-') + '</td>';
+                vHtml += '<td class="small text-muted">' + formatAdminTimestamp(v.editedAt || v.edited_at || v.created_at) + '</td>';
+                vHtml += '<td class="small">' + (v.changeNote || v.change_note || '<span class="text-muted fst-italic">No summary</span>') + '</td>';
+                vHtml += '</tr>';
+            });
+        }
+        document.getElementById('avhVersionsTableBody').innerHTML = vHtml;
+
+        var aHtml = '';
+        if (auditEntries.length === 0) {
+            aHtml = '<div class="text-center text-muted py-4">No audit log entries</div>';
+        } else {
+            auditEntries.forEach(function(entry) {
+                var actionIcon = 'fas fa-info-circle text-muted';
+                var actionClass = '';
+                switch (entry.action) {
+                    case 'created': actionIcon = 'fas fa-plus-circle text-success'; break;
+                    case 'edited': actionIcon = 'fas fa-edit text-primary'; break;
+                    case 'suspended': actionIcon = 'fas fa-pause-circle text-warning'; break;
+                    case 'archived': actionIcon = 'fas fa-archive text-danger'; break;
+                    case 'rolled-back': actionIcon = 'fas fa-undo text-info'; break;
+                    case 'status-changed': actionIcon = 'fas fa-exchange-alt text-primary'; break;
+                }
+                aHtml += '<div class="d-flex align-items-start mb-3 pb-3 border-bottom">';
+                aHtml += '<div class="me-3 mt-1"><i class="' + actionIcon + '"></i></div>';
+                aHtml += '<div class="flex-grow-1">';
+                aHtml += '<div class="fw-medium">' + (entry.action || '').replace(/-/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); }) + '</div>';
+                aHtml += '<div class="small text-muted">' + (entry.details || '') + '</div>';
+                aHtml += '<div class="small text-muted mt-1">';
+                aHtml += '<i class="fas fa-user me-1"></i>' + (entry.userName || entry.user_name || '-');
+                aHtml += ' &middot; <i class="fas fa-clock me-1"></i>' + formatAdminTimestamp(entry.timestamp || entry.created_at);
+                if (entry.version) aHtml += ' &middot; v' + entry.version;
+                aHtml += '</div></div></div>';
+            });
+        }
+        document.getElementById('avhAuditTimeline').innerHTML = aHtml;
+    }).catch(function(err) {
+        console.error('[AdminVersionHistory] Error:', err);
+        document.getElementById('avhVersionsTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Failed to load version history</td></tr>';
+        document.getElementById('avhAuditTimeline').innerHTML = '<div class="text-center text-danger py-4">Failed to load audit log</div>';
+    });
+
     AdminControlPlane.logAudit({
         action: 'TEMPLATE_VERSION_HISTORY_VIEWED',
         severity: 'LOW',

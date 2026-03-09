@@ -158,7 +158,7 @@ return new class extends Migration
 
         // CHECK constraints
         DB::statement("ALTER TABLE campaigns ADD CONSTRAINT chk_campaigns_type CHECK (type IN ('sms', 'rcs_basic', 'rcs_single'))");
-        DB::statement("ALTER TABLE campaigns ADD CONSTRAINT chk_campaigns_status CHECK (status IN ('draft', 'scheduled', 'queued', 'sending', 'paused', 'completed', 'cancelled', 'failed'))");
+        DB::statement("ALTER TABLE campaigns ADD CONSTRAINT chk_campaigns_status CHECK (status IN ('draft', 'scheduled', 'queued', 'sending', 'paused', 'completed', 'cancelled', 'failed', 'archived'))");
 
         // RLS policy
         DB::statement("ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY");

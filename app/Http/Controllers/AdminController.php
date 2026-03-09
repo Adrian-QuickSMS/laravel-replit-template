@@ -386,10 +386,79 @@ class AdminController extends Controller
         ]);
     }
 
-    public function assetsCampaigns()
+    public function assetsCampaigns(Request $request)
     {
+        $typeToChannel = [
+            'sms' => 'sms_only',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+        $statusMap = [
+            'queued' => 'pending',
+            'completed' => 'complete',
+        ];
+
+        $query = \App\Models\Campaign::withoutGlobalScope('tenant')
+            ->with(['account', 'senderId', 'rcsAgent', 'messageTemplate', 'estimateSnapshot']);
+
+        $paginated = $query->orderByDesc('created_at')->paginate(50)->withQueryString();
+
+        $campaigns = $paginated->getCollection()->map(function ($c) use ($typeToChannel, $statusMap) {
+            $sendDate = $c->scheduled_at ?? $c->started_at ?? $c->created_at;
+            $accountName = $c->account?->trading_name ?: ($c->account?->company_name ?: 'Unknown');
+            $tags = is_array($c->tags) ? implode(',', $c->tags) : ($c->tags ?? '');
+
+            return [
+                'id' => $c->id,
+                'account_id' => $c->account_id,
+                'account_name' => $accountName,
+                'name' => $c->name,
+                'channel' => $typeToChannel[$c->type] ?? 'sms_only',
+                'status' => $statusMap[$c->status] ?? $c->status,
+                'sender_id' => $c->getSenderDisplayName() ?? '-',
+                'rcs_agent' => $c->rcsAgent?->name ?? '',
+                'rcs_agent_logo' => $c->rcsAgent?->logo_url ?? '',
+                'rcs_agent_tagline' => $c->rcsAgent?->tagline ?? '',
+                'rcs_agent_brand_color' => $c->rcsAgent?->brand_color ?? '',
+                'send_date' => $sendDate ? $sendDate->toIso8601String() : now()->toIso8601String(),
+                'recipients_total' => $c->total_unique_recipients ?? $c->total_recipients ?? 0,
+                'recipients_delivered' => $c->delivered_count,
+                'has_tracking' => 'no',
+                'has_optout' => $c->opt_out_enabled ? 'yes' : 'no',
+                'tags' => $tags,
+                'template' => $c->messageTemplate?->name ?? '',
+                'message_content' => $c->message_content ?? '',
+                'rcs_content' => $c->rcs_content,
+                'cost_data' => $c->estimateSnapshot ? [
+                    'estimated_cost' => (float) $c->estimateSnapshot->estimated_cost,
+                    'vat_amount' => (float) $c->estimateSnapshot->vat_amount,
+                    'estimated_cost_inc_vat' => (float) $c->estimateSnapshot->estimated_cost_inc_vat,
+                    'currency' => $c->estimateSnapshot->currency ?? 'GBP',
+                    'total_recipients' => $c->estimateSnapshot->total_recipients,
+                    'country_breakdown' => $c->estimateSnapshot->country_breakdown,
+                    'product_type' => $c->estimateSnapshot->product_type,
+                    'rcs_penetration_rate' => $c->estimateSnapshot->rcs_penetration_rate,
+                    'expected_rcs_count' => $c->estimateSnapshot->expected_rcs_count,
+                    'expected_sms_fallback_count' => $c->estimateSnapshot->expected_sms_fallback_count,
+                ] : null,
+            ];
+        })->toArray();
+
+        $accounts = Account::select('id', 'company_name', 'trading_name')
+            ->where('status', 'active')
+            ->orderBy('company_name')
+            ->get()
+            ->map(fn($a) => [
+                'id' => $a->id,
+                'name' => $a->trading_name ?: $a->company_name,
+            ])->toArray();
+
         return view('admin.assets.campaigns', [
-            'page_title' => 'Campaign History'
+            'page_title' => 'Campaign History',
+            'campaigns' => $campaigns,
+            'accounts' => $accounts,
+            'paginator' => $paginated,
         ]);
     }
 
@@ -1174,7 +1243,7 @@ class AdminController extends Controller
             return [
                 'id' => $network->id,
                 'network' => $network->network_name,
-                'prefix' => $network->country_prefix ? '+' . $network->country_prefix : $network->mcc . '/' . $network->mnc,
+                'prefix' => $network->mcc . '/' . $network->mnc,
                 'mcc' => $network->mcc,
                 'mnc' => $network->mnc,
                 'gateway_count' => $networkGateways->count(),
@@ -1321,6 +1390,332 @@ class AdminController extends Controller
         ]);
     }
 
+    public function apiTemplatesList(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $query = \App\Models\MessageTemplate::query()->withoutGlobalScopes();
+
+        $accountId = $request->query('accountId');
+        if ($accountId) {
+            $query->where('account_id', $accountId);
+        }
+
+        $showArchived = $request->query('showArchived', 'false') === 'true';
+        if (!$showArchived) {
+            $query->where('status', '!=', 'archived');
+        }
+
+        $search = $request->query('search');
+        if ($search) {
+            $term = '%' . $search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE LOWER(?)', [$term])
+                  ->orWhereRaw('CAST(id AS TEXT) LIKE ?', [$term]);
+            });
+        }
+
+        $channels = $request->query('channels');
+        if ($channels) {
+            $channelList = explode(',', $channels);
+            $typeMap = ['sms' => 'sms', 'basic_rcs' => 'rcs_basic', 'rich_rcs' => ['rcs_single', 'rcs_carousel']];
+            $dbTypes = [];
+            foreach ($channelList as $ch) {
+                if (isset($typeMap[$ch])) {
+                    $val = $typeMap[$ch];
+                    $dbTypes = array_merge($dbTypes, is_array($val) ? $val : [$val]);
+                }
+            }
+            if (!empty($dbTypes)) {
+                $query->whereIn('type', $dbTypes);
+            }
+        }
+
+        $triggers = $request->query('triggers');
+        if ($triggers) {
+            // trigger_source not stored in DB; skip filtering
+        }
+
+        $statuses = $request->query('statuses');
+        if ($statuses) {
+            $statusList = explode(',', $statuses);
+            $dbStatuses = array_map(function ($s) { return $s === 'live' ? 'active' : $s; }, $statusList);
+            $query->whereIn('status', $dbStatuses);
+        }
+
+        $sortColumn = $request->query('sortColumn', 'lastUpdated');
+        $sortDirection = $request->query('sortDirection', 'desc');
+        $sortMap = [
+            'name' => 'name',
+            'accountName' => 'account_id',
+            'version' => 'version',
+            'lastUpdated' => 'updated_at',
+            'channel' => 'type',
+            'status' => 'status',
+        ];
+        $dbSort = $sortMap[$sortColumn] ?? 'updated_at';
+        $query->orderBy($dbSort, $sortDirection === 'asc' ? 'asc' : 'desc');
+
+        $page = max(1, (int) $request->query('page', 1));
+        $pageSize = min(100, max(1, (int) $request->query('pageSize', 20)));
+
+        $total = $query->count();
+        $templates = $query->skip(($page - 1) * $pageSize)->take($pageSize)->get();
+
+        $accountIds = $templates->pluck('account_id')->unique()->filter();
+        $accountNames = \DB::table('accounts')
+            ->whereIn('id', $accountIds)
+            ->pluck('company_name', 'id');
+
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+
+        $typeToContentType = [
+            'sms' => 'text',
+            'rcs_basic' => 'text',
+            'rcs_single' => 'rich_card',
+            'rcs_carousel' => 'carousel',
+        ];
+
+        $mapped = $templates->map(function ($t) use ($accountNames, $typeToChannel, $typeToContentType) {
+            $shortId = substr($t->id, 0, 8);
+            return [
+                'id' => $t->id,
+                'accountId' => $t->account_id,
+                'accountName' => $accountNames[$t->account_id] ?? 'Unknown',
+                'templateId' => $shortId,
+                'name' => $t->name,
+                'channel' => $typeToChannel[$t->type] ?? 'sms',
+                'trigger' => $t->trigger_type ?? 'portal',
+                'content' => $t->content ?? '',
+                'contentType' => $typeToContentType[$t->type] ?? 'text',
+                'accessScope' => 'All Sub-accounts',
+                'status' => $t->status === 'active' ? 'live' : $t->status,
+                'suspendedBy' => $t->suspended_by,
+                'version' => $t->version ?? 1,
+                'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'templates' => $mapped->values(),
+                'pagination' => [
+                    'page' => $page,
+                    'pageSize' => $pageSize,
+                    'totalCount' => $total,
+                    'totalPages' => (int) ceil($total / $pageSize),
+                    'hasNextPage' => $page < ceil($total / $pageSize),
+                    'hasPrevPage' => $page > 1,
+                ],
+            ],
+        ]);
+    }
+
+    public function apiTemplateSuspend(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $reason = $request->input('reason', '');
+        $template->status = 'suspended';
+        $template->suspended_by = 'admin';
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'suspended',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin suspended template' . ($reason ? ': ' . $reason : ''),
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'suspended', 'suspended_by' => 'admin']]);
+    }
+
+    public function apiTemplateReactivate(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $template->status = 'active';
+        $template->suspended_by = null;
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'status-changed',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin reactivated template',
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'active']]);
+    }
+
+    public function apiTemplateArchive(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $reason = $request->input('reason', '');
+        $template->status = 'archived';
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'archived',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin archived template' . ($reason ? ': ' . $reason : ''),
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'archived']]);
+    }
+
+    public function apiTemplateDuplicate(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $original = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$original) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $duplicateFields = $original->only([
+            'account_id', 'sub_account_id', 'type', 'trigger_type', 'content', 'rcs_content',
+            'placeholders', 'encoding', 'character_count', 'segment_count',
+            'sender_id_id', 'rcs_agent_id',
+            'opt_out_enabled', 'opt_out_method', 'opt_out_number_id',
+            'opt_out_keyword', 'opt_out_text', 'opt_out_list_id',
+            'opt_out_url_enabled', 'opt_out_screening_list_ids',
+            'trackable_link_enabled', 'trackable_link_domain',
+            'message_expiry_enabled', 'message_expiry_value',
+            'social_hours_enabled', 'social_hours_from', 'social_hours_to',
+            'category', 'tags',
+        ]);
+
+        $duplicateFields['name'] = $original->name . ' (Copy)';
+        $duplicateFields['description'] = $original->description;
+        $duplicateFields['status'] = 'draft';
+        $duplicateFields['suspended_by'] = null;
+        $duplicateFields['version'] = 1;
+        $duplicateFields['is_favourite'] = false;
+        $duplicateFields['id'] = (string) \Illuminate\Support\Str::uuid();
+        $duplicateFields['created_by'] = session('admin_email', 'Admin');
+        $duplicateFields['updated_by'] = session('admin_email', 'Admin');
+
+        $duplicate = \App\Models\MessageTemplate::withoutGlobalScopes()->create($duplicateFields);
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $duplicate->id,
+            'account_id' => $duplicate->account_id,
+            'action' => 'created',
+            'version' => 1,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Duplicated from template ' . $original->name . ' (ID: ' . substr($original->id, 0, 8) . ')',
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $duplicate->id, 'name' => $duplicate->name]]);
+    }
+
+    public function apiTemplateVersions(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $versions = \App\Models\MessageTemplateVersion::withoutGlobalScopes()
+            ->where('template_id', $templateId)
+            ->orderByDesc('version')
+            ->get()
+            ->map(fn($v) => $v->toPortalArray());
+
+        return response()->json(['success' => true, 'data' => $versions]);
+    }
+
+    public function apiTemplateAuditLog(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $entries = \App\Models\MessageTemplateAuditLog::withoutGlobalScopes()
+            ->where('template_id', $templateId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($e) => $e->toPortalArray());
+
+        return response()->json(['success' => true, 'data' => $entries]);
+    }
+
+    public function apiAccountsSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $search = $request->query('search', '');
+        $query = \DB::table('accounts')->select('id', 'company_name as name', 'status');
+
+        if ($search) {
+            $term = '%' . $search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(company_name) LIKE LOWER(?)', [$term])
+                  ->orWhereRaw('CAST(id AS TEXT) LIKE ?', [$term]);
+            });
+        }
+
+        $accounts = $query->orderBy('company_name')->limit(50)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $accounts->map(function ($a) {
+                return [
+                    'id' => $a->id,
+                    'name' => $a->name ?? 'Unknown',
+                    'status' => $a->status ?? 'active',
+                ];
+            }),
+        ]);
+    }
+
     public function managementTemplateEdit($accountId, $templateId)
     {
         $sender_ids = [
@@ -1335,7 +1730,7 @@ class AdminController extends Controller
         ];
 
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('shared.template-wizard', [
@@ -1353,78 +1748,93 @@ class AdminController extends Controller
         ]);
     }
 
-    private function getAdminMockTemplate($accountId, $templateId)
+    private function getAdminTemplate($accountId, $templateId)
     {
-        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $mockTemplates = [
-            'TPL-12345678' => [
-                'id' => 1,
-                'name' => 'Winter Sale 2026',
-                'templateId' => 'TPL-12345678',
-                'trigger' => 'portal',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => true,
-                'optOut' => true
-            ],
-            'TPL-23456789' => [
-                'id' => 2,
-                'name' => 'Appointment Confirmation',
-                'templateId' => 'TPL-23456789',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
-                'senderId' => '2',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => false
-            ],
-            'TPL-34567890' => [
-                'id' => 3,
-                'name' => 'Delivery Update',
-                'templateId' => 'TPL-34567890',
-                'trigger' => 'api',
-                'channel' => 'basic_rcs',
-                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false
-            ]
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
         ];
 
-        return $mockTemplates[$templateId] ?? [
-            'id' => 999,
-            'name' => 'Template ' . $templateId,
-            'templateId' => $templateId,
-            'trigger' => 'api',
-            'channel' => 'sms',
-            'content' => 'Template content for ' . $templateId,
-            'senderId' => '1',
-            'rcsAgent' => '',
-            'trackableLink' => false,
-            'optOut' => false
+        $t = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$t) {
+            return [
+                'id' => $templateId,
+                'name' => 'Template Not Found',
+                'templateId' => $templateId,
+                'trigger' => 'portal',
+                'channel' => 'sms',
+                'type' => 'sms',
+                'content' => '',
+                'description' => '',
+                'senderId' => '',
+                'rcsAgent' => '',
+                'trackableLink' => false,
+                'trackableLinkDomain' => '',
+                'optOut' => false,
+                'optOutMethod' => '',
+                'optOutNumberId' => '',
+                'optOutKeyword' => '',
+                'optOutText' => '',
+                'optOutListId' => '',
+                'optOutUrlEnabled' => false,
+                'optOutScreeningListIds' => [],
+                'messageExpiry' => false,
+                'messageExpiryHours' => null,
+                'socialHoursEnabled' => false,
+                'socialHoursFrom' => '',
+                'socialHoursTo' => '',
+                'rcs_content' => null,
+                'status' => 'draft',
+            ];
+        }
+
+        return [
+            'id' => $t->id,
+            'name' => $t->name,
+            'templateId' => $t->id,
+            'trigger' => $t->trigger_type ?? 'portal',
+            'channel' => $typeToChannel[$t->type] ?? 'sms',
+            'type' => $t->type,
+            'content' => $t->content ?? '',
+            'description' => $t->description ?? '',
+            'senderId' => $t->sender_id_id ?? '',
+            'rcsAgent' => $t->rcs_agent_id ?? '',
+            'trackableLink' => (bool) ($t->trackable_link_enabled ?? false),
+            'trackableLinkDomain' => $t->trackable_link_domain ?? '',
+            'optOut' => (bool) ($t->opt_out_enabled ?? false),
+            'optOutMethod' => $t->opt_out_method ?? '',
+            'optOutNumberId' => $t->opt_out_number_id ?? '',
+            'optOutKeyword' => $t->opt_out_keyword ?? '',
+            'optOutText' => $t->opt_out_text ?? '',
+            'optOutListId' => $t->opt_out_list_id ?? '',
+            'optOutUrlEnabled' => (bool) ($t->opt_out_url_enabled ?? false),
+            'optOutScreeningListIds' => $t->opt_out_screening_list_ids ?? [],
+            'messageExpiry' => (bool) ($t->message_expiry_enabled ?? false),
+            'messageExpiryHours' => $t->message_expiry_value ?? null,
+            'socialHoursEnabled' => (bool) ($t->social_hours_enabled ?? false),
+            'socialHoursFrom' => $t->social_hours_from ?? '',
+            'socialHoursTo' => $t->social_hours_to ?? '',
+            'rcs_content' => $t->rcs_content,
+            'status' => $t->status,
         ];
     }
 
     private function getAccountName($accountId)
     {
-        // TODO: Replace with API call
-        $accounts = [
-            'ACC-001' => 'Acme Corporation',
-            'ACC-002' => 'TechStart Ltd',
-            'ACC-003' => 'GlobalRetail Inc'
-        ];
-
-        return $accounts[$accountId] ?? 'Account ' . $accountId;
+        $name = \DB::table('accounts')->where('id', $accountId)->value('company_name');
+        return $name ?? 'Account ' . $accountId;
     }
 
     public function adminTemplateEditStep1($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step1', [
@@ -1470,7 +1880,7 @@ class AdminController extends Controller
         ];
 
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step2', [
@@ -1492,7 +1902,7 @@ class AdminController extends Controller
     public function adminTemplateEditStep3($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step3', [
@@ -1509,7 +1919,7 @@ class AdminController extends Controller
     public function adminTemplateEditReview($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-review', [

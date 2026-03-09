@@ -1024,9 +1024,21 @@ function rebuildCardTabs() {
             (function(cardNum) {
                 removeBtn.onclick = function(e) { 
                     e.stopPropagation();
-                    if (confirm('Remove Card ' + cardNum + '?')) {
-                        deleteRcsCard(cardNum);
+                    var msgEl = document.getElementById('rcsRemoveCardMessage');
+                    if (msgEl) msgEl.textContent = 'Are you sure you want to remove Card ' + cardNum + '? This cannot be undone.';
+                    var confirmBtn = document.getElementById('rcsConfirmRemoveCardBtn');
+                    if (confirmBtn) {
+                        var newBtn = confirmBtn.cloneNode(true);
+                        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+                        newBtn.id = 'rcsConfirmRemoveCardBtn';
+                        newBtn.onclick = function() {
+                            var removeModal = bootstrap.Modal.getInstance(document.getElementById('rcsRemoveCardModal'));
+                            if (removeModal) removeModal.hide();
+                            deleteRcsCard(cardNum);
+                        };
                     }
+                    var removeModal = new bootstrap.Modal(document.getElementById('rcsRemoveCardModal'));
+                    removeModal.show();
                 };
             })(i);
             
@@ -1157,6 +1169,21 @@ function isRcsImageDirty() {
 
 function showRcsUnsavedChangesModal(pendingAction) {
     rcsImageDirtyState.pendingNavigation = pendingAction;
+
+    var isUpload = rcsMediaData && (rcsMediaData.source === 'upload' || rcsMediaData.source === 'file');
+    var saveText = document.getElementById('rcsSaveInfoText');
+    var noSaveText = document.getElementById('rcsNoSaveInfoText');
+    if (saveText) {
+        saveText.innerHTML = isUpload
+            ? '<strong>If you save:</strong> QuickSMS will save your cropping and zoom adjustments to the uploaded image.'
+            : '<strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.';
+    }
+    if (noSaveText) {
+        noSaveText.innerHTML = isUpload
+            ? '<strong>If you don\'t save:</strong> The image will render using its original uploaded presentation.'
+            : '<strong>If you don\'t save:</strong> The image will render using the default (original URL and default presentation).';
+    }
+
     var modal = new bootstrap.Modal(document.getElementById('rcsUnsavedChangesModal'));
     modal.show();
 }
@@ -1343,17 +1370,11 @@ function saveRcsImageEdits() {
     if (!rcsMediaData.url && !rcsMediaData.originalUrl) return;
 
     showRcsProcessingIndicator();
-    var editParams = getCurrentEditParams();
 
     generateCroppedImageDataUrl().then(function(croppedDataUrl) {
         var blob = dataUrlToBlob(croppedDataUrl);
         var formData = new FormData();
         formData.append('file', blob, 'rcs-image.jpg');
-        formData.append('edit_params[zoom]', editParams.zoom || 100);
-        formData.append('edit_params[crop_position]', editParams.crop_position || 'center');
-        if (editParams.orientation) {
-            formData.append('edit_params[orientation]', editParams.orientation);
-        }
         if (rcsDraftSession) {
             formData.append('draft_session', rcsDraftSession);
         }
@@ -1447,17 +1468,11 @@ function saveRcsImageEditsAndContinue() {
     }
     
     showRcsProcessingIndicator();
-    var editParams = getCurrentEditParams();
     
     generateCroppedImageDataUrl().then(function(croppedDataUrl) {
         var blob = dataUrlToBlob(croppedDataUrl);
         var formData = new FormData();
         formData.append('file', blob, 'rcs-image.jpg');
-        formData.append('edit_params[zoom]', editParams.zoom || 100);
-        formData.append('edit_params[crop_position]', editParams.crop_position || 'center');
-        if (editParams.orientation) {
-            formData.append('edit_params[orientation]', editParams.orientation);
-        }
         if (rcsDraftSession) {
             formData.append('draft_session', rcsDraftSession);
         }
@@ -1486,7 +1501,9 @@ function saveRcsImageEditsAndContinue() {
 
         showRcsHostedUrl(data.asset.public_url);
         updateRcsImageInfo();
+        var savedPending = rcsImageDirtyState.pendingNavigation;
         clearRcsImageDirtyState();
+        rcsImageDirtyState.pendingNavigation = savedPending;
         initRcsImageBaseline();
         saveCurrentCardData();
         updateRcsWizardPreview();
@@ -1594,6 +1611,12 @@ function handleRcsWizardClose() {
 }
 
 function closeRcsWizardModal() {
+    var unsavedEl = document.getElementById('rcsUnsavedChangesModal');
+    var unsavedInstance = unsavedEl ? bootstrap.Modal.getInstance(unsavedEl) : null;
+    if (unsavedInstance) {
+        unsavedInstance.hide();
+    }
+
     var modalEl = document.getElementById('rcsWizardModal');
     if (!modalEl) {
         console.error('[RCS Wizard] Modal element not found');
@@ -1603,19 +1626,14 @@ function closeRcsWizardModal() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        console.warn('[RCS Wizard] Modal instance not found, trying to create one');
-        try {
-            var newModal = new bootstrap.Modal(modalEl);
-            newModal.hide();
-        } catch (e) {
-            console.error('[RCS Wizard] Failed to close modal:', e);
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            var backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-        }
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
     }
+
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+    document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
 }
 
 function handleRcsApplyContent() {
@@ -2321,6 +2339,12 @@ function updateRcsTextBodyCount() {
 
 function openRcsPlaceholderPicker(field) {
     rcsActiveTextField = field;
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
+function openRcsUrlPlaceholderPicker(inputId) {
+    rcsActiveTextField = inputId;
     var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
     modal.show();
 }
@@ -3156,7 +3180,14 @@ function updateRcsButtonsPreview() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Close button handler - properly manages unsaved changes
+    sessionStorage.removeItem('quicksms_rcs_draft');
+    rcsCardsData = {};
+    rcsPersistentPayload = null;
+    rcsCardCount = 1;
+    rcsCurrentCard = 1;
+    rcsButtons = [];
+    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null, savedDataUrl: null };
+
     var closeBtn = document.getElementById('rcsWizardCloseBtn');
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
@@ -3209,6 +3240,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    var rcsMessageTypeBeforeChange = null;
+    function captureRcsMessageTypeState() {
+        rcsMessageTypeBeforeChange = document.querySelector('input[name="rcsMessageType"]:checked')?.value;
+    }
+    document.querySelectorAll('label[for^="rcsType"]').forEach(function(label) {
+        label.addEventListener('mousedown', captureRcsMessageTypeState);
+        label.addEventListener('touchstart', captureRcsMessageTypeState);
+    });
+    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
+        radio.addEventListener('focus', captureRcsMessageTypeState);
+        radio.addEventListener('change', function(e) {
+            var newValue = e.target.value;
+            if (isRcsImageDirty()) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (rcsMessageTypeBeforeChange && rcsMessageTypeBeforeChange !== newValue) {
+                    var revertId = rcsMessageTypeBeforeChange === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel';
+                    var revertEl = document.getElementById(revertId);
+                    if (revertEl) revertEl.checked = true;
+                }
+                showRcsUnsavedChangesModal({ type: 'changeType', targetValue: newValue });
+                return;
+            }
+            toggleRcsMessageType();
+            if (typeof updateCarouselOrientationWarning === 'function') updateCarouselOrientationWarning();
+            if (typeof updateRcsWizardPreview === 'function') updateRcsWizardPreview();
+        });
+    });
+
+    document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            markRcsImageDirty();
+            if (typeof updateRcsWizardPreview === 'function') updateRcsWizardPreview();
+        });
+    });
+
     // Initialize https:// prefill behavior for all URL inputs
     initRcsHttpsPrefill();
     
@@ -3389,80 +3456,101 @@ function validateRcsHttpsUrl(input) {
  */
 function loadRcsPayloadIntoWizard(payload) {
     if (!payload) return;
-    
+
     console.log('[RCS Wizard] Loading template payload:', payload);
-    
+
     rcsCardsData = {};
-    rcsCardCount = 1;
     rcsCurrentCard = 1;
-    
+
     var type = payload.type || 'standalone';
     var isCarousel = type === 'carousel';
-    
-    var standaloneRadio = document.getElementById('rcsTypeStandalone');
+
+    if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
+        rcsCardCount = payload.cards.length;
+    } else {
+        rcsCardCount = 1;
+    }
+
+    var singleRadio = document.getElementById('rcsTypeSingle');
     var carouselRadio = document.getElementById('rcsTypeCarousel');
-    if (standaloneRadio && carouselRadio) {
+    if (singleRadio && carouselRadio) {
         if (isCarousel) {
             carouselRadio.checked = true;
         } else {
-            standaloneRadio.checked = true;
+            singleRadio.checked = true;
         }
     }
-    
+
+    function mapCardToInternal(card) {
+        var defaultMedia = {
+            source: null, url: null, file: null, fileName: null,
+            fileSize: 0, dimensions: null, orientation: 'vertical_short',
+            cardWidth: 'medium', zoom: 100, cropOffsetX: 0, cropOffsetY: 0,
+            assetUuid: null, hostedUrl: null, originalUrl: null, savedDataUrl: null
+        };
+        var media = defaultMedia;
+        if (card.media) {
+            media = {
+                source: card.media.source || (card.media.url ? 'url' : null),
+                url: card.media.url || null,
+                file: null,
+                fileName: card.media.fileName || null,
+                fileSize: card.media.fileSize || 0,
+                dimensions: card.media.dimensions || null,
+                orientation: card.media.orientation || 'vertical_short',
+                cardWidth: card.media.cardWidth || 'medium',
+                zoom: card.media.zoom || 100,
+                cropOffsetX: card.media.cropOffsetX || 0,
+                cropOffsetY: card.media.cropOffsetY || 0,
+                assetUuid: card.media.assetUuid || null,
+                hostedUrl: card.media.hostedUrl || null,
+                originalUrl: card.media.originalUrl || card.media.url || null,
+                savedDataUrl: card.media.savedDataUrl || card.media.url || null
+            };
+        }
+        var buttons = (card.suggestions || card.buttons || []).map(function(b) {
+            var act = b.action || {};
+            return {
+                label: b.label || b.text || '',
+                type: b.type || 'url',
+                url: act.url || b.url || '',
+                phone: act.phoneNumber || b.phone || '',
+                eventTitle: act.title || b.eventTitle || b.title || '',
+                eventStart: act.startTime || b.eventStart || b.start || '',
+                eventEnd: act.endTime || b.eventEnd || b.end || '',
+                eventDesc: act.description || b.eventDesc || ''
+            };
+        });
+        return {
+            media: media,
+            description: card.description || '',
+            textBody: card.title || card.textBody || '',
+            buttons: buttons
+        };
+    }
+
+    if (typeof toggleRcsMessageType === 'function') toggleRcsMessageType();
+
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
         payload.cards.forEach(function(card, index) {
-            var cardNum = index + 1;
-            rcsCardsData[cardNum] = {
-                title: card.title || '',
-                description: card.description || '',
-                media: card.media || null,
-                buttons: card.suggestions || []
-            };
+            rcsCardsData[index + 1] = mapCardToInternal(card);
         });
-        
         if (typeof rebuildCardTabs === 'function') rebuildCardTabs();
-        if (typeof selectRcsCard === 'function') selectRcsCard(1);
+        loadCardData(1);
     } else if (payload.card) {
-        var card = payload.card;
-        rcsCardsData[1] = {
-            title: card.title || '',
-            description: card.description || '',
-            media: card.media || null,
-            buttons: card.suggestions || []
-        };
-        
-        var titleInput = document.getElementById('rcsCardTitle');
-        var descInput = document.getElementById('rcsCardDescription');
-        
-        if (titleInput) titleInput.value = card.title || '';
-        if (descInput) descInput.value = card.description || '';
-        
-        if (card.suggestions && Array.isArray(card.suggestions)) {
-            rcsButtons = card.suggestions.map(function(s) {
-                return {
-                    label: s.text || s.label || '',
-                    type: s.type || 'url',
-                    url: s.url || '',
-                    phone: s.phone || '',
-                    title: s.title || '',
-                    start: s.start || '',
-                    end: s.end || '',
-                    description: s.description || ''
-                };
-            });
-            if (typeof updateButtonsList === 'function') updateButtonsList();
-        }
+        rcsCardsData[1] = mapCardToInternal(payload.card);
+        loadCardData(1);
     }
-    
+
     var fallbackTextarea = document.getElementById('rcsFallbackText');
     if (fallbackTextarea && payload.fallback) {
         fallbackTextarea.value = payload.fallback;
     }
-    
+
     if (typeof updateRcsPreview === 'function') {
-        setTimeout(updateRcsPreview, 100);
+        setTimeout(updateRcsPreview, 200);
     }
-    
+
     console.log('[RCS Wizard] Template loaded successfully');
 }

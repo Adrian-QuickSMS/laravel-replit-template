@@ -5,13 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class EmailToSmsReportingGroup extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'email_to_sms_reporting_groups';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -37,6 +35,15 @@ class EmailToSmsReportingGroup extends Model
                 $model->id = (string) Str::uuid();
             }
         });
+
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('email_to_sms_reporting_groups.account_id', $tenantId);
+            } else {
+                $builder->whereRaw('1 = 0');
+            }
+        });
     }
 
     public function account(): BelongsTo
@@ -51,11 +58,24 @@ class EmailToSmsReportingGroup extends Model
 
     public function scopeForAccount($query, string $accountId)
     {
-        return $query->where('account_id', $accountId);
+        return $query->withoutGlobalScope('tenant')->where('account_id', $accountId);
     }
 
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function toPortalArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'status' => ucfirst($this->status),
+            'created' => $this->created_at?->format('Y-m-d'),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
+        ];
     }
 }

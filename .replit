@@ -93,7 +93,6 @@ author = "agent"
 task = "shell.exec"
 args = "php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan route:clear"
 
-# ---- Port Configuration ----
 [[ports]]
 localPort = 5000
 externalPort = 80

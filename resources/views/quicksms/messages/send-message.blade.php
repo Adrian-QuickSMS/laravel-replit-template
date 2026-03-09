@@ -1040,7 +1040,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Destination URL</label>
-                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page">
+                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page" oninput="this.classList.remove('is-invalid');">
+                    <div class="invalid-feedback" id="destinationUrlError">Please enter a destination URL</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Insert Link As</label>
@@ -1384,9 +1385,14 @@ function checkForDuplicatePrefill() {
     var duplicateId = urlParams.get('duplicate');
     var editId = urlParams.get('edit');
     
-    // Handle edit draft
+    // Handle edit draft or DB campaign
     if (editId) {
-        loadDraftForEditing(editId);
+        var editSource = urlParams.get('source');
+        if (editSource === 'db') {
+            loadDbCampaignForEditing(editId);
+        } else {
+            loadDraftForEditing(editId);
+        }
         return;
     }
     
@@ -1428,7 +1434,7 @@ function restoreCampaignFromConfirm() {
     if (nameInput && config.campaign_name) nameInput.value = config.campaign_name;
 
     if (config.channel) {
-        var channelMap = { 'sms_only': 'sms_only', 'basic_rcs': 'basic_rcs', 'rich_rcs': 'rich_rcs' };
+        var channelMap = { 'sms_only': 'sms', 'sms': 'sms', 'basic_rcs': 'rcs_basic', 'rcs_basic': 'rcs_basic', 'rich_rcs': 'rcs_rich', 'rcs_rich': 'rcs_rich' };
         var radioVal = channelMap[config.channel] || config.channel;
         var radio = document.querySelector('input[name="channel"][value="' + radioVal + '"]');
         if (radio) {
@@ -1437,12 +1443,52 @@ function restoreCampaignFromConfirm() {
         }
     }
 
-    if (config.sender_id) {
-        var senderSelect = document.getElementById('senderIdSelect');
+    if (config.sender_id_id) {
+        var senderSelect = document.getElementById('senderId');
         if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
-                if (senderSelect.options[i].value == config.sender_id) {
-                    senderSelect.value = config.sender_id;
+                if (senderSelect.options[i].value == config.sender_id_id) {
+                    senderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            if (senderSelect.selectedIndex <= 0 && config.sender_id) {
+                for (var i = 0; i < senderSelect.options.length; i++) {
+                    if (senderSelect.options[i].text.indexOf(config.sender_id) !== -1) {
+                        senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+    } else if (config.sender_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].text.indexOf(config.sender_id) !== -1 || senderSelect.options[i].value == config.sender_id) {
+                    senderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (config.rcs_agent_id) {
+        var agentSelect = document.getElementById('rcsAgent');
+        if (agentSelect) {
+            for (var i = 0; i < agentSelect.options.length; i++) {
+                if (agentSelect.options[i].value == config.rcs_agent_id) {
+                    agentSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    } else if (config.rcs_agent) {
+        var agentSelect = document.getElementById('rcsAgent');
+        if (agentSelect) {
+            for (var i = 0; i < agentSelect.options.length; i++) {
+                if (agentSelect.options[i].text === config.rcs_agent) {
+                    agentSelect.selectedIndex = i;
                     break;
                 }
             }
@@ -1458,19 +1504,231 @@ function restoreCampaignFromConfirm() {
         }
     }
 
-    if (config.recipient_count && config.recipient_count > 0) {
-        var summaryEl = document.getElementById('recipientSummaryText');
-        if (summaryEl) {
-            summaryEl.innerHTML = '<i class="fas fa-info-circle me-1" style="color: #886CC0;"></i> ' +
-                '<strong>' + config.recipient_count + '</strong> recipients loaded from previous session. ' +
-                'Click <strong>Continue</strong> to proceed or modify your selections.';
-            summaryEl.style.display = '';
+    if (config.recipient_state) {
+        if (config.recipient_state.manual) {
+            recipientState.manual = config.recipient_state.manual;
+            if (recipientState.manual.valid && recipientState.manual.valid.length > 0) {
+                var manualArea = document.getElementById('manualNumbers');
+                if (manualArea) manualArea.value = recipientState.manual.valid.join('\n');
+            }
         }
+        if (config.recipient_state.contactBook) {
+            recipientState.contactBook = config.recipient_state.contactBook;
+        }
+        setTimeout(function() {
+            if (typeof updateRecipientSummary === 'function') updateRecipientSummary();
+        }, 100);
+    }
+
+    if (config.recipient_count && config.recipient_count > 0) {
+        var recipientCountEl = document.getElementById('totalRecipientCount');
+        if (recipientCountEl) recipientCountEl.textContent = config.recipient_count;
+
+        var totalInput = document.getElementById('recipientTotalInput');
+        if (totalInput) totalInput.value = config.recipient_count;
+
+        setTimeout(function() {
+            var countEl = document.getElementById('recipientCount');
+            if (countEl) countEl.textContent = config.recipient_count;
+            var previewEl = document.getElementById('previewRecipients');
+            if (previewEl) previewEl.textContent = config.recipient_count;
+        }, 150);
+    }
+
+    if (config.sources) {
+        var sourceMap = {
+            contacts: 'contactBookPill',
+            lists: 'contactListPill',
+            tags: 'tagsPill',
+            file_upload: 'fileUploadPill',
+            manual: 'manualEntryPill',
+            manual_input: 'manualEntryPill'
+        };
+        Object.keys(sourceMap).forEach(function(key) {
+            if (config.sources[key] && config.sources[key] > 0) {
+                var pill = document.getElementById(sourceMap[key]);
+                if (pill) {
+                    pill.classList.remove('d-none');
+                    var countSpan = pill.querySelector('.recipient-count');
+                    if (countSpan) countSpan.textContent = config.sources[key];
+                }
+            }
+        });
     }
 
     if (config.campaign_id) {
         window._restoredCampaignId = config.campaign_id;
     }
+
+    if (config.rcs_content) {
+        try {
+            var payload = typeof config.rcs_content === 'string' ? JSON.parse(config.rcs_content) : config.rcs_content;
+            if (payload && payload.cards) {
+                rcsPersistentPayload = payload;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() { updatePreview(); }, 200);
+            }
+        } catch(e) {}
+    }
+
+    if (config.trackable_link) {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = true;
+            trackableLinkConfirmed = true;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.remove('d-none');
+            if (config.trackable_link_domain) {
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = config.trackable_link_domain;
+            }
+        }
+    }
+
+    if (config.message_expiry) {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = true;
+            messageExpiryConfirmed = true;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.remove('d-none');
+            var expiryValueEl = document.getElementById('messageExpiryValue');
+            if (expiryValueEl) expiryValueEl.textContent = config.message_expiry;
+        }
+    }
+
+    if (config.scheduled_time && config.scheduled_time !== 'now' && config.scheduled_time !== 'Immediate') {
+        var scheduleCheckbox = document.getElementById('scheduleRules');
+        if (scheduleCheckbox) {
+            scheduleCheckbox.checked = true;
+            scheduleRulesConfirmed = true;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                if (summaryText) summaryText.textContent = 'Scheduled for: ' + config.scheduled_time;
+            }
+            var parts = config.scheduled_time.split(' ');
+            if (parts.length >= 2) {
+                var dateInput = document.getElementById('scheduleDate');
+                var timeInput = document.getElementById('scheduleTime');
+                if (dateInput) dateInput.value = parts[0];
+                if (timeInput) timeInput.value = parts[1];
+                var scheduleToggle = document.getElementById('scheduleToggle');
+                if (scheduleToggle) scheduleToggle.checked = true;
+                var scheduleFields = document.getElementById('scheduleFields');
+                if (scheduleFields) scheduleFields.classList.remove('d-none');
+            }
+        }
+    }
+
+    if (config.sending_window) {
+        var match = config.sending_window.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if (match) {
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                var unsociableFields = document.getElementById('unsociableFields');
+                if (unsociableFields) unsociableFields.classList.remove('d-none');
+                var fromEl = document.getElementById('unsociableFrom');
+                var toEl = document.getElementById('unsociableTo');
+                if (fromEl) fromEl.value = match[1];
+                if (toEl) toEl.value = match[2];
+            }
+        }
+    }
+
+    if (config.optout_config && config.optout_config.enabled) {
+        var optoutCheckbox = document.getElementById('enableOptoutManagement');
+        if (optoutCheckbox) {
+            optoutCheckbox.checked = true;
+            if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
+
+            if (config.optout_config.opt_out_screening_list_ids && config.optout_config.opt_out_screening_list_ids.length > 0) {
+                config.optout_config.opt_out_screening_list_ids.forEach(function(listId) {
+                    var cb = document.getElementById('screening_' + listId);
+                    if (cb) {
+                        cb.checked = true;
+                    }
+                });
+                if (typeof onScreeningListChange === 'function') onScreeningListChange();
+            }
+
+            if (config.optout_config.opt_out_method === 'reply') {
+                var replyToggle = document.getElementById('enableReplyOptout');
+                if (replyToggle) {
+                    replyToggle.checked = true;
+                    var replyConfigDiv = document.getElementById('replyOptoutConfig');
+                    if (replyConfigDiv) replyConfigDiv.classList.remove('d-none');
+                }
+
+                loadOptOutNumbers(function() {
+                    if (config.optout_config.opt_out_number_id) {
+                        var numSelect = document.getElementById('optOutNumberId');
+                        if (numSelect) {
+                            numSelect.value = config.optout_config.opt_out_number_id;
+                            if (typeof onOptOutNumberChange === 'function') onOptOutNumberChange();
+                        }
+                    }
+                    if (config.optout_config.opt_out_keyword) {
+                        var kwInput = document.getElementById('optOutKeywordInput');
+                        if (kwInput) kwInput.value = config.optout_config.opt_out_keyword;
+                    }
+                    if (config.optout_config.opt_out_text) {
+                        var replyText = document.getElementById('replyOptoutText');
+                        if (replyText) replyText.value = config.optout_config.opt_out_text;
+                    }
+                    if (config.optout_config.opt_out_list_id) {
+                        var existingRadio = document.querySelector('input[name="replyListTarget"][value="existing"]');
+                        if (existingRadio) existingRadio.checked = true;
+                        var listSelect = document.getElementById('replyOptOutListId');
+                        if (listSelect) listSelect.value = config.optout_config.opt_out_list_id;
+                    }
+                    if (config.optout_config.new_list_name) {
+                        var newRadio = document.querySelector('input[name="replyListTarget"][value="new"]');
+                        if (newRadio) {
+                            newRadio.checked = true;
+                            if (typeof toggleReplyListTarget === 'function') toggleReplyListTarget();
+                            var newNameInput = document.getElementById('replyNewListName');
+                            if (newNameInput) newNameInput.value = config.optout_config.new_list_name;
+                        }
+                    }
+                    validateOptoutConfig();
+                });
+            } else if (config.optout_config.opt_out_method === 'url' || config.optout_config.opt_out_url_enabled) {
+                var urlToggle = document.getElementById('enableUrlOptout');
+                if (urlToggle) {
+                    urlToggle.checked = true;
+                    if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                }
+                if (config.optout_config.opt_out_text) {
+                    var urlText = document.getElementById('urlOptoutText');
+                    if (urlText) urlText.value = config.optout_config.opt_out_text;
+                }
+                if (config.optout_config.opt_out_list_id) {
+                    var urlExistingRadio = document.querySelector('input[name="urlListTarget"][value="existing"]');
+                    if (urlExistingRadio) urlExistingRadio.checked = true;
+                    if (typeof toggleUrlListTarget === 'function') toggleUrlListTarget();
+                    var urlListSelect = document.getElementById('urlOptOutListId');
+                    if (urlListSelect) urlListSelect.value = config.optout_config.opt_out_list_id;
+                }
+                if (config.optout_config.new_list_name) {
+                    var urlNewRadio = document.querySelector('input[name="urlListTarget"][value="new"]');
+                    if (urlNewRadio) {
+                        urlNewRadio.checked = true;
+                        if (typeof toggleUrlListTarget === 'function') toggleUrlListTarget();
+                        var urlNewNameInput = document.getElementById('urlNewListName');
+                        if (urlNewNameInput) urlNewNameInput.value = config.optout_config.new_list_name;
+                    }
+                }
+                validateOptoutConfig();
+            }
+        }
+    }
+
+    setTimeout(function() { updatePreview(); }, 300);
     @endif
 }
 
@@ -1511,7 +1769,7 @@ function loadDraftForEditing(draftId) {
     
     // Set sender ID
     if (draft.config && draft.config.sender_id) {
-        var senderSelect = document.getElementById('senderIdSelect');
+        var senderSelect = document.getElementById('senderId');
         if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value === draft.config.sender_id || 
@@ -1525,7 +1783,7 @@ function loadDraftForEditing(draftId) {
     
     // Set RCS agent
     if (draft.config && draft.config.rcs_agent) {
-        var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+        var rcsAgentSelect = document.getElementById('rcsAgent');
         if (rcsAgentSelect) {
             for (var i = 0; i < rcsAgentSelect.options.length; i++) {
                 if (rcsAgentSelect.options[i].value === draft.config.rcs_agent || 
@@ -1542,18 +1800,61 @@ function loadDraftForEditing(draftId) {
         var smsContent = document.getElementById('smsContent');
         if (smsContent) {
             smsContent.value = draft.config.message_content;
-            updateCharacterCount();
-            updatePreview();
+            if (typeof updateCharCount === 'function') updateCharCount();
+            if (typeof updatePreview === 'function') updatePreview();
         }
     }
     
-    // Set recipients
+    // Set recipients — restore manual numbers
     if (draft.config && draft.config.recipients && draft.config.recipients.length > 0) {
         var manualNumbers = document.getElementById('manualNumbers');
         if (manualNumbers) {
             manualNumbers.value = draft.config.recipients.join('\n');
             validateManualNumbers();
         }
+    }
+
+    // Restore contact book selections (lists, contacts, tags)
+    if (draft.contactBook) {
+        if (draft.contactBook.contacts && draft.contactBook.contacts.length > 0) {
+            recipientState.contactBook.contacts = draft.contactBook.contacts;
+        }
+        if (draft.contactBook.lists && draft.contactBook.lists.length > 0) {
+            recipientState.contactBook.lists = draft.contactBook.lists;
+        }
+        if (draft.contactBook.dynamicLists && draft.contactBook.dynamicLists.length > 0) {
+            recipientState.contactBook.dynamicLists = draft.contactBook.dynamicLists;
+        }
+        if (draft.contactBook.tags && draft.contactBook.tags.length > 0) {
+            recipientState.contactBook.tags = draft.contactBook.tags;
+        }
+        if (typeof renderContactBookChips === 'function') {
+            renderContactBookChips();
+        }
+    }
+
+    // Restore file upload recipients as virtual entries
+    if (draft.fileRecipients && draft.fileRecipients.length > 0) {
+        draft.fileRecipients.forEach(function(f) {
+            recipientState.files.push({
+                id: 'restored_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                name: f.name,
+                size: 0,
+                valid: f.valid || [],
+                invalid: f.invalid || [],
+                mapping: {}
+            });
+        });
+        if (typeof renderUploadedFiles === 'function') {
+            renderUploadedFiles();
+        }
+        if (typeof updateUploadButtonState === 'function') {
+            updateUploadButtonState();
+        }
+    }
+
+    if (typeof updateRecipientSummary === 'function') {
+        updateRecipientSummary();
     }
     
     // Set trackable link
@@ -1573,11 +1874,326 @@ function loadDraftForEditing(draftId) {
         }
     }
     
+    // Restore RCS rich content
+    var draftRcsContent = (draft.rcs_content) || (draft.config && draft.config.rcs_content) || null;
+    if (draftRcsContent) {
+        try {
+            var payload = typeof draftRcsContent === 'string' ? JSON.parse(draftRcsContent) : draftRcsContent;
+            if (payload && payload.cards) {
+                rcsPersistentPayload = payload;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() {
+                    if (typeof updatePreview === 'function') updatePreview();
+                    if (typeof updateRcsWizardPreviewInMain === 'function') updateRcsWizardPreviewInMain();
+                }, 300);
+            }
+        } catch(e) {
+            console.error('Failed to restore RCS content:', e);
+        }
+    }
+
     // Show notification
     showDraftLoadedNotification(draft.name);
     
     // Clear URL parameter
     window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function loadDbCampaignForEditing(campaignId) {
+    fetch('/api/campaigns/' + campaignId, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Failed to load campaign');
+        return r.json();
+    })
+    .then(function(res) {
+        var c = res.data;
+        if (!c) return;
+
+        window._editingDbCampaignId = c.id;
+        window._restoredCampaignId = c.id;
+
+        var campaignNameInput = document.getElementById('campaignName');
+        if (campaignNameInput && c.name) campaignNameInput.value = c.name;
+
+        var typeToChannel = { 'sms': 'sms', 'rcs_basic': 'rcs_basic', 'rcs_single': 'rcs_rich', 'rcs_carousel': 'rcs_rich' };
+        var channelValue = typeToChannel[c.type] || 'sms';
+        var channelRadio = document.querySelector('input[name="channel"][value="' + channelValue + '"]');
+        if (channelRadio) {
+            channelRadio.checked = true;
+            selectChannel(channelValue);
+        }
+
+        if (c.sender_id_id) {
+            var senderSelect = document.getElementById('senderId');
+            if (senderSelect) {
+                for (var i = 0; i < senderSelect.options.length; i++) {
+                    if (senderSelect.options[i].value == c.sender_id_id) {
+                        senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (c.rcs_agent_id) {
+            var rcsAgentSelect = document.getElementById('rcsAgent');
+            if (rcsAgentSelect) {
+                for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                    if (rcsAgentSelect.options[i].value == c.rcs_agent_id) {
+                        rcsAgentSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (c.message_content) {
+            var smsContent = document.getElementById('smsContent');
+            if (smsContent) {
+                smsContent.value = c.message_content;
+                if (typeof updateCharCount === 'function') updateCharCount();
+            }
+        }
+
+        if (c.rcs_content && c.rcs_content.cards) {
+            try {
+                rcsPersistentPayload = c.rcs_content;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(c.rcs_content));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() { updatePreview(); }, 200);
+            } catch(e) {}
+        }
+
+        if (c.recipient_sources && c.recipient_sources.length > 0) {
+            c.recipient_sources.forEach(function(src) {
+                if (src.type === 'manual' && src.numbers && src.numbers.length > 0) {
+                    var manualNumbers = document.getElementById('manualNumbers');
+                    if (manualNumbers) {
+                        manualNumbers.value = src.numbers.join('\n');
+                        validateManualNumbers();
+                    }
+                }
+                if (src.type === 'list' && src.list_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.lists.push({ id: src.list_id, name: src.name || 'List', count: src.count || 0 });
+                    }
+                }
+                if (src.type === 'tag' && src.tag_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.tags.push({ id: src.tag_id, name: src.name || 'Tag', count: src.count || 0 });
+                    }
+                }
+                if (src.type === 'dynamic_list' && src.list_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.dynamicLists.push({ id: src.list_id, name: src.name || 'Dynamic List', count: src.count || 0 });
+                    }
+                }
+            });
+        }
+
+        if (c.message_content && (c.message_content.indexOf('@{{trackingUrl}}') !== -1 || c.message_content.match(/\{\{trackingUrl\}\}|https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//))) {
+            var trackableToggle = document.getElementById('includeTrackableLink');
+            if (trackableToggle) {
+                trackableToggle.checked = true;
+                trackableLinkConfirmed = true;
+                var trackableSection = document.getElementById('trackableLinkSection');
+                if (trackableSection) trackableSection.classList.remove('d-none');
+                var trackableSummary = document.getElementById('trackableLinkSummary');
+                if (trackableSummary) trackableSummary.classList.remove('d-none');
+            }
+        }
+
+        if (c.validity_period) {
+            var expiryCheckbox = document.getElementById('messageExpiry');
+            if (expiryCheckbox) {
+                expiryCheckbox.checked = true;
+                messageExpiryConfirmed = true;
+                var validityToggle = document.getElementById('validityToggle');
+                if (validityToggle) validityToggle.checked = true;
+                var validityDuration = document.getElementById('validityDuration');
+                if (validityDuration) validityDuration.value = c.validity_period;
+                var expirySummary = document.getElementById('messageExpirySummary');
+                if (expirySummary) {
+                    expirySummary.classList.remove('d-none');
+                    var expiryValueEl = document.getElementById('messageExpiryValue');
+                    if (expiryValueEl) expiryValueEl.textContent = c.validity_period + ' Hours';
+                }
+            }
+        }
+
+        if (c.scheduled_at) {
+            var schedDate = new Date(c.scheduled_at);
+            var dateStr = schedDate.getFullYear() + '-' + String(schedDate.getMonth() + 1).padStart(2, '0') + '-' + String(schedDate.getDate()).padStart(2, '0');
+            var timeStr = String(schedDate.getHours()).padStart(2, '0') + ':' + String(schedDate.getMinutes()).padStart(2, '0');
+
+            var scheduleCheckbox = document.getElementById('scheduleRules');
+            if (scheduleCheckbox) {
+                scheduleCheckbox.checked = true;
+                scheduleRulesConfirmed = true;
+            }
+            var scheduleToggle = document.getElementById('scheduleToggle');
+            if (scheduleToggle) scheduleToggle.checked = true;
+            var scheduleFields = document.getElementById('scheduleFields');
+            if (scheduleFields) scheduleFields.classList.remove('d-none');
+            var dateInput = document.getElementById('scheduleDate');
+            if (dateInput) dateInput.value = dateStr;
+            var timeInput = document.getElementById('scheduleTime');
+            if (timeInput) timeInput.value = timeStr;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                if (summaryText) summaryText.textContent = 'Scheduled for: ' + dateStr + ' ' + timeStr;
+            }
+        }
+
+        if (c.sending_window_start && c.sending_window_end) {
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                var unsociableFields = document.getElementById('unsociableFields');
+                if (unsociableFields) unsociableFields.classList.remove('d-none');
+                var fromEl = document.getElementById('unsociableFrom');
+                if (fromEl) fromEl.value = c.sending_window_start.substring(0, 5);
+                var toEl = document.getElementById('unsociableTo');
+                if (toEl) toEl.value = c.sending_window_end.substring(0, 5);
+            }
+            var windowText = 'Quiet hours: ' + c.sending_window_start.substring(0, 5) + ' - ' + c.sending_window_end.substring(0, 5);
+            if (!c.scheduled_at) {
+                var scheduleCheckbox2 = document.getElementById('scheduleRules');
+                if (scheduleCheckbox2) {
+                    scheduleCheckbox2.checked = true;
+                    scheduleRulesConfirmed = true;
+                }
+                var scheduleSummary2 = document.getElementById('scheduleSummary');
+                if (scheduleSummary2) {
+                    scheduleSummary2.classList.remove('d-none');
+                    var summaryText2 = document.getElementById('scheduleSummaryText');
+                    if (summaryText2) summaryText2.textContent = windowText;
+                }
+            } else {
+                var existingSummary = document.getElementById('scheduleSummaryText');
+                if (existingSummary && existingSummary.textContent.indexOf('Quiet hours') === -1) {
+                    existingSummary.textContent = existingSummary.textContent + ' | ' + windowText;
+                }
+            }
+        }
+
+        if (c.send_rate) {
+            var sendRateSelect = document.getElementById('sendRate');
+            if (sendRateSelect) sendRateSelect.value = c.send_rate;
+        }
+
+        if (c.opt_out_enabled || (c.opt_out_screening_list_ids && c.opt_out_screening_list_ids.length > 0)) {
+            var enableToggle = document.getElementById('enableOptoutManagement');
+            if (enableToggle) {
+                enableToggle.checked = true;
+                document.getElementById('optoutManagementSection').classList.remove('d-none');
+                document.getElementById('optoutDisabledMessage').classList.add('d-none');
+            }
+
+            if (c.opt_out_screening_list_ids && c.opt_out_screening_list_ids.length > 0) {
+                c.opt_out_screening_list_ids.forEach(function(listId) {
+                    var checkbox = document.querySelector('input[name="optOutScreeningLists[]"][value="' + listId + '"]');
+                    if (checkbox) checkbox.checked = true;
+                });
+                if (typeof onScreeningListChange === 'function') onScreeningListChange();
+            }
+
+            loadOptOutNumbers(function() {
+                if (c.opt_out_method === 'reply' || c.opt_out_method === 'both') {
+                    var replyToggle = document.getElementById('enableReplyOptout');
+                    if (replyToggle) {
+                        replyToggle.checked = true;
+                        if (typeof toggleReplyOptout === 'function') toggleReplyOptout();
+                    }
+
+                    if (c.opt_out_number_id) {
+                        var numberSelect = document.getElementById('optOutNumberId');
+                        if (numberSelect) {
+                            for (var i = 0; i < numberSelect.options.length; i++) {
+                                if (numberSelect.options[i].value == c.opt_out_number_id) {
+                                    numberSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                            numberSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
+                    if (c.opt_out_keyword) {
+                        var keywordInput = document.getElementById('optOutKeywordInput');
+                        if (keywordInput) keywordInput.value = c.opt_out_keyword;
+                    }
+                    if (c.opt_out_text) {
+                        var replyText = document.getElementById('replyOptoutText');
+                        if (replyText) replyText.value = c.opt_out_text;
+                    }
+                    if (c.opt_out_list_id) {
+                        var listSelect = document.getElementById('replyOptOutListId');
+                        if (listSelect) {
+                            for (var i = 0; i < listSelect.options.length; i++) {
+                                if (listSelect.options[i].value == c.opt_out_list_id) {
+                                    listSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (c.opt_out_url_enabled || c.opt_out_method === 'url') {
+                    var urlToggle = document.getElementById('enableUrlOptout');
+                    if (urlToggle) {
+                        urlToggle.checked = true;
+                        if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                    }
+                    if (c.opt_out_text && (c.opt_out_method === 'url')) {
+                        var urlText = document.getElementById('urlOptoutText');
+                        if (urlText) urlText.value = c.opt_out_text;
+                    }
+                    if (c.opt_out_list_id && (c.opt_out_method === 'url')) {
+                        var urlListSelect = document.getElementById('urlOptOutListId');
+                        if (urlListSelect) {
+                            for (var i = 0; i < urlListSelect.options.length; i++) {
+                                if (urlListSelect.options[i].value == c.opt_out_list_id) {
+                                    urlListSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (typeof validateOptoutConfig === 'function') validateOptoutConfig();
+            });
+        }
+
+        setTimeout(function() {
+            if (typeof updatePreview === 'function') updatePreview();
+            if (typeof updateRecipientSummary === 'function') updateRecipientSummary();
+        }, 500);
+
+        showDraftLoadedNotification(c.name);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    })
+    .catch(function(err) {
+        console.error('Failed to load campaign for editing:', err);
+        var alertHtml = '<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">' +
+            '<i class="fas fa-exclamation-triangle me-2"></i>' +
+            'Failed to load campaign data. Please try again.' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+            '</div>';
+        var cardBody = document.querySelector('.card-body');
+        if (cardBody) cardBody.insertAdjacentHTML('afterbegin', alertHtml);
+    });
 }
 
 function showDraftLoadedNotification(draftName) {
@@ -1741,10 +2357,9 @@ function updatePreview() {
             };
             
             if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
-                // Render configured Rich RCS content
                 container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsPersistentPayload, agent);
+                RcsPreviewRenderer.initCarouselBehavior('#mainPreviewContainer');
             } else {
-                // Show placeholder for unconfigured Rich RCS
                 container.innerHTML = RcsPreviewRenderer.renderRichRcsPlaceholder(agent);
             }
             return;
@@ -1926,7 +2541,7 @@ function confirmTrackableLink() {
     var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
     
     if (!url) {
-        alert('Please enter a destination URL');
+        document.getElementById('destinationUrl').classList.add('is-invalid');
         return;
     }
     
@@ -2032,21 +2647,10 @@ function confirmMessageExpiry() {
 var portalTemplates = @json($templates ?? []);
 
 function getCompatibleTemplates(currentChannel) {
-    var channelMap = {
-        'sms': ['sms'],
-        'rcs_basic': ['rcs_basic', 'sms'],
-        'rcs_rich': ['rcs_rich', 'rcs_basic', 'sms']
-    };
-    var allowedChannels = channelMap[currentChannel] || ['sms'];
-    
     return portalTemplates.filter(function(t) {
         if (t.trigger === 'API') return false;
         if (t.status === 'Archived') return false;
-        var templateChannel = t.channel || 'sms';
-        if (templateChannel === 'Basic RCS + SMS') templateChannel = 'rcs_basic';
-        if (templateChannel === 'Rich RCS + SMS') templateChannel = 'rcs_rich';
-        if (templateChannel === 'SMS') templateChannel = 'sms';
-        return allowedChannels.indexOf(templateChannel) !== -1;
+        return true;
     });
 }
 
@@ -2083,48 +2687,342 @@ function refreshTemplateList() {
     }, 300);
 }
 
+function resetTemplateDrivenState() {
+    var senderSelect = document.getElementById('senderId');
+    if (senderSelect) { senderSelect.selectedIndex = 0; senderSelect.dispatchEvent(new Event('change')); }
+
+    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    if (rcsAgentSelect) { rcsAgentSelect.selectedIndex = 0; }
+
+    var trackableToggle = document.getElementById('includeTrackableLink');
+    if (trackableToggle) {
+        trackableToggle.checked = false;
+        trackableLinkConfirmed = false;
+        var ts = document.getElementById('trackableLinkSummary');
+        if (ts) ts.classList.add('d-none');
+        var domainEl = document.getElementById('trackableLinkDomain');
+        if (domainEl) domainEl.textContent = 'qsms.uk';
+    }
+
+    var expiryToggle = document.getElementById('messageExpiry');
+    if (expiryToggle) {
+        expiryToggle.checked = false;
+        messageExpiryConfirmed = false;
+        var es = document.getElementById('messageExpirySummary');
+        if (es) es.classList.add('d-none');
+    }
+
+    var enableToggle = document.getElementById('enableOptoutManagement');
+    if (enableToggle) {
+        enableToggle.checked = false;
+        var mgmtSection = document.getElementById('optoutManagementSection');
+        if (mgmtSection) mgmtSection.classList.add('d-none');
+        var disabledMsg = document.getElementById('optoutDisabledMessage');
+        if (disabledMsg) disabledMsg.classList.remove('d-none');
+    }
+    var replyToggle = document.getElementById('enableReplyOptout');
+    if (replyToggle) { replyToggle.checked = false; if (typeof toggleReplyOptout === 'function') toggleReplyOptout(); }
+    var urlToggle = document.getElementById('enableUrlOptout');
+    if (urlToggle) { urlToggle.checked = false; if (typeof toggleUrlOptout === 'function') toggleUrlOptout(); }
+
+    document.querySelectorAll('input[name="optOutScreeningLists[]"]').forEach(function(cb) { cb.checked = false; });
+    if (typeof onScreeningListChange === 'function') onScreeningListChange();
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    if (keywordInput) keywordInput.value = '';
+    var replyText = document.getElementById('replyOptoutText');
+    if (replyText) replyText.value = '';
+    var urlText = document.getElementById('urlOptoutText');
+    if (urlText) urlText.value = '';
+    var numberSelect = document.getElementById('optOutNumberId');
+    if (numberSelect) numberSelect.selectedIndex = 0;
+    var replyListSelect = document.getElementById('replyOptOutListId');
+    if (replyListSelect) replyListSelect.selectedIndex = 0;
+    var urlListSelect = document.getElementById('urlOptOutListId');
+    if (urlListSelect) urlListSelect.selectedIndex = 0;
+
+    var scheduleCheckbox = document.getElementById('scheduleRules');
+    if (scheduleCheckbox) {
+        scheduleCheckbox.checked = false;
+        scheduleRulesConfirmed = false;
+        var scheduleSummary = document.getElementById('scheduleSummary');
+        if (scheduleSummary) scheduleSummary.classList.add('d-none');
+    }
+    var scheduleToggle = document.getElementById('scheduleToggle');
+    if (scheduleToggle) { scheduleToggle.checked = false; if (typeof toggleScheduleFields === 'function') toggleScheduleFields(); }
+    var unsociableToggle = document.getElementById('unsociableToggle');
+    if (unsociableToggle) { unsociableToggle.checked = false; if (typeof toggleUnsociableFields === 'function') toggleUnsociableFields(); }
+}
+
+function setTemplateSenderAndAgent(tpl, channel) {
+    if (tpl.sender_id_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value == tpl.sender_id_id) {
+                    senderSelect.selectedIndex = i;
+                    senderSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+    if (tpl.rcs_agent_id && (channel === 'Basic RCS + SMS' || channel === 'Rich RCS + SMS')) {
+        var rcsAgentSelect = document.getElementById('rcsAgent');
+        if (rcsAgentSelect) {
+            for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                if (rcsAgentSelect.options[i].value == tpl.rcs_agent_id) {
+                    rcsAgentSelect.selectedIndex = i;
+                    rcsAgentSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+}
+
 function applySelectedTemplate() {
     var selector = document.getElementById('templateSelector');
     var selectedOption = selector.options[selector.selectedIndex];
-    
+
     if (!selectedOption.value) {
+        resetTemplateDrivenState();
         document.getElementById('smsContent').value = '';
         handleContentChange();
         return;
     }
-    
-    var channel = selectedOption.getAttribute('data-channel') || 'SMS';
-    var content = selectedOption.getAttribute('data-content') || '';
-    var rcsPayloadStr = selectedOption.getAttribute('data-rcs-payload');
-    
-    content = content.replace(/\\'/g, "'");
-    
-    if (channel === 'Rich RCS + SMS' && rcsPayloadStr) {
+
+    var tpl = portalTemplates.find(function(t) { return String(t.id) === String(selectedOption.value); });
+    if (!tpl) return;
+
+    resetTemplateDrivenState();
+
+    var channel = tpl.channel || 'SMS';
+    var content = tpl.content || '';
+
+    if (channel === 'Rich RCS + SMS' && tpl.rcs_payload) {
         try {
-            var payload = JSON.parse(rcsPayloadStr);
+            var raw = typeof tpl.rcs_payload === 'string' ? JSON.parse(tpl.rcs_payload) : tpl.rcs_payload;
+            var isCarousel = (raw.messageType === 'carousel') || (raw.cards && raw.cards.length > 1);
+            var wizardCards = (raw.cards || []).map(function(c) {
+                return {
+                    title: c.textBody || c.title || '',
+                    description: c.description || '',
+                    media: c.media || null,
+                    suggestions: (c.buttons || c.suggestions || []).map(function(b) {
+                        var act = b.action || {};
+                        return {
+                            text: b.label || b.text || '',
+                            label: b.label || b.text || '',
+                            type: b.type || 'url',
+                            url: act.url || b.url || '',
+                            phone: act.phoneNumber || b.phone || '',
+                            title: act.title || b.title || '',
+                            start: act.startTime || b.start || '',
+                            end: act.endTime || b.end || '',
+                            description: act.description || b.description || ''
+                        };
+                    })
+                };
+            });
+            var payload = {
+                type: isCarousel ? 'carousel' : 'standalone',
+                fallback: content || ''
+            };
+            if (isCarousel) {
+                payload.cards = wizardCards;
+            } else if (wizardCards.length > 0) {
+                payload.card = wizardCards[0];
+            }
             document.querySelector('#channelRCSRich').click();
-            
             setTimeout(function() {
-                if (typeof openRcsWizard === 'function') {
-                    openRcsWizard();
-                    setTimeout(function() {
-                        if (typeof loadRcsPayloadIntoWizard === 'function') {
-                            loadRcsPayloadIntoWizard(payload);
-                        }
-                    }, 300);
+                if (typeof loadRcsPayloadIntoWizard === 'function') {
+                    loadRcsPayloadIntoWizard(payload);
                 }
-            }, 200);
+                rcsPersistentPayload = buildRcsPayload();
+                if (typeof updateRcsWizardPreviewInMain === 'function') {
+                    updateRcsWizardPreviewInMain();
+                }
+                setTemplateSenderAndAgent(tpl, channel);
+            }, 300);
         } catch (e) {
             console.warn('Failed to parse RCS payload:', e);
         }
+        document.getElementById('smsContent').value = content;
+        handleContentChange();
     } else if (channel === 'Basic RCS + SMS') {
         document.querySelector('#channelRCSBasic').click();
         document.getElementById('smsContent').value = content;
         handleContentChange();
+        setTimeout(function() { setTemplateSenderAndAgent(tpl, channel); }, 100);
     } else {
         document.getElementById('smsContent').value = content;
         handleContentChange();
+        setTemplateSenderAndAgent(tpl, channel);
     }
+
+    if (tpl.trackable_link_enabled) {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = true;
+            trackableLinkConfirmed = true;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.remove('d-none');
+            if (tpl.trackable_link_domain) {
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = tpl.trackable_link_domain;
+            }
+        }
+    } else {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = false;
+            trackableLinkConfirmed = false;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.add('d-none');
+        }
+    }
+
+    if (tpl.message_expiry_enabled && tpl.message_expiry_value) {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = true;
+            messageExpiryConfirmed = true;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.remove('d-none');
+            var expiryValueEl = document.getElementById('messageExpiryValue');
+            if (expiryValueEl) expiryValueEl.textContent = tpl.message_expiry_value;
+        }
+    } else {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = false;
+            messageExpiryConfirmed = false;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.add('d-none');
+        }
+    }
+
+    if (tpl.opt_out_enabled) {
+        var enableToggle = document.getElementById('enableOptoutManagement');
+        if (enableToggle) {
+            enableToggle.checked = true;
+            document.getElementById('optoutManagementSection').classList.remove('d-none');
+            document.getElementById('optoutDisabledMessage').classList.add('d-none');
+        }
+
+        if (tpl.opt_out_screening_list_ids && tpl.opt_out_screening_list_ids.length > 0) {
+            tpl.opt_out_screening_list_ids.forEach(function(listId) {
+                var checkbox = document.querySelector('input[name="optOutScreeningLists[]"][value="' + listId + '"]');
+                if (checkbox) checkbox.checked = true;
+            });
+            if (typeof onScreeningListChange === 'function') onScreeningListChange();
+        }
+
+        loadOptOutNumbers(function() {
+            if (tpl.opt_out_method === 'reply' || tpl.opt_out_method === 'both') {
+                var replyToggle = document.getElementById('enableReplyOptout');
+                if (replyToggle) {
+                    replyToggle.checked = true;
+                    if (typeof toggleReplyOptout === 'function') toggleReplyOptout();
+                }
+                if (tpl.opt_out_number_id) {
+                    var numberSelect = document.getElementById('optOutNumberId');
+                    if (numberSelect) {
+                        for (var i = 0; i < numberSelect.options.length; i++) {
+                            if (numberSelect.options[i].value == tpl.opt_out_number_id) {
+                                numberSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        numberSelect.dispatchEvent(new Event('change'));
+                    }
+                }
+                if (tpl.opt_out_keyword) {
+                    var keywordInput = document.getElementById('optOutKeywordInput');
+                    if (keywordInput) keywordInput.value = tpl.opt_out_keyword;
+                }
+                if (tpl.opt_out_text) {
+                    var replyText = document.getElementById('replyOptoutText');
+                    if (replyText) replyText.value = tpl.opt_out_text;
+                }
+                if (tpl.opt_out_list_id) {
+                    var listSelect = document.getElementById('replyOptOutListId');
+                    if (listSelect) {
+                        for (var i = 0; i < listSelect.options.length; i++) {
+                            if (listSelect.options[i].value == tpl.opt_out_list_id) {
+                                listSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (tpl.opt_out_url_enabled || tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both') {
+                var urlToggle = document.getElementById('enableUrlOptout');
+                if (urlToggle) {
+                    urlToggle.checked = true;
+                    if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                }
+                if (tpl.opt_out_text && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
+                    var urlText = document.getElementById('urlOptoutText');
+                    if (urlText) urlText.value = tpl.opt_out_text;
+                }
+                if (tpl.opt_out_list_id && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
+                    var urlListSelect = document.getElementById('urlOptOutListId');
+                    if (urlListSelect) {
+                        for (var i = 0; i < urlListSelect.options.length; i++) {
+                            if (urlListSelect.options[i].value == tpl.opt_out_list_id) {
+                                urlListSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (typeof validateOptoutConfig === 'function') validateOptoutConfig();
+        });
+    } else {
+        var enableToggle = document.getElementById('enableOptoutManagement');
+        if (enableToggle) {
+            enableToggle.checked = false;
+            var mgmtSection = document.getElementById('optoutManagementSection');
+            if (mgmtSection) mgmtSection.classList.add('d-none');
+            var disabledMsg = document.getElementById('optoutDisabledMessage');
+            if (disabledMsg) disabledMsg.classList.remove('d-none');
+        }
+    }
+
+    if (tpl.social_hours_enabled) {
+        var scheduleCheckbox = document.getElementById('scheduleRules');
+        if (scheduleCheckbox) {
+            scheduleCheckbox.checked = true;
+            scheduleRulesConfirmed = true;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                var from = tpl.social_hours_from || '08:00';
+                var to = tpl.social_hours_to || '20:00';
+                if (summaryText) summaryText.textContent = 'Quiet hours: ' + from + ' - ' + to;
+            }
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                if (typeof toggleUnsociableFields === 'function') toggleUnsociableFields();
+            }
+            var unsociableFrom = document.getElementById('unsociableFrom');
+            var unsociableTo = document.getElementById('unsociableTo');
+            if (unsociableFrom) unsociableFrom.value = tpl.social_hours_from || '08:00';
+            if (unsociableTo) unsociableTo.value = tpl.social_hours_to || '20:00';
+        }
+    }
+
+    setTimeout(function() {
+        if (typeof updatePreview === 'function') updatePreview();
+    }, 300);
 }
 
 function toggleScheduleFields() {
@@ -2415,75 +3313,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-var rcsMessageTypeBeforeChange = null;
-
-function captureRcsMessageTypeState() {
-    rcsMessageTypeBeforeChange = document.querySelector('input[name="rcsMessageType"]:checked')?.value;
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('label[for^="rcsType"]').forEach(function(label) {
-        label.addEventListener('mousedown', captureRcsMessageTypeState);
-        label.addEventListener('touchstart', captureRcsMessageTypeState);
-    });
-    
-    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('focus', captureRcsMessageTypeState);
-    });
-    
-    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('change', function(e) {
-            var newValue = e.target.value;
-            if (isRcsImageDirty()) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (rcsMessageTypeBeforeChange && rcsMessageTypeBeforeChange !== newValue) {
-                    document.getElementById(rcsMessageTypeBeforeChange === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel').checked = true;
-                }
-                showRcsUnsavedChangesModal({ type: 'changeType', targetValue: newValue });
-                return;
-            }
-            toggleRcsMessageType();
-            updateCarouselOrientationWarning();
-            updateRcsWizardPreview();
-        });
-    });
-    
-    document.querySelectorAll('input[name="rcsMediaSource"]').forEach(function(radio) {
-        radio.addEventListener('change', toggleRcsMediaSource);
-    });
-    
-    document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            markRcsImageDirty();
-            updateRcsWizardPreview();
-        });
-    });
-    
-    var fileInput = document.getElementById('rcsMediaFileInput');
-    fileInput.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            handleRcsFileUpload(e.target.files[0]);
-        }
-    });
-    
-    var dropzone = document.getElementById('rcsMediaDropzone');
-    dropzone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        dropzone.classList.add('border-primary');
-    });
-    dropzone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary');
-    });
-    dropzone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary');
-        if (e.dataTransfer.files.length > 0) {
-            handleRcsFileUpload(e.dataTransfer.files[0]);
-        }
-    });
-    
     document.getElementById('personalisationModal').addEventListener('hidden.bs.modal', function() {
         rcsActiveTextField = null;
     });
@@ -2673,7 +3503,7 @@ function toggleUrlStorageList() {
     validateOptoutConfig();
 }
 
-function loadOptOutNumbers() {
+function loadOptOutNumbers(onComplete) {
     var select = document.getElementById('optOutNumberId');
     if (!select) return;
     select.innerHTML = '<option value="">-- Loading... --</option>';
@@ -2736,6 +3566,7 @@ function loadOptOutNumbers() {
         if (vmns.length === 0 && shortcodes.length === 0) {
             select.innerHTML = '<option value="">No numbers available</option>';
         }
+        if (typeof onComplete === 'function') onComplete();
     })
     .catch(function() {
         select.innerHTML = '<option value="">Failed to load numbers</option>';
@@ -2886,7 +3717,7 @@ function refreshOptOutText() {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ keyword: keyword, number: numberVal })
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
     })
     .then(function(r) { return r.json(); })
     .then(function(res) {
@@ -2953,6 +3784,13 @@ function validateOptoutConfig() {
                 errorDiv.classList.remove('d-none');
                 return false;
             }
+        } else if (replyTarget && replyTarget.value === 'existing') {
+            var replyListSelect = document.getElementById('replyOptOutListId');
+            if (!replyListSelect || !replyListSelect.value) {
+                errorMsg.textContent = 'Select an existing opt-out list to store replies.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
         }
     }
 
@@ -2969,6 +3807,13 @@ function validateOptoutConfig() {
             var urlNewName = document.getElementById('urlNewListName');
             if (!urlNewName || !urlNewName.value.trim()) {
                 errorMsg.textContent = 'Enter a name for the new opt-out list.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
+        } else if (urlTarget && urlTarget.value === 'existing') {
+            var urlListSelect = document.getElementById('urlOptOutListId');
+            if (!urlListSelect || !urlListSelect.value) {
+                errorMsg.textContent = 'Select an existing opt-out list to store opt-outs.';
                 errorDiv.classList.remove('d-none');
                 return false;
             }
@@ -3040,11 +3885,18 @@ function collectCampaignConfig() {
     };
     var mappedChannel = channelMap[channelValue] || 'sms_only';
     
-    var senderSelect = document.getElementById('senderIdSelect');
+    var senderSelect = document.getElementById('senderId');
     var senderId = senderSelect ? senderSelect.value : '';
+    var senderOptionText = (senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId;
+    var senderDisplayName = senderOptionText.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
     
-    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgent = (rcsAgentSelect && rcsAgentSelect.value) ? rcsAgentSelect.value : null;
+    var rcsAgentOption = (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex] : null;
+    var rcsAgentDisplayName = rcsAgentOption ? (rcsAgentOption.getAttribute('data-name') || rcsAgentOption.text) : rcsAgent;
+    var rcsAgentLogo = rcsAgentOption ? (rcsAgentOption.getAttribute('data-logo') || '') : '';
+    var rcsAgentTagline = rcsAgentOption ? (rcsAgentOption.getAttribute('data-tagline') || '') : '';
+    var rcsAgentBrandColor = rcsAgentOption ? (rcsAgentOption.getAttribute('data-brand-color') || '#886CC0') : '#886CC0';
     
     var smsContent = document.getElementById('smsContent').value.trim();
     
@@ -3076,11 +3928,22 @@ function collectCampaignConfig() {
     var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
     var totalRecipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
     
+    var rcsPayload = null;
+    if (mappedChannel === 'rich_rcs' && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsPayload = rcsPersistentPayload;
+    }
+
     return {
         channel: mappedChannel,
         sender_id: senderId,
+        sender_display_name: senderDisplayName,
         rcs_agent: rcsAgent,
+        rcs_agent_display_name: rcsAgentDisplayName,
+        rcs_agent_logo: rcsAgentLogo,
+        rcs_agent_tagline: rcsAgentTagline,
+        rcs_agent_brand_color: rcsAgentBrandColor,
         message_content: smsContent,
+        rcs_content: rcsPayload,
         template: templateName,
         trackable_link: trackableLinkEnabled,
         optout_enabled: optoutEnabled,
@@ -3146,24 +4009,41 @@ function confirmSaveDraft() {
     
     var config = collectCampaignConfig();
     
+    var contactBookState = {
+        contacts: recipientState.contactBook.contacts.slice(),
+        lists: recipientState.contactBook.lists.slice(),
+        dynamicLists: recipientState.contactBook.dynamicLists.slice(),
+        tags: recipientState.contactBook.tags.slice()
+    };
+
+    var fileRecipients = recipientState.files.map(function(f) {
+        return { name: f.name, valid: f.valid.slice(), invalid: f.invalid.slice() };
+    });
+
     var draftData = {
         id: 'draft_' + Date.now(),
         name: draftName,
         channel: config.channel,
-        sender_id: config.sender_id || 'Not set',
-        rcs_agent: config.rcs_agent || null,
+        sender_id: config.sender_display_name || config.sender_id || 'Not set',
+        rcs_agent: config.rcs_agent_display_name || config.rcs_agent || null,
+        rcs_agent_logo: config.rcs_agent_logo || '',
+        rcs_agent_tagline: config.rcs_agent_tagline || '',
+        rcs_agent_brand_color: config.rcs_agent_brand_color || '#886CC0',
         status: 'draft',
         send_date: null,
         recipients: config.recipients ? config.recipients.length : 0,
         delivered: 0,
         failed: 0,
         message_content: config.message_content,
+        rcs_content: config.rcs_content || null,
         tags: [],
         template: config.template || null,
         has_tracking: config.trackable_link ? 'yes' : 'no',
         has_optout: config.optout_enabled ? 'yes' : 'no',
         created_at: new Date().toISOString(),
-        config: config
+        config: config,
+        contactBook: contactBookState,
+        fileRecipients: fileRecipients
     };
     
     var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
@@ -3206,15 +4086,24 @@ function showValidationErrors(errors) {
     list.innerHTML = '';
     
     errors.forEach(function(error) {
+        var msg = (error.message || '').trim();
+        if (!msg) return;
         var li = document.createElement('li');
         li.className = 'd-flex align-items-center mb-2';
-        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span>' + error.message + '</span>';
+        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span class="text-dark">' + msg + '</span>';
         list.appendChild(li);
         
         if (error.fieldId) {
             markFieldAsError(error.fieldId);
         }
     });
+
+    if (list.children.length === 0) {
+        var li = document.createElement('li');
+        li.className = 'd-flex align-items-center mb-2';
+        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span class="text-dark">Please check all required fields are filled in correctly.</span>';
+        list.appendChild(li);
+    }
     
     var modal = new bootstrap.Modal(document.getElementById('validationErrorsModal'));
     modal.show();
@@ -3227,7 +4116,10 @@ function continueToConfirmation() {
     var campaignName = document.getElementById('campaignName').value;
     if (!campaignName) {
         var now = new Date();
-        campaignName = 'Campaign - ' + now.toISOString().slice(0, 16).replace('T', ' ');
+        var ts = now.toISOString().slice(0, 16).replace('T', ' ');
+        var tplSelect = document.getElementById('templateSelector');
+        var tplName = (tplSelect && tplSelect.value) ? tplSelect.options[tplSelect.selectedIndex].text : '';
+        campaignName = tplName ? tplName + ' - ' + ts : 'Campaign - ' + ts;
         document.getElementById('campaignName').value = campaignName;
     }
     
@@ -3258,10 +4150,14 @@ function continueToConfirmation() {
     
     var optoutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (optoutEnabled && !validateOptoutConfig()) {
-        errors.push({ fieldId: null, message: 'Opt-out configuration has errors that must be fixed' });
+        var optoutMsg = document.getElementById('optoutValidationMessage');
+        var errorText = (optoutMsg ? optoutMsg.textContent : '').trim();
+        if (!errorText) errorText = 'Opt-out configuration has errors that must be fixed';
+        errors.push({ fieldId: null, message: errorText });
     }
     
     if (errors.length > 0) {
+        console.log('[Validation] Errors found:', JSON.stringify(errors));
         showValidationErrors(errors);
         return;
     }
@@ -3269,12 +4165,13 @@ function continueToConfirmation() {
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
-    var apiChannelMap = {
-        'sms': 'sms',
-        'rcs_basic': 'rcs_basic',
-        'rcs_rich': 'rcs_single'
-    };
-    var apiChannelValue = apiChannelMap[channelValue] || 'sms';
+    var apiChannelValue = 'sms';
+    if (channelValue === 'rcs_basic') {
+        apiChannelValue = 'rcs_basic';
+    } else if (channelValue === 'rcs_rich') {
+        var isCarousel = typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload && rcsPersistentPayload.type === 'carousel';
+        apiChannelValue = isCarousel ? 'rcs_carousel' : 'rcs_single';
+    }
 
     var sessionChannelMap = {
         'sms': 'sms_only',
@@ -3373,11 +4270,17 @@ function continueToConfirmation() {
 
     var optoutCfg = getOptoutConfiguration();
 
+    var rcsPayloadForApi = null;
+    if ((apiChannelValue === 'rcs_single' || apiChannelValue === 'rcs_carousel') && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsPayloadForApi = rcsPersistentPayload;
+    }
+
     function buildCampaignData(resolvedListId) {
         return {
             name: campaignName,
             type: apiChannelValue,
             message_content: smsContent,
+            rcs_content: rcsPayloadForApi,
             sender_id_id: senderId || null,
             rcs_agent_id: rcsAgentId || null,
             recipient_sources: recipientSources,
@@ -3415,6 +4318,7 @@ function continueToConfirmation() {
 
     var campaignPromise = newListPromise.then(function(resolvedListId) {
         var campaignData = buildCampaignData(resolvedListId);
+        console.log('[Campaign] Sending campaign data:', JSON.stringify(campaignData));
         if (existingCampaignId) {
             return CampaignService.update(existingCampaignId, campaignData).then(function(result) {
                 return { data: { id: existingCampaignId } };
@@ -3437,18 +4341,43 @@ function continueToConfirmation() {
             return;
         }
 
+        var trackableLinkToggle = document.getElementById('includeTrackableLink');
+        var trackableLinkOn = trackableLinkToggle ? trackableLinkToggle.checked : false;
+        var trackableDomainEl = document.getElementById('trackableLinkDomain');
+        var trackableDomain = trackableDomainEl ? trackableDomainEl.textContent : 'qsms.uk';
+
         var sessionConfig = {
             campaign_id: campaignId,
             campaign_name: campaignName,
             channel: sessionChannelValue,
             sender_id: senderIdText,
+            sender_id_id: senderId || null,
             rcs_agent: rcsAgentName,
-            rcs_agent_id: rcsAgentId,
+            rcs_agent_id: rcsAgentId || null,
             message_content: smsContent,
+            rcs_content: (function() {
+                if (!rcsPayloadForApi) return null;
+                try {
+                    var clean = JSON.parse(JSON.stringify(rcsPayloadForApi));
+                    if (clean.cards) {
+                        clean.cards.forEach(function(card) {
+                            if (card.media && card.media.hostedUrl) {
+                                card.media.url = card.media.hostedUrl;
+                            }
+                        });
+                    }
+                    return clean;
+                } catch(e) { return rcsPayloadForApi; }
+            })(),
             recipient_count: recipientCount,
             valid_count: recipientCount,
             invalid_count: invalidCount,
             opted_out_count: 0,
+            recipient_sources: recipientSources,
+            recipient_state: {
+                manual: recipientState.manual,
+                contactBook: recipientState.contactBook
+            },
             sources: {
                 manual_input: manualCount,
                 file_upload: uploadCount,
@@ -3460,7 +4389,10 @@ function continueToConfirmation() {
             scheduled_time: scheduledTimeValue,
             message_expiry: messageExpiry,
             sending_window: sendingWindowValue,
-            optout_config: optoutCfg
+            trackable_link: trackableLinkOn,
+            trackable_link_domain: trackableDomain,
+            optout_config: optoutCfg,
+            is_editing_existing: !!existingCampaignId
         };
 
         if (continueBtn) {
@@ -3501,14 +4433,17 @@ function continueToConfirmation() {
             window.location.href = '{{ route("messages.confirm") }}?campaign_id=' + campaignId;
         });
     }).catch(function(error) {
+        console.log('[Campaign] Error creating campaign:', error);
         if (continueBtn) {
             continueBtn.disabled = false;
             continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
         }
-        if (error.validationErrors) {
+        var validationKeys = error.validationErrors ? Object.keys(error.validationErrors) : [];
+        if (validationKeys.length > 0) {
             var errorList = [];
-            Object.keys(error.validationErrors).forEach(function(field) {
-                errorList.push({ fieldId: null, message: error.validationErrors[field][0] });
+            validationKeys.forEach(function(field) {
+                var msg = error.validationErrors[field][0] || ('Field "' + field + '" is invalid');
+                errorList.push({ fieldId: null, message: msg });
             });
             showValidationErrors(errorList);
         } else {

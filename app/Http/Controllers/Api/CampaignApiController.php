@@ -60,7 +60,7 @@ class CampaignApiController extends Controller
                 'campaign_account' => $campaign->account_id,
                 'request_tenant' => $this->tenantId(),
             ]);
-            return null; // Return null (same as not found) to avoid leaking existence
+            return null;
         }
 
         return $campaign;
@@ -152,9 +152,9 @@ class CampaignApiController extends Controller
             'rcs_agent_id' => 'nullable|uuid',
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
-            'recipient_sources.*.id' => 'nullable|uuid',
+            'recipient_sources.*.id' => 'nullable|string',
             'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
-            'recipient_sources.*.contact_ids.*' => 'uuid',
+            'recipient_sources.*.contact_ids.*' => 'string',
             'recipient_sources.*.numbers' => 'nullable|array|max:100000',
             'recipient_sources.*.numbers.*' => 'string|max:30',
             'recipient_sources.*.data' => 'nullable|array|max:100000',
@@ -165,6 +165,9 @@ class CampaignApiController extends Controller
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
+            'validity_period' => 'nullable|integer|min:1|max:10080',
+            'sending_window_start' => 'nullable|date_format:H:i',
+            'sending_window_end' => 'nullable|date_format:H:i',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
             // Opt-out configuration
@@ -174,6 +177,8 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_ids' => 'nullable|array|max:50',
+            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
@@ -190,9 +195,54 @@ class CampaignApiController extends Controller
             }
         }
 
+        if (!empty($validated['opt_out_screening_list_ids'])) {
+            $ownedCount = \DB::table('opt_out_lists')
+                ->where('account_id', $this->tenantId())
+                ->whereIn('id', $validated['opt_out_screening_list_ids'])
+                ->count();
+            if ($ownedCount !== count($validated['opt_out_screening_list_ids'])) {
+                return response()->json(['status' => 'error', 'message' => 'One or more screening lists not found.'], 422);
+            }
+        }
+
+        if (!empty($validated['sender_id_id'])) {
+            $senderId = DB::table('sender_ids')
+                ->where('uuid', $validated['sender_id_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$senderId) {
+                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            }
+            $validated['sender_id_id'] = $senderId;
+        }
+        if (!empty($validated['rcs_agent_id'])) {
+            $rcsAgentId = DB::table('rcs_agents')
+                ->where('uuid', $validated['rcs_agent_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$rcsAgentId) {
+                return response()->json(['status' => 'error', 'message' => 'RCS Agent not found.'], 422);
+            }
+            $validated['rcs_agent_id'] = $rcsAgentId;
+        }
+
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
-        $campaign = $this->campaignService->create($this->tenantId(), $validated);
+        try {
+            $campaign = $this->campaignService->create($this->tenantId(), $validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (str_contains($e->getMessage(), 'idx_campaign_opt_out_keyword_inflight')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Keyword '{$validated['opt_out_keyword']}' is already in use by an active campaign on this number.",
+                ], 422);
+            }
+            \Log::error('Campaign creation failed: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create campaign. Please try again.',
+            ], 500);
+        }
 
         return response()->json(['data' => $campaign->toPortalArray()], 201);
     }
@@ -226,15 +276,18 @@ class CampaignApiController extends Controller
             'rcs_agent_id' => 'nullable|uuid',
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
-            'recipient_sources.*.id' => 'nullable|uuid',
+            'recipient_sources.*.id' => 'nullable|string',
             'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
-            'recipient_sources.*.contact_ids.*' => 'uuid',
+            'recipient_sources.*.contact_ids.*' => 'string',
             'recipient_sources.*.numbers' => 'nullable|array|max:100000',
             'recipient_sources.*.numbers.*' => 'string|max:30',
             'scheduled_at' => 'nullable|date|after:now',
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
+            'validity_period' => 'nullable|integer|min:1|max:10080',
+            'sending_window_start' => 'nullable|date_format:H:i',
+            'sending_window_end' => 'nullable|date_format:H:i',
             'tags' => 'nullable|array',
             // Opt-out configuration
             'opt_out_enabled' => 'nullable|boolean',
@@ -243,6 +296,8 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_ids' => 'nullable|array|max:50',
+            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
@@ -260,6 +315,37 @@ class CampaignApiController extends Controller
             } catch (\RuntimeException $e) {
                 return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
             }
+        }
+
+        if (!empty($validated['opt_out_screening_list_ids'])) {
+            $ownedCount = \DB::table('opt_out_lists')
+                ->where('account_id', $this->tenantId())
+                ->whereIn('id', $validated['opt_out_screening_list_ids'])
+                ->count();
+            if ($ownedCount !== count($validated['opt_out_screening_list_ids'])) {
+                return response()->json(['status' => 'error', 'message' => 'One or more screening lists not found.'], 422);
+            }
+        }
+
+        if (!empty($validated['sender_id_id'])) {
+            $senderId = DB::table('sender_ids')
+                ->where('uuid', $validated['sender_id_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$senderId) {
+                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            }
+            $validated['sender_id_id'] = $senderId;
+        }
+        if (!empty($validated['rcs_agent_id'])) {
+            $rcsAgentId = DB::table('rcs_agents')
+                ->where('uuid', $validated['rcs_agent_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$rcsAgentId) {
+                return response()->json(['status' => 'error', 'message' => 'RCS Agent not found.'], 422);
+            }
+            $validated['rcs_agent_id'] = $rcsAgentId;
         }
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
@@ -713,6 +799,22 @@ class CampaignApiController extends Controller
         }
     }
 
+    public function archive(string $id): JsonResponse
+    {
+        $campaign = $this->findCampaignOrFail($id);
+
+        if (!$campaign) {
+            return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
+        }
+
+        try {
+            $this->campaignService->archive($campaign);
+            return response()->json(['success' => true, 'message' => 'Campaign archived']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     // =====================================================
     // CLONE
     // =====================================================
@@ -751,7 +853,7 @@ class CampaignApiController extends Controller
      */
     public function optOutNumbers(): JsonResponse
     {
-        $user = auth()->user();
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find(session('customer_user_id'));
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }

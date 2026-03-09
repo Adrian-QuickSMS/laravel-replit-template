@@ -23,54 +23,33 @@
 }
 
 /* =========================================
-   Table Container - Trust Global Layout
+   Table Layout
    ========================================= */
-.table-container,
-#campaignsTableContainer {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #dde4ea;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-top: 0.5rem;
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-}
-
-.table-container .dropdown-menu {
+#campaignsTableContainer .dropdown-menu {
     z-index: 1050;
     position: absolute !important;
 }
 
-.table-container .dropdown {
+#campaignsTableContainer .dropdown {
     position: static;
-}
-
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
 }
 
 .api-table {
     width: 100%;
-    min-width: 700px;
+    table-layout: fixed;
     margin: 0;
 }
 
-/* Flexible column widths that total 100% */
-.api-table th:nth-child(1) { width: 13%; min-width: 90px; }
-.api-table th:nth-child(2) { width: 25%; min-width: 150px; }
-.api-table th:nth-child(3) { width: 11%; min-width: 80px; }
-.api-table th:nth-child(4) { width: 12%; min-width: 90px; }
-.api-table th:nth-child(5) { width: 14%; min-width: 100px; }
-.api-table th:nth-child(6) { width: 15%; min-width: 110px; }
-.api-table th:nth-child(7) { width: 10%; min-width: 70px; }
+.api-table th:nth-child(1) { width: 14%; }
+.api-table th:nth-child(2) { width: 28%; }
+.api-table th:nth-child(3) { width: 10%; }
+.api-table th:nth-child(4) { width: 12%; }
+.api-table th:nth-child(5) { width: 10%; }
+.api-table th:nth-child(6) { width: 14%; }
+.api-table th:nth-child(7) { width: 12%; }
 
 .api-table thead th:last-child { 
     text-align: center; 
-    width: 70px; 
 }
 
 .api-table td,
@@ -590,25 +569,12 @@ a.text-primary:hover { color: #2d5a87 !important; }
 @endpush
 
 @php
-$campaigns = [
-    ['id' => 'C-2026-001', 'name' => 'Spring Promo Campaign', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'sender_id' => 'ACME', 'rcs_agent' => 'Acme Business', 'recipients_total' => 3500, 'recipients_delivered' => null, 'send_date' => '2026-01-25 10:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'promo,spring', 'template' => 'Sale Announcement'],
-    ['id' => 'C-2026-002', 'name' => 'New Year Flash Sale', 'account_id' => 'ACC-002', 'account_name' => 'RetailMax', 'channel' => 'rich_rcs', 'status' => 'sending', 'sender_id' => 'RETAILMAX', 'rcs_agent' => 'RetailMax Official', 'recipients_total' => 5200, 'recipients_delivered' => 3100, 'send_date' => '2026-01-22 00:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'flash,sale', 'template' => 'Flash Deal'],
-    ['id' => 'C-2025-003', 'name' => 'Holiday Greetings', 'account_id' => 'ACC-003', 'account_name' => 'ServicePro', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'SVCPRO', 'rcs_agent' => '', 'recipients_total' => 3150, 'recipients_delivered' => 3102, 'send_date' => '2025-12-24 09:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => 'holiday', 'template' => 'Reminder'],
-    ['id' => 'C-2024-004', 'name' => 'Boxing Day Deals', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'basic_rcs', 'status' => 'complete', 'sender_id' => 'ACME', 'rcs_agent' => 'Acme Business', 'recipients_total' => 2800, 'recipients_delivered' => 2756, 'send_date' => '2024-12-26 08:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'boxing,deals', 'template' => 'Product Showcase'],
-    ['id' => 'C-2024-005', 'name' => 'Christmas Eve Reminder', 'account_id' => 'ACC-004', 'account_name' => 'HealthFirst', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'HEALTH1', 'rcs_agent' => '', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => 'appointment', 'template' => 'Appointment'],
-    ['id' => 'C-2024-006', 'name' => 'Winter Clearance', 'account_id' => 'ACC-002', 'account_name' => 'RetailMax', 'channel' => 'rich_rcs', 'status' => 'complete', 'sender_id' => 'RETAILMAX', 'rcs_agent' => 'RetailMax Official', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'clearance,winter', 'template' => 'VIP Invitation'],
-    ['id' => 'C-2024-007', 'name' => 'Last Minute Gifts', 'account_id' => 'ACC-005', 'account_name' => 'GiftZone', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'GIFTZONE', 'rcs_agent' => '', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00:00', 'has_tracking' => 'yes', 'has_optout' => 'no', 'tags' => 'gifts', 'template' => 'Weekend Deal'],
-    ['id' => 'C-2024-008', 'name' => 'Flash Sale Alert', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'sms_only', 'status' => 'cancelled', 'sender_id' => 'ACME', 'rcs_agent' => '', 'recipients_total' => 1200, 'recipients_delivered' => null, 'send_date' => '2024-12-22 15:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => '', 'template' => ''],
-    ['id' => 'C-2024-009', 'name' => 'Seasonal Offers', 'account_id' => 'ACC-003', 'account_name' => 'ServicePro', 'channel' => 'basic_rcs', 'status' => 'complete', 'sender_id' => 'SVCPRO', 'rcs_agent' => 'ServicePro Connect', 'recipients_total' => 2100, 'recipients_delivered' => 2089, 'send_date' => '2024-12-21 11:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'seasonal', 'template' => 'Product Launch'],
-    ['id' => 'C-2024-010', 'name' => 'Early Bird Special', 'account_id' => 'ACC-004', 'account_name' => 'HealthFirst', 'channel' => 'rich_rcs', 'status' => 'complete', 'sender_id' => 'HEALTH1', 'rcs_agent' => 'HealthFirst Care', 'recipients_total' => 950, 'recipients_delivered' => 942, 'send_date' => '2024-12-20 06:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'early,special', 'template' => 'Sale Announcement'],
-];
-
-$accounts = collect($campaigns)->map(fn($c) => ['id' => $c['account_id'], 'name' => $c['account_name']])->unique('id')->values()->toArray();
-$senderIds = collect($campaigns)->pluck('sender_id')->unique()->filter()->sort()->values()->toArray();
-$rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()->values()->toArray();
+$campaigns = $campaigns ?? [];
+$accounts = $accounts ?? [];
 @endphp
 
 @section('content')
+<div class="container-fluid">
 <div class="page-titles">
     <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
@@ -761,7 +727,8 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="table-container" id="campaignsTableContainer">
+    <div class="card" id="campaignsTableContainer" style="border-radius: 12px; border: 1px solid #dde4ea; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;">
+        <div class="card-body p-0">
         <div class="table-responsive" id="campaignsTable">
                 <table class="table api-table mb-0">
                 <thead>
@@ -793,6 +760,12 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                             data-has-optout="{{ $campaign['has_optout'] ?? 'no' }}"
                             data-tags="{{ $campaign['tags'] ?? '' }}"
                             data-template="{{ $campaign['template'] ?? '' }}"
+                            data-message-content="{{ $campaign['message_content'] ?? '' }}"
+                            data-rcs-content="{{ isset($campaign['rcs_content']) ? json_encode($campaign['rcs_content']) : '' }}"
+                            data-rcs-agent-logo="{{ $campaign['rcs_agent_logo'] ?? '' }}"
+                            data-rcs-agent-tagline="{{ $campaign['rcs_agent_tagline'] ?? '' }}"
+                            data-rcs-agent-brand-color="{{ $campaign['rcs_agent_brand_color'] ?? '' }}"
+                            data-cost-data="{{ isset($campaign['cost_data']) && $campaign['cost_data'] ? json_encode($campaign['cost_data']) : '' }}"
                             onclick="openCampaignDrawer('{{ $campaign['id'] }}')">
                             <td>
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
@@ -824,16 +797,26 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 @endif
                             </td>
                             <td class="status-cell">
-                                @if($campaign['status'] === 'scheduled')
+                                @if($campaign['status'] === 'draft')
+                                <span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span>
+                                @elseif($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
+                                @elseif($campaign['status'] === 'pending')
+                                <span class="badge badge-pastel-info"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
                                 @elseif($campaign['status'] === 'sending')
                                 <span class="badge badge-pastel-primary"><i class="fas fa-paper-plane me-1"></i>Sending</span>
                                 @elseif($campaign['status'] === 'complete')
                                 <span class="badge badge-pastel-success"><i class="fas fa-check me-1"></i>Complete</span>
                                 @elseif($campaign['status'] === 'cancelled')
                                 <span class="badge badge-pastel-secondary"><i class="fas fa-ban me-1"></i>Cancelled</span>
+                                @elseif($campaign['status'] === 'paused')
+                                <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Paused</span>
                                 @elseif($campaign['status'] === 'suspended')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>
+                                @elseif($campaign['status'] === 'failed')
+                                <span class="badge badge-pastel-danger"><i class="fas fa-exclamation-triangle me-1"></i>Failed</span>
+                                @elseif($campaign['status'] === 'archived')
+                                <span class="badge" style="background-color: #e2e3e5; color: #6c757d;"><i class="fas fa-archive me-1"></i>Archived</span>
                                 @endif
                             </td>
                             <td>
@@ -883,7 +866,8 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                     </tbody>
                 </table>
         </div>
-    </div>
+        </div>{{-- end card-body --}}
+    </div>{{-- end card --}}
         
     <!-- No Results State -->
         <div id="noResultsState" class="d-none text-center py-5">
@@ -1197,6 +1181,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
         </div>
     </div>
 </div>
+</div>{{-- end container-fluid --}}
 @endsection
 
 @push('scripts')
@@ -1467,8 +1452,22 @@ function openCampaignDrawer(campaignId) {
     var sendDate = row.dataset.sendDate;
     var senderId = row.dataset.senderId || '-';
     var rcsAgent = row.dataset.rcsAgent || '';
+    var rcsAgentLogo = row.dataset.rcsAgentLogo || '';
+    var rcsAgentTagline = row.dataset.rcsAgentTagline || '';
+    var rcsAgentBrandColor = row.dataset.rcsAgentBrandColor || '';
     var tags = row.dataset.tags || '';
     var template = row.dataset.template || '';
+    var messageContent = row.dataset.messageContent || '';
+    var rcsContentRaw = row.dataset.rcsContent || '';
+    var rcsContent = null;
+    if (rcsContentRaw) {
+        try { rcsContent = JSON.parse(rcsContentRaw); } catch(e) { rcsContent = null; }
+    }
+    var costDataRaw = row.dataset.costData || '';
+    var costData = null;
+    if (costDataRaw) {
+        try { costData = JSON.parse(costDataRaw); } catch(e) { costData = null; }
+    }
 
     document.getElementById('drawerCampaignName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
     document.getElementById('drawerCampaignId').textContent = campaignId;
@@ -1553,8 +1552,8 @@ function openCampaignDrawer(campaignId) {
     updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
     updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, row.dataset.hasTracking === 'yes');
-    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
-    updateMessagePreview(channel, senderId, rcsAgent, template);
+    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered, costData);
+    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, rcsAgentLogo, rcsAgentTagline, rcsAgentBrandColor);
     updateStatusActions(status);
 
     campaignDrawer.show();
@@ -1623,49 +1622,76 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     }
 }
 
-function updateCostSummary(channel, status, total, delivered) {
+function updateCostSummary(channel, status, total, delivered, costData) {
     var card = document.getElementById('costSummaryCard');
-    if (status === 'scheduled') { card.style.display = 'none'; return; }
+    if (status === 'scheduled' && !costData) { card.style.display = 'none'; return; }
     card.style.display = '';
-    
+
     var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
     var isComplete = status === 'complete';
-    var deliveredCount = delivered !== null ? delivered : total;
-    var smsUnitPrice = 0.038, rcsUnitPrice = 0.025;
-    
+
     document.getElementById('costLabel').textContent = isComplete ? 'Final Cost' : 'Estimated Cost';
     document.getElementById('costStatusBadge').style.cssText = isComplete ? 'background-color: #d4edda; color: #155724;' : 'background-color: #fff3cd; color: #856404;';
     document.getElementById('costStatusBadge').textContent = isComplete ? 'Final' : 'Estimated';
     document.getElementById('costTotalLabel').textContent = isComplete ? 'Total' : 'Est. Total';
     document.getElementById('costDisclaimer').style.display = isComplete ? 'none' : '';
     document.getElementById('costDisclaimerText').textContent = 'Final cost will be calculated when delivery completes.';
-    
-    var totalCost = 0;
-    if (!isRcs) {
+
+    if (costData) {
+        var currency = costData.currency === 'GBP' ? '£' : costData.currency + ' ';
+        var breakdown = costData.country_breakdown || {};
+        var countries = Object.keys(breakdown);
+
+        if (!isRcs) {
+            document.getElementById('smsCostSection').style.display = '';
+            document.getElementById('rcsCostSection').style.display = 'none';
+
+            if (countries.length > 0) {
+                var firstCountry = breakdown[countries[0]];
+                var unitPrice = parseFloat(firstCountry.unit_price || firstCountry.cost_per_message || 0);
+                var recipientCount = firstCountry.recipient_count || total;
+                document.getElementById('smsCostCount').textContent = recipientCount.toLocaleString() + ' msgs';
+                document.getElementById('smsCostUnit').textContent = currency + unitPrice.toFixed(4);
+            } else {
+                document.getElementById('smsCostCount').textContent = total.toLocaleString() + ' msgs';
+                document.getElementById('smsCostUnit').textContent = '—';
+            }
+        } else {
+            document.getElementById('smsCostSection').style.display = 'none';
+            document.getElementById('rcsCostSection').style.display = '';
+
+            var rcsCount = costData.expected_rcs_count || total;
+            var smsFallbackCount = costData.expected_sms_fallback_count || 0;
+
+            if (countries.length > 0) {
+                var firstCountry = breakdown[countries[0]];
+                var smsUnitPrice = parseFloat(firstCountry.sms_unit_price || firstCountry.unit_price || 0);
+                var rcsUnitPrice = parseFloat(firstCountry.rcs_unit_price || firstCountry.unit_price || 0);
+
+                document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsFallbackCost').textContent = currency + (smsFallbackCount * smsUnitPrice).toFixed(2);
+                document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsMessageCost').textContent = currency + (rcsCount * rcsUnitPrice).toFixed(2);
+            } else {
+                document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsFallbackCost').textContent = '—';
+                document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsMessageCost').textContent = '—';
+            }
+        }
+
+        document.getElementById('costTotal').textContent = currency + parseFloat(costData.estimated_cost).toFixed(2);
+    } else {
         document.getElementById('smsCostSection').style.display = '';
         document.getElementById('rcsCostSection').style.display = 'none';
-        document.getElementById('smsCostCount').textContent = deliveredCount.toLocaleString() + ' msgs';
-        document.getElementById('smsCostUnit').textContent = '£' + smsUnitPrice.toFixed(3);
-        totalCost = deliveredCount * smsUnitPrice;
-    } else {
-        document.getElementById('smsCostSection').style.display = 'none';
-        document.getElementById('rcsCostSection').style.display = '';
-        var smsFallbackCount = Math.floor(deliveredCount * 0.15);
-        var rcsCount = deliveredCount - smsFallbackCount;
-        document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsFallbackCost').textContent = '£' + (smsFallbackCount * smsUnitPrice).toFixed(2);
-        document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsMessageCost').textContent = '£' + (rcsCount * rcsUnitPrice).toFixed(2);
-        totalCost = (smsFallbackCount * smsUnitPrice) + (rcsCount * rcsUnitPrice);
+        document.getElementById('smsCostCount').textContent = '—';
+        document.getElementById('smsCostUnit').textContent = '—';
+        document.getElementById('costTotal').textContent = 'No estimate available';
     }
-    document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
 }
 
-var campaignPreviewMode = 'rcs';
-var currentCampaignChannel = 'sms_only';
-
 function toggleCampaignPreview(mode) {
-    campaignPreviewMode = mode;
+    currentAdminPreviewMode = mode;
     var rcsBtn = document.getElementById('campaignPreviewRCSBtn');
     var smsBtn = document.getElementById('campaignPreviewSMSBtn');
     if (mode === 'rcs') {
@@ -1675,29 +1701,87 @@ function toggleCampaignPreview(mode) {
         smsBtn.style.cssText = 'background: #1e3a5f; color: white; border: 1px solid #1e3a5f;';
         rcsBtn.style.cssText = 'background: white; color: #1e3a5f; border: 1px solid #1e3a5f;';
     }
+    var d = currentAdminCampaignData;
+    if (d.channel) {
+        updateMessagePreview(d.channel, d.senderId, d.rcsAgent, '', d.messageContent, d.rcsContent, d.agentLogo, d.agentTagline, d.agentBrandColor);
+    }
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template) {
+var currentAdminPreviewMode = 'rcs';
+var currentAdminCampaignData = {};
+
+function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, agentLogo, agentTagline, agentBrandColor) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
-    
+
+    currentAdminCampaignData = {
+        channel: channel,
+        senderId: senderId,
+        rcsAgent: rcsAgent,
+        messageContent: messageContent,
+        rcsContent: rcsContent,
+        agentLogo: agentLogo || '',
+        agentTagline: agentTagline || '',
+        agentBrandColor: agentBrandColor || '#886CC0'
+    };
+
+    if (!container || typeof RcsPreviewRenderer === 'undefined') {
+        if (container) container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-mobile-alt fa-2x mb-2"></i><p class="small mb-0">Preview not available</p></div>';
+        return;
+    }
+
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
         toggleContainer.classList.remove('d-none');
     } else {
         toggleContainer.classList.add('d-none');
+        currentAdminPreviewMode = 'rcs';
     }
-    
-    if (typeof RcsPreviewRenderer !== 'undefined') {
-        var previewConfig = {
-            senderId: senderId || 'QuickSMS',
-            channel: channel === 'sms_only' ? 'sms' : channel,
-            agent: { name: rcsAgent || 'QuickSMS Brand', verified: true },
-            message: { type: 'text', body: 'Hi @{{firstName}}, thank you for being a valued customer! Reply STOP to opt out.' }
-        };
-        container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
+
+    var noContentMsg = 'No message content available.';
+
+    var previewConfig = {
+        senderId: senderId || 'QuickSMS',
+        agent: {
+            name: rcsAgent || senderId || 'QuickSMS',
+            logo: agentLogo || '',
+            verified: true,
+            tagline: agentTagline || 'Business messaging',
+            brand_color: agentBrandColor || '#886CC0'
+        }
+    };
+
+    if (channel === 'sms_only') {
+        previewConfig.channel = 'sms';
+        previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+    } else if (channel === 'basic_rcs') {
+        if (currentAdminPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        }
     } else {
-        container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-mobile-alt fa-2x mb-2"></i><p class="small mb-0">Preview will appear here</p></div>';
+        if (currentAdminPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        } else {
+            previewConfig.channel = 'rich_rcs';
+            if (rcsContent && typeof rcsContent === 'object' && rcsContent.cards) {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsContent, previewConfig.agent);
+                if (rcsContent.type === 'carousel' || (rcsContent.cards && rcsContent.cards.length > 1)) {
+                    RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
+                }
+                return;
+            } else if (messageContent) {
+                previewConfig.message = { type: 'text', content: { body: messageContent } };
+            } else {
+                previewConfig.message = { type: 'text', content: { body: noContentMsg } };
+            }
+        }
     }
+
+    container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
 }
 
 function updateStatusActions(status) {

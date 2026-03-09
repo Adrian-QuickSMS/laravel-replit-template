@@ -46,11 +46,16 @@ class MessageTemplate extends Model
 
     const STATUS_DRAFT = 'draft';
     const STATUS_ACTIVE = 'active';
+    const STATUS_SUSPENDED = 'suspended';
     const STATUS_ARCHIVED = 'archived';
+
+    const SUSPENDED_BY_ADMIN = 'admin';
+    const SUSPENDED_BY_CUSTOMER = 'customer';
 
     const STATUSES = [
         self::STATUS_DRAFT,
         self::STATUS_ACTIVE,
+        self::STATUS_SUSPENDED,
         self::STATUS_ARCHIVED,
     ];
 
@@ -74,11 +79,13 @@ class MessageTemplate extends Model
     // =====================================================
 
     protected $fillable = [
+        'id',
         'account_id',
         'sub_account_id',
         'name',
         'description',
         'type',
+        'trigger_type',
         'content',
         'rcs_content',
         'placeholders',
@@ -99,7 +106,12 @@ class MessageTemplate extends Model
         'trackable_link_domain',
         'message_expiry_enabled',
         'message_expiry_value',
+        'social_hours_enabled',
+        'social_hours_from',
+        'social_hours_to',
         'status',
+        'suspended_by',
+        'version',
         'is_favourite',
         'category',
         'tags',
@@ -119,6 +131,7 @@ class MessageTemplate extends Model
         'opt_out_screening_list_ids' => 'array',
         'character_count' => 'integer',
         'segment_count' => 'integer',
+        'version' => 'integer',
         'is_favourite' => 'boolean',
         'opt_out_enabled' => 'boolean',
         'opt_out_url_enabled' => 'boolean',
@@ -126,6 +139,7 @@ class MessageTemplate extends Model
         'opt_out_list_id' => 'string',
         'trackable_link_enabled' => 'boolean',
         'message_expiry_enabled' => 'boolean',
+        'social_hours_enabled' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -176,12 +190,12 @@ class MessageTemplate extends Model
 
     public function senderId(): BelongsTo
     {
-        return $this->belongsTo(SenderId::class, 'sender_id_id');
+        return $this->belongsTo(SenderId::class, 'sender_id_id', 'uuid');
     }
 
     public function rcsAgent(): BelongsTo
     {
-        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id');
+        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id', 'uuid');
     }
 
     public function optOutNumber(): BelongsTo
@@ -193,6 +207,17 @@ class MessageTemplate extends Model
     {
         return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
     }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(MessageTemplateVersion::class, 'template_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(MessageTemplateAuditLog::class, 'template_id');
+    }
+
 
     // =====================================================
     // SCOPES
@@ -342,7 +367,12 @@ class MessageTemplate extends Model
             'trackable_link_domain' => $this->trackable_link_domain,
             'message_expiry_enabled' => $this->message_expiry_enabled,
             'message_expiry_value' => $this->message_expiry_value,
+            'social_hours_enabled' => $this->social_hours_enabled,
+            'social_hours_from' => $this->social_hours_from,
+            'social_hours_to' => $this->social_hours_to,
             'status' => $this->status,
+            'suspended_by' => $this->suspended_by,
+            'version' => $this->version,
             'is_favourite' => $this->is_favourite,
             'category' => $this->category,
             'tags' => $this->tags,

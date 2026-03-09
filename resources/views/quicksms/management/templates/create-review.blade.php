@@ -224,9 +224,37 @@
                                         <span class="review-label">Channel:</span>
                                         <span class="review-value" id="reviewChannel">-</span>
                                     </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Sender ID:</span>
+                                        <span class="review-value" id="reviewSenderId">Not set</span>
+                                    </div>
+                                    <div class="review-row d-none" id="reviewRcsAgentRow">
+                                        <span class="review-label">RCS Agent:</span>
+                                        <span class="review-value" id="reviewRcsAgent">Not set</span>
+                                    </div>
+                                    <div class="review-row d-none" id="reviewRcsContentTypeRow">
+                                        <span class="review-label">RCS Content:</span>
+                                        <span class="review-value" id="reviewRcsContentType">-</span>
+                                    </div>
                                     <div class="mt-2">
                                         <div class="review-label mb-1">Message:</div>
                                         <div class="message-preview" id="reviewMessage">-</div>
+                                    </div>
+                                    <div class="review-row mt-2">
+                                        <span class="review-label">Trackable Link:</span>
+                                        <span class="review-value" id="reviewTrackableLink">Disabled</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Message Expiry:</span>
+                                        <span class="review-value" id="reviewMessageExpiry">Disabled</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Opt-out:</span>
+                                        <span class="review-value" id="reviewOptOut">Disabled</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Social Hours:</span>
+                                        <span class="review-value" id="reviewSocialHours">Disabled</span>
                                     </div>
                                 </div>
 
@@ -236,12 +264,12 @@
                                         <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
-                                        <span class="review-label">Assigned Sub-Accounts:</span>
-                                        <span class="review-value" id="reviewSubAccounts">-</span>
+                                        <span class="review-label">Visibility:</span>
+                                        <span class="review-value" id="reviewVisibility">-</span>
                                     </div>
                                     <div class="review-row">
-                                        <span class="review-label">Assigned Users:</span>
-                                        <span class="review-value" id="reviewUsers">-</span>
+                                        <span class="review-label">Allow Editing:</span>
+                                        <span class="review-value" id="reviewAllowEditing">-</span>
                                     </div>
                                 </div>
 
@@ -290,17 +318,19 @@
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
-                        <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
+                        <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with the <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">template_id</span> parameter.</small>
                     </div>
                     
-                    <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <strong>API Usage Example:</strong>
-                        <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #333;">{
-  "template_id": "<span id="templateIdExample">TPL-XXXXXXXX</span>",
-  "recipients": ["+447123456789"],
-  "variables": { "name": "John" }
-}</pre>
+                    <div class="small mb-0">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold" style="color: #614099;"><i class="fas fa-terminal me-1"></i>API Usage Example</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="copyApiExampleBtn" title="Copy to clipboard">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                        </div>
+                        <div class="rounded p-3" style="background: #1e1e2e; border: 1px solid #2d2d3d;">
+                            <pre class="mb-0" id="apiUsageExampleCode" style="white-space: pre-wrap; font-size: 0.8rem; color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></pre>
+                        </div>
                     </div>
                 </div>
                 
@@ -360,25 +390,59 @@ document.addEventListener('DOMContentLoaded', function() {
         var channelMap = { 'sms': 'SMS only', 'rcs_basic': 'Basic RCS + SMS Fallback', 'rcs_rich': 'Rich RCS + SMS Fallback' };
         document.getElementById('reviewChannel').textContent = channelMap[data2.channel] || data2.channel;
         document.getElementById('reviewMessage').textContent = data2.smsText || 'No content';
+
+        if (data2.senderId) {
+            var senderEl = document.getElementById('reviewSenderId');
+            if (senderEl) senderEl.textContent = data2.senderName || data2.senderId;
+        }
+
+        if (data2.rcsAgentName && (data2.channel === 'rcs_basic' || data2.channel === 'rcs_rich')) {
+            var agentRow = document.getElementById('reviewRcsAgentRow');
+            var agentEl = document.getElementById('reviewRcsAgent');
+            if (agentRow) agentRow.classList.remove('d-none');
+            if (agentEl) agentEl.textContent = data2.rcsAgentName;
+        }
+
+        if (data2.channel === 'rcs_rich') {
+            var typeRow = document.getElementById('reviewRcsContentTypeRow');
+            var typeEl = document.getElementById('reviewRcsContentType');
+            if (typeRow) typeRow.classList.remove('d-none');
+            var contentTypeMap = { 'single': 'Single Rich Card', 'carousel': 'Carousel (multiple cards)' };
+            if (typeEl) typeEl.textContent = contentTypeMap[data2.rcsContentType] || 'Single Rich Card';
+        }
+
+        if (data2.trackableLink && data2.trackableLink.enabled) {
+            var tEl = document.getElementById('reviewTrackableLink');
+            if (tEl) tEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.trackableLink.domain || 'qsms.uk');
+        }
+
+        if (data2.messageExpiry && data2.messageExpiry.enabled) {
+            var eEl = document.getElementById('reviewMessageExpiry');
+            if (eEl) eEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.messageExpiry.value || '');
+        }
+
+        if (data2.optOut && data2.optOut.enabled) {
+            var oEl = document.getElementById('reviewOptOut');
+            var parts = [];
+            if (data2.optOut.replyEnabled) parts.push('Reply-to-opt-out');
+            if (data2.optOut.urlEnabled) parts.push('Click-to-opt-out');
+            if (data2.optOut.screeningListIds && data2.optOut.screeningListIds.length > 0) {
+                parts.push(data2.optOut.screeningListIds.length + ' screening list(s)');
+            }
+            if (oEl) oEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (parts.join(', ') || 'Configured');
+        }
+
+        if (data2.socialHours && data2.socialHours.enabled) {
+            var shEl = document.getElementById('reviewSocialHours');
+            if (shEl) shEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.socialHours.from || '08:00') + ' - ' + (data2.socialHours.to || '20:00');
+        }
     }
     
     if (step3) {
         var data3 = JSON.parse(step3);
-        
-        // Display sub-accounts
-        if (data3.subAccounts && data3.subAccounts.length > 0) {
-            document.getElementById('reviewSubAccounts').textContent = data3.subAccounts.length + ' sub-account(s) selected';
-        } else {
-            document.getElementById('reviewSubAccounts').textContent = 'None selected';
-        }
-        
-        // Display users
-        if (data3.users && data3.users.length > 0) {
-            var userNames = data3.users.map(function(u) { return u.name; }).join(', ');
-            document.getElementById('reviewUsers').textContent = userNames;
-        } else {
-            document.getElementById('reviewUsers').textContent = 'None selected';
-        }
+        var visibilityMap = { 'all_users': 'All users on this account', 'owner_only': 'Only me (template owner)' };
+        document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility || 'All users on this account';
+        document.getElementById('reviewAllowEditing').textContent = data3.allowEditing ? 'Yes' : 'No';
     }
     
     // Generate unique template ID
@@ -391,55 +455,160 @@ document.addEventListener('DOMContentLoaded', function() {
         return id;
     }
     
-    document.getElementById('createTemplateBtn').addEventListener('click', function() {
-        // Get trigger type from step 1 data
-        var step1Data = sessionStorage.getItem('templateWizardStep1');
-        var triggerType = 'portal'; // default
-        
-        @if(isset($isEditMode) && $isEditMode && isset($template))
-        // In edit mode, get trigger from template data
-        triggerType = '{{ $template["trigger"] ?? "portal" }}';
-        @else
-        // In create mode, get from sessionStorage
-        if (step1Data) {
-            try {
-                var parsed = JSON.parse(step1Data);
-                triggerType = parsed.trigger || 'portal';
-            } catch (e) {}
+    function collectPayload(status) {
+        var data1 = step1 ? JSON.parse(step1) : {};
+        var data2 = step2 ? JSON.parse(step2) : {};
+        var data3 = step3 ? JSON.parse(step3) : {};
+
+        var channelToType = { 'sms': 'sms', 'rcs_basic': 'rcs_basic', 'rcs_rich': 'rcs_single' };
+        var templateType = channelToType[data2.channel] || 'sms';
+
+        var payload = {
+            name: data1.name || 'Untitled Template',
+            description: data1.description || null,
+            type: templateType,
+            trigger_type: data1.type || 'portal',
+            content: data2.smsText || null,
+            category: data1.category || null,
+            status: status || 'active'
+        };
+
+        var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (data2.senderId && uuidPattern.test(data2.senderId)) payload.sender_id_id = data2.senderId;
+        if (data2.rcsAgent && uuidPattern.test(data2.rcsAgent)) payload.rcs_agent_id = data2.rcsAgent;
+        if (data2.rcsContentData) payload.rcs_content = data2.rcsContentData;
+
+        if (data2.optOut) {
+            var opt = data2.optOut;
+            payload.opt_out_enabled = opt.enabled || false;
+            if (opt.enabled) {
+                var method = null;
+                if (opt.replyEnabled && opt.urlEnabled) method = 'both';
+                else if (opt.replyEnabled) method = 'reply';
+                else if (opt.urlEnabled) method = 'url';
+                if (method) payload.opt_out_method = method;
+
+                if (opt.replyNumberId) payload.opt_out_number_id = opt.replyNumberId;
+                if (opt.replyKeyword) payload.opt_out_keyword = opt.replyKeyword;
+                if (opt.replyEnabled && opt.replyOptoutText) payload.opt_out_text = opt.replyOptoutText;
+                if (opt.urlEnabled && opt.urlOptoutText && !opt.replyEnabled) payload.opt_out_text = opt.urlOptoutText;
+
+                var listId = null;
+                if (opt.replyEnabled && opt.replyOptOutListId) listId = opt.replyOptOutListId;
+                else if (opt.urlEnabled && opt.urlOptOutListId) listId = opt.urlOptOutListId;
+                if (listId) payload.opt_out_list_id = listId;
+
+                if (opt.urlEnabled) payload.opt_out_url_enabled = true;
+                if (opt.screeningListIds && opt.screeningListIds.length > 0) {
+                    payload.opt_out_screening_list_ids = opt.screeningListIds;
+                }
+            }
         }
-        @endif
-        
-        // Generate template ID
-        var templateId = generateTemplateId();
-        
-        // Clear session storage
-        sessionStorage.removeItem('templateWizardStep1');
-        sessionStorage.removeItem('templateWizardStep2');
-        sessionStorage.removeItem('templateWizardStep3');
-        sessionStorage.removeItem('templateWizardChannel');
-        
-        // Show appropriate section based on trigger type
-        var apiDetails = document.getElementById('apiTemplateDetails');
-        var portalDetails = document.getElementById('portalTemplateDetails');
-        
-        if (triggerType === 'api') {
-            // Show API template details
-            apiDetails.style.display = 'block';
-            portalDetails.style.display = 'none';
-            document.getElementById('generatedTemplateId').value = templateId;
-            document.getElementById('templateIdExample').textContent = templateId;
+
+        var trackableEnabled = data2.trackableLink && data2.trackableLink.enabled;
+        if (trackableEnabled) {
+            payload.trackable_link_enabled = true;
+            if (data2.trackableLink.domain) payload.trackable_link_domain = data2.trackableLink.domain;
+        }
+
+        var expiryEnabled = data2.messageExpiry && data2.messageExpiry.enabled;
+        if (expiryEnabled) {
+            payload.message_expiry_enabled = true;
+            if (data2.messageExpiry.value) payload.message_expiry_value = data2.messageExpiry.value;
+        }
+
+        if (data2.socialHours && data2.socialHours.enabled) {
+            payload.social_hours_enabled = true;
+            if (data2.socialHours.from) payload.social_hours_from = data2.socialHours.from;
+            if (data2.socialHours.to) payload.social_hours_to = data2.socialHours.to;
+        }
+
+        return payload;
+    }
+
+    var isEditMode = {{ ($isEditMode ?? false) ? 'true' : 'false' }};
+    var editTemplateId = {!! json_encode($templateId ?? null) !!};
+
+    function submitTemplate(status) {
+        var btn = status === 'draft' ? document.getElementById('saveDraftBtn') : document.getElementById('createTemplateBtn');
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + (status === 'draft' ? 'Saving...' : (isEditMode ? 'Saving...' : 'Creating...'));
+
+        var payload = collectPayload(status);
+
+        var url, method;
+        if (isEditMode && editTemplateId) {
+            url = '/api/message-templates/' + editTemplateId;
+            method = 'PUT';
         } else {
-            // Show portal template details
-            apiDetails.style.display = 'none';
-            portalDetails.style.display = 'block';
+            url = '{{ route("api.message-templates.store") }}';
+            method = 'POST';
         }
-        
-        // Show the success modal
-        var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
-        successModal.show();
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(function(response) {
+            return response.json().then(function(data) {
+                return { ok: response.ok, status: response.status, data: data };
+            });
+        })
+        .then(function(result) {
+            if (result.ok) {
+                sessionStorage.removeItem('templateWizardStep1');
+                sessionStorage.removeItem('templateWizardStep2');
+                sessionStorage.removeItem('templateWizardStep3');
+                sessionStorage.removeItem('templateWizardChannel');
+
+                var triggerType = 'portal';
+                if (step1) {
+                    try { triggerType = JSON.parse(step1).type || 'portal'; } catch(e) {}
+                }
+
+                var apiDetails = document.getElementById('apiTemplateDetails');
+                var portalDetails = document.getElementById('portalTemplateDetails');
+
+                if (triggerType === 'api' && result.data.data && result.data.data.id) {
+                    apiDetails.style.display = 'block';
+                    portalDetails.style.display = 'none';
+                    document.getElementById('generatedTemplateId').value = result.data.data.id;
+                    buildApiUsageExample(result.data.data.id, result.data.data);
+                } else {
+                    apiDetails.style.display = 'none';
+                    portalDetails.style.display = 'block';
+                }
+
+                var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
+                successModal.show();
+            } else {
+                var msg = result.data.message || 'Failed to create template.';
+                if (result.data.errors) {
+                    var errs = Object.values(result.data.errors).flat();
+                    msg = errs.join('\n');
+                }
+                alert(msg);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(function(err) {
+            alert('Network error: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+
+    document.getElementById('createTemplateBtn').addEventListener('click', function() {
+        submitTemplate('active');
     });
-    
-    // Copy template ID to clipboard
+
     document.getElementById('copyTemplateIdBtn').addEventListener('click', function() {
         var templateIdInput = document.getElementById('generatedTemplateId');
         templateIdInput.select();
@@ -457,15 +626,103 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     });
-    
-    // Create another template
+
+    function buildApiUsageExample(templateId, responseData) {
+        var allContent = '';
+        try {
+            var data2 = step2 ? JSON.parse(step2) : {};
+            allContent += (data2.smsText || '');
+            if (data2.rcsContentData) {
+                var rcs = data2.rcsContentData;
+                if (rcs.cards && Array.isArray(rcs.cards)) {
+                    rcs.cards.forEach(function(card) {
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+                        if (card.media && card.media.url) allContent += ' ' + card.media.url;
+                        if (card.buttons && Array.isArray(card.buttons)) {
+                            card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
+                        }
+                    });
+                }
+            }
+        } catch(e) {}
+
+        if (responseData) {
+            allContent += ' ' + (responseData.content || '');
+            if (responseData.rcs_content) {
+                var rcsResp = responseData.rcs_content;
+                if (rcsResp.cards && Array.isArray(rcsResp.cards)) {
+                    rcsResp.cards.forEach(function(card) {
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+                        if (card.media && card.media.url) allContent += ' ' + card.media.url;
+                        if (card.buttons && Array.isArray(card.buttons)) {
+                            card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
+                        }
+                    });
+                }
+            }
+        }
+
+        var fieldPattern = /\{\{(Field_\d+)\}\}/g;
+        var usedFields = [];
+        var match;
+        while ((match = fieldPattern.exec(allContent)) !== null) {
+            if (usedFields.indexOf(match[1]) === -1) usedFields.push(match[1]);
+        }
+        usedFields.sort(function(a, b) {
+            return parseInt(a.replace('Field_', '')) - parseInt(b.replace('Field_', ''));
+        });
+
+        var personalisationObj = {};
+        var sampleValues = ['John', 'ORD-12345', 'Premium', '29.99', 'London', '10:00 AM', 'example.com', 'ABC123', 'Thank you', 'Active'];
+        usedFields.forEach(function(field, i) {
+            personalisationObj[field] = sampleValues[i] || 'value' + (i + 1);
+        });
+
+        var apiObj = {
+            to: '+447700900100',
+            template_id: templateId
+        };
+        if (usedFields.length > 0) {
+            apiObj.personalisation = personalisationObj;
+        }
+
+        var jsonStr = JSON.stringify(apiObj, null, 2);
+        var codeEl = document.getElementById('apiUsageExampleCode');
+
+        var highlighted = jsonStr
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"([^"]+)"(\s*:)/g, '<span style="color: #f5c2e7;">"$1"</span>$2')
+            .replace(/:\s*"([^"]+)"/g, ': <span style="color: #a6e3a1;">"$1"</span>')
+            .replace(/[\{\}]/g, '<span style="color: #6c7086;">$&</span>');
+        codeEl.innerHTML = highlighted;
+
+        codeEl.setAttribute('data-raw', jsonStr);
+    }
+
+    document.getElementById('copyApiExampleBtn').addEventListener('click', function() {
+        var rawJson = document.getElementById('apiUsageExampleCode').getAttribute('data-raw');
+        if (rawJson) {
+            navigator.clipboard.writeText(rawJson).then(function() {
+                var btn = document.getElementById('copyApiExampleBtn');
+                var originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                setTimeout(function() {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                }, 2000);
+            });
+        }
+    });
+
     document.getElementById('createAnotherBtn').addEventListener('click', function() {
         window.location.href = '{{ route("management.templates.create.step1") }}';
     });
-    
+
     document.getElementById('saveDraftBtn').addEventListener('click', function() {
-        alert('Template saved as draft.');
-        window.location.href = '{{ route("management.templates") }}';
+        submitTemplate('draft');
     });
 });
 </script>

@@ -202,8 +202,22 @@ button.btn-save-draft:hover {
     background: rgba(136, 108, 192, 0.12);
     border: none;
 }
-.success-email-box code {
-    color: #886CC0;
+.success-email-box span {
+    color: #000;
+    font-family: monospace;
+    background: transparent;
+}
+#successModal,
+#errorModal {
+    z-index: 1060 !important;
+}
+#successModal .modal-dialog {
+    max-width: 550px;
+}
+#successModal + .modal-backdrop,
+#errorModal + .modal-backdrop,
+.modal-backdrop {
+    z-index: 1055 !important;
 }
 .api-table {
     font-size: 0.9rem;
@@ -275,14 +289,11 @@ button.btn-save-draft:hover {
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="stdSubaccount">
-                                                    <option value="">Select sub-account...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing Team</option>
-                                                    <option value="support">Support Team</option>
+                                                <label class="form-label">Account <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="stdAccount">
+                                                    <option value="">Loading accounts...</option>
                                                 </select>
-                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                                <div class="invalid-feedback">Please select an account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -298,14 +309,14 @@ button.btn-save-draft:hover {
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="stdEmailInput" placeholder="e.g., user@domain.com or *@domain.com">
-                                                <button class="btn btn-outline-primary" type="button" id="stdAddEmailBtn">
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <textarea class="form-control" id="stdEmailInput" rows="2" placeholder="Enter one or more emails, separated by commas, spaces, or new lines&#10;e.g., user@nhs.uk, admin@trust.nhs.uk, *@domain.com"></textarea>
+                                                <button class="btn btn-outline-primary flex-shrink-0" type="button" id="stdAddEmailBtn" style="height: fit-content;">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback" id="stdEmailError" style="display: none;">Invalid email format.</div>
-                                            <small class="text-muted">Restrict who can trigger this setup. Supports wildcards like *@domain.com. Leave empty to allow all senders.</small>
+                                            <div class="text-danger small mt-1" id="stdEmailError" style="display: none;"></div>
+                                            <small class="text-muted">Supports multiple emails separated by commas, spaces, or new lines. Wildcards like *@domain.com are supported. Leave empty to allow all senders.</small>
                                         </div>
                                         
                                         <div id="stdWildcardWarning" class="alert alert-pastel-warning mb-3 d-none">
@@ -334,26 +345,20 @@ button.btn-save-draft:hover {
                                         
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                                <label class="form-label">SMS SenderID <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="stdSenderId">
-                                                    <option value="">Select SenderID...</option>
-                                                    <option value="QuickSMS">QuickSMS</option>
-                                                    <option value="MyBrand">MyBrand</option>
-                                                    <option value="Notify">Notify</option>
+                                                    <option value="">Loading SenderIDs...</option>
                                                 </select>
                                                 <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                                 <div class="invalid-feedback">Please select a SenderID.</div>
                                             </div>
                                             
-                                            <div class="col-md-6" id="stdSubjectAsSenderIdGroup">
-                                                <label class="form-label">Subject as SenderID</label>
-                                                <div class="form-check form-switch mt-2">
-                                                    <input class="form-check-input" type="checkbox" id="stdSubjectAsSenderId">
-                                                    <label class="form-check-label" for="stdSubjectAsSenderId">
-                                                        Extract SenderID from email subject
-                                                    </label>
-                                                </div>
-                                                <small class="text-muted">Overrides selected SenderID with subject line content.</small>
+                                            <div class="col-md-6">
+                                                <label class="form-label">RCS Agent <span class="text-muted fw-normal">(Optional)</span></label>
+                                                <select class="form-select" id="stdRcsAgent">
+                                                    <option value="">None – SMS only</option>
+                                                </select>
+                                                <small class="text-muted">Select an approved RCS agent to send via Basic RCS with SMS fallback.</small>
                                             </div>
                                             
                                             <div class="col-md-6">
@@ -384,11 +389,6 @@ button.btn-save-draft:hover {
                                                 <div class="invalid-feedback">Valid email required.</div>
                                             </div>
                                             
-                                            <div class="col-12">
-                                                <label class="form-label">Filter Content (Signature Removal)</label>
-                                                <textarea class="form-control" id="stdSignatureFilter" rows="3" placeholder="e.g., --&#10;.*&#10;Sent from.*"></textarea>
-                                                <small class="text-muted">Remove matching content from emails. Regex patterns supported, one pattern per line.</small>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -401,8 +401,8 @@ button.btn-save-draft:hover {
                                             <strong>Step 4: Review & Confirm</strong> – Please review your configuration before creating.
                                         </div>
                                         
-                                        <div class="alert alert-pastel-warning mb-4">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <i class="fas fa-info-circle me-2"></i>
                                             <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
                                         </div>
                                         
@@ -421,7 +421,7 @@ button.btn-save-draft:hover {
                                                         <td id="summaryDescription">-</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="text-muted">Sub-Account</td>
+                                                        <td class="text-muted">Account</td>
                                                         <td id="summarySubaccount">-</td>
                                                     </tr>
                                                     <tr>
@@ -434,16 +434,16 @@ button.btn-save-draft:hover {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td class="text-muted">SenderID</td>
+                                                        <td class="text-muted">SMS SenderID</td>
                                                         <td id="summarySenderId">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">RCS Agent</td>
+                                                        <td id="summaryRcsAgent">None – SMS only</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">Settings</td>
                                                         <td id="summaryMessageSettings">-</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="text-muted">Content Filters</td>
-                                                        <td id="summaryContentFilter">None</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -490,16 +490,15 @@ button.btn-save-draft:hover {
                 <div class="alert alert-pastel-primary text-start mb-3">
                     <p class="mb-2"><strong>Email Format:</strong></p>
                     <div class="success-email-box rounded p-2 mb-2">
-                        <code class="fs-6">mobilenumber@sms.quicksms.com</code>
+                        <span class="fs-6">mobilenumber@sms.quicksms.com</span>
                     </div>
                     <p class="small mb-2"><strong>Example:</strong></p>
                     <div class="success-email-box rounded p-2 mb-0">
-                        <code class="fs-6">447700123456@sms.quicksms.com</code>
+                        <span class="fs-6">447700123456@sms.quicksms.com</span>
                     </div>
                 </div>
                 <div class="alert alert-pastel-primary small mb-0 text-start">
                     <i class="fas fa-info-circle me-1"></i> 
-                    <strong>SenderID:</strong> Extracted from email subject<br>
                     <strong>SMS Content:</strong> Extracted from email body
                 </div>
             </div>
@@ -512,16 +511,101 @@ button.btn-save-draft:hover {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-dark" id="errorModalLabel">
+                    <i class="fas fa-exclamation-circle me-2 text-danger"></i> Error
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-0" id="errorModalMessage">An error occurred. Please try again.</p>
+            </div>
+            <div class="modal-footer justify-content-center py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="{{ asset('vendor/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
+<script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
     var currentStep = 0;
     var totalSteps = 4;
     var allowedEmails = [];
+
+    function showErrorModal(message) {
+        $('#errorModalMessage').text(message || 'An error occurred. Please try again.');
+        var modal = new bootstrap.Modal($('#errorModal')[0]);
+        modal.show();
+    }
     
+    function loadAccounts() {
+        EmailToSmsService.getSubaccounts().then(function(response) {
+            var $select = $('#stdAccount');
+            $select.empty().append('<option value="">Select account...</option>');
+            if (response.success && response.data) {
+                response.data.forEach(function(account) {
+                    $select.append('<option value="' + account.id + '">' + account.name + '</option>');
+                });
+            }
+            if (response.data && response.data.length === 1) {
+                $select.val(response.data[0].id);
+            }
+        }).catch(function() {
+            $('#stdAccount').empty().append('<option value="">No accounts available</option>');
+        });
+    }
+    
+    loadAccounts();
+
+    function loadSenderIds() {
+        EmailToSmsService.getTemplatesForSenderIdDropdown().then(function(response) {
+            var $select = $('#stdSenderId');
+            $select.empty().append('<option value="">Select SenderID...</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(sid) {
+                    $select.append('<option value="' + sid.id + '">' + (sid.senderId || sid.name) + '</option>');
+                });
+            } else {
+                $select.append('<option value="" disabled>No approved SenderIDs found</option>');
+            }
+        }).catch(function() {
+            $('#stdSenderId').empty().append('<option value="">Select SenderID...</option>').append('<option value="" disabled>Failed to load SenderIDs</option>');
+        });
+    }
+
+    function loadRcsAgents() {
+        $.ajax({
+            url: '/api/rcs-agents/approved',
+            method: 'GET',
+            dataType: 'json'
+        }).then(function(response) {
+            var $select = $('#stdRcsAgent');
+            $select.empty().append('<option value="">None – SMS only</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(agent) {
+                    $select.append('<option value="' + (agent.uuid || agent.id) + '">' + agent.name + '</option>');
+                });
+            }
+        }).catch(function() {
+            $('#stdRcsAgent').empty().append('<option value="">None – SMS only</option>');
+        });
+    }
+
+    loadSenderIds();
+    loadRcsAgents();
+
     function goToStep(stepIndex) {
         if (stepIndex < 0 || stepIndex >= totalSteps) return;
         
@@ -568,7 +652,6 @@ $(document).ready(function() {
         
         if (step === 0) {
             var name = $('#stdName').val().trim();
-            var subaccount = $('#stdSubaccount').val();
             
             if (!name) {
                 $('#stdName').addClass('is-invalid');
@@ -577,11 +660,11 @@ $(document).ready(function() {
                 $('#stdName').removeClass('is-invalid');
             }
             
-            if (!subaccount) {
-                $('#stdSubaccount').addClass('is-invalid');
+            if (!$('#stdAccount').val()) {
+                $('#stdAccount').addClass('is-invalid');
                 isValid = false;
             } else {
-                $('#stdSubaccount').removeClass('is-invalid');
+                $('#stdAccount').removeClass('is-invalid');
             }
         } else if (step === 2) {
             var senderId = $('#stdSenderId').val();
@@ -609,7 +692,8 @@ $(document).ready(function() {
     function updateReviewSummary() {
         $('#summaryName').text($('#stdName').val() || '-');
         $('#summaryDescription').text($('#stdDescription').val() || 'None');
-        $('#summarySubaccount').text($('#stdSubaccount option:selected').text() || '-');
+        var accountText = $('#stdAccount option:selected').text();
+        $('#summarySubaccount').text($('#stdAccount').val() ? accountText : '-');
         
         if (allowedEmails.length > 0) {
             var emailBadges = allowedEmails.map(function(email) {
@@ -621,15 +705,13 @@ $(document).ready(function() {
         }
         
         $('#summarySenderId').text($('#stdSenderId option:selected').text() || '-');
+        var rcsText = $('#stdRcsAgent option:selected').text();
+        $('#summaryRcsAgent').text($('#stdRcsAgent').val() ? rcsText : 'None – SMS only');
         
         var settings = [];
-        if ($('#stdSubjectAsSenderId').is(':checked')) settings.push('Subject as SenderID');
         if ($('#stdMultipleSms').is(':checked')) settings.push('Multiple SMS');
         if ($('#stdDeliveryReports').is(':checked')) settings.push('Delivery Reports');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'None');
-        
-        var filter = $('#stdSignatureFilter').val().trim();
-        $('#summaryContentFilter').text(filter ? 'Custom patterns applied' : 'None');
     }
     
     $('#btnNext').on('click', function() {
@@ -693,20 +775,45 @@ $(document).ready(function() {
     }
     
     $('#stdAddEmailBtn').on('click', function() {
-        var email = $('#stdEmailInput').val().trim();
+        var raw = $('#stdEmailInput').val().trim();
+        if (!raw) return;
+
+        var parts = raw.split(/[\s,;\n\r]+/).filter(function(s) { return s.length > 0; });
         var emailRegex = /^(\*@[\w.-]+|[^\s@]+@[^\s@]+\.[^\s@]+)$/;
-        
-        if (email && emailRegex.test(email)) {
-            addEmail(email);
-            $('#stdEmailInput').val('');
-            $('#stdEmailError').hide();
+        var invalid = [];
+        var added = 0;
+        var duplicates = 0;
+
+        parts.forEach(function(part) {
+            var cleaned = part.replace(/^[,;\s]+|[,;\s]+$/g, '');
+            if (!cleaned) return;
+            if (emailRegex.test(cleaned)) {
+                if (allowedEmails.indexOf(cleaned) === -1) {
+                    addEmail(cleaned);
+                    added++;
+                } else {
+                    duplicates++;
+                }
+            } else {
+                invalid.push(cleaned);
+            }
+        });
+
+        $('#stdEmailInput').val('');
+
+        if (invalid.length > 0) {
+            $('#stdEmailError').html(
+                '<strong>' + invalid.length + ' invalid email' + (invalid.length > 1 ? 's' : '') + ':</strong> ' +
+                invalid.slice(0, 5).map(function(e) { return '<code>' + escapeHtml(e) + '</code>'; }).join(', ') +
+                (invalid.length > 5 ? ' and ' + (invalid.length - 5) + ' more...' : '')
+            ).show();
         } else {
-            $('#stdEmailError').show();
+            $('#stdEmailError').hide();
         }
     });
     
-    $('#stdEmailInput').on('keypress', function(e) {
-        if (e.which === 13) {
+    $('#stdEmailInput').on('keydown', function(e) {
+        if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
             $('#stdAddEmailBtn').click();
         }
@@ -725,32 +832,46 @@ $(document).ready(function() {
     $('#btnCreate').on('click', function() {
         if (!validateStep(2)) return;
         
-        var newEntry = {
-            id: 'std-' + Date.now(),
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Creating...');
+        
+        var payload = {
+            type: 'standard',
             name: $('#stdName').val().trim(),
             description: $('#stdDescription').val().trim(),
-            subaccount: $('#stdSubaccount option:selected').text(),
-            subaccountId: $('#stdSubaccount').val(),
-            allowedSenderEmails: allowedEmails,
-            senderId: $('#stdSenderId option:selected').text(),
-            senderIdValue: $('#stdSenderId').val(),
-            subjectAsSenderId: $('#stdSubjectAsSenderId').is(':checked'),
-            multipleSms: $('#stdMultipleSms').is(':checked'),
-            deliveryReports: $('#stdDeliveryReports').is(':checked'),
-            deliveryEmail: $('#stdDeliveryEmail').val().trim(),
-            contentFilter: $('#stdSignatureFilter').val().trim(),
-            status: 'active',
-            created: new Date().toISOString().split('T')[0],
-            lastUpdated: new Date().toISOString().split('T')[0],
-            type: 'standard'
+            subaccountId: $('#stdAccount').val() || null,
+            allowedEmails: allowedEmails,
+            senderIdTemplateId: $('#stdSenderId').val() || null,
+            senderId: $('#stdSenderId option:selected').text() || null,
+            rcsAgentId: $('#stdRcsAgent').val() || null,
+            multipleSmsEnabled: $('#stdMultipleSms').is(':checked'),
+            deliveryReportsEnabled: $('#stdDeliveryReports').is(':checked'),
+            deliveryReportsEmail: $('#stdDeliveryEmail').val().trim()
         };
         
-        var pendingEntries = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
-        pendingEntries.push(newEntry);
-        localStorage.setItem('quicksms_pending_standard', JSON.stringify(pendingEntries));
-        
-        var modal = new bootstrap.Modal($('#successModal')[0]);
-        modal.show();
+        EmailToSmsService.createEmailToSmsSetup(payload).then(function(response) {
+            if (response.success) {
+                $('.success-email-box span').first().text('mobilenumber@sms.quicksms.com');
+                var modal = new bootstrap.Modal($('#successModal')[0]);
+                modal.show();
+            } else {
+                var errorMsg = response.error || 'Failed to create setup';
+                if (response.errors) {
+                    var fieldErrors = Object.values(response.errors).flat();
+                    if (fieldErrors.length > 0) errorMsg = fieldErrors[0];
+                }
+                showErrorModal(errorMsg);
+                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Setup');
+            }
+        }).catch(function(error) {
+            console.error('Error creating standard setup:', error);
+            var msg = 'An error occurred while creating the setup. Please try again.';
+            if (error && error.responseJSON && error.responseJSON.error) {
+                msg = error.responseJSON.error;
+            }
+            showErrorModal(msg);
+            btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Setup');
+        });
     });
     
     $('#btnSaveDraft').on('click', function() {

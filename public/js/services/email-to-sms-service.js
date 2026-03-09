@@ -14,7 +14,7 @@ var EmailToSmsService = (function() {
     'use strict';
     
     // Email domain constant - used for generating originating emails
-    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    var EMAIL_DOMAIN = '@sms.quicksms.com';
     
     // Configuration - easily swappable for real endpoints
     var config = {
@@ -139,13 +139,13 @@ var EmailToSmsService = (function() {
             subaccountId: 'support',
             subaccountName: 'Support Team',
             originatingEmails: ['test.internal' + EMAIL_DOMAIN, 'dev.test' + EMAIL_DOMAIN, 'qa.test' + EMAIL_DOMAIN],
-            allowedEmails: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
+            allowedEmails: ['dev@quicksms.com', 'qa@quicksms.com', 'test@quicksms.com', 'staging@quicksms.com'],
             senderIdTemplateId: 'tpl-quicksms-001',
             senderId: 'QuickSMS',
             subjectOverridesSenderId: false,
             multipleSmsEnabled: true,
             deliveryReportsEnabled: true,
-            deliveryReportsEmail: 'dev-team@quicksms.io',
+            deliveryReportsEmail: 'dev-team@quicksms.com',
             contentFilterRegex: '',
             status: 'active',
             createdAt: '2024-12-15T10:00:00Z',
@@ -227,7 +227,7 @@ var EmailToSmsService = (function() {
      * @returns {object} - API-ready payload
      */
     function _transformToApiPayload(formData) {
-        return {
+        var payload = {
             name: formData.name,
             description: formData.description || '',
             subaccountId: formData.subaccountId,
@@ -239,6 +239,10 @@ var EmailToSmsService = (function() {
             deliveryReportsEmail: formData.deliveryReportsEmail || '',
             contentFilterRegex: formData.contentFilterRegex || ''
         };
+        if (formData.rcsAgentId) {
+            payload.rcsAgentId = formData.rcsAgentId;
+        }
+        return payload;
     }
     
     /**
@@ -256,6 +260,8 @@ var EmailToSmsService = (function() {
             allowedEmails: apiData.allowedEmails,
             senderIdTemplateId: apiData.senderIdTemplateId,
             senderId: apiData.senderId,
+            rcsAgentId: apiData.rcsAgentId || null,
+            rcsAgentName: apiData.rcsAgentName || null,
             subjectOverridesSenderId: apiData.subjectOverridesSenderId,
             multipleSmsEnabled: apiData.multipleSmsEnabled,
             deliveryReportsEnabled: apiData.deliveryReportsEnabled,
@@ -264,7 +270,6 @@ var EmailToSmsService = (function() {
             status: apiData.status,
             createdAt: apiData.createdAt,
             updatedAt: apiData.updatedAt,
-            // Computed fields for display
             created: apiData.createdAt ? apiData.createdAt.split('T')[0] : '',
             lastUpdated: apiData.updatedAt ? apiData.updatedAt.split('T')[0] : '',
             archived: apiData.status === 'archived'
@@ -672,6 +677,7 @@ var EmailToSmsService = (function() {
             create: '/contact-list-setups',
             update: '/contact-list-setups/{id}',
             archive: '/contact-list-setups/{id}/archive',
+            unarchive: '/contact-list-setups/{id}/unarchive',
             contactBooks: '/contact-books',
             contacts: '/contacts',
             tags: '/tags',
@@ -787,7 +793,7 @@ var EmailToSmsService = (function() {
             subaccountId: 'main',
             subaccountName: 'Main Account',
             originatingEmails: ['emergency.alert1' + EMAIL_DOMAIN, 'urgent.notify' + EMAIL_DOMAIN],
-            allowedSenderEmails: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
+            allowedSenderEmails: ['system@quicksms.com', 'alerts@quicksms.com', 'admin@quicksms.com', 'emergency@quicksms.com'],
             contactBookListIds: ['cb-005'],
             contactBookListNames: ['Emergency Contacts'],
             optOutMode: 'NONE',
@@ -798,7 +804,7 @@ var EmailToSmsService = (function() {
             subjectOverridesSenderId: false,
             multipleSmsEnabled: false,
             deliveryReportsEnabled: true,
-            deliveryReportsEmail: 'alerts@quicksms.io',
+            deliveryReportsEmail: 'alerts@quicksms.com',
             contentFilter: '',
             status: 'active',
             createdAt: '2024-12-01T12:00:00Z',
@@ -1215,7 +1221,7 @@ var EmailToSmsService = (function() {
             });
         }
         
-        var endpoint = contactListConfig.endpoints.archive.replace('{id}', id) + '/unarchive';
+        var endpoint = contactListConfig.endpoints.unarchive.replace('{id}', id);
         return _makeRequest('POST', endpoint);
     }
     
@@ -1831,6 +1837,41 @@ var EmailToSmsService = (function() {
         
         return _makeRequest('POST', '/reporting-groups/' + id + '/unarchive');
     }
+
+    function createReportingGroup(payload) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var newGroup = {
+                    id: 'rg-' + Date.now(),
+                    name: payload.name,
+                    description: payload.description || '',
+                    linkedAddresses: [],
+                    messagesSent: 0,
+                    lastActivity: '-',
+                    created: new Date().toISOString().split('T')[0],
+                    status: 'Active'
+                };
+                mockReportingGroups.push(newGroup);
+                return { success: true, data: newGroup, message: 'Reporting group created successfully' };
+            });
+        }
+        return _makeRequest('POST', '/reporting-groups', payload);
+    }
+
+    function updateReportingGroup(id, payload) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockReportingGroups.findIndex(function(g) { return g.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Group not found' };
+                }
+                if (payload.name) mockReportingGroups[index].name = payload.name;
+                if (payload.description !== undefined) mockReportingGroups[index].description = payload.description;
+                return { success: true, data: mockReportingGroups[index], message: 'Reporting group updated successfully' };
+            });
+        }
+        return _makeRequest('PUT', '/reporting-groups/' + id, payload);
+    }
     
     /**
      * Get mock addresses data - AGGREGATES from Standard and Contact List setups
@@ -1979,6 +2020,8 @@ var EmailToSmsService = (function() {
         
         // Reporting Groups
         listReportingGroups: listReportingGroups,
+        createReportingGroup: createReportingGroup,
+        updateReportingGroup: updateReportingGroup,
         archiveReportingGroup: archiveReportingGroup,
         unarchiveReportingGroup: unarchiveReportingGroup,
         getMockReportingGroups: getMockReportingGroups,

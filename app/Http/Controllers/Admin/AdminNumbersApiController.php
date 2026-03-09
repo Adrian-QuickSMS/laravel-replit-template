@@ -683,9 +683,124 @@ class AdminNumbersApiController extends Controller
         return response()->json(['success' => true, 'successCount' => $updated, 'failedCount' => count($failed), 'failedIds' => $failed]);
     }
 
+    public function bulkSuspend(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'uuid',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $updated = 0;
+        $failed  = [];
+
+        foreach ($request->input('ids') as $id) {
+            $found = $this->resolveEntity($id);
+            if (!$found || $found['entity']->status === 'suspended') {
+                $failed[] = $id;
+                continue;
+            }
+            $found['entity']->status = 'suspended';
+            if ($found['type'] === 'purchased_number') {
+                $found['entity']->suspended_at = now();
+            }
+            $found['entity']->save();
+            $this->logAction($id, $found['type'], 'NUMBER_SUSPENDED', ['status' => $found['entity']->getOriginal('status')], ['status' => 'suspended'], $request->input('reason'));
+            $updated++;
+        }
+
+        return response()->json(['success' => true, 'successCount' => $updated, 'failedCount' => count($failed), 'failedIds' => $failed]);
+    }
+
+    public function bulkReactivate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'uuid',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $updated = 0;
+        $failed  = [];
+
+        foreach ($request->input('ids') as $id) {
+            $found = $this->resolveEntity($id);
+            if (!$found || $found['entity']->status !== 'suspended') {
+                $failed[] = $id;
+                continue;
+            }
+            $found['entity']->status = 'active';
+            if ($found['type'] === 'purchased_number') {
+                $found['entity']->suspended_at = null;
+            }
+            $found['entity']->save();
+            $this->logAction($id, $found['type'], 'NUMBER_REACTIVATED', ['status' => 'suspended'], ['status' => 'active'], $request->input('reason'));
+            $updated++;
+        }
+
+        return response()->json(['success' => true, 'successCount' => $updated, 'failedCount' => count($failed), 'failedIds' => $failed]);
+    }
+
+    public function exportNumbers(Request $request): \Illuminate\Http\Response
+    {
+        $allRows = [];
+
+        $pns = PurchasedNumber::withoutGlobalScope('tenant')
+            ->with('account:id,company_name,trading_name')
+            ->whereIn('number_type', [PurchasedNumber::TYPE_VMN, PurchasedNumber::TYPE_DEDICATED_SHORTCODE])
+            ->whereNull('deleted_at')
+            ->get();
+
+        foreach ($pns as $pn) {
+            $allRows[] = $this->purchasedNumberToRow($pn);
+        }
+
+        $kws = ShortcodeKeyword::withoutGlobalScope('tenant')
+            ->with(['account:id,company_name,trading_name', 'purchasedNumber:id,country_iso,number'])
+            ->whereNull('deleted_at')
+            ->get();
+
+        foreach ($kws as $kw) {
+            $allRows[] = $this->keywordToRow($kw);
+        }
+
+        $csv = "Number,Country,Type,Status,Account,Cost,Supplier,Created\n";
+        foreach ($allRows as $row) {
+            $csv .= implode(',', [
+                '"' . ($row['number'] ?? '') . '"',
+                $row['country'] ?? '',
+                $row['type'] ?? '',
+                $row['status'] ?? '',
+                '"' . ($row['account'] ?? '') . '"',
+                $row['cost'] ?? 0,
+                '"' . ($row['supplier'] ?? '') . '"',
+                $row['created'] ?? '',
+            ]) . "\n";
+        }
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="numbers-export-' . date('Y-m-d') . '.csv"',
+        ]);
+    }
+
     // =====================================================
     // PRIVATE HELPERS
     // =====================================================
+
+    public function lookupAccounts(): JsonResponse
+    {
+        $accounts = Account::where('status', 'active')
+            ->orderBy('company_name')
+            ->get(['id', 'company_name', 'trading_name', 'status'])
+            ->map(fn ($a) => [
+                'id'     => $a->id,
+                'name'   => $a->company_name ?? $a->trading_name,
+                'status' => $a->status,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $accounts->values()]);
+    }
 
     private function resolveEntity(string $id): ?array
     {

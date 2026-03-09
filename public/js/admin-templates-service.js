@@ -15,9 +15,9 @@ const AdminTemplatesService = (function() {
     'use strict';
 
     const config = {
-        useMockData: true,
-        apiBaseUrl: '/api/admin/templates',
-        accountsApiUrl: '/api/admin/accounts',
+        useMockData: false,
+        apiBaseUrl: '/admin/api/templates',
+        accountsApiUrl: '/admin/api/accounts',
         defaultPageSize: 20,
         maxPageSize: 100
     };
@@ -596,9 +596,10 @@ const AdminTemplatesService = (function() {
         }
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const response = await fetch(`${config.apiBaseUrl}/${accountId}/${templateId}/suspend`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                 body: JSON.stringify({ reason })
             });
             if (!response.ok) throw new Error('Failed to suspend template');
@@ -631,9 +632,10 @@ const AdminTemplatesService = (function() {
         }
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const response = await fetch(`${config.apiBaseUrl}/${accountId}/${templateId}/reactivate`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
             });
             if (!response.ok) throw new Error('Failed to reactivate template');
             return await response.json();
@@ -665,9 +667,10 @@ const AdminTemplatesService = (function() {
         }
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const response = await fetch(`${config.apiBaseUrl}/${accountId}/${templateId}/archive`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                 body: JSON.stringify({ reason })
             });
             if (!response.ok) throw new Error('Failed to archive template');

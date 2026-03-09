@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailToSmsAddress;
+use App\Models\EmailToSmsAllowedSender;
 use App\Models\EmailToSmsAuditLog;
+use App\Models\EmailToSmsOptOutConfig;
+use App\Models\EmailToSmsRecipient;
 use App\Models\EmailToSmsSetup;
 use App\Models\EmailToSmsReportingGroup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class EmailToSmsController extends Controller
 {
@@ -18,14 +23,9 @@ class EmailToSmsController extends Controller
         return session('customer_tenant_id');
     }
 
-    // =====================================================
-    // SETUPS — LIST / SHOW / CREATE / UPDATE
-    // =====================================================
-
     public function index(Request $request): JsonResponse
     {
-        $query = EmailToSmsSetup::forAccount($this->tenantId())
-            ->with(['subAccount', 'reportingGroup']);
+        $query = EmailToSmsSetup::with(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -35,7 +35,7 @@ class EmailToSmsController extends Controller
             });
         }
 
-        $type = $request->input('type') ?? $request->route('type');
+        $type = $request->input('type') ?? $request->route('type') ?? $request->route()->defaults['type'] ?? null;
         if ($type) {
             $query->where('type', $type);
         }
@@ -44,14 +44,14 @@ class EmailToSmsController extends Controller
             $statuses = is_array($request->input('status'))
                 ? $request->input('status')
                 : [$request->input('status')];
-            $query->whereIn('status', $statuses);
+            $query->whereIn('status', array_map('strtolower', $statuses));
         }
 
         if ($request->filled('sub_account_id')) {
             $query->where('sub_account_id', $request->input('sub_account_id'));
         }
 
-        if (!$request->boolean('include_archived')) {
+        if (!$request->boolean('include_archived') && !$request->boolean('includeArchived')) {
             $query->where('status', '!=', 'archived');
         }
 
@@ -66,57 +66,55 @@ class EmailToSmsController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $setups->map(fn ($s) => $this->transformSetup($s)),
+            'data' => $setups->map(fn ($s) => $s->toPortalArray()),
             'total' => $setups->count(),
         ]);
     }
 
     public function show(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())
-            ->with(['subAccount', 'reportingGroup'])
+        $setup = EmailToSmsSetup::with(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig'])
             ->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
         ]);
     }
 
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $type = $request->input('type') ?? $request->route('type') ?? 'standard';
+
+        $rules = [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'sub_account_id' => 'nullable|string',
-            'type' => 'required|in:standard,contact_list',
-            'allowed_sender_emails' => 'nullable|array',
-            'allowed_sender_emails.*' => 'string|max:255',
-            'sender_id_template_id' => 'nullable|string',
-            'sender_id' => 'nullable|string|max:11',
-            'multiple_sms_enabled' => 'nullable|boolean',
-            'delivery_reports_enabled' => 'nullable|boolean',
-            'delivery_reports_email' => 'nullable|email|max:255',
-            'reporting_group_id' => 'nullable|string',
-            'contact_book_list_ids' => 'nullable|array',
-            'opt_out_mode' => 'nullable|in:NONE,SELECTED',
-            'opt_out_list_ids' => 'nullable|array',
-        ]);
+        ];
+
+        if ($type === 'contact_list') {
+            $rules['allowedSenderEmails'] = 'nullable|array|max:20';
+            $rules['allowedSenderEmails.*'] = 'string|max:255';
+        } else {
+            $rules['allowedEmails'] = 'nullable|array|max:20';
+            $rules['allowedEmails.*'] = 'string|max:255';
+        }
+
+        $request->validate($rules);
 
         $tenantId = $this->tenantId();
 
-        // Check for duplicate name within tenant
-        $nameExists = EmailToSmsSetup::forAccount($tenantId)
-            ->where('name', $request->input('name'))
-            ->exists();
+        $nameExists = EmailToSmsSetup::where('name', $request->input('name'))->exists();
         if ($nameExists) {
             return response()->json(['success' => false, 'error' => 'A setup with this name already exists'], 422);
         }
 
-        // Validate sub_account belongs to this tenant
-        if ($request->filled('sub_account_id')) {
+        $subAccountId = $request->input('subaccountId') ?? $request->input('sub_account_id');
+        if ($subAccountId && $subAccountId === $tenantId) {
+            $subAccountId = null;
+        }
+        if ($subAccountId) {
             $exists = DB::table('sub_accounts')
-                ->where('id', $request->input('sub_account_id'))
+                ->where('id', $subAccountId)
                 ->where('account_id', $tenantId)
                 ->exists();
             if (!$exists) {
@@ -124,106 +122,150 @@ class EmailToSmsController extends Controller
             }
         }
 
-        // Validate reporting group belongs to this tenant
-        if ($request->filled('reporting_group_id')) {
-            $exists = EmailToSmsReportingGroup::forAccount($tenantId)
-                ->where('id', $request->input('reporting_group_id'))
-                ->exists();
+        $reportingGroupId = $request->input('reportingGroupId') ?? $request->input('reporting_group_id');
+        if ($reportingGroupId) {
+            $exists = EmailToSmsReportingGroup::where('id', $reportingGroupId)->exists();
             if (!$exists) {
                 return response()->json(['success' => false, 'error' => 'Invalid reporting group'], 422);
             }
         }
 
-        // Generate unique email address with collision protection
-        $emailDomain = '@sms.quicksms.io';
-        $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '.', $request->input('name')));
-        $generatedEmail = null;
-        $maxRetries = 5;
-
-        for ($attempt = 0; $attempt < $maxRetries; $attempt++) {
-            $hash = substr(md5(uniqid((string) mt_rand(), true)), 0, 7);
-            $candidate = $slug . '.' . $hash . $emailDomain;
-            $emailExists = EmailToSmsSetup::where('generated_email_address', $candidate)->exists();
-            if (!$emailExists) {
-                $generatedEmail = $candidate;
-                break;
+        $senderIdTemplateId = $request->input('senderIdTemplateId') ?? $request->input('sender_id_template_id');
+        $senderIdLabel = null;
+        if ($senderIdTemplateId) {
+            $senderRecord = DB::table('sender_ids')
+                ->where('id', $senderIdTemplateId)
+                ->where('account_id', $tenantId)
+                ->where('workflow_status', 'approved')
+                ->whereNull('deleted_at')
+                ->first();
+            if ($senderRecord) {
+                $senderIdLabel = $senderRecord->sender_id_value ?? null;
             }
         }
+        if (!$senderIdLabel) {
+            $senderIdLabel = $request->input('senderId') ?? $request->input('sender_id');
+        }
 
+        $generatedEmail = $this->generateEmailAddress($request->input('name'));
         if (!$generatedEmail) {
             return response()->json(['success' => false, 'error' => 'Unable to generate unique email address. Please try again.'], 500);
         }
 
-        $setup = DB::transaction(function () use ($request, $tenantId, $generatedEmail) {
-            $setup = EmailToSmsSetup::create([
-                'account_id' => $tenantId,
-                'sub_account_id' => $request->input('sub_account_id'),
+        $rcsAgentInput = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentId = null;
+        if ($rcsAgentInput) {
+            if (is_numeric($rcsAgentInput)) {
+                $rcsAgentId = (int) $rcsAgentInput;
+            } else {
+                $agent = DB::table('rcs_agents')->where('uuid', $rcsAgentInput)->where('account_id', $tenantId)->first();
+                $rcsAgentId = $agent ? $agent->id : null;
+            }
+        }
+
+        try {
+            $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId, $generatedEmail) {
+                $setup = EmailToSmsSetup::withoutGlobalScopes()->create([
+                    'account_id' => $tenantId,
+                    'sub_account_id' => $subAccountId,
+                    'type' => $type,
+                    'name' => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'status' => 'active',
+                    'reporting_group_id' => $reportingGroupId,
+                    'sender_id_template_id' => $senderIdTemplateId,
+                    'sender_id_label' => $senderIdLabel,
+                    'rcs_agent_id' => $rcsAgentId,
+                    'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', false),
+                    'delivery_reports_enabled' => $request->boolean('deliveryReportsEnabled', false),
+                    'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email'),
+                    'daily_limit' => $request->input('dailyLimit', 5000),
+                ]);
+
+                EmailToSmsAddress::withoutGlobalScopes()->create([
+                    'setup_id' => $setup->id,
+                    'account_id' => $tenantId,
+                    'email_address' => $generatedEmail,
+                    'is_primary' => true,
+                    'status' => 'active',
+                ]);
+
+                $allowedEmails = $type === 'contact_list'
+                    ? ($request->input('allowedSenderEmails') ?? [])
+                    : ($request->input('allowedEmails') ?? []);
+                foreach ($allowedEmails as $email) {
+                    EmailToSmsAllowedSender::withoutGlobalScopes()->create([
+                        'setup_id' => $setup->id,
+                        'account_id' => $tenantId,
+                        'email_pattern' => $email,
+                    ]);
+                }
+
+                if ($type === 'contact_list') {
+                    $this->syncRecipients($setup, $request, $tenantId);
+                    $this->syncOptOutConfig($setup, $request, $tenantId);
+                }
+
+                EmailToSmsAuditLog::logAction(
+                    $tenantId,
+                    'created',
+                    $setup->id,
+                    null,
+                    "Created {$type} setup: {$setup->name}",
+                    ['name' => $setup->name, 'type' => $type]
+                );
+
+                return $setup;
+            });
+
+            $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $setup->toPortalArray(),
+                'message' => 'Setup created successfully',
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Email-to-SMS store failed', [
+                'error' => $e->getMessage(),
+                'type' => $type,
                 'name' => $request->input('name'),
-                'description' => $request->input('description'),
-                'type' => $request->input('type'),
-                'generated_email_address' => $generatedEmail,
-                'originating_emails' => [$generatedEmail],
-                'allowed_sender_emails' => $request->input('allowed_sender_emails', []),
-                'sender_id_template_id' => $request->input('sender_id_template_id'),
-                'sender_id' => $request->input('sender_id'),
-                'multiple_sms_enabled' => $request->boolean('multiple_sms_enabled'),
-                'delivery_reports_enabled' => $request->boolean('delivery_reports_enabled'),
-                'delivery_reports_email' => $request->input('delivery_reports_email'),
-                'status' => 'active',
-                'reporting_group_id' => $request->input('reporting_group_id'),
-                'contact_book_list_ids' => $request->input('contact_book_list_ids', []),
-                'opt_out_mode' => $request->input('opt_out_mode', 'NONE'),
-                'opt_out_list_ids' => $request->input('opt_out_list_ids', []),
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            EmailToSmsAuditLog::logAction(
-                $tenantId,
-                'created',
-                'setup',
-                $setup->id,
-                null,
-                ['name' => $setup->name, 'type' => $setup->type]
-            );
-
-            return $setup;
-        });
-
-        $setup->load(['subAccount', 'reportingGroup']);
-
-        return response()->json([
-            'success' => true,
-            'data' => $this->transformSetup($setup),
-            'message' => 'Setup created successfully',
-        ], 201);
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to create setup: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
 
-        $request->validate([
+        $type = $setup->type;
+
+        $rules = [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'sub_account_id' => 'nullable|string',
-            'allowed_sender_emails' => 'nullable|array',
-            'allowed_sender_emails.*' => 'string|max:255',
-            'sender_id_template_id' => 'nullable|string',
-            'sender_id' => 'nullable|string|max:11',
-            'multiple_sms_enabled' => 'nullable|boolean',
-            'delivery_reports_enabled' => 'nullable|boolean',
-            'delivery_reports_email' => 'nullable|email|max:255',
-            'reporting_group_id' => 'nullable|string',
-            'contact_book_list_ids' => 'nullable|array',
-            'opt_out_mode' => 'nullable|in:NONE,SELECTED',
-            'opt_out_list_ids' => 'nullable|array',
-        ]);
+        ];
+
+        if ($type === 'contact_list') {
+            $rules['allowedSenderEmails'] = 'nullable|array|max:20';
+            $rules['allowedSenderEmails.*'] = 'string|max:255';
+        } else {
+            $rules['allowedEmails'] = 'nullable|array|max:20';
+            $rules['allowedEmails.*'] = 'string|max:255';
+        }
+
+        $request->validate($rules);
 
         $tenantId = $this->tenantId();
 
-        // Check for duplicate name within tenant (if name is being changed)
-        if ($request->filled('name') && $request->input('name') !== $setup->name) {
-            $nameExists = EmailToSmsSetup::forAccount($tenantId)
-                ->where('name', $request->input('name'))
+        $newName = $request->input('name');
+        if ($newName && $newName !== $setup->name) {
+            $nameExists = EmailToSmsSetup::where('name', $newName)
                 ->where('id', '!=', $setup->id)
                 ->exists();
             if ($nameExists) {
@@ -231,9 +273,13 @@ class EmailToSmsController extends Controller
             }
         }
 
-        if ($request->filled('sub_account_id')) {
+        $subAccountId = $request->input('subaccountId') ?? $request->input('sub_account_id');
+        if ($subAccountId && $subAccountId === $tenantId) {
+            $subAccountId = null;
+        }
+        if ($subAccountId) {
             $exists = DB::table('sub_accounts')
-                ->where('id', $request->input('sub_account_id'))
+                ->where('id', $subAccountId)
                 ->where('account_id', $tenantId)
                 ->exists();
             if (!$exists) {
@@ -241,52 +287,127 @@ class EmailToSmsController extends Controller
             }
         }
 
-        if ($request->filled('reporting_group_id')) {
-            $exists = EmailToSmsReportingGroup::forAccount($tenantId)
-                ->where('id', $request->input('reporting_group_id'))
-                ->exists();
+        $reportingGroupId = $request->input('reportingGroupId') ?? $request->input('reporting_group_id');
+        if ($reportingGroupId && $reportingGroupId !== $setup->reporting_group_id) {
+            $exists = EmailToSmsReportingGroup::where('id', $reportingGroupId)->exists();
             if (!$exists) {
                 return response()->json(['success' => false, 'error' => 'Invalid reporting group'], 422);
             }
         }
 
-        $updateFields = $request->only([
-            'name', 'description', 'sub_account_id', 'allowed_sender_emails',
-            'sender_id_template_id', 'sender_id',
-            'multiple_sms_enabled', 'delivery_reports_enabled', 'delivery_reports_email',
-            'reporting_group_id', 'contact_book_list_ids', 'opt_out_mode', 'opt_out_list_ids',
-        ]);
+        $senderIdTemplateId = $request->input('senderIdTemplateId') ?? $request->input('sender_id_template_id');
+        $senderIdLabel = $setup->sender_id_label;
+        if ($senderIdTemplateId && $senderIdTemplateId !== $setup->sender_id_template_id) {
+            $senderRecord = DB::table('sender_ids')
+                ->where('id', $senderIdTemplateId)
+                ->where('account_id', $tenantId)
+                ->where('workflow_status', 'approved')
+                ->whereNull('deleted_at')
+                ->first();
+            if ($senderRecord) {
+                $senderIdLabel = $senderRecord->sender_id_value ?? null;
+            }
+        }
+        if (!$senderIdLabel) {
+            $senderIdLabel = $request->input('senderId') ?? $request->input('sender_id') ?? $setup->sender_id_label;
+        }
 
-        DB::transaction(function () use ($setup, $updateFields, $tenantId) {
-            $original = $setup->only(array_keys($updateFields));
+        $rcsAgentInput = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentId = null;
+        if ($rcsAgentInput) {
+            if (is_numeric($rcsAgentInput)) {
+                $rcsAgentId = (int) $rcsAgentInput;
+            } else {
+                $agent = DB::table('rcs_agents')->where('uuid', $rcsAgentInput)->where('account_id', $tenantId)->first();
+                $rcsAgentId = $agent ? $agent->id : null;
+            }
+        }
+
+        DB::transaction(function () use ($request, $setup, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId) {
+            $originalData = $setup->toPortalArray();
+
+            $updateFields = [
+                'sender_id_template_id' => $senderIdTemplateId ?? $setup->sender_id_template_id,
+                'sender_id_label' => $senderIdLabel,
+                'rcs_agent_id' => $request->has('rcsAgentId') || $request->has('rcs_agent_id') ? $rcsAgentId : $setup->rcs_agent_id,
+                'multiple_sms_enabled' => $request->has('multipleSmsEnabled') ? $request->boolean('multipleSmsEnabled') : $setup->multiple_sms_enabled,
+                'delivery_reports_enabled' => $request->has('deliveryReportsEnabled') ? $request->boolean('deliveryReportsEnabled') : $setup->delivery_reports_enabled,
+                'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email') ?? $setup->delivery_report_email,
+            ];
+
+            if ($request->has('name')) {
+                $updateFields['name'] = $request->input('name');
+            }
+            if ($request->has('description')) {
+                $updateFields['description'] = $request->input('description');
+            }
+            if ($subAccountId !== null) {
+                $updateFields['sub_account_id'] = $subAccountId;
+            }
+            if ($reportingGroupId !== null) {
+                $updateFields['reporting_group_id'] = $reportingGroupId ?: null;
+            }
+            if ($request->has('dailyLimit')) {
+                $updateFields['daily_limit'] = $request->input('dailyLimit');
+            }
+
             $setup->update($updateFields);
+
+            $allowedEmails = $type === 'contact_list'
+                ? $request->input('allowedSenderEmails')
+                : $request->input('allowedEmails');
+
+            if ($allowedEmails !== null) {
+                EmailToSmsAllowedSender::withoutGlobalScopes()
+                    ->where('setup_id', $setup->id)
+                    ->delete();
+                foreach ($allowedEmails as $email) {
+                    EmailToSmsAllowedSender::withoutGlobalScopes()->create([
+                        'setup_id' => $setup->id,
+                        'account_id' => $tenantId,
+                        'email_pattern' => $email,
+                    ]);
+                }
+            }
+
+            if ($type === 'contact_list') {
+                if ($request->has('contactBookListIds')) {
+                    EmailToSmsRecipient::withoutGlobalScopes()
+                        ->where('setup_id', $setup->id)
+                        ->delete();
+                    $this->syncRecipients($setup, $request, $tenantId);
+                }
+
+                if ($request->has('optOutListIds')) {
+                    EmailToSmsOptOutConfig::withoutGlobalScopes()
+                        ->where('setup_id', $setup->id)
+                        ->delete();
+                    $this->syncOptOutConfig($setup, $request, $tenantId);
+                }
+            }
 
             EmailToSmsAuditLog::logAction(
                 $tenantId,
                 'updated',
-                'setup',
                 $setup->id,
                 null,
-                ['before' => $original, 'after' => $updateFields]
+                "Updated setup: {$setup->name}",
+                ['before' => $originalData, 'after' => $updateFields]
             );
         });
 
-        $setup->load(['subAccount', 'reportingGroup']);
+        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
             'message' => 'Setup updated successfully',
         ]);
     }
 
-    // =====================================================
-    // STATE TRANSITIONS
-    // =====================================================
-
     public function suspend(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
 
         if ($setup->status === 'suspended') {
             return response()->json(['success' => false, 'error' => 'Already suspended'], 422);
@@ -296,20 +417,23 @@ class EmailToSmsController extends Controller
         $setup->update(['status' => 'suspended']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'suspended', 'setup', $setup->id, null,
+            $this->tenantId(), 'suspended', $setup->id, null,
+            "Suspended setup: {$setup->name}",
             ['previous_status' => $previousStatus]
         );
 
+        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
             'message' => 'Setup suspended successfully',
         ]);
     }
 
     public function reactivate(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
 
         if ($setup->status === 'active') {
             return response()->json(['success' => false, 'error' => 'Already active'], 422);
@@ -319,58 +443,68 @@ class EmailToSmsController extends Controller
         $setup->update(['status' => 'active']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'reactivated', 'setup', $setup->id, null,
+            $this->tenantId(), 'reactivated', $setup->id, null,
+            "Reactivated setup: {$setup->name}",
             ['previous_status' => $previousStatus]
         );
 
+        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
             'message' => 'Setup reactivated successfully',
         ]);
     }
 
     public function archive(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
         $previousStatus = $setup->status;
         $setup->update(['status' => 'archived']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'archived', 'setup', $setup->id, null,
+            $this->tenantId(), 'archived', $setup->id, null,
+            "Archived setup: {$setup->name}",
             ['previous_status' => $previousStatus]
         );
 
+        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
             'message' => 'Setup archived successfully',
         ]);
     }
 
     public function unarchive(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
         $setup->update(['status' => 'active']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'unarchived', 'setup', $setup->id
+            $this->tenantId(), 'unarchived', $setup->id, null,
+            "Unarchived setup: {$setup->name}"
         );
+
+        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformSetup($setup),
+            'data' => $setup->toPortalArray(),
             'message' => 'Setup unarchived successfully',
         ]);
     }
 
     public function destroy(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::forAccount($this->tenantId())->findOrFail($id);
+        $setup = EmailToSmsSetup::findOrFail($id);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'deleted', 'setup', $setup->id, null,
-            ['name' => $setup->name]
+            $this->tenantId(), 'deleted', $setup->id, null,
+            "Deleted setup: {$setup->name}",
+            ['name' => $setup->name, 'type' => $setup->type]
         );
 
         $setup->delete();
@@ -381,14 +515,9 @@ class EmailToSmsController extends Controller
         ]);
     }
 
-    // =====================================================
-    // OVERVIEW — Unified listing for both standard + contact_list
-    // =====================================================
-
     public function overview(Request $request): JsonResponse
     {
-        $query = EmailToSmsSetup::forAccount($this->tenantId())
-            ->with(['subAccount', 'reportingGroup']);
+        $query = EmailToSmsSetup::with(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'optOutConfig']);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -406,13 +535,21 @@ class EmailToSmsController extends Controller
             $query->whereIn('status', $mapped);
         }
 
+        if ($request->filled('type')) {
+            $typeFilter = $request->input('type');
+            if ($typeFilter === 'contactList') {
+                $query->where('type', 'contact_list');
+            } else {
+                $query->where('type', $typeFilter);
+            }
+        }
+
         if (!$request->boolean('include_archived')) {
             $query->where('status', '!=', 'archived');
         }
 
         $setups = $query->orderBy('created_at', 'desc')->get();
 
-        // Fetch message counts from message_logs if available
         $setupIds = $setups->pluck('id');
         $messageCounts = collect();
         try {
@@ -428,26 +565,41 @@ class EmailToSmsController extends Controller
 
         $data = $setups->map(function ($setup) use ($messageCounts) {
             $type = $setup->type === 'contact_list' ? 'Contact List' : 'Standard';
+            $sourceType = $setup->type === 'contact_list' ? 'contactList' : 'standard';
             $msgCount = $messageCounts->get($setup->id);
+
+            $originatingEmails = $setup->addresses->pluck('email_address')->values()->toArray();
+            $allowedSenders = $setup->allowedSenders->pluck('email_pattern')->values()->toArray();
+
+            $optOutLabel = null;
+            if ($setup->type === 'contact_list') {
+                $optOutConfigs = $setup->optOutConfig;
+                if ($optOutConfigs->isNotEmpty()) {
+                    $optOutLabel = $optOutConfigs->pluck('opt_out_list_name')->filter()->implode(', ');
+                    if (!$optOutLabel) {
+                        $optOutLabel = 'Specific Lists (' . $optOutConfigs->count() . ')';
+                    }
+                }
+            }
 
             return [
                 'id' => $setup->id,
+                'sourceId' => $setup->id,
+                'sourceType' => $sourceType,
                 'name' => $setup->name,
                 'description' => $setup->description,
                 'type' => $type,
-                'originatingEmails' => $setup->originating_emails ?? [],
-                'allowedSenders' => $setup->allowed_sender_emails ?? [],
-                'senderId' => $setup->sender_id,
+                'originatingEmails' => $originatingEmails,
+                'senderId' => $setup->sender_id_label,
+                'optOut' => $optOutLabel,
                 'subAccount' => $setup->subAccount?->name ?? 'Main Account',
                 'reportingGroup' => $setup->reportingGroup?->name,
+                'allowedSenders' => $allowedSenders,
+                'dailyLimit' => $setup->daily_limit ?? 5000,
                 'status' => ucfirst($setup->status),
                 'created' => $setup->created_at?->format('Y-m-d'),
                 'lastUsed' => $setup->updated_at?->format('Y-m-d H:i'),
                 'messagesSent' => $msgCount->total ?? 0,
-                'optOut' => $setup->opt_out_mode !== 'NONE',
-                'optOutMode' => $setup->opt_out_mode,
-                'sourceType' => $setup->type,
-                'sourceId' => $setup->id,
             ];
         });
 
@@ -457,10 +609,6 @@ class EmailToSmsController extends Controller
             'total' => $data->count(),
         ]);
     }
-
-    // =====================================================
-    // HELPERS — SenderID templates + subaccounts
-    // =====================================================
 
     public function senderIdTemplates(): JsonResponse
     {
@@ -483,6 +631,11 @@ class EmailToSmsController extends Controller
     {
         $tenantId = $this->tenantId();
 
+        $mainAccount = DB::table('accounts')
+            ->where('id', $tenantId)
+            ->select('id', 'company_name as name')
+            ->first();
+
         $subaccounts = DB::table('sub_accounts')
             ->where('account_id', $tenantId)
             ->whereNull('deleted_at')
@@ -491,9 +644,17 @@ class EmailToSmsController extends Controller
             ->orderBy('name')
             ->get();
 
+        $accounts = collect();
+        if ($mainAccount) {
+            $accounts->push((object) ['id' => $mainAccount->id, 'name' => $mainAccount->name ?: 'Main Account', 'is_main' => true]);
+        }
+        foreach ($subaccounts as $sub) {
+            $accounts->push((object) ['id' => $sub->id, 'name' => $sub->name, 'is_main' => false]);
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $subaccounts,
+            'data' => $accounts,
         ]);
     }
 
@@ -501,12 +662,15 @@ class EmailToSmsController extends Controller
     {
         $tenantId = $this->tenantId();
 
-        // Read actual account configuration from account_settings
-        $settings = DB::table('account_settings')
-            ->where('account_id', $tenantId)
-            ->first();
+        $settings = null;
+        try {
+            $settings = DB::table('account_settings')
+                ->where('account_id', $tenantId)
+                ->first();
+        } catch (\Exception $e) {
+            Log::debug('account_settings query failed', ['error' => $e->getMessage()]);
+        }
 
-        // Check if the account has approved sender IDs (indicates dynamic_senderid access)
         $hasApprovedSenderIds = DB::table('sender_ids')
             ->where('account_id', $tenantId)
             ->where('workflow_status', 'approved')
@@ -524,37 +688,235 @@ class EmailToSmsController extends Controller
         ]);
     }
 
-    // =====================================================
-    // PRIVATE
-    // =====================================================
-
-    private function transformSetup(EmailToSmsSetup $setup): array
+    public function contactBookData(): JsonResponse
     {
-        return [
-            'id' => $setup->id,
-            'name' => $setup->name,
-            'description' => $setup->description,
-            'subaccountId' => $setup->sub_account_id,
-            'subaccountName' => $setup->subAccount?->name ?? 'Main Account',
-            'generatedEmailAddress' => $setup->generated_email_address,
-            'originatingEmails' => $setup->originating_emails ?? [],
-            'allowedEmails' => $setup->allowed_sender_emails ?? [],
-            'senderIdTemplateId' => $setup->sender_id_template_id,
-            'senderId' => $setup->sender_id,
-            'multipleSmsEnabled' => $setup->multiple_sms_enabled,
-            'deliveryReportsEnabled' => $setup->delivery_reports_enabled,
-            'deliveryReportsEmail' => $setup->delivery_reports_email,
-            'status' => ucfirst($setup->status),
-            'type' => $setup->type,
-            'reportingGroupId' => $setup->reporting_group_id,
-            'reportingGroupName' => $setup->reportingGroup?->name,
-            'contactBookListIds' => $setup->contact_book_list_ids ?? [],
-            'optOutMode' => $setup->opt_out_mode,
-            'optOutListIds' => $setup->opt_out_list_ids ?? [],
-            'createdAt' => $setup->created_at?->toIso8601String(),
-            'updatedAt' => $setup->updated_at?->toIso8601String(),
-            'created' => $setup->created_at?->format('Y-m-d'),
-            'lastUpdated' => $setup->updated_at?->format('Y-m-d'),
-        ];
+        $tenantId = $this->tenantId();
+
+        $lists = collect();
+        $dynamicLists = collect();
+        $contacts = collect();
+        $tags = collect();
+        $optOutLists = collect();
+
+        try {
+            $allLists = DB::table('contact_lists')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name', 'type', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""), 'updated_at', DB::raw("'active' as status"))
+                ->orderBy('name')
+                ->get();
+
+            $lists = $allLists->where('type', 'static')->values();
+            $dynamicLists = $allLists->where('type', 'dynamic')->values();
+        } catch (\Exception $e) {
+            Log::debug('contact_lists query failed', ['error' => $e->getMessage()]);
+        }
+
+        try {
+            $contacts = DB::table('contacts')
+                ->where('account_id', $tenantId)
+                ->whereNull('deleted_at')
+                ->select('id', 'first_name', 'last_name', 'mobile_number as mobile', 'email', DB::raw("'active' as status"))
+                ->limit(100)
+                ->orderBy('first_name')
+                ->get()
+                ->map(function ($c) {
+                    $c->name = trim(($c->first_name ?? '') . ' ' . ($c->last_name ?? ''));
+                    return $c;
+                });
+        } catch (\Exception $e) {
+            Log::debug('contacts query failed', ['error' => $e->getMessage()]);
+        }
+
+        try {
+            $tags = DB::table('tags')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""))
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            Log::debug('tags query failed', ['error' => $e->getMessage()]);
+        }
+
+        try {
+            $optOutLists = DB::table('opt_out_lists')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name', DB::raw("COALESCE(count, 0) as \"recipientCount\""))
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            Log::debug('opt_out_lists query failed', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'lists' => $lists->values(),
+                'dynamicLists' => $dynamicLists->values(),
+                'contacts' => $contacts->values(),
+                'tags' => $tags->values(),
+                'optOutLists' => $optOutLists->values(),
+            ],
+        ]);
+    }
+
+    public function contactBooks(): JsonResponse
+    {
+        return $this->contactBookData();
+    }
+
+    public function contacts(): JsonResponse
+    {
+        $tenantId = $this->tenantId();
+        $contacts = collect();
+
+        try {
+            $contacts = DB::table('contacts')
+                ->where('account_id', $tenantId)
+                ->whereNull('deleted_at')
+                ->select('id', 'first_name', 'last_name', 'mobile_number as mobile', 'email', DB::raw("'active' as status"))
+                ->limit(200)
+                ->orderBy('first_name')
+                ->get()
+                ->map(function ($c) {
+                    $c->name = trim(($c->first_name ?? '') . ' ' . ($c->last_name ?? ''));
+                    return $c;
+                });
+        } catch (\Exception $e) {
+            Log::debug('contacts query failed', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $contacts->values(),
+        ]);
+    }
+
+    public function tags(): JsonResponse
+    {
+        $tenantId = $this->tenantId();
+        $tags = collect();
+
+        try {
+            $tags = DB::table('tags')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""))
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            Log::debug('tags query failed', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $tags->values(),
+        ]);
+    }
+
+    public function optOutLists(): JsonResponse
+    {
+        $tenantId = $this->tenantId();
+        $optOutLists = collect();
+
+        try {
+            $optOutLists = DB::table('opt_out_lists')
+                ->where('account_id', $tenantId)
+                ->whereNull('deleted_at')
+                ->select('id', 'name', 'description', DB::raw("0 as recipientCount"))
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            Log::debug('opt_out_lists query failed', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $optOutLists->values(),
+        ]);
+    }
+
+    public function approvedSmsTemplates(): JsonResponse
+    {
+        return $this->senderIdTemplates();
+    }
+
+    private function generateEmailAddress(string $name): ?string
+    {
+        $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
+        $slug = trim($slug, '-');
+        $slug = substr($slug, 0, 30);
+        $emailDomain = '@sms.quicksms.com';
+
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $suffix = str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT);
+            $candidate = $slug . '-' . $suffix . $emailDomain;
+
+            $exists = EmailToSmsAddress::withoutGlobalScopes()
+                ->where('email_address', $candidate)
+                ->exists();
+
+            if (!$exists) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function syncRecipients(EmailToSmsSetup $setup, Request $request, string $tenantId): void
+    {
+        $contactBookListIds = $request->input('contactBookListIds', []);
+        $contactBookListNames = $request->input('contactBookListNames', []);
+
+        foreach ($contactBookListIds as $index => $recipientId) {
+            $recipientName = $contactBookListNames[$index] ?? null;
+            EmailToSmsRecipient::withoutGlobalScopes()->create([
+                'setup_id' => $setup->id,
+                'account_id' => $tenantId,
+                'recipient_type' => 'list',
+                'recipient_id' => $recipientId,
+                'recipient_name' => $recipientName,
+            ]);
+        }
+
+        $recipients = $request->input('recipients', []);
+        if (!empty($recipients)) {
+            $typeMap = ['contacts' => 'contact', 'lists' => 'list', 'dynamic_lists' => 'dynamic_list', 'tags' => 'tag'];
+            foreach ($typeMap as $key => $recipientType) {
+                foreach ($recipients[$key] ?? [] as $item) {
+                    $itemId = is_array($item) ? ($item['id'] ?? null) : $item;
+                    $itemName = is_array($item) ? ($item['name'] ?? null) : null;
+                    if ($itemId) {
+                        EmailToSmsRecipient::withoutGlobalScopes()->create([
+                            'setup_id' => $setup->id,
+                            'account_id' => $tenantId,
+                            'recipient_type' => $recipientType,
+                            'recipient_id' => $itemId,
+                            'recipient_name' => $itemName,
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+    private function syncOptOutConfig(EmailToSmsSetup $setup, Request $request, string $tenantId): void
+    {
+        $optOutMode = $request->input('optOutMode', 'NONE');
+        if ($optOutMode === 'NONE') {
+            return;
+        }
+
+        $optOutListIds = $request->input('optOutListIds', []);
+        $optOutListNames = $request->input('optOutListNames', []);
+
+        foreach ($optOutListIds as $index => $listId) {
+            $listName = $optOutListNames[$index] ?? null;
+            EmailToSmsOptOutConfig::withoutGlobalScopes()->create([
+                'setup_id' => $setup->id,
+                'account_id' => $tenantId,
+                'opt_out_list_id' => $listId,
+                'opt_out_list_name' => $listName,
+            ]);
+        }
     }
 }

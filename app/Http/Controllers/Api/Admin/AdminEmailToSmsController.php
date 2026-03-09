@@ -11,13 +11,15 @@ use Illuminate\Support\Facades\DB;
 
 class AdminEmailToSmsController extends Controller
 {
-    // =====================================================
-    // OVERVIEW — Cross-account listing for admin panel
-    // =====================================================
-
     public function overview(Request $request): JsonResponse
     {
-        $query = EmailToSmsSetup::with(['account', 'subAccount', 'reportingGroup']);
+        $query = EmailToSmsSetup::withoutGlobalScopes()
+            ->with([
+                'account', 'subAccount',
+                'reportingGroup' => fn($q) => $q->withoutGlobalScopes(),
+                'addresses' => fn($q) => $q->withoutGlobalScopes(),
+                'allowedSenders' => fn($q) => $q->withoutGlobalScopes(),
+            ]);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -71,6 +73,9 @@ class AdminEmailToSmsController extends Controller
 
         $data = $setups->map(function ($setup) {
             $type = $setup->type === 'contact_list' ? 'Contact List' : 'Standard';
+            $originatingEmails = $setup->addresses->pluck('email_address')->values()->toArray();
+            $allowedSenders = $setup->allowedSenders->pluck('email_pattern')->values()->toArray();
+
             return [
                 'id' => $setup->id,
                 'accountId' => $setup->account_id,
@@ -78,9 +83,9 @@ class AdminEmailToSmsController extends Controller
                 'name' => $setup->name,
                 'description' => $setup->description,
                 'type' => $type,
-                'originatingEmails' => $setup->originating_emails ?? [],
-                'allowedSenders' => $setup->allowed_sender_emails ?? [],
-                'senderId' => $setup->sender_id,
+                'originatingEmails' => $originatingEmails,
+                'allowedSenders' => $allowedSenders,
+                'senderId' => $setup->sender_id_label,
                 'subAccount' => $setup->subAccount?->name ?? 'Main Account',
                 'reportingGroup' => $setup->reportingGroup?->name,
                 'status' => ucfirst($setup->status),
@@ -98,13 +103,11 @@ class AdminEmailToSmsController extends Controller
         ]);
     }
 
-    // =====================================================
-    // SINGLE SETUP CRUD (admin)
-    // =====================================================
-
     public function show(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::with(['account', 'subAccount', 'reportingGroup'])->findOrFail($id);
+        $setup = EmailToSmsSetup::withoutGlobalScopes()
+            ->with(['account', 'subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig'])
+            ->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -114,29 +117,18 @@ class AdminEmailToSmsController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::findOrFail($id);
+        $setup = EmailToSmsSetup::withoutGlobalScopes()->findOrFail($id);
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'allowed_sender_emails' => 'nullable|array',
-            'sender_id_template_id' => 'nullable|string',
-            'sender_id' => 'nullable|string|max:11',
-            'multiple_sms_enabled' => 'nullable|boolean',
-            'delivery_reports_enabled' => 'nullable|boolean',
-            'delivery_reports_email' => 'nullable|email|max:255',
-            'reporting_group_id' => 'nullable|string',
             'status' => 'nullable|in:active,suspended,archived',
         ]);
 
-        $setup->update($request->only([
-            'name', 'description', 'allowed_sender_emails',
-            'sender_id_template_id', 'sender_id',
-            'multiple_sms_enabled', 'delivery_reports_enabled', 'delivery_reports_email',
-            'reporting_group_id', 'status',
-        ]));
+        $updateFields = $request->only(['name', 'description', 'status']);
+        $setup->update($updateFields);
 
-        $setup->load(['account', 'subAccount', 'reportingGroup']);
+        $setup->load(['account', 'subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
 
         return response()->json([
             'success' => true,
@@ -147,7 +139,7 @@ class AdminEmailToSmsController extends Controller
 
     public function suspend(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::findOrFail($id);
+        $setup = EmailToSmsSetup::withoutGlobalScopes()->findOrFail($id);
         $setup->update(['status' => 'suspended']);
 
         return response()->json([
@@ -158,7 +150,7 @@ class AdminEmailToSmsController extends Controller
 
     public function reactivate(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::findOrFail($id);
+        $setup = EmailToSmsSetup::withoutGlobalScopes()->findOrFail($id);
         $setup->update(['status' => 'active']);
 
         return response()->json([
@@ -169,8 +161,7 @@ class AdminEmailToSmsController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $setup = EmailToSmsSetup::findOrFail($id);
-        // Soft delete per user requirement
+        $setup = EmailToSmsSetup::withoutGlobalScopes()->findOrFail($id);
         $setup->delete();
 
         return response()->json([
@@ -179,13 +170,9 @@ class AdminEmailToSmsController extends Controller
         ]);
     }
 
-    // =====================================================
-    // REPORTING GROUPS (admin)
-    // =====================================================
-
     public function reportingGroups(Request $request): JsonResponse
     {
-        $query = EmailToSmsReportingGroup::with('account');
+        $query = EmailToSmsReportingGroup::withoutGlobalScopes()->with('account');
 
         if ($request->filled('account_id')) {
             $query->where('account_id', $request->input('account_id'));
@@ -197,9 +184,9 @@ class AdminEmailToSmsController extends Controller
 
         $groups = $query->orderBy('name')->get();
 
-        // Compute aggregates per group
         $groupIds = $groups->pluck('id');
-        $linkedSetups = EmailToSmsSetup::whereIn('reporting_group_id', $groupIds)
+        $linkedSetups = EmailToSmsSetup::withoutGlobalScopes()
+            ->whereIn('reporting_group_id', $groupIds)
             ->select('id', 'name', 'reporting_group_id')
             ->get()
             ->groupBy('reporting_group_id');
@@ -225,10 +212,6 @@ class AdminEmailToSmsController extends Controller
         ]);
     }
 
-    // =====================================================
-    // ACCOUNTS LIST (for admin filter dropdown)
-    // =====================================================
-
     public function accounts(): JsonResponse
     {
         $accounts = DB::table('accounts')
@@ -248,7 +231,10 @@ class AdminEmailToSmsController extends Controller
     private function transformSetup(EmailToSmsSetup $setup): array
     {
         $type = $setup->type === 'contact_list' ? 'Contact List' : 'Standard';
-        return [
+        $originatingEmails = $setup->addresses->pluck('email_address')->values()->toArray();
+        $allowedEmails = $setup->allowedSenders->pluck('email_pattern')->values()->toArray();
+
+        $data = [
             'id' => $setup->id,
             'accountId' => $setup->account_id,
             'accountName' => $setup->account?->company_name ?? 'Unknown',
@@ -257,23 +243,31 @@ class AdminEmailToSmsController extends Controller
             'type' => $type,
             'subaccountId' => $setup->sub_account_id,
             'subaccountName' => $setup->subAccount?->name ?? 'Main Account',
-            'originatingEmails' => $setup->originating_emails ?? [],
-            'allowedEmails' => $setup->allowed_sender_emails ?? [],
+            'originatingEmails' => $originatingEmails,
+            'allowedEmails' => $allowedEmails,
             'senderIdTemplateId' => $setup->sender_id_template_id,
-            'senderId' => $setup->sender_id,
+            'senderId' => $setup->sender_id_label,
             'multipleSmsEnabled' => $setup->multiple_sms_enabled,
             'deliveryReportsEnabled' => $setup->delivery_reports_enabled,
-            'deliveryReportsEmail' => $setup->delivery_reports_email,
+            'deliveryReportsEmail' => $setup->delivery_report_email,
             'reportingGroupId' => $setup->reporting_group_id,
             'reportingGroupName' => $setup->reportingGroup?->name,
-            'contactBookListIds' => $setup->contact_book_list_ids ?? [],
-            'optOutMode' => $setup->opt_out_mode,
-            'optOutListIds' => $setup->opt_out_list_ids ?? [],
             'status' => ucfirst($setup->status),
             'created' => $setup->created_at?->format('Y-m-d'),
             'lastUsed' => $setup->updated_at?->format('Y-m-d H:i'),
             'sourceType' => $setup->type,
             'sourceId' => $setup->id,
         ];
+
+        if ($setup->type === 'contact_list') {
+            $data['contactBookListIds'] = $setup->recipients->pluck('recipient_id')->values()->toArray();
+            $data['contactBookListNames'] = $setup->recipients->pluck('recipient_name')->values()->toArray();
+            $optOutConfigs = $setup->optOutConfig;
+            $data['optOutMode'] = $optOutConfigs->isNotEmpty() ? 'SELECTED' : 'NONE';
+            $data['optOutListIds'] = $optOutConfigs->pluck('opt_out_list_id')->values()->toArray();
+            $data['optOutListNames'] = $optOutConfigs->pluck('opt_out_list_name')->values()->toArray();
+        }
+
+        return $data;
     }
 }

@@ -59,7 +59,7 @@ class CampaignService
             'status' => Campaign::STATUS_DRAFT,
             'message_template_id' => $data['message_template_id'] ?? null,
             'message_content' => $data['message_content'] ?? null,
-            'rcs_content' => $data['rcs_content'] ?? null,
+            'rcs_content' => $this->sanitizeRcsContent($data['rcs_content'] ?? null),
             'encoding' => $data['encoding'] ?? null,
             'segment_count' => $data['segment_count'] ?? 1,
             'sender_id_id' => $data['sender_id_id'] ?? null,
@@ -79,7 +79,11 @@ class CampaignService
             'opt_out_keyword' => $data['opt_out_keyword'] ?? null,
             'opt_out_text' => $data['opt_out_text'] ?? null,
             'opt_out_list_id' => $data['opt_out_list_id'] ?? null,
+            'opt_out_screening_list_ids' => !empty($data['opt_out_screening_list_ids']) ? $data['opt_out_screening_list_ids'] : [],
             'opt_out_url_enabled' => $data['opt_out_url_enabled'] ?? false,
+            'validity_period' => $data['validity_period'] ?? null,
+            'sending_window_start' => $data['sending_window_start'] ?? null,
+            'sending_window_end' => $data['sending_window_end'] ?? null,
         ]);
 
         // Auto-calculate encoding/segments if SMS content provided
@@ -115,6 +119,10 @@ class CampaignService
     {
         if (!$campaign->isEditable()) {
             throw new \RuntimeException("Campaign cannot be updated in '{$campaign->status}' status.");
+        }
+
+        if (array_key_exists('rcs_content', $data)) {
+            $data['rcs_content'] = $this->sanitizeRcsContent($data['rcs_content']);
         }
 
         $campaign->fill($data);
@@ -250,7 +258,10 @@ class CampaignService
         // Prevent concurrent preparation: atomically check-and-set preparation_status
         $updated = DB::table('campaigns')
             ->where('id', $campaign->id)
-            ->whereIn('preparation_status', [null, 'ready', 'failed'])
+            ->where(function ($q) {
+                $q->whereNull('preparation_status')
+                  ->orWhereIn('preparation_status', ['ready', 'failed']);
+            })
             ->update([
                 'preparation_status' => 'preparing',
                 'preparation_progress' => 0,
@@ -427,7 +438,6 @@ class CampaignService
             if (empty($campaign->rcs_content)) {
                 $errors[] = 'RCS rich content is required.';
             } else {
-                // Full structural validation including asset finalization checks
                 $rcsErrors = $this->rcsValidator->validateForSend($campaign->rcs_content, $campaign->type);
                 $errors = array_merge($errors, $rcsErrors);
             }
@@ -439,7 +449,7 @@ class CampaignService
                 $errors[] = 'An approved Sender ID is required for SMS campaigns.';
             } else {
                 $sender = SenderId::withoutGlobalScope('tenant')->find($campaign->sender_id_id);
-                if (!$sender || $sender->status !== 'approved') {
+                if (!$sender || $sender->workflow_status !== 'approved') {
                     $errors[] = 'The selected Sender ID is not approved.';
                 }
                 if ($sender && $sender->account_id !== $campaign->account_id) {
@@ -452,7 +462,7 @@ class CampaignService
                 $errors[] = 'An approved RCS Agent is required for RCS campaigns.';
             } else {
                 $agent = RcsAgent::withoutGlobalScope('tenant')->find($campaign->rcs_agent_id);
-                if (!$agent || $agent->status !== 'approved') {
+                if (!$agent || $agent->workflow_status !== 'approved') {
                     $errors[] = 'The selected RCS Agent is not approved.';
                 }
                 if ($agent && $agent->account_id !== $campaign->account_id) {
@@ -652,6 +662,8 @@ class CampaignService
             throw new \RuntimeException("Campaign must be in draft status to send. Current: {$campaign->status}");
         }
 
+        $this->autoFinalizeRcsAssets($campaign);
+
         // Validate before entering the transaction
         $errors = $this->validateForSend($campaign);
         if (!empty($errors)) {
@@ -686,6 +698,8 @@ class CampaignService
         if (!$campaign->isDraft()) {
             throw new \RuntimeException("Campaign must be in draft status to schedule.");
         }
+
+        $this->autoFinalizeRcsAssets($campaign);
 
         // Validate
         $errors = $this->validateForSend($campaign);
@@ -795,6 +809,21 @@ class CampaignService
         $this->billingPreflight->releaseReservation($campaign);
 
         Log::info('[CampaignService] Campaign cancelled', [
+            'campaign_id' => $campaign->id,
+        ]);
+
+        return $campaign;
+    }
+
+    public function archive(Campaign $campaign): Campaign
+    {
+        if (!in_array($campaign->status, [Campaign::STATUS_COMPLETED, Campaign::STATUS_CANCELLED, Campaign::STATUS_FAILED])) {
+            throw new \InvalidArgumentException("Only completed, cancelled, or failed campaigns can be archived.");
+        }
+
+        $campaign->transitionTo(Campaign::STATUS_ARCHIVED);
+
+        Log::info('[CampaignService] Campaign archived', [
             'campaign_id' => $campaign->id,
         ]);
 
@@ -1151,6 +1180,50 @@ class CampaignService
                 'pending_count' => $counts->pending_count,
                 'actual_cost' => $counts->actual_cost,
             ]);
+        }
+    }
+
+    private function sanitizeRcsContent(?array $rcsContent): ?array
+    {
+        if (!$rcsContent || empty($rcsContent['cards'])) {
+            return $rcsContent;
+        }
+
+        foreach ($rcsContent['cards'] as &$card) {
+            if (!isset($card['media'])) continue;
+
+            $hostedUrl = $card['media']['hostedUrl'] ?? null;
+            $url = $card['media']['url'] ?? null;
+
+            if ($hostedUrl && $url && str_starts_with($url, 'data:')) {
+                $card['media']['url'] = $hostedUrl;
+            }
+        }
+        unset($card);
+
+        return $rcsContent;
+    }
+
+    private function autoFinalizeRcsAssets(Campaign $campaign): void
+    {
+        if (!$campaign->rcs_content || !in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
+            return;
+        }
+
+        $cards = $campaign->rcs_content['cards'] ?? [];
+        foreach ($cards as $card) {
+            $assetUuid = $card['media']['assetUuid'] ?? null;
+            if (!$assetUuid) continue;
+
+            $asset = \App\Models\RcsAsset::withoutGlobalScope('tenant')
+                ->where('uuid', $assetUuid)
+                ->where('account_id', $campaign->account_id)
+                ->where('is_draft', true)
+                ->first();
+
+            if ($asset) {
+                $asset->update(['is_draft' => false, 'draft_session' => null]);
+            }
         }
     }
 }

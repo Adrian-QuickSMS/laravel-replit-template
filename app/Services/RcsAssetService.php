@@ -75,7 +75,7 @@ class RcsAssetService
 
         $content = file_get_contents($file->getRealPath());
 
-        $processedImage = $this->applyEdits($content, $editParams);
+        $processedImage = empty($editParams) ? $this->resizeOnly($content) : $this->applyEdits($content, $editParams);
 
         // Store original image for lossless re-cropping
         $originalFilename = $this->generateFilename($mimeType);
@@ -298,6 +298,47 @@ class RcsAssetService
 
         return [
             'content' => $content,
+            'mime_type' => $mimeType,
+        ];
+    }
+
+    private function resizeOnly(string $imageContent): array
+    {
+        $image = $this->imageManager->read($imageContent);
+
+        $targetWidth = 800;
+        if ($image->width() > $targetWidth) {
+            $image->scale(width: $targetWidth);
+        }
+
+        $mimeType = 'image/jpeg';
+        $quality = 85;
+
+        do {
+            $encoded = $image->toJpeg($quality);
+            $content = (string) $encoded;
+            if (strlen($content) <= self::MAX_FILE_SIZE) break;
+            $quality -= 5;
+            if ($quality < 30) {
+                $scale = sqrt(self::MAX_FILE_SIZE / strlen($content));
+                $image->scale(width: (int) ($image->width() * $scale));
+                $encoded = $image->toJpeg(60);
+                $content = (string) $encoded;
+                break;
+            }
+        } while ($quality >= 30);
+
+        if (strlen($content) > self::MAX_FILE_SIZE) {
+            throw new \RuntimeException('Unable to compress image to meet size requirements.');
+        }
+
+        $finalImage = $this->imageManager->read($content);
+
+        return [
+            'content' => $content,
+            'width' => $finalImage->width(),
+            'height' => $finalImage->height(),
+            'size' => strlen($content),
             'mime_type' => $mimeType,
         ];
     }

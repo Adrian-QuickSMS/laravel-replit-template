@@ -5,6 +5,15 @@
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
 <style>
+#successModal,
+#errorModal {
+    z-index: 1060 !important;
+}
+#successModal + .modal-backdrop,
+#errorModal + .modal-backdrop,
+.modal-backdrop {
+    z-index: 1055 !important;
+}
 .form-wizard {
     border: 0;
 }
@@ -331,7 +340,7 @@ button.btn-save-draft:hover {
     border: none;
 }
 .success-email-box code {
-    color: #886CC0;
+    color: #2c2c2c;
 }
 </style>
 @endpush
@@ -388,15 +397,11 @@ button.btn-save-draft:hover {
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="subAccount">
-                                                    <option value="">Select sub-account...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing</option>
-                                                    <option value="operations">Operations</option>
-                                                    <option value="support">Support</option>
+                                                <label class="form-label">Account <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="clmAccount">
+                                                    <option value="">Loading accounts...</option>
                                                 </select>
-                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                                <div class="invalid-feedback" id="clmSubaccountError">Please select an account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -417,14 +422,14 @@ button.btn-save-draft:hover {
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails <span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="newSenderEmail" placeholder="e.g., user@domain.com or *@domain.com">
-                                                <button class="btn btn-outline-primary" type="button" id="btnAddSender">
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <textarea class="form-control" id="newSenderEmail" rows="2" placeholder="Enter one or more emails, separated by commas, spaces, or new lines&#10;e.g., user@nhs.uk, admin@trust.nhs.uk, *@domain.com"></textarea>
+                                                <button class="btn btn-outline-primary flex-shrink-0" type="button" id="btnAddSender" style="height: fit-content;">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback" id="emailError">At least one sender email address is required.</div>
-                                            <small class="text-muted">Restrict who can trigger this mapping. Supports wildcards like *@domain.com</small>
+                                            <div class="text-danger small mt-1" id="emailError" style="display: none;"></div>
+                                            <small class="text-muted">Supports multiple emails separated by commas, spaces, or new lines. Wildcards like *@domain.com are supported.</small>
                                         </div>
                                         
                                         <div id="wildcardWarning" class="alert alert-pastel-warning mb-3" style="display: none;">
@@ -506,33 +511,25 @@ button.btn-save-draft:hover {
                                                 </div>
                                             </div>
                                             
-                                            {{-- Right: Opt-out Lists Compact Card --}}
+                                            {{-- Right: Opt-out Management --}}
                                             <div class="col-lg-4 mb-3">
                                                 <div class="card h-100">
-                                                    <div class="card-header py-2">
-                                                        <h6 class="mb-0 small"><i class="fas fa-ban me-1"></i> Opt-out Lists</h6>
-                                                    </div>
-                                                    <div class="card-body p-2" style="font-size: 12px;">
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input" type="checkbox" id="optOutNone" checked>
-                                                            <label class="form-check-label" for="optOutNone">No opt-out (include all)</label>
+                                                    <div class="card-body p-4">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <h6 class="mb-0">Opt-out Management</h6>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" id="enableMappingOptout">
+                                                                <label class="form-check-label" for="enableMappingOptout">Enable</label>
+                                                            </div>
                                                         </div>
-                                                        <hr class="my-1">
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
-                                                            <label class="form-check-label" for="optOut1">Global Opt-out <span class="badge badge-pastel-danger">2,345</span></label>
-                                                        </div>
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="2" id="optOut2">
-                                                            <label class="form-check-label" for="optOut2">Marketing <span class="badge badge-pastel-warning">1,234</span></label>
-                                                        </div>
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="3" id="optOut3">
-                                                            <label class="form-check-label" for="optOut3">NHS DNC <span class="badge badge-pastel-info">567</span></label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="4" id="optOut4">
-                                                            <label class="form-check-label" for="optOut4">Temporary <span class="badge badge-pastel-secondary">89</span></label>
+                                                        <div class="d-none" id="mappingOptoutSection">
+                                                            <div class="mb-3 p-3 border rounded">
+                                                                <label class="form-label fw-medium mb-1">Screening Lists</label>
+                                                                <small class="text-muted d-block mb-2">Recipients already on any selected list will be excluded before sending. Screening activates automatically when lists are selected.</small>
+                                                                <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;" id="optOutCheckboxList">
+                                                                    <div class="text-muted small text-center py-2">Loading opt-out lists...</div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -560,42 +557,27 @@ button.btn-save-draft:hover {
                                         
                                         {{-- SenderID Section --}}
                                         <div class="mb-4">
-                                            <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                            <label class="form-label">SMS SenderID <span class="text-danger">*</span></label>
                                             <select class="form-select" id="senderId">
-                                                <option value="">Select SenderID...</option>
-                                                <option value="QuickSMS">QuickSMS</option>
-                                                <option value="NHSTrust">NHSTrust</option>
-                                                <option value="Pharmacy">Pharmacy</option>
-                                                <option value="Clinic">Clinic</option>
-                                                <option value="Appointments">Appointments</option>
-                                                <option value="Reminders">Reminders</option>
+                                                <option value="">Loading SenderIDs...</option>
                                             </select>
-                                            <small class="text-muted">The approved SenderID that will appear on SMS messages.</small>
+                                            <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                             <div class="invalid-feedback">Please select a SenderID.</div>
                                         </div>
                                         
-                                        {{-- Dynamic SenderID Toggle (visible if account flag allows) --}}
-                                        <div class="mb-4" id="dynamicSenderIdSection">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="subjectAsSenderId">
-                                                <label class="form-check-label" for="subjectAsSenderId">
-                                                    <strong>Use Email Subject as SenderID</strong>
-                                                </label>
-                                            </div>
-                                            <small class="text-muted">Override the selected SenderID with content from the email subject line. Subject must be 3-11 alphanumeric characters.</small>
-                                            
-                                            <div class="alert alert-pastel-warning small mt-2 d-none" id="dynamicSenderIdWarning">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                <strong>Warning:</strong> When enabled, the SenderID dropdown above becomes a fallback. Invalid subjects will use the fallback SenderID.
-                                            </div>
+                                        {{-- RCS Agent Section --}}
+                                        <div class="mb-4">
+                                            <label class="form-label">RCS Agent <span class="text-muted fw-normal">(Optional)</span></label>
+                                            <select class="form-select" id="clmRcsAgent">
+                                                <option value="">None – SMS only</option>
+                                            </select>
+                                            <small class="text-muted">Select an approved RCS agent to send via Basic RCS with SMS fallback.</small>
                                         </div>
-                                        
-                                        <hr class="my-3">
                                         
                                         {{-- Multiple SMS Toggle --}}
                                         <div class="mb-4">
                                             <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="multipleSms" checked>
+                                                <input class="form-check-input" type="checkbox" id="multipleSms">
                                                 <label class="form-check-label" for="multipleSms">
                                                     <strong>Enable Multiple SMS</strong>
                                                 </label>
@@ -621,31 +603,6 @@ button.btn-save-draft:hover {
                                             </div>
                                         </div>
                                         
-                                        <hr class="my-3">
-                                        
-                                        {{-- Content Filter Textarea --}}
-                                        <div class="mb-3">
-                                            <label class="form-label">
-                                                <strong>Filter Content</strong> <span class="badge badge-pastel-secondary">Optional</span>
-                                            </label>
-                                            <textarea class="form-control" id="contentFilter" rows="4" placeholder="Enter regex patterns to remove from email content (one per line)&#10;&#10;Example:&#10;^--[\s\S]*$&#10;Sent from my iPhone&#10;\[image:.*?\]"></textarea>
-                                            <small class="text-muted">
-                                                Enter regex patterns (one per line) to filter out signatures, footers, or unwanted content from emails before converting to SMS.
-                                            </small>
-                                            
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTestFilter">
-                                                    <i class="fas fa-vial me-1"></i> Test Patterns
-                                                </button>
-                                                <button type="button" class="btn btn-link btn-sm" id="btnAddCommonPatterns">
-                                                    <i class="fas fa-plus me-1"></i> Add Common Patterns
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="alert alert-pastel-primary small mt-2 d-none" id="filterTestResult">
-                                                <strong>Test Result:</strong> <span id="filterTestOutput"></span>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -657,8 +614,8 @@ button.btn-save-draft:hover {
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
                                         
-                                        <div class="alert alert-pastel-warning small py-2 mb-3">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <div class="alert alert-pastel-primary small py-2 mb-3">
+                                            <i class="fas fa-info-circle me-1"></i>
                                             <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
                                         </div>
                                         
@@ -678,7 +635,7 @@ button.btn-save-draft:hover {
                                                             <td id="summaryDescription">-</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="text-muted">Sub-Account</td>
+                                                            <td class="text-muted">Account</td>
                                                             <td id="summarySubAccount">-</td>
                                                         </tr>
                                                         <tr>
@@ -708,16 +665,16 @@ button.btn-save-draft:hover {
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td class="text-muted">SenderID</td>
+                                                            <td class="text-muted">SMS SenderID</td>
                                                             <td id="summarySenderId">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">RCS Agent</td>
+                                                            <td id="summaryRcsAgent">None – SMS only</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Settings</td>
                                                             <td id="summaryMessageSettings">-</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-muted">Content Filters</td>
-                                                            <td id="summaryContentFilter">-</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -750,193 +707,178 @@ button.btn-save-draft:hover {
 </div>
 
 {{-- Contact Book Selection Modal --}}
-<div class="modal fade" id="contactBookModal" tabindex="-1" aria-labelledby="contactBookModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header py-2 bg-primary text-white">
-                <h5 class="modal-title" id="contactBookModalLabel">
-                    <i class="fas fa-address-book me-2"></i>Select from Contact Book
+<div class="modal fade" id="contactBookModal" tabindex="-1" aria-labelledby="contactBookModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" id="contactBookModalLabel" style="font-weight: 600; color: #2c2c2c;">
+                    <i class="fas fa-address-book me-2" style="color: #886CC0;"></i>Select from Contact Book
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3">
-                {{-- Modal Selection Summary --}}
-                <div class="bg-light rounded p-2 mb-3" style="font-size: 13px;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span><strong>Current Selection:</strong> <span id="modalSelectionSummary">None</span></span>
-                        <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnModalClearAll">
-                            <i class="fas fa-times me-1"></i> Clear All
-                        </button>
-                    </div>
-                </div>
-                
-                {{-- Tabs --}}
-                <ul class="nav nav-tabs mb-3" id="modalRecipientTabs">
-                    <li class="nav-item">
-                        <button class="nav-link active py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalContactsTab">
-                            <i class="fas fa-user me-1"></i> Contacts <span class="badge bg-secondary ms-1" id="modalContactsBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalListsTab">
-                            <i class="fas fa-list me-1"></i> Lists <span class="badge bg-secondary ms-1" id="modalListsBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab">
-                            <i class="fas fa-sync-alt me-1"></i> Dynamic <span class="badge bg-secondary ms-1" id="modalDynamicBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalTagsTab">
-                            <i class="fas fa-tags me-1"></i> Tags <span class="badge bg-secondary ms-1" id="modalTagsBadge">0</span>
-                        </button>
-                    </li>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-4 pt-3 mb-0" style="border-bottom: none;">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modalContactsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Contacts</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Dynamic Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalTagsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Tags</button></li>
                 </ul>
-                
-                <div class="tab-content">
-                    {{-- Contacts Tab --}}
-                    <div class="tab-pane show active" id="modalContactsTab">
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags...">
+                <div class="tab-content px-4 pt-3">
+                    <div class="tab-pane fade show active" id="modalContactsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags, custom fields..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select class="form-select form-select-sm modal-cb-sort">
+                                    <select class="form-select modal-cb-sort" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
                                         <option value="recent">Most recently contacted</option>
                                         <option value="added">Most recently added</option>
                                         <option value="name_asc">Name A-Z</option>
                                         <option value="name_desc">Name Z-A</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="modalBtnToggleFilters">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="modalBtnToggleFilters" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;"><i class="fas fa-filter"></i></button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="d-none mb-2 p-2 bg-light rounded" id="modalContactFilters" style="font-size: 12px;">
+                        <div class="d-none mb-3 p-3 rounded" id="modalContactFilters" style="font-size: 13px; background: #f8f7fc;">
                             <div class="row">
-                                <div class="col-md-4">
-                                    <label class="form-label mb-1">Tags</label>
-                                    <select class="form-select form-select-sm modal-filter-tags">
-                                        <option value="">All tags</option>
-                                        <option value="vip">VIP</option>
-                                        <option value="asthma">Asthma</option>
-                                        <option value="diabetes">Diabetes</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label mb-1">Has Mobile</label>
-                                    <select class="form-select form-select-sm modal-filter-mobile">
-                                        <option value="">Any</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-link btn-sm" id="modalBtnClearFilters">Clear filters</button>
-                                </div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Tags</label><select class="form-select form-select-sm modal-filter-tags" style="border-radius: 0.625rem;"><option value="">All tags</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label><select class="form-select form-select-sm modal-filter-mobile" style="border-radius: 0.625rem;"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label><select class="form-select form-select-sm" style="border-radius: 0.625rem;"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
+                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" id="modalBtnClearFilters" style="color: #886CC0;">Clear filters</button></div>
                             </div>
                         </div>
-                        
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr>
-                                        <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Tags</th>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mobile</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tags</th>
                                     </tr>
                                 </thead>
                                 <tbody id="modalContactsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge badge-pastel-warning">Diabetes</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td>David Miller</td><td>+44 7700***901</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge badge-pastel-warning">Diabetes</span> <span class="badge badge-pastel-danger">Hypertension</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Static Lists Tab --}}
-                    <div class="tab-pane" id="modalListsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-list-search" placeholder="Search lists...">
+                    <div class="tab-pane fade" id="modalListsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-list-search" placeholder="Search lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                        <option value="updated">Recently updated</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalListsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="1" data-name="VIP Patients" data-count="1234"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="2" data-name="Newsletter Subscribers" data-count="5678"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="3" data-name="Flu Campaign 2025" data-count="3456"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="4" data-name="Repeat Prescriptions" data-count="2100"></td><td>Repeat Prescriptions</td><td>2,100</td><td>19-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="5" data-name="NHS Reminders" data-count="8900"></td><td>NHS Reminders</td><td>8,900</td><td>18-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Dynamic Lists Tab --}}
-                    <div class="tab-pane" id="modalDynamicListsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists...">
+                    <div class="tab-pane fade" id="modalDynamicListsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Rules</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Evaluated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalDynamicListsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="1" data-name="Over 65s" data-count="2345"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="2" data-name="Local Postcodes" data-count="1890"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="3" data-name="Active Last 30 Days" data-count="4500"></td><td>Active Last 30 Days</td><td>Last contact < 30 days</td><td>4,500</td><td>22-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Tags Tab --}}
-                    <div class="tab-pane" id="modalTagsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-tag-search" placeholder="Search tags...">
+                    <div class="tab-pane fade" id="modalTagsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-tag-search" placeholder="Search tags..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tag</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalTagsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge badge-pastel-info">VIP</span></td><td>456</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge badge-pastel-success">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge badge-pastel-warning">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge badge-pastel-danger">Hypertension</span></td><td>567</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge badge-pastel-primary">Chronic Care</span></td><td>1,023</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
+                <div class="px-4 py-2 mt-2" style="font-size: 13px; border-top: 1px solid #f0ebf8; background: #faf9fd;">
+                    <strong style="color: #6b5b95;">Selected:</strong> <span id="modalSelectionSummary" style="color: #555;">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
+                </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btnApplyContactSelection">
-                    <i class="fas fa-check me-1"></i> Apply Selection
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnApplyContactSelection" style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;">
+                    <i class="fas fa-plus me-1"></i> Add to Campaign
                 </button>
             </div>
         </div>
@@ -959,7 +901,7 @@ button.btn-save-draft:hover {
                 <p class="mb-3">Your Email-to-SMS mapping has been created successfully. Send emails to the address below to trigger SMS messages:</p>
                 <div class="success-email-box rounded p-3 mb-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <code class="fs-5" id="successEmailAddress">-</code>
+                        <span class="fs-5 fw-semibold" id="successEmailAddress" style="color: #2c2c2c; font-family: monospace;">-</span>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCopySuccessEmail" title="Copy to clipboard">
                             <i class="fas fa-copy"></i>
                         </button>
@@ -967,7 +909,6 @@ button.btn-save-draft:hover {
                 </div>
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1"></i> 
-                    <strong>SenderID:</strong> Extracted from email subject<br>
                     <strong>SMS Content:</strong> Extracted from email body
                 </div>
             </div>
@@ -976,6 +917,28 @@ button.btn-save-draft:hover {
                 <a href="{{ route('management.email-to-sms') }}?tab=contact-lists" class="btn btn-primary">
                     <i class="fas fa-arrow-left me-1"></i> Back to Contact List Library
                 </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-dark" id="errorModalLabel">
+                    <i class="fas fa-exclamation-circle me-2 text-danger"></i> Error
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-0" id="errorModalMessage">An error occurred. Please try again.</p>
+            </div>
+            <div class="modal-footer justify-content-center py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1003,7 +966,7 @@ $(document).ready(function() {
     var wizardData = {
         name: '',
         description: '',
-        subAccount: '',
+        subAccounts: [],
         allowedSenders: [],
         generatedEmail: '',
         selectedContacts: [],
@@ -1012,17 +975,45 @@ $(document).ready(function() {
         selectedTags: [],
         optOutLists: ['NO'],
         senderId: '',
-        subjectAsSenderId: false,
-        multipleSms: true,
+        multipleSms: false,
         deliveryReports: true,
-        deliveryReportEmail: '',
-        contentFilterPatterns: ''
+        deliveryReportEmail: ''
     };
     
-    var accountFlags = {
-        dynamic_senderid_allowed: true
-    };
+    function loadClmAccounts() {
+        return EmailToSmsService.getSubaccounts().then(function(response) {
+            var $select = $('#clmAccount');
+            $select.empty().append('<option value="">Select account...</option>');
+            if (response.success && response.data) {
+                response.data.forEach(function(account) {
+                    $select.append('<option value="' + account.id + '" data-label="' + (account.name || '') + '">' + account.name + '</option>');
+                });
+            }
+            if (response.data && response.data.length === 1) {
+                $select.val(response.data[0].id);
+                wizardData.subAccounts = [{ value: response.data[0].id, label: response.data[0].name }];
+                updateNextButtonState();
+            }
+        }).catch(function() {
+            $('#clmAccount').empty().append('<option value="">No accounts available</option>');
+        });
+    }
     
+    var accountsLoaded = loadClmAccounts();
+
+    $('#clmAccount').on('change', function() {
+        var val = $(this).val();
+        var label = $(this).find('option:selected').text();
+        if (val) {
+            wizardData.subAccounts = [{ value: val, label: label }];
+            $(this).removeClass('is-invalid');
+            $('#clmSubaccountError').hide();
+        } else {
+            wizardData.subAccounts = [];
+        }
+        updateNextButtonState();
+    });
+
     function loadEditData() {
         if (!isEditMode || !editId) return;
         
@@ -1032,19 +1023,26 @@ $(document).ready(function() {
                 
                 wizardData.name = data.name || '';
                 wizardData.description = data.description || '';
-                wizardData.subAccount = data.subaccountId || '';
+                var editAccountId = null;
+                if (data.subaccountIds && data.subaccountIds.length > 0) {
+                    editAccountId = data.subaccountIds[0];
+                } else if (data.subaccountId) {
+                    editAccountId = data.subaccountId;
+                }
+                if (editAccountId) {
+                    $('#clmAccount').val(editAccountId);
+                    var label = $('#clmAccount option:selected').text();
+                    wizardData.subAccounts = [{ value: editAccountId, label: label }];
+                }
                 wizardData.generatedEmail = (data.originatingEmails && data.originatingEmails[0]) || '';
                 wizardData.allowedSenders = data.allowedSenderEmails || [];
                 wizardData.senderId = data.senderIdTemplateId || '';
-                wizardData.subjectAsSenderId = data.subjectOverridesSenderId || false;
                 wizardData.multipleSms = data.multipleSmsEnabled !== false;
                 wizardData.deliveryReports = data.deliveryReportsEnabled !== false;
                 wizardData.deliveryReportEmail = data.deliveryReportsEmail || '';
-                wizardData.contentFilterPatterns = data.contentFilter || '';
                 
                 $('#mappingName').val(wizardData.name);
                 $('#mappingDescription').val(wizardData.description);
-                $('#subAccount').val(wizardData.subAccount).trigger('change');
                 
                 renderSenderEmails();
                 
@@ -1053,11 +1051,9 @@ $(document).ready(function() {
                     $('#generatedEmailSection').show();
                 }
                 
-                $('#subjectAsSenderId').prop('checked', wizardData.subjectAsSenderId);
                 $('#multipleSms').prop('checked', wizardData.multipleSms);
                 $('#deliveryReports').prop('checked', wizardData.deliveryReports);
                 $('#deliveryReportEmail').val(wizardData.deliveryReportEmail);
-                $('#contentFilterPatterns').val(wizardData.contentFilterPatterns);
                 
                 if (data.contactBookListNames && data.contactBookListNames.length > 0) {
                     wizardData.selectedLists = data.contactBookListNames.map(function(name, idx) {
@@ -1067,7 +1063,7 @@ $(document).ready(function() {
                 
                 if (data.optOutMode === 'NONE' || !data.optOutListNames || data.optOutListNames.length === 0) {
                     wizardData.optOutLists = ['NO'];
-                    $('#optOutNone').prop('checked', true);
+                    $('#enableMappingOptout').prop('checked', false);
                 } else {
                     wizardData.optOutLists = data.optOutListNames.map(function(name, idx) {
                         return { id: data.optOutListIds ? data.optOutListIds[idx] : 'opt-' + idx, name: name };
@@ -1084,7 +1080,9 @@ $(document).ready(function() {
     }
     
     if (isEditMode) {
-        loadEditData();
+        accountsLoaded.then(function() {
+            loadEditData();
+        });
     }
     
     function loadContactBookData(subaccountId) {
@@ -1119,13 +1117,30 @@ $(document).ready(function() {
     function loadAccountFlags() {
         EmailToSmsService.getAccountFlags().then(function(response) {
             if (response.success) {
-                accountFlags = response.data;
-                updateDynamicSenderIdVisibility();
             }
         }).catch(function(err) {
             console.error('Error loading account flags:', err);
         });
     }
+    
+    function loadClmRcsAgents() {
+        $.ajax({
+            url: '/api/rcs-agents/approved',
+            method: 'GET',
+            dataType: 'json'
+        }).then(function(response) {
+            var $select = $('#clmRcsAgent');
+            $select.empty().append('<option value="">None – SMS only</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(agent) {
+                    $select.append('<option value="' + (agent.uuid || agent.id) + '">' + agent.name + '</option>');
+                });
+            }
+        }).catch(function() {
+            $('#clmRcsAgent').empty().append('<option value="">None – SMS only</option>');
+        });
+    }
+    loadClmRcsAgents();
     
     function renderSenderIdDropdown() {
         var html = '<option value="">Select SenderID...</option>';
@@ -1133,16 +1148,6 @@ $(document).ready(function() {
             html += '<option value="' + tpl.id + '">' + tpl.senderId + '</option>';
         });
         $('#senderId').html(html);
-    }
-    
-    function updateDynamicSenderIdVisibility() {
-        if (accountFlags.dynamic_senderid_allowed) {
-            $('#dynamicSenderIdGroup').show();
-        } else {
-            $('#dynamicSenderIdGroup').hide();
-            $('#subjectAsSenderId').prop('checked', false);
-            wizardData.subjectAsSenderId = false;
-        }
     }
     
     function renderContactsTab() {
@@ -1203,11 +1208,21 @@ $(document).ready(function() {
     }
     
     function renderOptOutLists() {
-        var html = '<option value="NO">Do not apply opt-out lists</option>';
-        contactBookData.optOutLists.forEach(function(list) {
-            html += '<option value="' + list.id + '">' + list.name + ' (' + list.recipientCount.toLocaleString() + ')</option>';
-        });
-        $('#optOutList').html(html);
+        var html = '';
+        if (!contactBookData.optOutLists || contactBookData.optOutLists.length === 0) {
+            html = '<div class="text-muted small text-center py-2">No opt-out lists available</div>';
+        } else {
+            contactBookData.optOutLists.forEach(function(list) {
+                var isChecked = !wizardData.optOutLists.includes('NO') && wizardData.optOutLists.some(function(ol) {
+                    return (typeof ol === 'object' ? ol.id : ol) == list.id;
+                });
+                html += '<div class="form-check">' +
+                    '<input class="form-check-input opt-out-item" type="checkbox" value="' + list.id + '" id="optOut' + list.id + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label" for="optOut' + list.id + '">' + list.name + ' <span class="text-muted">(' + (list.recipientCount || 0).toLocaleString() + ')</span></label>' +
+                    '</div>';
+            });
+        }
+        $('#optOutCheckboxList').html(html);
     }
     
     var currentStep = 0;
@@ -1248,7 +1263,8 @@ $(document).ready(function() {
     function updateSummary() {
         $('#summaryName').text(wizardData.name || '-');
         $('#summaryDescription').text(wizardData.description || 'No description');
-        $('#summarySubAccount').text(wizardData.subAccount ? $('#subAccount option:selected').text() : '-');
+        var accountText = $('#clmAccount option:selected').text();
+        $('#summarySubAccount').text($('#clmAccount').val() ? accountText : '-');
         $('#summarySenders').text(wizardData.allowedSenders.length > 0 ? wizardData.allowedSenders.length + ' whitelisted' : 'Any sender allowed');
         
         var recipientParts = [];
@@ -1261,6 +1277,8 @@ $(document).ready(function() {
         var stats = calculateRecipientStats();
         $('#summaryRecipients').text(stats.uniqueAfterDedup > 0 ? stats.uniqueAfterDedup.toLocaleString() + ' recipients' : '-');
         $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
+        var clmRcsText = $('#clmRcsAgent option:selected').text();
+        $('#summaryRcsAgent').text($('#clmRcsAgent').val() ? clmRcsText : 'None – SMS only');
         
         if (wizardData.optOutLists.includes('NO')) {
             $('#summaryOptOut').html('<span class="text-muted">None applied</span>');
@@ -1284,11 +1302,7 @@ $(document).ready(function() {
             }
             settings.push(reportStr);
         }
-        if (wizardData.subjectAsSenderId) settings.push('Subject as SenderID');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'Default');
-        
-        var filterCount = wizardData.contentFilterPatterns.trim() ? wizardData.contentFilterPatterns.split('\n').filter(p => p.trim()).length : 0;
-        $('#summaryContentFilter').text(filterCount > 0 ? filterCount + ' pattern(s) configured' : 'None');
     }
     
     function calculateRecipientStats() {
@@ -1327,6 +1341,18 @@ $(document).ready(function() {
         };
     }
     
+    function toggleMappingOptout() {
+        var enabled = document.getElementById('enableMappingOptout').checked;
+        var section = document.getElementById('mappingOptoutSection');
+        if (enabled) {
+            section.classList.remove('d-none');
+        } else {
+            section.classList.add('d-none');
+            $('.opt-out-item').prop('checked', false);
+            wizardData.optOutLists = ['NO'];
+        }
+    }
+
     function updateRecipientSummary() {
         var stats = calculateRecipientStats();
         
@@ -1395,11 +1421,13 @@ $(document).ready(function() {
                 } else {
                     $('#mappingName').removeClass('is-invalid');
                 }
-                if (!wizardData.subAccount) {
-                    $('#subAccount').addClass('is-invalid');
+                if (!$('#clmAccount').val()) {
+                    $('#clmAccount').addClass('is-invalid');
+                    $('#clmSubaccountError').show();
                     isValid = false;
                 } else {
-                    $('#subAccount').removeClass('is-invalid');
+                    $('#clmAccount').removeClass('is-invalid');
+                    $('#clmSubaccountError').hide();
                 }
                 break;
             case 1:
@@ -1490,7 +1518,7 @@ $(document).ready(function() {
         
         switch (currentStep) {
             case 0:
-                canProceed = wizardData.name.trim() !== '' && wizardData.subAccount !== '';
+                canProceed = wizardData.name.trim() !== '' && !!$('#clmAccount').val();
                 break;
             case 1:
                 canProceed = true;
@@ -1527,17 +1555,13 @@ $(document).ready(function() {
     function showSuccessToast(message) {
         if (typeof toastr !== 'undefined') {
             toastr.success(message);
-        } else {
-            alert(message);
         }
     }
     
     function showErrorToast(message) {
-        if (typeof toastr !== 'undefined') {
-            toastr.error(message);
-        } else {
-            alert(message);
-        }
+        $('#errorModalMessage').text(message || 'An error occurred. Please try again.');
+        var modal = new bootstrap.Modal($('#errorModal')[0]);
+        modal.show();
     }
     
     loadAccountFlags();
@@ -1560,25 +1584,6 @@ $(document).ready(function() {
         $('#descCharCount').text($(this).val().length);
     });
     
-    $('#subAccount').on('change', function() {
-        wizardData.subAccount = $(this).val();
-        $(this).removeClass('is-invalid');
-        
-        wizardData.selectedContacts = [];
-        wizardData.selectedLists = [];
-        wizardData.selectedDynamicLists = [];
-        wizardData.selectedTags = [];
-        wizardData.optOutLists = ['NO'];
-        wizardData.senderId = '';
-        
-        if (wizardData.subAccount) {
-            loadContactBookData(wizardData.subAccount);
-            loadSenderIdTemplates(wizardData.subAccount);
-        }
-        
-        updateRecipientSummary();
-        updateNextButtonState();
-    });
     
     $('#senderId').on('change', function() {
         wizardData.senderId = $(this).val();
@@ -1612,67 +1617,6 @@ $(document).ready(function() {
         }
     });
     
-    $('#contentFilter').on('input', function() {
-        wizardData.contentFilterPatterns = $(this).val();
-    });
-    
-    $('#subjectAsSenderId').on('change', function() {
-        wizardData.subjectAsSenderId = $(this).is(':checked');
-        if (wizardData.subjectAsSenderId) {
-            $('#dynamicSenderIdWarning').removeClass('d-none');
-        } else {
-            $('#dynamicSenderIdWarning').addClass('d-none');
-        }
-    });
-    
-    $('#btnTestFilter').on('click', function() {
-        var patterns = wizardData.contentFilterPatterns.split('\n').filter(p => p.trim());
-        if (patterns.length === 0) {
-            $('#filterTestResult').removeClass('d-none');
-            $('#filterTestOutput').text('No patterns defined. Add patterns to test.');
-            return;
-        }
-        
-        var testContent = "Hello, this is a test message.\n\n--\nSent from my iPhone\nJohn Smith\nEmail: john@example.com";
-        var result = testContent;
-        
-        patterns.forEach(function(pattern) {
-            try {
-                var regex = new RegExp(pattern, 'gim');
-                result = result.replace(regex, '');
-            } catch (e) {
-                result = '[Invalid regex: ' + pattern + ']';
-            }
-        });
-        
-        $('#filterTestResult').removeClass('d-none');
-        $('#filterTestOutput').html('<br><strong>Before:</strong><pre class="mb-1 small bg-light p-2">' + testContent.replace(/</g, '&lt;') + '</pre><strong>After:</strong><pre class="mb-0 small bg-light p-2">' + result.trim().replace(/</g, '&lt;') + '</pre>');
-    });
-    
-    $('#btnAddCommonPatterns').on('click', function() {
-        var commonPatterns = [
-            '^--[\\s\\S]*$',
-            'Sent from my iPhone',
-            'Sent from my Android',
-            '\\[image:.*?\\]',
-            'Get Outlook for iOS',
-            'Confidentiality Notice:.*'
-        ];
-        
-        var current = $('#contentFilter').val();
-        var existing = current.split('\n').filter(p => p.trim());
-        var toAdd = commonPatterns.filter(p => !existing.includes(p));
-        
-        if (toAdd.length > 0) {
-            var newValue = current ? current + '\n' + toAdd.join('\n') : toAdd.join('\n');
-            $('#contentFilter').val(newValue);
-            wizardData.contentFilterPatterns = newValue;
-        }
-    });
-    
-    if (!accountFlags.dynamic_senderid_allowed) {
-        $('#dynamicSenderIdSection').hide();
-    }
     
     $('#searchContactList').on('input', function() {
         var term = $(this).val().toLowerCase();
@@ -1680,35 +1624,48 @@ $(document).ready(function() {
     });
     
     function addSenderEmail() {
-        var email = $('#newSenderEmail').val().trim().toLowerCase();
-        if (!email) return;
-        
-        $('#emailError').hide();
-        $('#newSenderEmail').removeClass('is-invalid');
-        
-        if (!isValidEmailOrWildcard(email)) {
-            $('#emailError').text('Invalid format. Use user@domain.com or *@domain.com').show();
-            $('#newSenderEmail').addClass('is-invalid');
-            return;
-        }
-        
-        if (wizardData.allowedSenders.indexOf(email) !== -1) {
-            $('#emailError').text('This email address is already added').show();
-            $('#newSenderEmail').addClass('is-invalid');
-            return;
-        }
-        
-        wizardData.allowedSenders.push(email);
+        var raw = $('#newSenderEmail').val().trim();
+        if (!raw) return;
+
+        var parts = raw.split(/[\s,;\n\r]+/).filter(function(s) { return s.length > 0; });
+        var invalid = [];
+        var added = 0;
+
+        parts.forEach(function(part) {
+            var cleaned = part.replace(/^[,;\s]+|[,;\s]+$/g, '').toLowerCase();
+            if (!cleaned) return;
+            if (isValidEmailOrWildcard(cleaned)) {
+                if (wizardData.allowedSenders.indexOf(cleaned) === -1) {
+                    wizardData.allowedSenders.push(cleaned);
+                    added++;
+                }
+            } else {
+                invalid.push(cleaned);
+            }
+        });
+
         $('#newSenderEmail').val('').removeClass('is-invalid');
-        $('#emailError').hide();
-        $('#emailRequiredError').hide();
-        renderSenderEmails();
-        saveDraft();
+
+        if (invalid.length > 0) {
+            $('#emailError').html(
+                '<strong>' + invalid.length + ' invalid email' + (invalid.length > 1 ? 's' : '') + ':</strong> ' +
+                invalid.slice(0, 5).map(function(e) { return '<code>' + escapeHtml(e) + '</code>'; }).join(', ') +
+                (invalid.length > 5 ? ' and ' + (invalid.length - 5) + ' more...' : '')
+            ).show();
+        } else {
+            $('#emailError').hide();
+        }
+
+        if (added > 0) {
+            $('#emailRequiredError').hide();
+            renderSenderEmails();
+            saveDraft();
+        }
     }
     
     $('#btnAddSender').on('click', addSenderEmail);
-    $('#newSenderEmail').on('keypress', function(e) {
-        if (e.which === 13) {
+    $('#newSenderEmail').on('keydown', function(e) {
+        if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
             addSenderEmail();
         }
@@ -1748,7 +1705,7 @@ $(document).ready(function() {
         var payload = {
             name: wizardData.name,
             description: wizardData.description,
-            subAccount: wizardData.subAccount,
+            subaccountId: $('#clmAccount').val() || null,
             emailAddress: wizardData.generatedEmail,
             allowedSenders: wizardData.allowedSenders,
             selectedContacts: wizardData.selectedContacts,
@@ -1757,11 +1714,9 @@ $(document).ready(function() {
             selectedTags: wizardData.selectedTags,
             optOutLists: wizardData.optOutLists,
             senderId: wizardData.senderId,
-            subjectAsSenderId: wizardData.subjectAsSenderId,
             multipleSms: wizardData.multipleSms,
             deliveryReports: wizardData.deliveryReports,
             deliveryReportEmail: wizardData.deliveryReportEmail,
-            contentFilterPatterns: wizardData.contentFilterPatterns,
             status: 'draft'
         };
         
@@ -1809,7 +1764,7 @@ $(document).ready(function() {
         return {
             name: wizardData.name,
             description: wizardData.description,
-            subaccountId: wizardData.subAccount,
+            subaccountId: $('#clmAccount').val() || null,
             emailAddress: wizardData.generatedEmail,
             allowedSenderEmails: wizardData.allowedSenders,
             contactBookListIds: listIds,
@@ -1818,12 +1773,11 @@ $(document).ready(function() {
             optOutListIds: optOutListIds,
             optOutListNames: optOutListNames,
             senderIdTemplateId: wizardData.senderId,
-            senderId: wizardData.senderId ? $('#senderId option:selected').text() : 'QuickSMS',
-            subjectOverridesSenderId: wizardData.subjectAsSenderId,
+            senderId: wizardData.senderId ? $('#senderId option:selected').text() : null,
+            rcsAgentId: $('#clmRcsAgent').val() || null,
             multipleSmsEnabled: wizardData.multipleSms,
             deliveryReportsEnabled: wizardData.deliveryReports,
             deliveryReportsEmail: wizardData.deliveryReportEmail,
-            contentFilter: wizardData.contentFilterPatterns,
             status: status
         };
     }
@@ -1854,35 +1808,33 @@ $(document).ready(function() {
             return;
         }
         
-        var newEntry = {
-            id: 'clm-' + Date.now(),
-            name: wizardData.name,
-            description: wizardData.description,
-            emailAddress: wizardData.generatedEmail,
-            subaccount: wizardData.subAccount,
-            subaccountName: $('#subAccount option:selected').text(),
-            contactList: wizardData.selectedLists.map(function(l) { return l.name; }).join(', ') || 
-                         wizardData.selectedDynamicLists.map(function(l) { return l.name; }).join(', ') ||
-                         wizardData.selectedContacts.length + ' contacts',
-            recipientCount: (wizardData.selectedLists.reduce(function(sum, l) { return sum + (l.count || 0); }, 0) +
-                            wizardData.selectedDynamicLists.reduce(function(sum, l) { return sum + (l.count || 0); }, 0) +
-                            wizardData.selectedContacts.length),
-            allowedSenders: wizardData.allowedSenders,
-            senderId: $('#senderId option:selected').text() || 'QuickSMS',
-            status: 'active',
-            created: new Date().toISOString().split('T')[0],
-            lastUsed: '-',
-            type: 'contactlist'
-        };
-        
-        var pendingEntries = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
-        pendingEntries.push(newEntry);
-        localStorage.setItem('quicksms_pending_contactlist', JSON.stringify(pendingEntries));
-        
-        $('#successEmailAddress').text(wizardData.generatedEmail);
-        var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-        successModal.show();
-        btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
+        EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
+            if (response.success) {
+                var generatedEmail = '-';
+                if (response.data && response.data.originatingEmails && response.data.originatingEmails.length > 0) {
+                    generatedEmail = response.data.originatingEmails[0];
+                }
+                $('#successEmailAddress').text(generatedEmail);
+                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            } else {
+                var errorMsg = response.error || 'Failed to create mapping';
+                if (response.errors) {
+                    var fieldErrors = Object.values(response.errors).flat();
+                    if (fieldErrors.length > 0) errorMsg = fieldErrors[0];
+                }
+                showErrorToast(errorMsg);
+                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
+            }
+        }).catch(function(err) {
+            console.error('Create error:', err);
+            var msg = 'An error occurred. Please try again.';
+            if (err && err.responseJSON && err.responseJSON.error) {
+                msg = err.responseJSON.error;
+            }
+            showErrorToast(msg);
+            btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
+        });
     });
     
     $('#btnCopySuccessEmail').on('click', function() {
@@ -2013,6 +1965,105 @@ $(document).ready(function() {
         });
     });
     
+    var avatarColors = ['#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd', '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'];
+
+    function populateModalContacts() {
+        var html = '';
+        if (!contactBookData || !contactBookData.contacts || contactBookData.contacts.length === 0) {
+            html = '<tr><td colspan="4" class="text-center text-muted py-4">No contacts found</td></tr>';
+        } else {
+            contactBookData.contacts.forEach(function(contact, idx) {
+                var isChecked = wizardData.selectedContacts.some(function(c) { return c.id == contact.id; });
+                var name = contact.name || ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || 'Unknown';
+                var initials = name.split(' ').map(function(w) { return w.charAt(0).toUpperCase(); }).join('').substring(0, 2);
+                var color = avatarColors[idx % avatarColors.length];
+                var mobile = contact.mobile || '';
+                var bgStyle = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+                html += '<tr style="' + bgStyle + ' border-bottom: 1px solid #f5f3fa;">' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="' + contact.id + '" data-name="' + name.replace(/"/g, '&quot;') + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: ' + color + '20; color: ' + color + '; flex-shrink: 0;">' + initials + '</div><span style="font-weight: 500; color: #2c2c2c;">' + name + '</span></div></td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + mobile + '</td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"></td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalContactsTable').html(html);
+    }
+
+    function populateModalLists() {
+        var html = '';
+        if (!contactBookData || !contactBookData.lists || contactBookData.lists.length === 0) {
+            html = '<tr><td colspan="4" class="text-center text-muted py-4">No contact lists found</td></tr>';
+        } else {
+            contactBookData.lists.forEach(function(list) {
+                var isChecked = wizardData.selectedLists.some(function(l) { return l.id == list.id; });
+                var count = (list.recipientCount || 0).toLocaleString();
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="' + list.id + '" data-name="' + (list.name || '').replace(/"/g, '&quot;') + '" data-count="' + (list.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td>' + (list.name || '') + '</td>' +
+                    '<td>' + count + '</td>' +
+                    '<td>' + (list.updated_at || '') + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalListsTable').html(html);
+    }
+
+    function populateModalDynamicLists() {
+        var html = '';
+        if (!contactBookData || !contactBookData.dynamicLists || contactBookData.dynamicLists.length === 0) {
+            html = '<tr><td colspan="5" class="text-center text-muted py-4">No dynamic lists found</td></tr>';
+        } else {
+            contactBookData.dynamicLists.forEach(function(list) {
+                var isChecked = wizardData.selectedDynamicLists.some(function(l) { return l.id == list.id; });
+                var count = (list.recipientCount || 0).toLocaleString();
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="' + list.id + '" data-name="' + (list.name || '').replace(/"/g, '&quot;') + '" data-count="' + (list.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td>' + (list.name || '') + '</td>' +
+                    '<td>' + (list.rules || '') + '</td>' +
+                    '<td>' + count + '</td>' +
+                    '<td>' + (list.updated_at || '') + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalDynamicListsTable').html(html);
+    }
+
+    function populateModalTags() {
+        var html = '';
+        if (!contactBookData || !contactBookData.tags || contactBookData.tags.length === 0) {
+            html = '<tr><td colspan="3" class="text-center text-muted py-4">No tags found</td></tr>';
+        } else {
+            var tagColors = ['badge-pastel-info', 'badge-pastel-success', 'badge-pastel-warning', 'badge-pastel-danger', 'badge-pastel-primary'];
+            contactBookData.tags.forEach(function(tag, idx) {
+                var isChecked = wizardData.selectedTags.some(function(t) { return t.id == tag.id; });
+                var count = (tag.recipientCount || 0).toLocaleString();
+                var badgeClass = tagColors[idx % tagColors.length];
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="' + tag.id + '" data-name="' + (tag.name || '').replace(/"/g, '&quot;') + '" data-count="' + (tag.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td><span class="badge ' + badgeClass + '">' + (tag.name || '') + '</span></td>' +
+                    '<td>' + count + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalTagsTable').html(html);
+    }
+
+    function populateContactBookModal() {
+        populateModalContacts();
+        populateModalLists();
+        populateModalDynamicLists();
+        populateModalTags();
+    }
+
+    $('#contactBookModal').on('show.bs.modal', function() {
+        populateContactBookModal();
+    });
+
+    $('#contactBookModal').on('shown.bs.modal', function() {
+        $('.modal-backdrop').last().css('z-index', 1055);
+    });
+
     // Contact Book Modal handlers
     $('#btnOpenContactBookModal').on('click', function() {
         updateModalSelectionBadges();
@@ -2042,13 +2093,7 @@ $(document).ready(function() {
         var dynamicCount = wizardData.selectedDynamicLists.length;
         var tagCount = wizardData.selectedTags.length;
         
-        $('#modalContactsBadge').text(contactCount).toggleClass('bg-primary', contactCount > 0).toggleClass('bg-secondary', contactCount === 0);
-        $('#modalListsBadge').text(listCount).toggleClass('bg-primary', listCount > 0).toggleClass('bg-secondary', listCount === 0);
-        $('#modalDynamicBadge').text(dynamicCount).toggleClass('bg-primary', dynamicCount > 0).toggleClass('bg-secondary', dynamicCount === 0);
-        $('#modalTagsBadge').text(tagCount).toggleClass('bg-primary', tagCount > 0).toggleClass('bg-secondary', tagCount === 0);
-        
-        var total = contactCount + listCount + dynamicCount + tagCount;
-        $('#modalSelectionSummary').text(total > 0 ? total + ' items selected' : 'None');
+        $('#modalSelectionSummary').text(contactCount + ' contacts, ' + listCount + ' lists, ' + dynamicCount + ' dynamic lists, ' + tagCount + ' tags');
     }
     
     function updateSelectionPreview() {
@@ -2093,21 +2138,14 @@ $(document).ready(function() {
         $('#btnOpenContactBookModal').html(btnText);
     }
     
-    // Opt-out list checkbox handlers
-    $('#optOutNone').on('change', function() {
-        if ($(this).is(':checked')) {
-            $('.opt-out-item').prop('checked', false);
-            wizardData.optOutLists = ['NO'];
-        }
+    // Opt-out management toggle and checkbox handlers
+    $('#enableMappingOptout').on('change', function() {
+        toggleMappingOptout();
     });
-    
+
     $('.opt-out-item').on('change', function() {
-        var anyChecked = $('.opt-out-item:checked').length > 0;
-        if (anyChecked) {
-            $('#optOutNone').prop('checked', false);
-            wizardData.optOutLists = $('.opt-out-item:checked').map(function() { return $(this).val(); }).get();
-        } else {
-            $('#optOutNone').prop('checked', true);
+        wizardData.optOutLists = $('.opt-out-item:checked').map(function() { return $(this).val(); }).get();
+        if (wizardData.optOutLists.length === 0) {
             wizardData.optOutLists = ['NO'];
         }
     });

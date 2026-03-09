@@ -124,6 +124,53 @@ class MccMncController extends Controller
         ]);
     }
 
+    public function parseFile(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls,txt',
+        ]);
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        try {
+            if (in_array($ext, ['csv', 'txt'])) {
+                $handle = fopen($file->getRealPath(), 'r');
+                $headers = fgetcsv($handle);
+                $rows = [];
+                while (($row = fgetcsv($handle)) !== false) {
+                    $rows[] = $row;
+                }
+                fclose($handle);
+            } else {
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+                $sheet = $reader->getActiveSheet();
+                $allRows = $sheet->toArray();
+                $headers = array_shift($allRows);
+                $rows = $allRows;
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to parse file: ' . $e->getMessage()]);
+        }
+
+        $importId = uniqid('mcc_import_');
+        $path = storage_path("app/imports/{$importId}." . $ext);
+        if (!is_dir(storage_path('app/imports'))) {
+            mkdir(storage_path('app/imports'), 0755, true);
+        }
+        $file->move(storage_path('app/imports'), "{$importId}.{$ext}");
+
+        session(["import_{$importId}" => ['path' => $path, 'ext' => $ext]]);
+
+        return response()->json([
+            'success' => true,
+            'headers' => $headers,
+            'preview' => array_slice($rows, 0, 10),
+            'totalRows' => count($rows),
+            'importId' => $importId,
+        ]);
+    }
+
     public function import(Request $request)
     {
         $request->validate([

@@ -32,7 +32,7 @@ class QuickSMSController extends Controller
         }
 
         return $senderIds->map(fn($s) => [
-            'id' => $s->id,
+            'id' => $s->uuid,
             'name' => $s->sender_id_value,
             'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
         ])->toArray();
@@ -362,7 +362,7 @@ class QuickSMSController extends Controller
                 ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
                 ->get()
                 ->map(fn($a) => [
-                    'id'          => $a->id,
+                    'id'          => $a->uuid,
                     'name'        => $a->name,
                     'logo'        => $a->logo_url ?: null,
                     'tagline'     => $a->description ?? '',
@@ -371,42 +371,20 @@ class QuickSMSController extends Controller
                 ->toArray()
             : [];
 
-        $accountId = session('customer_tenant_id');
-        $channelLabels = [
-            'sms' => 'SMS',
-            'rcs_basic' => 'Basic RCS + SMS',
-            'rcs_single' => 'Rich RCS + SMS',
-            'rcs_carousel' => 'Rich RCS + SMS',
-        ];
-        $statusLabels = [
-            'active' => 'Live',
-            'draft' => 'Draft',
-            'archived' => 'Archived',
-        ];
-
-        $templates = $accountId
-            ? \App\Models\MessageTemplate::where('account_id', $accountId)
-                ->orderByDesc('is_favourite')
-                ->orderBy('name')
-                ->get()
-                ->map(fn($t) => array_filter([
-                    'id' => $t->id,
-                    'name' => $t->name,
-                    'content' => $t->content ?? '',
-                    'trigger' => 'Portal',
-                    'channel' => $channelLabels[$t->type] ?? 'SMS',
-                    'status' => $statusLabels[$t->status] ?? $t->status,
-                    'version' => 1,
-                    'rcs_payload' => $t->rcs_content,
-                ], fn($v) => $v !== null))
-                ->toArray()
-            : [];
+        $templates = $this->getTemplatesForView();
 
         $lists = $this->getContactListsForView();
         $tags = $this->getTagsForView();
         $opt_out_lists = $this->getOptOutListsForView();
         $virtual_numbers = [];
         $optout_domains = [];
+
+        $editConfig = null;
+        if (request()->has('campaign_id')) {
+            $editConfig = session('campaign_config', null);
+        } else {
+            session()->forget('campaign_config');
+        }
 
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
@@ -419,12 +397,94 @@ class QuickSMSController extends Controller
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
             'account_pricing' => $this->getAccountPricingForView(),
+            'edit_campaign_config' => $editConfig,
         ]);
     }
 
     /**
      * Get real approved RCS agents for the current user, mapped for Blade views.
      */
+    private function getTemplatesForLibrary(): array
+    {
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+        $typeToContentType = [
+            'sms' => 'text',
+            'rcs_basic' => 'text',
+            'rcs_single' => 'rich_card',
+            'rcs_carousel' => 'carousel',
+        ];
+        return \App\Models\MessageTemplate::orderByDesc('updated_at')
+            ->get()
+            ->values()
+            ->map(fn($t, $i) => [
+                'id' => $i + 1,
+                'uuid' => $t->id,
+                'templateId' => substr(md5($t->id), 0, 8),
+                'name' => $t->name,
+                'channel' => $typeToChannel[$t->type] ?? 'sms',
+                'trigger' => $t->trigger_type ?? 'portal',
+                'content' => $t->content ?? '',
+                'rcsContent' => $t->rcs_content,
+                'contentType' => $typeToContentType[$t->type] ?? 'text',
+                'accessScope' => 'All Sub-accounts',
+                'subAccounts' => ['all'],
+                'status' => $t->status === 'active' ? 'live' : ($t->status === 'suspended' ? 'suspended' : $t->status),
+                'suspendedBy' => $t->suspended_by,
+                'version' => $t->version ?? 1,
+                'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            ])
+            ->toArray();
+    }
+
+    private function getTemplatesForView(): array
+    {
+        $typeToChannel = [
+            'sms' => 'SMS',
+            'rcs_basic' => 'Basic RCS + SMS',
+            'rcs_single' => 'Rich RCS + SMS',
+            'rcs_carousel' => 'Rich RCS + SMS',
+        ];
+        return \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
+            ->where(function($q) {
+                $q->where('trigger_type', 'portal')->orWhereNull('trigger_type');
+            })
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'content' => $t->content ?? '',
+                'trigger' => ucfirst($t->trigger_type ?? 'portal'),
+                'channel' => $typeToChannel[$t->type] ?? 'SMS',
+                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'version' => $t->version ?? 1,
+                'rcs_payload' => $t->rcs_content,
+                'sender_id_id' => $t->sender_id_id,
+                'rcs_agent_id' => $t->rcs_agent_id,
+                'opt_out_enabled' => (bool) $t->opt_out_enabled,
+                'opt_out_method' => $t->opt_out_method,
+                'opt_out_number_id' => $t->opt_out_number_id,
+                'opt_out_keyword' => $t->opt_out_keyword,
+                'opt_out_text' => $t->opt_out_text,
+                'opt_out_list_id' => $t->opt_out_list_id,
+                'opt_out_url_enabled' => (bool) $t->opt_out_url_enabled,
+                'opt_out_screening_list_ids' => $t->opt_out_screening_list_ids ?? [],
+                'trackable_link_enabled' => (bool) $t->trackable_link_enabled,
+                'trackable_link_domain' => $t->trackable_link_domain,
+                'message_expiry_enabled' => (bool) $t->message_expiry_enabled,
+                'message_expiry_value' => $t->message_expiry_value,
+                'social_hours_enabled' => (bool) $t->social_hours_enabled,
+                'social_hours_from' => $t->social_hours_from,
+                'social_hours_to' => $t->social_hours_to,
+            ])
+            ->toArray();
+    }
+
     private function getRcsAgentsForView(): array
     {
         $userId = session('customer_user_id');
@@ -436,7 +496,7 @@ class QuickSMSController extends Controller
             ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
             ->get()
             ->map(fn($a) => [
-                'id'          => $a->id,
+                'id'          => $a->uuid,
                 'name'        => $a->name,
                 'logo'        => $a->logo_url ?: asset('images/rcs-agents/quicksms-brand.svg'),
                 'tagline'     => $a->description ?? '',
@@ -607,6 +667,22 @@ class QuickSMSController extends Controller
         }
     }
 
+    private function calculateSmsSegments(string $content): int
+    {
+        if (empty($content)) {
+            return 1;
+        }
+
+        $hasUnicode = preg_match('/[^\x20-\x7E£¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&\'()*+,\-.\/:;<=>?¡ÄÖÑÜ§¿äöñüà@{}\[\]~\^|€\r\n\\\\]/', $content);
+        $len = mb_strlen($content);
+
+        if ($hasUnicode) {
+            return $len <= 70 ? 1 : (int) ceil($len / 67);
+        }
+
+        return $len <= 160 ? 1 : (int) ceil($len / 153);
+    }
+
     public function confirmCampaign(Request $request)
     {
         $sessionData = $request->session()->get('campaign_config', []);
@@ -631,18 +707,22 @@ class QuickSMSController extends Controller
         $channelType = $sessionData['channel'] ?? 'sms_only';
 
         $agentName = $sessionData['rcs_agent'] ?? 'Not selected';
-        $agentLogo = asset('images/rcs-agents/quicksms-brand.svg');
+        $agentLogo = null;
         $agentId = $sessionData['rcs_agent_id'] ?? null;
         if ($agentId) {
             $userId = session('customer_user_id');
+            $accountId = session('customer_tenant_id');
             $user = $userId ? \App\Models\User::withoutGlobalScope('tenant')->find($userId) : null;
             if ($user) {
-                $agentRecord = \App\Models\RcsAgent::usableByUser($user)->find($agentId);
+                $lookupCol = is_numeric($agentId) ? 'id' : 'uuid';
+                $agentRecord = \App\Models\RcsAgent::withoutGlobalScope('tenant')
+                    ->where('account_id', $accountId)
+                    ->where($lookupCol, $agentId)
+                    ->whereNull('deleted_at')
+                    ->first();
                 if ($agentRecord) {
                     $agentName = $agentRecord->name;
-                    if ($agentRecord->logo_url) {
-                        $agentLogo = $agentRecord->logo_url;
-                    }
+                    $agentLogo = $agentRecord->logo_url;
                 }
             }
         }
@@ -652,7 +732,7 @@ class QuickSMSController extends Controller
             'sms_sender_id' => $sessionData['sender_id'] ?? 'Not selected',
             'rcs_agent' => [
                 'name' => $agentName,
-                'logo' => $agentLogo,
+                'logo' => $agentLogo ?: asset('images/rcs-agents/quicksms-brand.svg'),
             ],
         ];
 
@@ -722,6 +802,13 @@ class QuickSMSController extends Controller
                     $totalSmsParts = array_reduce($segmentBreakdown, function ($carry, $group) {
                         return $carry + ($group->recipient_count * $group->segments);
                     }, 0);
+
+                    if ($totalSmsParts === 0 && $validCount > 0) {
+                        $campaignRecord = \DB::table('campaigns')->where('id', $campaignId)->first(['segment_count']);
+                        $baseSegments = $campaignRecord->segment_count ?? 1;
+                        $totalSmsParts = $validCount * $baseSegments;
+                        $segmentBreakdown = [(object) ['segments' => $baseSegments, 'recipient_count' => $validCount]];
+                    }
                 } else {
                     $campaignId = null;
                 }
@@ -730,6 +817,13 @@ class QuickSMSController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($totalSmsParts === 0 && $validCount > 0 && $channelType === 'sms') {
+            $msgContent = $sessionData['message_content'] ?? '';
+            $baseSegments = $this->calculateSmsSegments($msgContent);
+            $totalSmsParts = $validCount * $baseSegments;
+            $segmentBreakdown = [(object) ['segments' => $baseSegments, 'recipient_count' => $validCount]];
         }
 
 
@@ -754,8 +848,10 @@ class QuickSMSController extends Controller
             }
         }
 
+        $isEditingExisting = !empty($sessionData['is_editing_existing']);
+
         return view('quicksms.messages.confirm-campaign', [
-            'page_title' => 'Confirm & Send Campaign',
+            'page_title' => $isEditingExisting ? 'Update & Send Campaign' : 'Confirm & Send Campaign',
             'campaign' => $campaign,
             'channel' => $channel,
             'recipients' => $recipients,
@@ -765,6 +861,7 @@ class QuickSMSController extends Controller
             'total_sms_parts' => $totalSmsParts,
             'campaign_id' => $campaignId,
             'realEstimate' => $realEstimate,
+            'is_editing_existing' => $isEditingExisting,
         ]);
     }
 
@@ -782,15 +879,19 @@ class QuickSMSController extends Controller
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
             'recipient_sources' => 'nullable|array|max:50',
+            'recipient_state' => 'nullable|array',
             'scheduled_time' => 'nullable|string|max:50',
-            'message_expiry' => 'nullable|string|max:10',
+            'message_expiry' => 'nullable|string|max:50',
             'sending_window' => 'nullable|string|max:50',
+            'trackable_link' => 'nullable|boolean',
+            'trackable_link_domain' => 'nullable|string|max:100',
             'recipient_count' => 'nullable|integer|min:0|max:10000000',
             'valid_count' => 'nullable|integer|min:0|max:10000000',
             'invalid_count' => 'nullable|integer|min:0|max:10000000',
             'opted_out_count' => 'nullable|integer|min:0|max:10000000',
             'sources' => 'nullable|array',
             'optout_config' => 'nullable|array',
+            'is_editing_existing' => 'nullable|boolean',
         ]);
 
         $request->session()->put('campaign_config', $validated);
@@ -858,18 +959,41 @@ class QuickSMSController extends Controller
             if ($campaignId) {
                 $campaign = \App\Models\Campaign::where('id', $campaignId)
                     ->where('account_id', $accountId)
-                    ->whereIn('status', ['draft', 'preparing', 'ready'])
+                    ->whereIn('status', ['draft', 'scheduled'])
                     ->first();
             }
 
             if (!$campaign) {
+                $senderIdValue = $sessionData['sender_id_id'] ?? null;
+                if ($senderIdValue && !is_numeric($senderIdValue)) {
+                    $resolved = \DB::table('sender_ids')
+                        ->where('uuid', $senderIdValue)
+                        ->where('account_id', $accountId)
+                        ->value('id');
+                    if (!$resolved) {
+                        return response()->json(['success' => false, 'message' => 'Sender ID not found.'], 422);
+                    }
+                    $senderIdValue = $resolved;
+                }
+                $rcsAgentValue = $sessionData['rcs_agent_id'] ?? null;
+                if ($rcsAgentValue && !is_numeric($rcsAgentValue)) {
+                    $resolved = \DB::table('rcs_agents')
+                        ->where('uuid', $rcsAgentValue)
+                        ->where('account_id', $accountId)
+                        ->value('id');
+                    if (!$resolved) {
+                        return response()->json(['success' => false, 'message' => 'RCS Agent not found.'], 422);
+                    }
+                    $rcsAgentValue = $resolved;
+                }
+
                 $campaignData = [
                     'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
                     'type' => $sessionData['campaign_type'] ?? 'sms',
                     'message_content' => $sessionData['message_content'] ?? null,
                     'rcs_content' => $sessionData['rcs_content'] ?? null,
-                    'sender_id_id' => $sessionData['sender_id_id'] ?? null,
-                    'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                    'sender_id_id' => $senderIdValue,
+                    'rcs_agent_id' => $rcsAgentValue,
                     'recipient_sources' => $sessionData['recipient_sources'] ?? [],
                 ];
                 $campaign = $campaignService->create($accountId, $campaignData);
@@ -944,25 +1068,7 @@ class QuickSMSController extends Controller
             ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
         ];
 
-        // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
-        $templates = [
-            ['id' => 'tpl_1', 'name' => 'Quick Reply', 'content' => 'Thank you for your message. We will get back to you shortly.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_2', 'name' => 'Order Update', 'content' => 'Hi {{firstName}}, your order #{{orderNumber}} is on its way!', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 2],
-            ['id' => 'tpl_3', 'name' => 'Appointment Confirm', 'content' => 'Your appointment is confirmed for {{date}} at {{time}}. Reply YES to confirm or NO to cancel.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_4', 'name' => 'RCS Thank You', 'content' => 'Thanks for reaching out! Our team will respond shortly.', 'trigger' => 'Portal', 'channel' => 'Basic RCS + SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_5', 'name' => 'Rich Promo Card', 'content' => '', 'trigger' => 'Portal', 'channel' => 'Rich RCS + SMS', 'status' => 'Live', 'version' => 1, 'rcs_payload' => [
-                'type' => 'standalone',
-                'card' => [
-                    'media' => ['url' => '', 'height' => 'MEDIUM'],
-                    'title' => 'Special Offer',
-                    'description' => 'Exclusive discount just for you!',
-                    'suggestions' => [
-                        ['type' => 'url', 'text' => 'Shop Now', 'url' => 'https://example.com/shop']
-                    ]
-                ],
-                'fallback' => 'Special Offer! Exclusive discount at https://example.com/shop'
-            ]],
-        ];
+        $templates = $this->getTemplatesForView();
 
         // Extended mock conversations dataset for filter/sort testing
         // TODO: Replace with API call to GET /api/conversations
@@ -1734,51 +1840,116 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function campaignHistory()
+    public function campaignHistory(Request $request)
     {
         $accountId = session('customer_tenant_id');
 
-        $campaigns = $accountId
-            ? \App\Models\Campaign::where('account_id', $accountId)
-                ->with(['senderId', 'rcsAgent', 'messageTemplate'])
-                ->orderByDesc('created_at')
-                ->limit(50)
-                ->get()
-                ->map(function ($c) {
-                    $channelMap = [
-                        'sms' => 'sms_only',
-                        'rcs_basic' => 'basic_rcs',
-                        'rcs_single' => 'rich_rcs',
-                        'rcs_carousel' => 'rich_rcs',
-                    ];
-                    $statusMap = [
-                        'completed' => 'complete',
-                        'queued' => 'pending',
-                    ];
-                    return [
-                        'id' => $c->id,
-                        'name' => $c->name,
-                        'channel' => $channelMap[$c->type] ?? 'sms_only',
-                        'status' => $statusMap[$c->status] ?? $c->status,
-                        'recipients_total' => $c->total_recipients ?? 0,
-                        'recipients_delivered' => $c->delivered_count,
-                        'send_date' => $c->scheduled_at
-                            ? $c->scheduled_at->format('Y-m-d H:i')
-                            : ($c->sending_started_at ? $c->sending_started_at->format('Y-m-d H:i') : $c->created_at->format('Y-m-d H:i')),
-                        'sender_id' => $c->senderId->sender_id_value ?? null,
-                        'rcs_agent' => $c->rcsAgent->name ?? null,
-                        'tags' => $c->tags ?? [],
-                        'template' => $c->messageTemplate->name ?? null,
-                        'has_tracking' => (bool) ($c->metadata['tracking_enabled'] ?? false),
-                        'has_optout' => (bool) $c->opt_out_enabled,
-                    ];
-                })
-                ->toArray()
-            : [];
+        $typeToChannel = [
+            'sms' => 'sms_only',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+        $statusMap = [
+            'queued' => 'pending',
+            'completed' => 'complete',
+            'failed' => 'complete',
+            'paused' => 'sending',
+            'archived' => 'archived',
+        ];
+
+        $query = \App\Models\Campaign::withoutGlobalScope('tenant')
+            ->where('account_id', $accountId)
+            ->where('status', '!=', 'archived')
+            ->with(['senderId', 'rcsAgent', 'messageTemplate']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                  ->orWhere('description', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $statuses = explode(',', $request->input('status'));
+            $dbStatuses = [];
+            $reverseStatusMap = ['pending' => 'queued', 'complete' => 'completed'];
+            foreach ($statuses as $s) {
+                $dbStatuses[] = $reverseStatusMap[$s] ?? $s;
+                if ($s === 'complete') {
+                    $dbStatuses[] = 'failed';
+                }
+                if ($s === 'sending') {
+                    $dbStatuses[] = 'paused';
+                }
+            }
+            $query->whereIn('status', array_unique($dbStatuses));
+        }
+
+        if ($request->filled('channel')) {
+            $channels = explode(',', $request->input('channel'));
+            $channelToType = ['sms_only' => ['sms'], 'basic_rcs' => ['rcs_basic'], 'rich_rcs' => ['rcs_single', 'rcs_carousel']];
+            $dbTypes = [];
+            foreach ($channels as $ch) {
+                if (isset($channelToType[$ch])) {
+                    $dbTypes = array_merge($dbTypes, $channelToType[$ch]);
+                }
+            }
+            if (!empty($dbTypes)) {
+                $query->whereIn('type', array_unique($dbTypes));
+            }
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('created_at', '>=', $request->input('date_from') . ' 00:00:00');
+        }
+        if ($request->filled('date_to')) {
+            $query->where('created_at', '<=', $request->input('date_to') . ' 23:59:59');
+        }
+
+        $paginated = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
+
+        $campaigns = $paginated->getCollection()->map(function ($c) use ($typeToChannel, $statusMap) {
+            $sendDate = $c->scheduled_at ?? $c->started_at ?? $c->created_at;
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'channel' => $typeToChannel[$c->type] ?? 'sms_only',
+                'status' => $statusMap[$c->status] ?? $c->status,
+                'recipients_total' => $c->total_unique_recipients ?? $c->total_recipients ?? 0,
+                'recipients_delivered' => $c->delivered_count,
+                'recipients_failed' => $c->failed_count ?? 0,
+                'send_date' => $sendDate ? $sendDate->format('Y-m-d H:i') : null,
+                'sender_id' => $c->getSenderDisplayName() ?? '-',
+                'rcs_agent' => $c->rcsAgent?->name,
+                'rcs_agent_logo' => $c->rcsAgent?->logo_url ?? '',
+                'rcs_agent_tagline' => $c->rcsAgent?->description ?? '',
+                'rcs_agent_brand_color' => $c->rcsAgent?->brand_color ?? '#886CC0',
+                'tags' => $c->tags ?? [],
+                'template' => $c->messageTemplate?->name,
+                'has_tracking' => false,
+                'has_optout' => (bool) $c->opt_out_enabled,
+                'message_content' => $c->message_content,
+                'rcs_content' => $c->rcs_content,
+                'estimated_cost' => $c->estimated_cost,
+                'actual_cost' => $c->actual_cost,
+                'currency' => $c->currency ?? 'GBP',
+                'segment_count' => $c->segment_count ?? 1,
+                'total_recipients_raw' => $c->total_recipients ?? 0,
+                'total_opted_out' => $c->total_opted_out ?? 0,
+                'total_invalid' => $c->total_invalid ?? 0,
+                'recipient_sources' => $c->recipient_sources,
+                'fallback_sms_count' => $c->fallback_sms_count ?? 0,
+                'sent_count' => $c->sent_count ?? 0,
+                'pending_count' => $c->pending_count ?? 0,
+            ];
+        })->toArray();
 
         return view('quicksms.messages.campaign-history', [
             'page_title' => 'Campaign History',
             'campaigns' => $campaigns,
+            'paginator' => $paginated,
         ]);
     }
     
@@ -1870,6 +2041,7 @@ class QuickSMSController extends Controller
         $totalContacts = Contact::count();
         $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
         $availableLists = ContactList::orderBy('name')->pluck('name')->toArray();
+        $optOutLists = OptOutList::orderBy('name')->get()->map(fn($o) => ['id' => $o->id, 'name' => $o->name])->toArray();
 
         return view('quicksms.contacts.all-contacts', [
             'page_title' => 'All Contacts',
@@ -1877,6 +2049,7 @@ class QuickSMSController extends Controller
             'total_contacts' => $totalContacts,
             'available_tags' => $availableTags,
             'available_lists' => $availableLists,
+            'opt_out_lists' => $optOutLists,
         ]);
     }
 
@@ -2173,13 +2346,16 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
+        $templates = $this->getTemplatesForLibrary();
+
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
             'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
+            'optout_domains' => $optout_domains,
+            'templates' => $templates,
         ]);
     }
 
@@ -2236,8 +2412,10 @@ class QuickSMSController extends Controller
 
     public function templateEditStep1($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step1', [
             'page_title' => 'Edit Template - Metadata',
@@ -2256,8 +2434,10 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Edit Template - Content',
@@ -2275,8 +2455,10 @@ class QuickSMSController extends Controller
 
     public function templateEditStep3($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Edit Template - Settings',
@@ -2289,8 +2471,10 @@ class QuickSMSController extends Controller
 
     public function templateEditReview($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Edit Template - Review',
@@ -2415,98 +2599,48 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    private function getMockTemplate($templateId)
+    private function getTemplateForEdit($templateId)
     {
-        // TODO: Replace with database query - GET /api/templates/{templateId}
-        $mockTemplates = [
-            '71829364' => [
-                'id' => 1,
-                'name' => 'Flash Sale Alert',
-                'templateId' => 'TPL-71829364',
-                'trigger' => 'portal',
-                'channel' => 'basic_rcs',
-                'content' => 'Flash Sale! 50% off all items today only. Shop now at {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false
-            ],
-            '38472615' => [
-                'id' => 2,
-                'name' => 'Product Showcase',
-                'templateId' => 'TPL-38472615',
-                'trigger' => 'portal',
-                'channel' => 'rich_rcs',
-                'content' => '',
-                'senderId' => '1',
-                'rcsAgent' => '2',
-                'trackableLink' => false,
-                'optOut' => false
-            ],
-            '10483726' => [
-                'id' => 3,
-                'name' => 'Welcome Message',
-                'templateId' => 'TPL-10483726',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, welcome to QuickSMS! Your account is ready.',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => true
-            ],
-            'TPL-12345678' => [
-                'id' => 4,
-                'name' => 'Winter Sale 2026',
-                'templateId' => 'TPL-12345678',
-                'trigger' => 'portal',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => true,
-                'optOut' => true,
-                'description' => 'Promotional template for winter sale campaign'
-            ],
-            'TPL-23456789' => [
-                'id' => 5,
-                'name' => 'Appointment Confirmation',
-                'templateId' => 'TPL-23456789',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
-                'senderId' => '2',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => false,
-                'description' => 'API-triggered appointment confirmation message'
-            ],
-            'TPL-34567890' => [
-                'id' => 6,
-                'name' => 'Delivery Update',
-                'templateId' => 'TPL-34567890',
-                'trigger' => 'api',
-                'channel' => 'basic_rcs',
-                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false,
-                'description' => 'RCS delivery notification with tracking link'
-            ]
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
         ];
 
-        return $mockTemplates[$templateId] ?? [
-            'id' => 999,
-            'name' => 'Unknown Template',
-            'templateId' => 'TPL-' . $templateId,
-            'trigger' => 'api',
-            'channel' => 'sms',
-            'content' => 'Template content here',
-            'senderId' => '1',
-            'rcsAgent' => '',
-            'trackableLink' => false,
-            'optOut' => false
+        $t = \App\Models\MessageTemplate::find($templateId);
+        if (!$t) {
+            return null;
+        }
+
+        return [
+            'id' => $t->id,
+            'name' => $t->name,
+            'templateId' => $t->id,
+            'trigger' => $t->trigger_type ?? 'portal',
+            'channel' => $typeToChannel[$t->type] ?? 'sms',
+            'type' => $t->type,
+            'content' => $t->content ?? '',
+            'description' => $t->description ?? '',
+            'senderId' => $t->sender_id_id ?? '',
+            'rcsAgent' => $t->rcs_agent_id ?? '',
+            'trackableLink' => (bool) ($t->trackable_link_enabled ?? false),
+            'trackableLinkDomain' => $t->trackable_link_domain ?? '',
+            'optOut' => (bool) ($t->opt_out_enabled ?? false),
+            'optOutMethod' => $t->opt_out_method ?? '',
+            'optOutNumberId' => $t->opt_out_number_id ?? '',
+            'optOutKeyword' => $t->opt_out_keyword ?? '',
+            'optOutText' => $t->opt_out_text ?? '',
+            'optOutListId' => $t->opt_out_list_id ?? '',
+            'optOutUrlEnabled' => (bool) ($t->opt_out_url_enabled ?? false),
+            'optOutScreeningListIds' => $t->opt_out_screening_list_ids ?? [],
+            'messageExpiry' => (bool) ($t->message_expiry_enabled ?? false),
+            'messageExpiryHours' => $t->message_expiry_hours ?? null,
+            'socialHoursEnabled' => (bool) ($t->social_hours_enabled ?? false),
+            'socialHoursFrom' => $t->social_hours_from ?? '',
+            'socialHoursTo' => $t->social_hours_to ?? '',
+            'rcs_content' => $t->rcs_content,
+            'status' => $t->status,
         ];
     }
 

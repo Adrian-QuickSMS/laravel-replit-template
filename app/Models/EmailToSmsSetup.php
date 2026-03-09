@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class EmailToSmsSetup extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'email_to_sms_setups';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -18,22 +17,18 @@ class EmailToSmsSetup extends Model
     protected $fillable = [
         'account_id',
         'sub_account_id',
+        'type',
         'name',
         'description',
-        'type',
-        'generated_email_address',
-        'originating_emails',
-        'allowed_sender_emails',
-        'sender_id_template_id',
-        'sender_id',
-        'multiple_sms_enabled',
-        'delivery_reports_enabled',
-        'delivery_reports_email',
         'status',
         'reporting_group_id',
-        'contact_book_list_ids',
-        'opt_out_mode',
-        'opt_out_list_ids',
+        'sender_id_template_id',
+        'sender_id_label',
+        'rcs_agent_id',
+        'multiple_sms_enabled',
+        'delivery_reports_enabled',
+        'delivery_report_email',
+        'daily_limit',
     ];
 
     protected $casts = [
@@ -42,12 +37,10 @@ class EmailToSmsSetup extends Model
         'sub_account_id' => 'string',
         'sender_id_template_id' => 'string',
         'reporting_group_id' => 'string',
-        'originating_emails' => 'array',
-        'allowed_sender_emails' => 'array',
-        'contact_book_list_ids' => 'array',
-        'opt_out_list_ids' => 'array',
+        'rcs_agent_id' => 'integer',
         'multiple_sms_enabled' => 'boolean',
         'delivery_reports_enabled' => 'boolean',
+        'daily_limit' => 'integer',
     ];
 
     protected static function boot()
@@ -57,6 +50,15 @@ class EmailToSmsSetup extends Model
         static::creating(function ($model) {
             if (empty($model->id)) {
                 $model->id = (string) Str::uuid();
+            }
+        });
+
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('email_to_sms_setups.account_id', $tenantId);
+            } else {
+                $builder->whereRaw('1 = 0');
             }
         });
     }
@@ -76,9 +78,34 @@ class EmailToSmsSetup extends Model
         return $this->belongsTo(EmailToSmsReportingGroup::class, 'reporting_group_id');
     }
 
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(EmailToSmsAddress::class, 'setup_id');
+    }
+
+    public function allowedSenders(): HasMany
+    {
+        return $this->hasMany(EmailToSmsAllowedSender::class, 'setup_id');
+    }
+
+    public function recipients(): HasMany
+    {
+        return $this->hasMany(EmailToSmsRecipient::class, 'setup_id');
+    }
+
+    public function optOutConfig(): HasMany
+    {
+        return $this->hasMany(EmailToSmsOptOutConfig::class, 'setup_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(EmailToSmsAuditLog::class, 'setup_id');
+    }
+
     public function scopeForAccount($query, string $accountId)
     {
-        return $query->where('account_id', $accountId);
+        return $query->withoutGlobalScope('tenant')->where('account_id', $accountId);
     }
 
     public function scopeActive($query)
@@ -94,5 +121,52 @@ class EmailToSmsSetup extends Model
     public function scopeContactList($query)
     {
         return $query->where('type', 'contact_list');
+    }
+
+    public function toPortalArray(): array
+    {
+        $this->loadMissing(['addresses', 'allowedSenders', 'recipients', 'optOutConfig', 'subAccount', 'reportingGroup']);
+
+        $originatingEmails = $this->addresses->pluck('email_address')->values()->toArray();
+        $allowedSenderEmails = $this->allowedSenders->pluck('email_pattern')->values()->toArray();
+
+        $base = [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'type' => $this->type,
+            'subaccountId' => $this->sub_account_id,
+            'subaccountName' => $this->subAccount?->name ?? 'Main Account',
+            'originatingEmails' => $originatingEmails,
+            'senderIdTemplateId' => $this->sender_id_template_id,
+            'senderId' => $this->sender_id_label,
+            'rcsAgentId' => $this->rcs_agent_id,
+            'rcsAgentName' => $this->rcs_agent_id ? optional(\DB::table('rcs_agents')->where('id', $this->rcs_agent_id)->first())->name : null,
+            'multipleSmsEnabled' => $this->multiple_sms_enabled,
+            'deliveryReportsEnabled' => $this->delivery_reports_enabled,
+            'deliveryReportsEmail' => $this->delivery_report_email,
+            'dailyLimit' => $this->daily_limit,
+            'reportingGroupId' => $this->reporting_group_id,
+            'reportingGroupName' => $this->reportingGroup?->name,
+            'status' => ucfirst($this->status),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
+            'created' => $this->created_at?->format('Y-m-d'),
+            'lastUpdated' => $this->updated_at?->format('Y-m-d'),
+        ];
+
+        if ($this->type === 'standard') {
+            $base['allowedEmails'] = $allowedSenderEmails;
+        } else {
+            $base['allowedSenderEmails'] = $allowedSenderEmails;
+            $base['contactBookListIds'] = $this->recipients->pluck('recipient_id')->values()->toArray();
+            $base['contactBookListNames'] = $this->recipients->pluck('recipient_name')->values()->toArray();
+            $optOutConfigs = $this->optOutConfig;
+            $base['optOutMode'] = $optOutConfigs->isNotEmpty() ? 'SELECTED' : 'NONE';
+            $base['optOutListIds'] = $optOutConfigs->pluck('opt_out_list_id')->values()->toArray();
+            $base['optOutListNames'] = $optOutConfigs->pluck('opt_out_list_name')->values()->toArray();
+        }
+
+        return $base;
     }
 }

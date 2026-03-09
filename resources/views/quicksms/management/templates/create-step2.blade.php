@@ -265,6 +265,170 @@
 @include('quicksms.partials.rcs-wizard-modal')
 @include('quicksms.partials.rcs-button-config-modal')
 
+<div class="modal fade" id="personalisationModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
+                <h5 class="modal-title text-white"><i class="fas fa-user-tag me-2"></i>Personalisation Fields</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Insert personalisation fields into your message. When sending via the API, pass values for each field to personalise messages per recipient.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold mb-2">API Personalisation Fields</label>
+                    <div class="d-flex flex-wrap gap-2" id="personalisationFieldButtons">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_1')"><i class="fas fa-code me-1"></i>Field_1</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_2')"><i class="fas fa-code me-1"></i>Field_2</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_3')"><i class="fas fa-code me-1"></i>Field_3</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_4')"><i class="fas fa-code me-1"></i>Field_4</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_5')"><i class="fas fa-code me-1"></i>Field_5</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_6')"><i class="fas fa-code me-1"></i>Field_6</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_7')"><i class="fas fa-code me-1"></i>Field_7</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_8')"><i class="fas fa-code me-1"></i>Field_8</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_9')"><i class="fas fa-code me-1"></i>Field_9</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_10')"><i class="fas fa-code me-1"></i>Field_10</button>
+                    </div>
+                </div>
+                <div class="border rounded p-3 mb-3" style="background: rgba(136, 108, 192, 0.06);">
+                    <h6 class="mb-2"><i class="fas fa-info-circle text-primary me-1"></i>How it works</h6>
+                    <ul class="mb-0 small text-muted" style="padding-left: 1.2rem;">
+                        <li>Click a field to insert it at the cursor position</li>
+                        <li>Fields appear as <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">@{{Field_1}}</span> in your message</li>
+                        <li>When sending via the API, pass values in the <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">personalisation</span> object</li>
+                        <li>Fields can be used in SMS content, RCS card titles, descriptions, body text, and button labels</li>
+                    </ul>
+                </div>
+                <div class="rounded p-3" style="background: #1e1e2e; border: 1px solid #2d2d3d;">
+                    <h6 class="mb-2" style="color: #cdd6f4;"><i class="fas fa-terminal me-1" style="color: #f5c2e7;"></i>API Example</h6>
+                    <pre class="mb-0 small" style="white-space: pre-wrap; color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"><span style="color: #6c7086;">{</span>
+  <span style="color: #f5c2e7;">"to"</span>: <span style="color: #a6e3a1;">"+447700900100"</span>,
+  <span style="color: #f5c2e7;">"template_id"</span>: <span style="color: #a6e3a1;">"your-template-id"</span>,
+  <span style="color: #f5c2e7;">"personalisation"</span>: <span style="color: #6c7086;">{</span>
+    <span style="color: #f5c2e7;">"Field_1"</span>: <span style="color: #a6e3a1;">"John"</span>,
+    <span style="color: #f5c2e7;">"Field_2"</span>: <span style="color: #a6e3a1;">"ORD-12345"</span>
+  <span style="color: #6c7086;">}</span>
+<span style="color: #6c7086;">}</span></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="trackableLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-link me-2"></i>Trackable Link Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">A unique shortened URL will be generated for each recipient to track clicks.</p>
+                <div class="mb-3">
+                    <label class="form-label">Short URL Domain</label>
+                    <select class="form-select" id="shortUrlDomain">
+                        <option value="qsms.uk" selected>qsms.uk (default)</option>
+                        <option value="custom1.co.uk">custom1.co.uk</option>
+                        <option value="custom2.com">custom2.com</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Destination URL</label>
+                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page" oninput="this.classList.remove('is-invalid');">
+                    <div class="invalid-feedback" id="destinationUrlError">Please enter a destination URL</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Insert Link As</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAtCursor" value="cursor" checked>
+                        <label class="form-check-label" for="linkAtCursor">Insert at cursor position</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAsPlaceholder" value="placeholder">
+                        <label class="form-check-label" for="linkAsPlaceholder">Use placeholder @{{trackingUrl}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmTrackableLink()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="messageExpiryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-hourglass-half me-2"></i>Message Expiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Define how long the platform should attempt delivery before expiring a message.</p>
+                <div class="mb-3">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="validityToggle" onchange="toggleValidityFields()" checked>
+                        <label class="form-check-label fw-medium" for="validityToggle">Set message validity period</label>
+                    </div>
+                    <div class="ps-4" id="validityFields">
+                        <p class="text-muted small mb-3">If a message cannot be delivered within this period, it will expire and no further attempts will be made.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validity Duration</label>
+                                <input type="number" class="form-control" id="validityDuration" value="24" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Unit</label>
+                                <select class="form-select" id="validityUnit">
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="py-2 mb-0 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <small>When off, operator/platform defaults apply (typically 24-72 hours for SMS, configurable for RCS).</small>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmMessageExpiry()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="socialHoursModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-moon me-2"></i>Social Hours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Messages will not be sent outside these hours. They will be queued and sent at the next allowable time.</p>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Do not send before</label>
+                        <input type="time" class="form-control" id="socialHoursFrom" value="08:00">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Do not send after</label>
+                        <input type="time" class="form-control" id="socialHoursTo" value="20:00">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmSocialHours()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="aiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -407,32 +571,19 @@ function autoSelectFirstAgent() {
     }
 }
 
-function openRcsWizard() {
-    if (typeof initRcsWizard === 'function') {
-        var selectedAgent = document.getElementById('rcsAgent');
-        var agentData = null;
-        
-        if (selectedAgent && selectedAgent.selectedIndex > 0) {
-            var option = selectedAgent.options[selectedAgent.selectedIndex];
-            agentData = {
-                name: option.dataset.name || 'QuickSMS Brand',
-                logo: option.dataset.logo || '',
-                tagline: option.dataset.tagline || '',
-                brandColor: option.dataset.brandColor || '#886CC0'
-            };
-        }
-        
-        rcsWizardCallback = function(data) {
-            rcsContentData = data;
-            updateRcsContentPreview();
+function updateRcsWizardPreviewInMain() {
+    if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsContentData = {
+            messageType: rcsPersistentPayload.type || 'single',
+            cardCount: rcsPersistentPayload.cardCount || 1,
+            title: (rcsPersistentPayload.cards && rcsPersistentPayload.cards[0]) ? rcsPersistentPayload.cards[0].title : '',
+            buttonCount: rcsPersistentPayload.cards ? rcsPersistentPayload.cards.reduce(function(sum, c) { return sum + c.buttons.length; }, 0) : 0,
+            cards: rcsPersistentPayload.cards || [],
+            orientation: rcsPersistentPayload.orientation || {}
         };
-        
-        initRcsWizard(agentData, rcsContentData);
-        var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
-        modal.show();
-    } else {
-        alert('RCS Wizard is loading. Please wait...');
+        updateRcsContentPreview();
     }
+    updatePreview();
 }
 
 function updateRcsContentPreview() {
@@ -579,8 +730,43 @@ function showPreview(mode) {
     updatePreview();
 }
 
+var personalisationActiveTarget = 'smsContent';
+
 function openPersonalisationModal() {
-    alert('Personalisation modal would open here');
+    personalisationActiveTarget = 'smsContent';
+    new bootstrap.Modal(document.getElementById('personalisationModal')).show();
+}
+
+function insertPersonalisationField(fieldName) {
+    var placeholder = '{' + '{' + fieldName + '}' + '}';
+    var target = null;
+
+    if (typeof rcsActiveTextField !== 'undefined' && rcsActiveTextField) {
+        target = typeof getRcsTextElement === 'function' ? getRcsTextElement(rcsActiveTextField) : document.getElementById(rcsActiveTextField);
+    }
+
+    if (!target) {
+        target = document.getElementById(personalisationActiveTarget || 'smsContent');
+    }
+
+    if (target) {
+        var start = target.selectionStart || 0;
+        var end = target.selectionEnd || 0;
+        var text = target.value || '';
+        target.value = text.substring(0, start) + placeholder + text.substring(end);
+        target.selectionStart = target.selectionEnd = start + placeholder.length;
+        target.focus();
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('personalisationModal'));
+    if (modal) modal.hide();
+
+    if (!rcsActiveTextField || personalisationActiveTarget === 'smsContent') {
+        handleContentChange();
+    }
+
+    if (typeof rcsActiveTextField !== 'undefined') rcsActiveTextField = null;
 }
 
 var aiSuggestedText = '';
@@ -636,63 +822,491 @@ function discardAiSuggestion() {
     document.getElementById('aiResultSection').classList.add('d-none');
 }
 
+var _optOutNumbers = null;
+var _currentNumberType = null;
+var _keywordValidationTimer = null;
+
 function toggleOptoutManagement() {
-    var enabled = document.getElementById('enableOptoutManagement').checked;
-    var section = document.getElementById('optoutManagementSection');
-    var disabledMsg = document.getElementById('optoutDisabledMessage');
-    
-    if (section) section.classList.toggle('d-none', !enabled);
-    if (disabledMsg) disabledMsg.classList.toggle('d-none', enabled);
+    var isEnabled = document.getElementById('enableOptoutManagement').checked;
+    document.getElementById('optoutManagementSection').classList.toggle('d-none', !isEnabled);
+    document.getElementById('optoutDisabledMessage').classList.toggle('d-none', isEnabled);
+    if (!isEnabled) {
+        document.getElementById('optoutValidationError').classList.add('d-none');
+    } else {
+        loadOptOutNumbers();
+        validateOptoutConfig();
+    }
+}
+
+function onScreeningListChange() {
+    var checkboxes = document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked');
+    var pillsContainer = document.getElementById('screeningPills');
+    var pills = Array.from(checkboxes).map(function(cb) {
+        var label = document.querySelector('label[for="' + cb.id + '"]');
+        var name = label ? label.childNodes[0].textContent.trim() : cb.value;
+        return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle d-inline-flex align-items-center gap-1 px-2 py-1">'
+            + name
+            + '<button type="button" class="btn-close btn-close" style="font-size:0.5rem;" onclick="deselectScreening(\'' + cb.id + '\')"></button>'
+            + '</span>';
+    }).join('');
+    pillsContainer.innerHTML = pills;
+    validateOptoutConfig();
+}
+
+function deselectScreening(cbId) {
+    var cb = document.getElementById(cbId);
+    if (cb) { cb.checked = false; onScreeningListChange(); }
+}
+
+function getScreeningListIds() {
+    return Array.from(document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked')).map(function(cb) { return cb.value; });
 }
 
 function toggleReplyOptout() {
-    var enabled = document.getElementById('enableReplyOptout').checked;
-    var config = document.getElementById('replyOptoutConfig');
-    if (config) config.classList.toggle('d-none', !enabled);
+    var isEnabled = document.getElementById('enableReplyOptout').checked;
+    document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
+    if (isEnabled) {
+        var urlCb = document.getElementById('enableUrlOptout');
+        if (urlCb && urlCb.checked) {
+            urlCb.checked = false;
+            document.getElementById('urlOptoutConfig').classList.add('d-none');
+        }
+        loadOptOutNumbers();
+    }
+    validateOptoutConfig();
 }
 
 function toggleUrlOptout() {
-    var enabled = document.getElementById('enableUrlOptout').checked;
-    var config = document.getElementById('urlOptoutConfig');
-    if (config) config.classList.toggle('d-none', !enabled);
+    var isEnabled = document.getElementById('enableUrlOptout').checked;
+    document.getElementById('urlOptoutConfig').classList.toggle('d-none', !isEnabled);
+    if (isEnabled) {
+        var replyCb = document.getElementById('enableReplyOptout');
+        if (replyCb && replyCb.checked) {
+            replyCb.checked = false;
+            document.getElementById('replyOptoutConfig').classList.add('d-none');
+        }
+    }
+    validateOptoutConfig();
 }
 
+function toggleReplyStorageList() {
+    var target = document.querySelector('input[name="replyListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('replyNewListFields');
+    var listSelect = document.getElementById('replyOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
+
+function toggleUrlStorageList() {
+    var target = document.querySelector('input[name="urlListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('urlNewListFields');
+    var listSelect = document.getElementById('urlOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
+
+function loadOptOutNumbers(onComplete) {
+    var select = document.getElementById('optOutNumberId');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Loading... --</option>';
+
+    fetch('/api/campaigns/opt-out-numbers', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        _optOutNumbers = res.data || { vmns: [], shortcodes: [] };
+        select.innerHTML = '<option value="">-- Select number --</option>';
+
+        var vmns = _optOutNumbers.vmns || [];
+        var shortcodes = _optOutNumbers.shortcodes || [];
+
+        if (vmns.length > 0) {
+            var grp = document.createElement('optgroup');
+            grp.label = 'Virtual Mobile Numbers';
+            vmns.forEach(function(n) {
+                var opt = document.createElement('option');
+                opt.value = n.id;
+                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                opt.dataset.type = 'vmn';
+                opt.dataset.number = n.number;
+                grp.appendChild(opt);
+            });
+            select.appendChild(grp);
+        }
+
+        if (shortcodes.length > 0) {
+            var grp2 = document.createElement('optgroup');
+            grp2.label = 'Shortcodes';
+            shortcodes.forEach(function(n) {
+                var keywords = (n.keywords || []).map(function(k) { return k.keyword; });
+                if (n.type === 'shared_shortcode' && keywords.length > 0) {
+                    keywords.forEach(function(kw) {
+                        var opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.text = n.number + ' (' + kw + ')';
+                        opt.dataset.type = n.type;
+                        opt.dataset.number = n.number;
+                        opt.dataset.keyword = kw;
+                        grp2.appendChild(opt);
+                    });
+                } else {
+                    var opt = document.createElement('option');
+                    opt.value = n.id;
+                    opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                    opt.dataset.type = n.type;
+                    opt.dataset.number = n.number;
+                    opt.dataset.keyword = keywords.join(', ');
+                    grp2.appendChild(opt);
+                }
+            });
+            select.appendChild(grp2);
+        }
+
+        if (vmns.length === 0 && shortcodes.length === 0) {
+            select.innerHTML = '<option value="">No numbers available</option>';
+        }
+        if (typeof onComplete === 'function') onComplete();
+    })
+    .catch(function() {
+        select.innerHTML = '<option value="">Failed to load numbers</option>';
+    });
+}
+
+function onOptOutNumberChange() {
+    var select = document.getElementById('optOutNumberId');
+    var selectedOpt = select.options[select.selectedIndex];
+    var numberType = selectedOpt ? selectedOpt.dataset.type : null;
+    _currentNumberType = numberType;
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    var keywordSelect = document.getElementById('optOutKeywordSelect');
+
+    if (numberType === 'shared_shortcode') {
+        var presetKeyword = selectedOpt ? selectedOpt.dataset.keyword : '';
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = presetKeyword;
+        keywordInput.readOnly = true;
+        keywordInput.style.backgroundColor = '#f8f9fa';
+        keywordSelect.classList.add('d-none');
+        refreshOptOutText();
+    } else {
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = '';
+        keywordInput.readOnly = false;
+        keywordInput.style.backgroundColor = '';
+        keywordSelect.classList.add('d-none');
+    }
+
+    clearKeywordValidation();
+    if (numberType !== 'shared_shortcode') {
+        document.getElementById('replyOptoutText').value = '';
+    }
+    validateOptoutConfig();
+}
+
+function onKeywordSelectChange() {
+    clearKeywordValidation();
+    refreshOptOutText();
+    validateOptoutConfig();
+}
+
+function scheduleKeywordValidation() {
+    if (_keywordValidationTimer) clearTimeout(_keywordValidationTimer);
+    _keywordValidationTimer = setTimeout(function() {
+        validateOptOutKeyword();
+    }, 600);
+}
+
+function clearKeywordValidation() {
+    document.getElementById('keywordValidationIcon').innerHTML = '';
+    var errDiv = document.getElementById('keywordError');
+    errDiv.textContent = '';
+    errDiv.classList.add('d-none');
+}
+
+function validateOptOutKeyword() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    if (!numberId || !keyword || keyword.length < 4) {
+        clearKeywordValidation();
+        return;
+    }
+
+    if (_currentNumberType === 'shared_shortcode') {
+        document.getElementById('keywordValidationIcon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+        return;
+    }
+
+    var icon = document.getElementById('keywordValidationIcon');
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin text-muted"></i>';
+
+    fetch('/api/campaigns/validate-opt-out-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var errDiv = document.getElementById('keywordError');
+        if (res.valid) {
+            icon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+            errDiv.textContent = '';
+            errDiv.classList.add('d-none');
+            refreshOptOutText();
+        } else {
+            icon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+            errDiv.textContent = res.message || 'Invalid keyword.';
+            errDiv.classList.remove('d-none');
+        }
+        validateOptoutConfig();
+    })
+    .catch(function() {
+        clearKeywordValidation();
+    });
+}
+
+function refreshOptOutText() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var numberOpt = document.getElementById('optOutNumberId').options[document.getElementById('optOutNumberId').selectedIndex];
+    var numberVal = numberOpt ? numberOpt.dataset.number : '';
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    var textField = document.getElementById('replyOptoutText');
+
+    if (!numberId || !keyword || !numberVal) {
+        textField.value = '';
+        return;
+    }
+
+    fetch('/api/campaigns/suggest-opt-out-text', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.text) textField.value = res.text;
+    })
+    .catch(function() {});
+}
+
+function insertOptOutTextToMessage(fieldId) {
+    var textField = document.getElementById(fieldId);
+    var messageArea = document.getElementById('smsContent');
+    if (!textField || !messageArea) return;
+
+    var text = textField.value.trim();
+    if (!text) {
+        alert('Opt-out text is empty. Please configure opt-out settings first.');
+        return;
+    }
+
+    var current = messageArea.value;
+    var separator = current.trim() ? '\n\n' : '';
+    messageArea.value = current + separator + text;
+    handleContentChange();
+}
+
+function validateOptoutConfig() {
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!isEnabled) {
+        document.getElementById('optoutValidationError').classList.add('d-none');
+        return true;
+    }
+
+    var screeningIds = getScreeningListIds();
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
+    var urlEnabled = document.getElementById('enableUrlOptout').checked;
+    var errorDiv = document.getElementById('optoutValidationError');
+    var errorMsg = document.getElementById('optoutValidationMessage');
+
+    if (screeningIds.length === 0 && !replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Select an opt-out method or choose a screening list.';
+        errorDiv.classList.remove('d-none');
+        return false;
+    }
+
+    errorDiv.classList.add('d-none');
+    return true;
+}
+
+var trackableLinkConfirmed = false;
+var messageExpiryConfirmed = false;
+var socialHoursConfirmed = false;
+
 function toggleTrackableLinkModal() {
-    var enabled = document.getElementById('includeTrackableLink').checked;
-    var summary = document.getElementById('trackableLinkSummary');
-    if (summary) summary.classList.toggle('d-none', !enabled);
+    var isChecked = document.getElementById('includeTrackableLink').checked;
+    if (isChecked) {
+        trackableLinkConfirmed = false;
+        var modalEl = document.getElementById('trackableLinkModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onTrackableLinkModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('trackableLinkSummary').classList.add('d-none');
+    }
+}
+
+function onTrackableLinkModalHidden() {
+    if (!trackableLinkConfirmed) {
+        var hasUrl = document.getElementById('destinationUrl').value.trim() !== '';
+        if (!hasUrl) {
+            document.getElementById('includeTrackableLink').checked = false;
+            document.getElementById('trackableLinkSummary').classList.add('d-none');
+        }
+    }
+}
+
+function openTrackableLinkModal() {
+    var modal = new bootstrap.Modal(document.getElementById('trackableLinkModal'));
+    modal.show();
+}
+
+function confirmTrackableLink() {
+    var domain = document.getElementById('shortUrlDomain').value;
+    var url = document.getElementById('destinationUrl').value.trim();
+    var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
+
+    if (!url) {
+        document.getElementById('destinationUrl').classList.add('is-invalid');
+        return;
+    }
+
+    trackableLinkConfirmed = true;
+    document.getElementById('trackableLinkDomain').textContent = domain;
+    document.getElementById('trackableLinkSummary').classList.remove('d-none');
+
+    if (method === 'cursor') {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var text = textarea.value;
+        var shortUrl = 'https://' + domain + '/abc123';
+        textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+        handleContentChange();
+    } else {
+        insertPlaceholderDirect('trackingUrl');
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
+}
+
+function insertPlaceholderDirect(field) {
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var text = textarea.value;
+    var placeholder = '{' + '{' + field + '}' + '}';
+    textarea.value = text.substring(0, start) + placeholder + text.substring(start);
+    handleContentChange();
 }
 
 function toggleMessageExpiryModal() {
-    var enabled = document.getElementById('messageExpiry').checked;
-    var summary = document.getElementById('messageExpirySummary');
-    if (summary) summary.classList.toggle('d-none', !enabled);
+    var isChecked = document.getElementById('messageExpiry').checked;
+    if (isChecked) {
+        messageExpiryConfirmed = false;
+        var modalEl = document.getElementById('messageExpiryModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onMessageExpiryModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+    }
 }
 
-function addOptoutToMessage(type) {
-    var contentEl = document.getElementById('smsContent');
-    if (!contentEl) return;
-    
-    var text = '';
-    if (type === 'reply') {
-        var vnSelect = document.getElementById('replyVirtualNumber');
-        var number = vnSelect?.selectedOptions[0]?.dataset?.number || '@{' + '{number}}';
-        text = document.getElementById('replyOptoutText')?.value.replace('@{' + '{number}}', number) || '';
-    } else if (type === 'url') {
-        text = document.getElementById('urlOptoutText')?.value || '';
+function onMessageExpiryModalHidden() {
+    if (!messageExpiryConfirmed) {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
     }
-    
-    if (text) {
-        contentEl.value = contentEl.value + (contentEl.value ? '\n' : '') + text;
-        handleContentChange();
+}
+
+function openMessageExpiryModal() {
+    var modal = new bootstrap.Modal(document.getElementById('messageExpiryModal'));
+    modal.show();
+}
+
+function confirmMessageExpiry() {
+    var isEnabled = document.getElementById('validityToggle').checked;
+    if (isEnabled) {
+        var duration = document.getElementById('validityDuration').value;
+        var unit = document.getElementById('validityUnit').value;
+        var unitLabel = unit.charAt(0).toUpperCase() + unit.slice(1);
+        document.getElementById('messageExpiryValue').textContent = duration + ' ' + unitLabel;
+        document.getElementById('messageExpirySummary').classList.remove('d-none');
+        messageExpiryConfirmed = true;
+    } else {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+        messageExpiryConfirmed = true;
     }
+    var modal = bootstrap.Modal.getInstance(document.getElementById('messageExpiryModal'));
+    if (modal) modal.hide();
+}
+
+function toggleValidityFields() {
+    var isChecked = document.getElementById('validityToggle').checked;
+    document.getElementById('validityFields').classList.toggle('d-none', !isChecked);
+}
+
+function toggleSocialHoursFields() {
+    var isChecked = document.getElementById('socialHoursToggle').checked;
+    if (isChecked) {
+        socialHoursConfirmed = false;
+        var modalEl = document.getElementById('socialHoursModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onSocialHoursModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('socialHoursSummary').classList.add('d-none');
+    }
+}
+
+function onSocialHoursModalHidden() {
+    if (!socialHoursConfirmed) {
+        document.getElementById('socialHoursToggle').checked = false;
+        document.getElementById('socialHoursSummary').classList.add('d-none');
+    }
+}
+
+function openSocialHoursModal() {
+    var modal = new bootstrap.Modal(document.getElementById('socialHoursModal'));
+    modal.show();
+}
+
+function confirmSocialHours() {
+    var from = document.getElementById('socialHoursFrom').value || '08:00';
+    var to = document.getElementById('socialHoursTo').value || '20:00';
+    document.getElementById('socialHoursValue').textContent = from + ' - ' + to;
+    document.getElementById('socialHoursSummary').classList.remove('d-none');
+    socialHoursConfirmed = true;
+    var modal = bootstrap.Modal.getInstance(document.getElementById('socialHoursModal'));
+    if (modal) modal.hide();
+}
+
+function updateSocialHoursSummary() {
+    var from = document.getElementById('socialHoursFrom').value || '08:00';
+    var to = document.getElementById('socialHoursTo').value || '20:00';
+    var valueEl = document.getElementById('socialHoursValue');
+    if (valueEl) valueEl.textContent = from + ' - ' + to;
 }
 
 function loadSavedData() {
     var isEditMode = {{ $isEditMode ? 'true' : 'false' }};
     
     if (isEditMode) {
-        // In Edit mode, load from template data
         @if($isEditMode && $template)
         var templateChannel = '{{ $template['channel'] ?? 'sms' }}';
         var channelMap = { 'sms': 'channelSMS', 'basic_rcs': 'channelRCSBasic', 'rich_rcs': 'channelRCSRich' };
@@ -701,18 +1315,96 @@ function loadSavedData() {
             document.getElementById(radioId).checked = true;
             handleChannelChange(templateChannel === 'basic_rcs' ? 'rcs_basic' : (templateChannel === 'rich_rcs' ? 'rcs_rich' : templateChannel));
         }
-        
-        document.getElementById('smsContent').value = '{{ addslashes($template['content'] ?? '') }}';
-        
+
+        document.getElementById('smsContent').value = {!! json_encode($template['content'] ?? '') !!};
+
         var templateSenderId = '{{ $template['senderId'] ?? '' }}';
         if (templateSenderId && document.getElementById('senderId')) {
             document.getElementById('senderId').value = templateSenderId;
         }
-        
+
         var templateRcsAgent = '{{ $template['rcsAgent'] ?? '' }}';
         if (templateRcsAgent && document.getElementById('rcsAgent')) {
             document.getElementById('rcsAgent').value = templateRcsAgent;
         }
+
+        var templateRcsContent = {!! json_encode($template['rcs_content'] ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
+        if (templateRcsContent && (templateChannel === 'rich_rcs')) {
+            rcsContentData = templateRcsContent;
+            updateRcsContentPreview();
+        }
+
+        @if(!empty($template['trackableLink']))
+        (function() {
+            var trackableToggle = document.getElementById('includeTrackableLink');
+            if (trackableToggle) {
+                trackableToggle.checked = true;
+                trackableLinkConfirmed = true;
+                var tSummary = document.getElementById('trackableLinkSummary');
+                if (tSummary) tSummary.classList.remove('d-none');
+                var domain = '{{ $template['trackableLinkDomain'] ?? 'qsms.uk' }}';
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = domain;
+            }
+        })();
+        @endif
+
+        @if(!empty($template['messageExpiry']))
+        (function() {
+            var expiryToggle = document.getElementById('messageExpiry');
+            if (expiryToggle) {
+                expiryToggle.checked = true;
+                messageExpiryConfirmed = true;
+                var eSummary = document.getElementById('messageExpirySummary');
+                if (eSummary) eSummary.classList.remove('d-none');
+                var hours = '{{ $template['messageExpiryHours'] ?? '24' }}';
+                var eVal = document.getElementById('messageExpiryValue');
+                if (eVal) eVal.textContent = hours + ' Hours';
+            }
+        })();
+        @endif
+
+        @if(!empty($template['socialHoursEnabled']))
+        (function() {
+            var shToggle = document.getElementById('socialHoursToggle');
+            if (shToggle) {
+                shToggle.checked = true;
+                socialHoursConfirmed = true;
+                var shSummary = document.getElementById('socialHoursSummary');
+                if (shSummary) shSummary.classList.remove('d-none');
+                var fromVal = '{{ $template['socialHoursFrom'] ?? '08:00' }}';
+                var toVal = '{{ $template['socialHoursTo'] ?? '20:00' }}';
+                var fromInput = document.getElementById('socialHoursFrom');
+                var toInput = document.getElementById('socialHoursTo');
+                if (fromInput) fromInput.value = fromVal;
+                if (toInput) toInput.value = toVal;
+                var shText = document.getElementById('socialHoursValue');
+                if (shText) shText.textContent = fromVal + ' - ' + toVal;
+            }
+        })();
+        @endif
+
+        @if(!empty($template['optOut']))
+        setTimeout(function() {
+            var optOutToggle = document.getElementById('optOutEnabled');
+            if (optOutToggle) {
+                optOutToggle.checked = true;
+                optOutToggle.dispatchEvent(new Event('change'));
+            }
+            var optOutData = {
+                replyEnabled: {{ !empty($template['optOutMethod']) && in_array($template['optOutMethod'], ['reply', 'both']) ? 'true' : 'false' }},
+                urlEnabled: {{ !empty($template['optOutUrlEnabled']) ? 'true' : 'false' }},
+                replyNumberId: '{{ $template['optOutNumberId'] ?? '' }}',
+                replyKeyword: '{{ $template['optOutKeyword'] ?? '' }}',
+                replyOptoutText: {!! json_encode($template['optOutText'] ?? '') !!},
+                replyOptOutListId: '{{ $template['optOutListId'] ?? '' }}',
+                screeningListIds: {!! json_encode($template['optOutScreeningListIds'] ?? []) !!}
+            };
+            if (typeof restoreOptOutData === 'function') {
+                restoreOptOutData(optOutData);
+            }
+        }, 300);
+        @endif
         @endif
     } else {
         // In Create mode, restore from sessionStorage
@@ -740,6 +1432,38 @@ function loadSavedData() {
                     handleChannelChange(data.channel);
                 }
             }
+            if (data.optOut) {
+                setTimeout(function() { restoreOptOutData(data.optOut); }, 200);
+            }
+            if (data.trackableLink && data.trackableLink.enabled) {
+                var trackableToggle = document.getElementById('includeTrackableLink');
+                if (trackableToggle) {
+                    trackableToggle.checked = true;
+                    trackableLinkConfirmed = true;
+                    var tSummary = document.getElementById('trackableLinkSummary');
+                    if (tSummary) tSummary.classList.remove('d-none');
+                    if (data.trackableLink.domain) {
+                        var domainEl = document.getElementById('trackableLinkDomain');
+                        if (domainEl) domainEl.textContent = data.trackableLink.domain;
+                    }
+                }
+            }
+            if (data.messageExpiry && data.messageExpiry.enabled) {
+                var expiryToggle = document.getElementById('messageExpiry');
+                if (expiryToggle) {
+                    expiryToggle.checked = true;
+                    messageExpiryConfirmed = true;
+                    var eSummary = document.getElementById('messageExpirySummary');
+                    if (eSummary) eSummary.classList.remove('d-none');
+                    if (data.messageExpiry.value) {
+                        var eVal = document.getElementById('messageExpiryValue');
+                        if (eVal) eVal.textContent = data.messageExpiry.value;
+                    }
+                }
+            }
+            if (data.socialHours) {
+                restoreSocialHoursData(data.socialHours);
+            }
         }
         
         var savedChannel = sessionStorage.getItem('templateWizardChannel');
@@ -754,6 +1478,136 @@ function loadSavedData() {
     }
     
     handleContentChange();
+}
+
+function collectOptOutData() {
+    var optOutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!optOutEnabled) return { enabled: false };
+
+    var data = { enabled: true };
+    data.screeningListIds = getScreeningListIds();
+
+    var replyEnabled = document.getElementById('enableReplyOptout') && document.getElementById('enableReplyOptout').checked;
+    data.replyEnabled = replyEnabled;
+    if (replyEnabled) {
+        var numSelect = document.getElementById('optOutNumberId');
+        var selectedOpt = numSelect ? numSelect.options[numSelect.selectedIndex] : null;
+        data.replyNumberId = numSelect ? numSelect.value : '';
+        data.replyNumberType = selectedOpt ? (selectedOpt.dataset.type || '') : '';
+        data.replyKeyword = (document.getElementById('optOutKeywordInput') || {}).value || '';
+        data.replyOptoutText = (document.getElementById('replyOptoutText') || {}).value || '';
+        var replyTarget = document.querySelector('input[name="replyListTarget"]:checked');
+        data.replyListTarget = replyTarget ? replyTarget.value : 'existing';
+        data.replyOptOutListId = (document.getElementById('replyOptOutListId') || {}).value || '';
+        data.replyNewListName = (document.getElementById('replyNewListName') || {}).value || '';
+    }
+
+    var urlEnabled = document.getElementById('enableUrlOptout') && document.getElementById('enableUrlOptout').checked;
+    data.urlEnabled = urlEnabled;
+    if (urlEnabled) {
+        data.urlOptoutText = (document.getElementById('urlOptoutText') || {}).value || '';
+        var urlTarget = document.querySelector('input[name="urlListTarget"]:checked');
+        data.urlListTarget = urlTarget ? urlTarget.value : 'existing';
+        data.urlOptOutListId = (document.getElementById('urlOptOutListId') || {}).value || '';
+        data.urlNewListName = (document.getElementById('urlNewListName') || {}).value || '';
+    }
+
+    return data;
+}
+
+function collectSocialHoursData() {
+    var toggle = document.getElementById('socialHoursToggle');
+    if (!toggle || !toggle.checked) return { enabled: false };
+    return {
+        enabled: true,
+        from: (document.getElementById('socialHoursFrom') || {}).value || '08:00',
+        to: (document.getElementById('socialHoursTo') || {}).value || '20:00'
+    };
+}
+
+function restoreOptOutData(data) {
+    if (!data || !data.enabled) return;
+
+    var toggle = document.getElementById('enableOptoutManagement');
+    if (toggle) {
+        toggle.checked = true;
+        toggleOptoutManagement();
+    }
+
+    if (data.screeningListIds && data.screeningListIds.length > 0) {
+        data.screeningListIds.forEach(function(id) {
+            var cb = document.getElementById('screening_' + id);
+            if (cb) cb.checked = true;
+        });
+        onScreeningListChange();
+    }
+
+    if (data.replyEnabled) {
+        var replyCb = document.getElementById('enableReplyOptout');
+        if (replyCb) {
+            replyCb.checked = true;
+            document.getElementById('replyOptoutConfig').classList.remove('d-none');
+        }
+        loadOptOutNumbers(function() {
+            if (data.replyNumberId) {
+                var numSelect = document.getElementById('optOutNumberId');
+                if (numSelect) {
+                    numSelect.value = data.replyNumberId;
+                    onOptOutNumberChange();
+                }
+            }
+            if (data.replyKeyword) {
+                var kwInput = document.getElementById('optOutKeywordInput');
+                if (kwInput) kwInput.value = data.replyKeyword;
+            }
+            if (data.replyOptoutText) {
+                var textField = document.getElementById('replyOptoutText');
+                if (textField) textField.value = data.replyOptoutText;
+            }
+            if (data.replyListTarget === 'new') {
+                var newRadio = document.getElementById('replyListNew');
+                if (newRadio) { newRadio.checked = true; toggleReplyStorageList(); }
+                var nameField = document.getElementById('replyNewListName');
+                if (nameField) nameField.value = data.replyNewListName || '';
+            } else if (data.replyOptOutListId) {
+                var listSelect = document.getElementById('replyOptOutListId');
+                if (listSelect) listSelect.value = data.replyOptOutListId;
+            }
+        });
+    }
+
+    if (data.urlEnabled) {
+        var urlCb = document.getElementById('enableUrlOptout');
+        if (urlCb) {
+            urlCb.checked = true;
+            document.getElementById('urlOptoutConfig').classList.remove('d-none');
+        }
+        if (data.urlOptoutText) {
+            var tf = document.getElementById('urlOptoutText');
+            if (tf) tf.value = data.urlOptoutText;
+        }
+        if (data.urlListTarget === 'new') {
+            var newRadio = document.getElementById('urlListNew');
+            if (newRadio) { newRadio.checked = true; toggleUrlStorageList(); }
+            var nameField = document.getElementById('urlNewListName');
+            if (nameField) nameField.value = data.urlNewListName || '';
+        } else if (data.urlOptOutListId) {
+            var listSelect = document.getElementById('urlOptOutListId');
+            if (listSelect) listSelect.value = data.urlOptOutListId;
+        }
+    }
+}
+
+function restoreSocialHoursData(data) {
+    if (!data || !data.enabled) return;
+    var toggle = document.getElementById('socialHoursToggle');
+    if (toggle) {
+        toggle.checked = true;
+        toggleSocialHoursFields();
+    }
+    if (data.from) document.getElementById('socialHoursFrom').value = data.from;
+    if (data.to) document.getElementById('socialHoursTo').value = data.to;
+    updateSocialHoursSummary();
 }
 
 document.getElementById('nextBtn').addEventListener('click', function(e) {
@@ -782,18 +1636,94 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
             return;
         }
     }
+
+    var optOutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (optOutEnabled && !validateOptoutConfig()) {
+        e.preventDefault();
+        return;
+    }
     
+    var trackableToggle = document.getElementById('includeTrackableLink');
+    var trackableLinkData = { enabled: false };
+    if (trackableToggle && trackableToggle.checked && trackableLinkConfirmed) {
+        var domainEl = document.getElementById('trackableLinkDomain');
+        trackableLinkData = { enabled: true, domain: domainEl ? domainEl.textContent : 'qsms.uk' };
+    }
+
+    var expiryToggle = document.getElementById('messageExpiry');
+    var messageExpiryData = { enabled: false };
+    if (expiryToggle && expiryToggle.checked && messageExpiryConfirmed) {
+        var expiryValueEl = document.getElementById('messageExpiryValue');
+        messageExpiryData = { enabled: true, value: expiryValueEl ? expiryValueEl.textContent : '' };
+    }
+
+    var senderSelect = document.getElementById('senderId');
+    var senderName = senderSelect && senderSelect.selectedIndex > 0 ? senderSelect.options[senderSelect.selectedIndex].text : '';
+
     sessionStorage.setItem('templateWizardStep2', JSON.stringify({
         channel: channel,
         smsText: smsContent.value,
-        senderId: document.getElementById('senderId').value,
+        senderId: senderSelect ? senderSelect.value : '',
+        senderName: senderName,
         rcsAgent: document.getElementById('rcsAgent').value,
-        rcsContentData: rcsContentData
+        rcsAgentName: (function() { var el = document.getElementById('rcsAgent'); return el && el.selectedIndex > 0 ? el.options[el.selectedIndex].text : ''; })(),
+        rcsContentData: rcsContentData,
+        rcsContentType: (function() { var el = document.querySelector('input[name="rcsMessageType"]:checked'); return el ? el.value : 'single'; })(),
+        optOut: collectOptOutData(),
+        trackableLink: trackableLinkData,
+        messageExpiry: messageExpiryData,
+        socialHours: collectSocialHoursData()
     }));
 });
 
 document.getElementById('smsContent').addEventListener('input', function() {
     this.classList.remove('is-invalid');
 });
+
+var nextBtn = document.getElementById('nextBtn');
+if (nextBtn) {
+    nextBtn.addEventListener('click', function(e) {
+        var errors = [];
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect && !senderSelect.value) {
+            errors.push('Please select an SMS Sender ID.');
+            senderSelect.classList.add('is-invalid');
+        }
+
+        var channel = document.querySelector('input[name="channel"]:checked')?.value || 'sms';
+        if (channel === 'rcs_basic' || channel === 'rcs_rich') {
+            var rcsAgent = document.getElementById('rcsAgent');
+            if (rcsAgent && !rcsAgent.value) {
+                errors.push('Please select an RCS Agent.');
+                rcsAgent.classList.add('is-invalid');
+            }
+        }
+
+        var smsContent = document.getElementById('smsContent');
+        if (smsContent && !smsContent.value.trim()) {
+            errors.push('Please enter message content.');
+            smsContent.classList.add('is-invalid');
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            var alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                errors.join('<br>') +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            var container = document.querySelector('.template-content-left .card-body');
+            if (container) {
+                var existing = container.querySelector('.alert-danger');
+                if (existing) existing.remove();
+                container.insertAdjacentHTML('afterbegin', alertHtml);
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    });
+}
+
+var senderEl = document.getElementById('senderId');
+if (senderEl) senderEl.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+var agentEl = document.getElementById('rcsAgent');
+if (agentEl) agentEl.addEventListener('change', function() { this.classList.remove('is-invalid'); });
 </script>
 @endpush

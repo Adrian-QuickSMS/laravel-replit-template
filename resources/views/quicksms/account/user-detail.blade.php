@@ -938,7 +938,7 @@
                     <div class="use-case-text">{{ $currentRole['use_case'] }}</div>
                 </div>
                 
-                <a href="https://help.quicksms.io/roles/{{ $currentRole['kb_slug'] }}" target="_blank" rel="noopener" class="kb-link">
+                <a href="https://help.quicksms.com/roles/{{ $currentRole['kb_slug'] }}" target="_blank" rel="noopener" class="kb-link">
                     <i class="fas fa-external-link-alt"></i>
                     Learn more about this role in our Knowledge Base
                 </a>
@@ -1315,7 +1315,7 @@
                     </div>
                 </div>
                 
-                <a href="https://help.quicksms.io/roles" target="_blank" rel="noopener" class="kb-footer-link">
+                <a href="https://help.quicksms.com/roles" target="_blank" rel="noopener" class="kb-footer-link">
                     <i class="fas fa-external-link-alt"></i>
                     Learn more about roles in our Knowledge Base
                 </a>

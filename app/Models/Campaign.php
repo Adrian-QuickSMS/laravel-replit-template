@@ -43,6 +43,7 @@ class Campaign extends Model
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_FAILED = 'failed';
+    const STATUS_ARCHIVED = 'archived';
 
     const STATUSES = [
         self::STATUS_DRAFT,
@@ -53,6 +54,7 @@ class Campaign extends Model
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
         self::STATUS_FAILED,
+        self::STATUS_ARCHIVED,
     ];
 
     // =====================================================
@@ -65,9 +67,10 @@ class Campaign extends Model
         self::STATUS_QUEUED    => [self::STATUS_SENDING, self::STATUS_FAILED, self::STATUS_CANCELLED],
         self::STATUS_SENDING   => [self::STATUS_PAUSED, self::STATUS_COMPLETED, self::STATUS_FAILED],
         self::STATUS_PAUSED    => [self::STATUS_SENDING, self::STATUS_CANCELLED],
-        self::STATUS_COMPLETED => [], // terminal
-        self::STATUS_CANCELLED => [], // terminal
-        self::STATUS_FAILED    => [self::STATUS_DRAFT], // can retry via re-draft
+        self::STATUS_COMPLETED => [self::STATUS_ARCHIVED],
+        self::STATUS_CANCELLED => [self::STATUS_ARCHIVED],
+        self::STATUS_FAILED    => [self::STATUS_DRAFT, self::STATUS_ARCHIVED],
+        self::STATUS_ARCHIVED  => [],
     ];
 
     // =====================================================
@@ -139,7 +142,11 @@ class Campaign extends Model
         'opt_out_keyword',
         'opt_out_text',
         'opt_out_list_id',
+        'opt_out_screening_list_ids',
         'opt_out_url_enabled',
+        'validity_period',
+        'sending_window_start',
+        'sending_window_end',
     ];
 
     protected $casts = [
@@ -172,6 +179,7 @@ class Campaign extends Model
         'opt_out_url_enabled' => 'boolean',
         'opt_out_number_id' => 'string',
         'opt_out_list_id' => 'string',
+        'opt_out_screening_list_ids' => 'array',
         'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -236,12 +244,12 @@ class Campaign extends Model
 
     public function senderId(): BelongsTo
     {
-        return $this->belongsTo(SenderId::class, 'sender_id_id');
+        return $this->belongsTo(SenderId::class, 'sender_id_id', 'id');
     }
 
     public function rcsAgent(): BelongsTo
     {
-        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id');
+        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id', 'id');
     }
 
     public function reservation(): BelongsTo
@@ -385,9 +393,14 @@ class Campaign extends Model
         return $this->status === self::STATUS_FAILED;
     }
 
+    public function isArchived(): bool
+    {
+        return $this->status === self::STATUS_ARCHIVED;
+    }
+
     public function isTerminal(): bool
     {
-        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_ARCHIVED]);
     }
 
     public function isActive(): bool
@@ -397,7 +410,7 @@ class Campaign extends Model
 
     public function isEditable(): bool
     {
-        return $this->status === self::STATUS_DRAFT;
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_SCHEDULED]);
     }
 
     public function canPause(): bool
@@ -613,6 +626,10 @@ class Campaign extends Model
             'opt_out_text' => $this->opt_out_text,
             'opt_out_list_id' => $this->opt_out_list_id,
             'opt_out_url_enabled' => $this->opt_out_url_enabled,
+            'opt_out_screening_list_ids' => $this->opt_out_screening_list_ids ?? [],
+            'validity_period' => $this->validity_period,
+            'sending_window_start' => $this->sending_window_start,
+            'sending_window_end' => $this->sending_window_end,
             'is_editable' => $this->isEditable(),
             'can_pause' => $this->canPause(),
             'can_resume' => $this->canResume(),

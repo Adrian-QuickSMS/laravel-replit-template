@@ -20,7 +20,7 @@ class EmailToSmsReportingGroupController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = EmailToSmsReportingGroup::forAccount($this->tenantId());
+        $query = EmailToSmsReportingGroup::query();
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -36,15 +36,12 @@ class EmailToSmsReportingGroupController extends Controller
 
         $groups = $query->orderBy('name')->get();
 
-        // Compute aggregates: messagesSent and lastActivity from message_logs
         $groupIds = $groups->pluck('id');
-        $linkedSetups = EmailToSmsSetup::forAccount($this->tenantId())
-            ->whereIn('reporting_group_id', $groupIds)
+        $linkedSetups = EmailToSmsSetup::whereIn('reporting_group_id', $groupIds)
             ->select('id', 'name', 'reporting_group_id')
             ->get()
             ->groupBy('reporting_group_id');
 
-        // Get computed aggregates from message_logs if table/column exists
         $aggregates = collect();
         try {
             $aggregates = DB::table('message_logs')
@@ -60,7 +57,6 @@ class EmailToSmsReportingGroupController extends Controller
                 ->get()
                 ->keyBy('reporting_group_id');
         } catch (\Exception $e) {
-            // message_logs may not have email_to_sms_setup_id column yet
             Log::warning('Email-to-SMS reporting group aggregates query failed', [
                 'error' => $e->getMessage(),
             ]);
@@ -93,21 +89,18 @@ class EmailToSmsReportingGroupController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'nullable|string|max:500',
         ]);
 
         $tenantId = $this->tenantId();
 
-        // Check for duplicate name within tenant
-        $nameExists = EmailToSmsReportingGroup::forAccount($tenantId)
-            ->where('name', $request->input('name'))
-            ->exists();
+        $nameExists = EmailToSmsReportingGroup::where('name', $request->input('name'))->exists();
         if ($nameExists) {
             return response()->json(['success' => false, 'error' => 'A reporting group with this name already exists'], 422);
         }
 
         $group = DB::transaction(function () use ($request, $tenantId) {
-            $group = EmailToSmsReportingGroup::create([
+            $group = EmailToSmsReportingGroup::withoutGlobalScopes()->create([
                 'account_id' => $tenantId,
                 'name' => $request->input('name'),
                 'description' => $request->input('description'),
@@ -115,7 +108,8 @@ class EmailToSmsReportingGroupController extends Controller
             ]);
 
             EmailToSmsAuditLog::logAction(
-                $tenantId, 'created', 'reporting_group', null, $group->id,
+                $tenantId, 'created', null, $group->id,
+                "Created reporting group: {$group->name}",
                 ['name' => $group->name]
             );
 
@@ -124,36 +118,34 @@ class EmailToSmsReportingGroupController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformGroup($group),
+            'data' => $group->toPortalArray(),
             'message' => 'Reporting group created successfully',
         ], 201);
     }
 
     public function show(string $id): JsonResponse
     {
-        $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
+        $group = EmailToSmsReportingGroup::findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformGroup($group),
+            'data' => $group->toPortalArray(),
         ]);
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
-        $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
+        $group = EmailToSmsReportingGroup::findOrFail($id);
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'nullable|string|max:500',
         ]);
 
         $tenantId = $this->tenantId();
 
-        // Check for duplicate name within tenant (if name is being changed)
         if ($request->filled('name') && $request->input('name') !== $group->name) {
-            $nameExists = EmailToSmsReportingGroup::forAccount($tenantId)
-                ->where('name', $request->input('name'))
+            $nameExists = EmailToSmsReportingGroup::where('name', $request->input('name'))
                 ->where('id', '!=', $group->id)
                 ->exists();
             if ($nameExists) {
@@ -168,56 +160,60 @@ class EmailToSmsReportingGroupController extends Controller
             $group->update($updateFields);
 
             EmailToSmsAuditLog::logAction(
-                $tenantId, 'updated', 'reporting_group', null, $group->id,
+                $tenantId, 'updated', null, $group->id,
+                "Updated reporting group: {$group->name}",
                 ['before' => $original, 'after' => $updateFields]
             );
         });
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformGroup($group),
+            'data' => $group->toPortalArray(),
             'message' => 'Reporting group updated successfully',
         ]);
     }
 
     public function archive(string $id): JsonResponse
     {
-        $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
+        $group = EmailToSmsReportingGroup::findOrFail($id);
         $group->update(['status' => 'archived']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'archived', 'reporting_group', null, $group->id
+            $this->tenantId(), 'archived', null, $group->id,
+            "Archived reporting group: {$group->name}"
         );
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformGroup($group),
+            'data' => $group->toPortalArray(),
             'message' => 'Reporting group archived successfully',
         ]);
     }
 
     public function unarchive(string $id): JsonResponse
     {
-        $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
+        $group = EmailToSmsReportingGroup::findOrFail($id);
         $group->update(['status' => 'active']);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'unarchived', 'reporting_group', null, $group->id
+            $this->tenantId(), 'unarchived', null, $group->id,
+            "Unarchived reporting group: {$group->name}"
         );
 
         return response()->json([
             'success' => true,
-            'data' => $this->transformGroup($group),
+            'data' => $group->toPortalArray(),
             'message' => 'Reporting group unarchived successfully',
         ]);
     }
 
     public function destroy(string $id): JsonResponse
     {
-        $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
+        $group = EmailToSmsReportingGroup::findOrFail($id);
 
         EmailToSmsAuditLog::logAction(
-            $this->tenantId(), 'deleted', 'reporting_group', null, $group->id,
+            $this->tenantId(), 'deleted', null, $group->id,
+            "Deleted reporting group: {$group->name}",
             ['name' => $group->name]
         );
 
@@ -227,18 +223,5 @@ class EmailToSmsReportingGroupController extends Controller
             'success' => true,
             'message' => 'Reporting group deleted successfully',
         ]);
-    }
-
-    private function transformGroup(EmailToSmsReportingGroup $group): array
-    {
-        return [
-            'id' => $group->id,
-            'name' => $group->name,
-            'description' => $group->description,
-            'status' => ucfirst($group->status),
-            'created' => $group->created_at?->format('Y-m-d'),
-            'createdAt' => $group->created_at?->toIso8601String(),
-            'updatedAt' => $group->updated_at?->toIso8601String(),
-        ];
     }
 }

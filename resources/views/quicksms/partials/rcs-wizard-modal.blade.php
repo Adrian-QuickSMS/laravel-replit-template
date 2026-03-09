@@ -17,13 +17,6 @@
     #rcsWizardModal .modal-header {
         flex-shrink: 0 !important;
     }
-    #rcsWizardModal .modal-footer {
-        flex-shrink: 0 !important;
-        position: sticky !important;
-        bottom: 0 !important;
-        z-index: 10 !important;
-        background: #fff !important;
-    }
     #rcsWizardBody {
         flex: 1 1 0% !important;
         min-height: 0 !important;
@@ -295,14 +288,15 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                <button type="button" class="btn btn-secondary" id="rcsWizardCancelBtn">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn" onclick="if(typeof handleRcsApplyContent==='function')handleRcsApplyContent();">
+                                    <i class="fas fa-check me-1"></i>Apply RCS Content
+                                </button>
+                            </div>
                         </div>
                     </div>
-            </div>
-            <div class="modal-footer py-2 border-top" style="background: #fff;">
-                <button type="button" class="btn btn-secondary" id="rcsWizardCancelBtn">Cancel</button>
-                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn">
-                    <i class="fas fa-check me-1"></i>Apply RCS Content
-                </button>
             </div>
         </div>
     </div>
@@ -316,13 +310,15 @@
             </div>
             <div class="modal-body">
                 <p>You have made changes to how the image is presented. Do you want to save?</p>
-                <div class="small mb-3 p-3 rounded" style="background: rgba(136, 108, 192, 0.15); color: #6c5b9e;">
-                    <i class="fas fa-info-circle me-1"></i>
-                    <strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.
-                </div>
-                <div class="alert alert-secondary small mb-0">
-                    <i class="fas fa-undo me-1"></i>
-                    <strong>If you don't save:</strong> The image will render using the default (original URL and default presentation).
+                <div class="small mb-0 p-3 rounded" id="rcsSaveInfoBox" style="background: rgba(136, 108, 192, 0.15); color: #6c5b9e;">
+                    <div class="mb-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="rcsSaveInfoText"><strong>If you save:</strong> QuickSMS will save your cropping and zoom adjustments to the uploaded image.</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-undo me-1"></i>
+                        <span id="rcsNoSaveInfoText"><strong>If you don't save:</strong> The image will render using its original presentation.</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -347,3 +343,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<div class="modal fade" id="rcsRemoveCardModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-dark"><i class="fas fa-trash-alt me-2 text-danger"></i>Remove Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <p class="mb-0" id="rcsRemoveCardMessage">Are you sure you want to remove this card?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="rcsConfirmRemoveCardBtn">Remove Card</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -305,15 +305,22 @@ document.addEventListener('DOMContentLoaded', function() {
         selectTemplateType(templateType);
         @endif
     } else {
-        // In Create mode, restore from sessionStorage
-        var savedData = sessionStorage.getItem('templateWizardStep1');
-        if (savedData) {
-            var data = JSON.parse(savedData);
-            document.getElementById('templateName').value = data.name || '';
-            document.getElementById('templateDescription').value = data.description || '';
-            if (data.type) {
-                selectTemplateType(data.type);
+        var cameFromStep2 = document.referrer && document.referrer.indexOf('/step2') !== -1;
+        if (cameFromStep2) {
+            var savedData = sessionStorage.getItem('templateWizardStep1');
+            if (savedData) {
+                var data = JSON.parse(savedData);
+                document.getElementById('templateName').value = data.name || '';
+                document.getElementById('templateDescription').value = data.description || '';
+                if (data.type) {
+                    selectTemplateType(data.type);
+                }
             }
+        } else {
+            sessionStorage.removeItem('templateWizardStep1');
+            sessionStorage.removeItem('templateWizardStep2');
+            sessionStorage.removeItem('templateWizardStep3');
+            sessionStorage.removeItem('templateWizardChannel');
         }
     }
 

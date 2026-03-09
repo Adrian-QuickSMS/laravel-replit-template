@@ -582,6 +582,24 @@
 .bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
 
 /* ========================================
+   OPERATIONAL OVERVIEW STAT CARDS
+   ======================================== */
+#tile-balance,
+#tile-inbound,
+#tile-messages-today,
+#tile-delivery-rate {
+    background-color: #f5f5f7 !important;
+    border: none !important;
+}
+
+#tile-balance .media-body h4,
+#tile-inbound .media-body h4,
+#tile-messages-today .media-body h4,
+#tile-delivery-rate .media-body h4 {
+    color: #1a1a1a !important;
+}
+
+/* ========================================
    DASHBOARD TILES
    ======================================== */
 .dashboard-tile {

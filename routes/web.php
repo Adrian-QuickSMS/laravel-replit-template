@@ -155,6 +155,8 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->g
     Route::post('/bulk/remove-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveTags'])->name('api.contacts.bulk.remove-tags');
     Route::post('/bulk/delete', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkDelete'])->name('api.contacts.bulk.delete');
     Route::post('/bulk/export', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkExport'])->name('api.contacts.bulk.export');
+    Route::post('/bulk/add-to-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddToOptOut'])->name('api.contacts.bulk.add-to-opt-out');
+    Route::post('/bulk/remove-from-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveFromOptOut'])->name('api.contacts.bulk.remove-from-opt-out');
 
     Route::get('/{id}/timeline', [\App\Http\Controllers\Api\ContactBookApiController::class, 'timeline'])->name('api.contacts.timeline');
     Route::post('/{id}/reveal-msisdn', [\App\Http\Controllers\Api\ContactBookApiController::class, 'revealMsisdn'])->name('api.contacts.reveal-msisdn');
@@ -320,6 +322,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     Route::post('/{id}/pause', 'pause')->name('api.campaigns.pause');
     Route::post('/{id}/resume', 'resume')->name('api.campaigns.resume');
     Route::post('/{id}/cancel', 'cancel')->name('api.campaigns.cancel');
+    Route::post('/{id}/archive', 'archive')->name('api.campaigns.archive');
 
     // Clone
     Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');
@@ -338,6 +341,11 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
     // Favourites
     Route::post('/{id}/toggle-favourite', 'toggleFavourite')->name('api.message-templates.toggle-favourite');
 
+    // Version history & rollback
+    Route::get('/{id}/versions', 'versionHistory')->name('api.message-templates.versions');
+    Route::get('/{id}/audit-log', 'auditLog')->name('api.message-templates.audit-log');
+    Route::post('/{id}/rollback/{version}', 'rollback')->name('api.message-templates.rollback');
+
     // Content analysis (stateless utility)
     Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
 });
@@ -350,14 +358,21 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms'
     // Overview (unified standard + contact list listing)
     Route::get('/overview', 'overview')->name('api.email-to-sms.overview');
 
-    // Helper endpoints
+    // Helper endpoints — lookups for wizard dropdowns
     Route::get('/templates/senderids', 'senderIdTemplates')->name('api.email-to-sms.sender-id-templates');
+    Route::get('/sms-templates/approved', 'approvedSmsTemplates')->name('api.email-to-sms.sms-templates');
     Route::get('/subaccounts', 'subaccounts')->name('api.email-to-sms.subaccounts');
     Route::get('/account/flags', 'accountFlags')->name('api.email-to-sms.account-flags');
+    Route::get('/contact-books', 'contactBooks')->name('api.email-to-sms.contact-books');
+    Route::get('/contact-book-data', 'contactBookData')->name('api.email-to-sms.contact-book-data');
+    Route::get('/contacts', 'contacts')->name('api.email-to-sms.contacts');
+    Route::get('/tags', 'tags')->name('api.email-to-sms.tags');
+    Route::get('/opt-out-lists', 'optOutLists')->name('api.email-to-sms.opt-out-lists');
 
     // Setup CRUD
     Route::get('/setups', 'index')->name('api.email-to-sms.setups.index');
-    Route::post('/setups', 'store')->name('api.email-to-sms.setups.store');
+    Route::post('/setups', 'store')->name('api.email-to-sms.setups.store')
+        ->defaults('type', 'standard');
     Route::get('/setups/{id}', 'show')->name('api.email-to-sms.setups.show');
     Route::put('/setups/{id}', 'update')->name('api.email-to-sms.setups.update');
     Route::delete('/setups/{id}', 'destroy')->name('api.email-to-sms.setups.destroy');
@@ -368,10 +383,11 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms'
     Route::post('/setups/{id}/archive', 'archive')->name('api.email-to-sms.setups.archive');
     Route::post('/setups/{id}/unarchive', 'unarchive')->name('api.email-to-sms.setups.unarchive');
 
-    // Contact List setup aliases — JS service calls /contact-list-setups/* which maps to unified /setups?type=contact_list
+    // Contact List setup aliases — JS service calls /contact-list-setups/* which maps to unified controller
     Route::get('/contact-list-setups', 'index')->name('api.email-to-sms.contact-list-setups.index')
         ->defaults('type', 'contact_list');
-    Route::post('/contact-list-setups', 'store')->name('api.email-to-sms.contact-list-setups.store');
+    Route::post('/contact-list-setups', 'store')->name('api.email-to-sms.contact-list-setups.store')
+        ->defaults('type', 'contact_list');
     Route::get('/contact-list-setups/{id}', 'show')->name('api.email-to-sms.contact-list-setups.show');
     Route::put('/contact-list-setups/{id}', 'update')->name('api.email-to-sms.contact-list-setups.update');
     Route::post('/contact-list-setups/{id}/archive', 'archive')->name('api.email-to-sms.contact-list-setups.archive');
@@ -433,6 +449,14 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             
             Route::get('/management/templates', 'managementTemplates')->name('admin.management.templates');
+            Route::get('/api/templates', 'apiTemplatesList')->name('admin.api.templates');
+            Route::post('/api/templates/{accountId}/{templateId}/suspend', 'apiTemplateSuspend')->name('admin.api.templates.suspend');
+            Route::post('/api/templates/{accountId}/{templateId}/reactivate', 'apiTemplateReactivate')->name('admin.api.templates.reactivate');
+            Route::post('/api/templates/{accountId}/{templateId}/archive', 'apiTemplateArchive')->name('admin.api.templates.archive');
+            Route::post('/api/templates/{accountId}/{templateId}/duplicate', 'apiTemplateDuplicate')->name('admin.api.templates.duplicate');
+            Route::get('/api/templates/{accountId}/{templateId}/versions', 'apiTemplateVersions')->name('admin.api.templates.versions');
+            Route::get('/api/templates/{accountId}/{templateId}/audit-log', 'apiTemplateAuditLog')->name('admin.api.templates.audit-log');
+            Route::get('/api/accounts', 'apiAccountsSearch')->name('admin.api.accounts.search');
             Route::get('/management/templates/{accountId}/{templateId}/edit', function($accountId, $templateId) {
                 return redirect()->route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]);
             })->name('admin.management.templates.edit');
@@ -600,6 +624,29 @@ Route::prefix('admin')->group(function () {
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');
                 Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.rcs-agents.reactivate');
                 Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.rcs-agents.revoke');
+            });
+
+            Route::prefix('api/numbers')->controller(\App\Http\Controllers\Admin\AdminNumbersApiController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.numbers.index');
+                Route::get('/lookup/accounts', 'lookupAccounts')->name('admin.api.numbers.lookup.accounts');
+                Route::post('/bulk/reassign', 'bulkReassign')->name('admin.api.numbers.bulk.reassign');
+                Route::post('/bulk/suspend', 'bulkSuspend')->name('admin.api.numbers.bulk.suspend');
+                Route::post('/bulk/reactivate', 'bulkReactivate')->name('admin.api.numbers.bulk.reactivate');
+                Route::put('/bulk/mode', 'bulkMode')->name('admin.api.numbers.bulk.mode');
+                Route::put('/bulk/capabilities', 'bulkCapabilities')->name('admin.api.numbers.bulk.capabilities');
+                Route::post('/bulk/return-to-pool', 'bulkReturnToPool')->name('admin.api.numbers.bulk.return-to-pool');
+                Route::get('/export', 'exportNumbers')->name('admin.api.numbers.export');
+                Route::get('/{id}', 'show')->name('admin.api.numbers.show');
+                Route::post('/{id}/suspend', 'suspend')->name('admin.api.numbers.suspend');
+                Route::post('/{id}/reactivate', 'reactivate')->name('admin.api.numbers.reactivate');
+                Route::post('/{id}/reassign', 'reassign')->name('admin.api.numbers.reassign');
+                Route::put('/{id}/mode', 'updateMode')->name('admin.api.numbers.mode');
+                Route::put('/{id}/capabilities', 'updateCapabilities')->name('admin.api.numbers.capabilities');
+                Route::put('/{id}/webhook', 'updateWebhook')->name('admin.api.numbers.webhook');
+                Route::put('/{id}/optout-routing', 'updateOptoutRouting')->name('admin.api.numbers.optout-routing');
+                Route::post('/{id}/disable-keyword', 'disableKeyword')->name('admin.api.numbers.disable-keyword');
+                Route::post('/{id}/return-to-pool', 'returnToPool')->name('admin.api.numbers.return-to-pool');
+                Route::get('/{id}/audit', 'audit')->name('admin.api.numbers.audit');
             });
 
             // Pricing Management — view + API
