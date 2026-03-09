@@ -100,6 +100,25 @@
             </ol>
         </div>
         
+        @if(!empty($is_test_mode))
+        <div class="alert mb-3 border-0" style="background-color: #fff3cd; color: #856404;">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-flask me-3 mt-1" style="font-size: 1.25rem;"></i>
+                <div class="flex-grow-1">
+                    <strong>Test Mode{{ !empty($is_test_standard) ? ' — Standard' : ' — Dynamic' }}</strong>
+                    <div class="mt-1 small">
+                        @if(!empty($is_test_standard))
+                        <div class="mb-1"><i class="fas fa-stamp me-1"></i> A disclaimer will be prepended to every message: <em>"QuickSMS TEST message. If unexpected, do not trust links or numbers."</em> (+68 chars inc. space)</div>
+                        <div class="mb-1"><i class="fas fa-phone-alt me-1"></i> Recipients are restricted to your <a href="{{ route('account.details') }}" class="fw-bold">approved test numbers</a> ({{ count($approved_test_numbers ?? []) }} configured)</div>
+                        <div class="mb-1"><i class="fas fa-id-card me-1"></i> Sender ID is restricted to "QuickSMS Test Sender" or your approved Sender IDs</div>
+                        @endif
+                        <div><i class="fas fa-coins me-1"></i> Using test credits: <strong>{{ $test_credits_remaining ?? 0 }}</strong> remaining</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="send-message-layout">
         <div class="send-message-left">
             <div class="card mb-3">
@@ -236,6 +255,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
                             <span class="text-muted me-3">Characters: <strong id="charCount">0</strong></span>
+                            <span class="text-warning small d-none me-3" id="disclaimerCharIndicator"></span>
                             <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
                             <span class="text-muted" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
                         </div>
@@ -2384,12 +2404,23 @@ function isGSM7(text) {
 
 function handleContentChange() {
     var rawContent = document.getElementById('smsContent').value;
-    // unique_url placeholder always renders as qout.uk/XXXXX (13 chars) — substitute before counting
     var content = rawContent.replace(/\{\{\s*unique_url\s*\}\}/g, 'qout.uk/XXXXX');
     var charCount = content.length;
     var isGsm = isGSM7(content);
     var channel = document.querySelector('input[name="channel"]:checked').value;
     var hasPlaceholders = /\{\{\s*[^}]+?\s*\}\}/.test(content);
+
+    var isTestStandard = {{ !empty($is_test_standard) ? 'true' : 'false' }};
+    var disclaimerLength = 68;
+    var totalCharCount = isTestStandard && channel === 'sms' ? charCount + disclaimerLength : charCount;
+
+    var disclaimerIndicator = document.getElementById('disclaimerCharIndicator');
+    if (disclaimerIndicator) {
+        disclaimerIndicator.classList.toggle('d-none', !(isTestStandard && channel === 'sms' && charCount > 0));
+        if (isTestStandard && channel === 'sms' && charCount > 0) {
+            disclaimerIndicator.innerHTML = '<i class="fas fa-plus-circle me-1"></i>+' + disclaimerLength + ' disclaimer = <strong>' + totalCharCount + ' total</strong>';
+        }
+    }
 
     if (hasPlaceholders && content.length > 0) {
         document.getElementById('charCount').textContent = 'N/A';
@@ -2413,8 +2444,12 @@ function handleContentChange() {
         } else {
             var singleLimit = isGsm ? 160 : 70;
             var concatLimit = isGsm ? 153 : 67;
-            var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
+            var segCharCount = isTestStandard && channel === 'sms' ? totalCharCount : charCount;
+            var parts = segCharCount <= singleLimit ? 1 : Math.ceil(segCharCount / concatLimit);
             segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+            if (isTestStandard && channel === 'sms' && charCount > 0) {
+                segmentDisplay.innerHTML += ' <span class="text-warning small">(inc. disclaimer)</span>';
+            }
             if (channel !== 'rcs_basic') {
                 document.getElementById('rcsTextHelper').classList.add('d-none');
             }

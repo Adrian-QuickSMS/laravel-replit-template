@@ -445,9 +445,11 @@ class CampaignService
 
         // 2. Sender required and must be approved
         if ($campaign->isSms()) {
-            if (!$campaign->sender_id_id) {
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($campaign->account_id);
+            $isTestWithDefaultSender = $account && $account->isTestMode() && !$campaign->sender_id_id;
+            if (!$campaign->sender_id_id && !$isTestWithDefaultSender) {
                 $errors[] = 'An approved Sender ID is required for SMS campaigns.';
-            } else {
+            } elseif ($campaign->sender_id_id) {
                 $sender = SenderId::withoutGlobalScope('tenant')->find($campaign->sender_id_id);
                 if (!$sender || $sender->workflow_status !== 'approved') {
                     $errors[] = 'The selected Sender ID is not approved.';

@@ -98,6 +98,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::post('/account/details/support', 'saveSupportOps')->name('account.details.support');
     Route::post('/account/details/signatory', 'saveSignatory')->name('account.details.signatory');
     Route::post('/account/details/vat', 'saveVatInfo')->name('account.details.vat');
+    Route::put('/account/details/test-numbers', 'saveApprovedTestNumbers')->name('account.details.test-numbers');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');

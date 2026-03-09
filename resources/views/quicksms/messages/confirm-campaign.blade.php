@@ -15,6 +15,46 @@
 
     <div class="row align-items-start">
         <div class="col-xl-8 col-lg-10">
+
+            @if(!empty($is_test_mode))
+            <div class="alert mb-3 border-0" style="background-color: #fff3cd; color: #856404;">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-flask me-3 mt-1" style="font-size: 1.25rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong>Test Mode{{ !empty($is_test_standard) ? ' — Standard' : ' — Dynamic' }}</strong>
+                        @if(!empty($is_test_standard))
+                        <div class="mt-1 small">
+                            <div class="mb-1"><i class="fas fa-stamp me-1"></i> The disclaimer <em>"QuickSMS TEST message..."</em> (+68 chars inc. space) will be prepended to each SMS</div>
+                            <div><i class="fas fa-coins me-1"></i> This campaign will use <strong>test credits</strong> ({{ $test_credits_remaining ?? 0 }} remaining)</div>
+                        </div>
+                        @else
+                        <div class="mt-1 small"><i class="fas fa-coins me-1"></i> This campaign will use <strong>test credits</strong> ({{ $test_credits_remaining ?? 0 }} remaining)</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(!empty($is_test_standard))
+            @php
+                $approvedCount = count($approved_test_numbers ?? []);
+                $recipientCount = $recipients['valid'] ?? 0;
+            @endphp
+            @if($approvedCount === 0)
+            <div class="alert alert-danger mb-3">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>No approved test numbers configured.</strong> Test Standard accounts can only send to approved numbers.
+                <a href="{{ route('account.details') }}" class="alert-link">Configure approved test numbers</a> before sending.
+            </div>
+            @else
+            <div class="alert mb-3 border-0" style="background-color: #e8f4e8; color: #2d6a2d;">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>{{ $approvedCount }}</strong> approved test {{ $approvedCount === 1 ? 'number' : 'numbers' }} configured:
+                <span class="ms-1">{{ implode(', ', $approved_test_numbers) }}</span>
+            </div>
+            @endif
+            @endif
+
             <div class="card mb-3">
                 <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2" style="color: #886CC0;"></i>Campaign Summary</h4>
@@ -485,7 +525,8 @@
                         <a href="{{ route('messages.send') }}{{ !empty($campaign['id']) ? '?campaign_id=' . $campaign['id'] : '' }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
-                        <button type="button" class="btn btn-primary flex-grow-1" id="sendCampaignBtn" onclick="confirmSend()">
+                        <button type="button" class="btn btn-primary flex-grow-1" id="sendCampaignBtn" onclick="confirmSend()"
+                            @if(!empty($is_test_standard) && empty($approved_test_numbers)) disabled title="Configure approved test numbers before sending" @endif>
                             <i class="fas fa-paper-plane me-2"></i>{{ !empty($is_editing_existing) ? 'Update & Send' : 'Confirm & Send' }}
                         </button>
                     </div>

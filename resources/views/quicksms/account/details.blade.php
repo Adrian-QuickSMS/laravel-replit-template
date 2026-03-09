@@ -1024,6 +1024,54 @@
                     </div>
                 </div>
             </div>
+
+            @if($account && $account->status === 'test_standard')
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testNumbersSection" aria-expanded="false">
+                        <i class="fas fa-flask me-2 text-warning"></i>Test Mode — Approved Test Numbers
+                        <span class="badge bg-warning text-dark ms-2">{{ count($approved_test_numbers ?? []) }}/10</span>
+                    </button>
+                </h2>
+                <div id="testNumbersSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <div class="alert border-0 mb-3" style="background-color: #fff3cd; color: #856404;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. Add up to 10 approved test numbers in E.164 format (e.g. +447700900001).
+                        </div>
+
+                        <div id="testNumbersList">
+                            @forelse($approved_test_numbers ?? [] as $idx => $number)
+                            <div class="input-group mb-2 test-number-row">
+                                <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                <input type="tel" class="form-control test-number-input" value="{{ $number }}" placeholder="+447700900001" maxlength="16">
+                                <button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>
+                            </div>
+                            @empty
+                            <div class="input-group mb-2 test-number-row">
+                                <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                <input type="tel" class="form-control test-number-input" value="" placeholder="+447700900001" maxlength="16">
+                                <button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>
+                            </div>
+                            @endforelse
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addTestNumberBtn">
+                            <i class="fas fa-plus me-1"></i>Add Number
+                        </button>
+
+                        <div class="text-danger small d-none mb-2" id="testNumbersError"></div>
+
+                        <div class="section-actions">
+                            <span class="auto-save-indicator" id="testNumbersAutoSave"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveTestNumbers">
+                                <i class="fas fa-save me-1"></i>Save Approved Numbers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
             
                 </div>
             </div>
@@ -2780,6 +2828,93 @@ $(document).ready(function() {
     updateSupportStatusBadge();
     updateSignatoryStatusBadge();
     updateVatStatusBadge();
+
+    @if($account && $account->status === 'test_standard')
+    $('#addTestNumberBtn').on('click', function() {
+        var count = $('#testNumbersList .test-number-row').length;
+        if (count >= 10) {
+            $('#testNumbersError').text('Maximum 10 test numbers allowed').removeClass('d-none');
+            return;
+        }
+        $('#testNumbersError').addClass('d-none');
+        var row = '<div class="input-group mb-2 test-number-row">' +
+            '<span class="input-group-text"><i class="fas fa-phone-alt"></i></span>' +
+            '<input type="tel" class="form-control test-number-input" value="" placeholder="+447700900001" maxlength="16">' +
+            '<button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>' +
+            '</div>';
+        $('#testNumbersList').append(row);
+    });
+
+    $(document).on('click', '.btn-remove-test-number', function() {
+        var count = $('#testNumbersList .test-number-row').length;
+        if (count <= 1) {
+            $(this).closest('.test-number-row').find('.test-number-input').val('');
+            return;
+        }
+        $(this).closest('.test-number-row').remove();
+    });
+
+    $('#saveTestNumbers').on('click', function() {
+        var $saveBtn = $(this);
+        var $autoSave = $('#testNumbersAutoSave');
+        var $error = $('#testNumbersError');
+        $error.addClass('d-none');
+
+        var numbers = [];
+        var e164Regex = /^\+?[1-9]\d{6,14}$/;
+        var valid = true;
+
+        $('#testNumbersList .test-number-input').each(function() {
+            var val = $.trim($(this).val());
+            if (val === '') return;
+            if (!e164Regex.test(val)) {
+                $(this).addClass('is-invalid');
+                valid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+                numbers.push(val.startsWith('+') ? val : '+' + val);
+            }
+        });
+
+        if (!valid) {
+            $error.text('One or more numbers are invalid. Use E.164 format (e.g. +447700900001)').removeClass('d-none');
+            return;
+        }
+
+        if (numbers.length === 0) {
+            $error.text('Please add at least one test number').removeClass('d-none');
+            return;
+        }
+
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+
+        $.ajax({
+            url: '{{ route("account.details.test-numbers") }}',
+            method: 'PUT',
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: JSON.stringify({ numbers: numbers }),
+            success: function(resp) {
+                $autoSave.html('<span class="text-success"><i class="fas fa-check me-1"></i>Saved</span>').show();
+                setTimeout(function() { $autoSave.fadeOut(); }, 3000);
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save';
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    if (xhr.responseJSON.errors) {
+                        var errs = Object.values(xhr.responseJSON.errors).flat();
+                        msg = errs.join(', ');
+                    }
+                }
+                $error.text(msg).removeClass('d-none');
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Approved Numbers');
+            }
+        });
+    });
+    @endif
     
 });
 </script>

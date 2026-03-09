@@ -21,21 +21,33 @@ class QuickSMSController extends Controller
             return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+
         $senderIds = SenderId::where('account_id', $tenantId)
             ->where('workflow_status', 'approved')
             ->orderByDesc('is_default')
             ->orderBy('sender_id_value')
             ->get();
 
-        if ($senderIds->isEmpty()) {
+        $result = [];
+
+        if ($account && $account->isTestStandard()) {
+            $result[] = ['id' => 0, 'name' => 'QuickSMS Test Sender', 'type' => 'alphanumeric'];
+        }
+
+        if ($senderIds->isEmpty() && empty($result)) {
             return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
-        return $senderIds->map(fn($s) => [
-            'id' => $s->uuid,
-            'name' => $s->sender_id_value,
-            'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
-        ])->toArray();
+        foreach ($senderIds as $s) {
+            $result[] = [
+                'id' => $s->uuid,
+                'name' => $s->sender_id_value,
+                'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
+            ];
+        }
+
+        return $result;
     }
 
     public function login()
@@ -386,6 +398,26 @@ class QuickSMSController extends Controller
             session()->forget('campaign_config');
         }
 
+        $tenantId = session('customer_tenant_id');
+        $account = $tenantId ? \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId) : null;
+        $accountStatus = $account->status ?? null;
+        $isTestMode = $account && $account->isTestMode();
+        $isTestStandard = $account && $account->isTestStandard();
+
+        $testCreditsRemaining = null;
+        $approvedTestNumbers = [];
+        if ($isTestMode) {
+            $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $tenantId)
+                ->where('expired', false)
+                ->orderByDesc('created_at')
+                ->first();
+            $testCreditsRemaining = $wallet ? $wallet->credits_remaining : 0;
+        }
+        if ($isTestStandard) {
+            $settings = \App\Models\AccountSettings::where('account_id', $tenantId)->first();
+            $approvedTestNumbers = $settings->approved_test_numbers ?? [];
+        }
+
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
             'sender_ids' => $sender_ids,
@@ -398,6 +430,11 @@ class QuickSMSController extends Controller
             'optout_domains' => $optout_domains,
             'account_pricing' => $this->getAccountPricingForView(),
             'edit_campaign_config' => $editConfig,
+            'account_status' => $accountStatus,
+            'is_test_mode' => $isTestMode,
+            'is_test_standard' => $isTestStandard,
+            'test_credits_remaining' => $testCreditsRemaining,
+            'approved_test_numbers' => $approvedTestNumbers,
         ]);
     }
 
@@ -850,6 +887,24 @@ class QuickSMSController extends Controller
 
         $isEditingExisting = !empty($sessionData['is_editing_existing']);
 
+        $account = $accountId ? \App\Models\Account::withoutGlobalScope('tenant')->find($accountId) : null;
+        $isTestMode = $account && $account->isTestMode();
+        $isTestStandard = $account && $account->isTestStandard();
+        $approvedTestNumbers = [];
+        $testCreditsRemaining = null;
+
+        if ($isTestMode) {
+            $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $accountId)
+                ->where('expired', false)
+                ->orderByDesc('created_at')
+                ->first();
+            $testCreditsRemaining = $wallet ? $wallet->credits_remaining : 0;
+        }
+        if ($isTestStandard) {
+            $settings = \App\Models\AccountSettings::where('account_id', $accountId)->first();
+            $approvedTestNumbers = $settings->approved_test_numbers ?? [];
+        }
+
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => $isEditingExisting ? 'Update & Send Campaign' : 'Confirm & Send Campaign',
             'campaign' => $campaign,
@@ -862,6 +917,10 @@ class QuickSMSController extends Controller
             'campaign_id' => $campaignId,
             'realEstimate' => $realEstimate,
             'is_editing_existing' => $isEditingExisting,
+            'is_test_mode' => $isTestMode,
+            'is_test_standard' => $isTestStandard,
+            'test_credits_remaining' => $testCreditsRemaining,
+            'approved_test_numbers' => $approvedTestNumbers,
         ]);
     }
 
@@ -965,6 +1024,9 @@ class QuickSMSController extends Controller
 
             if (!$campaign) {
                 $senderIdValue = $sessionData['sender_id_id'] ?? null;
+                if ($senderIdValue === '0' || $senderIdValue === 0) {
+                    $senderIdValue = null;
+                }
                 if ($senderIdValue && !is_numeric($senderIdValue)) {
                     $resolved = \DB::table('sender_ids')
                         ->where('uuid', $senderIdValue)
@@ -2985,10 +3047,56 @@ class QuickSMSController extends Controller
             }
         }
 
+        $approvedTestNumbers = [];
+        if ($account && $account->isTestStandard()) {
+            $settings = \App\Models\AccountSettings::where('account_id', $tenantId)->first();
+            $approvedTestNumbers = $settings->approved_test_numbers ?? [];
+        }
+
         return view('quicksms.account.details', [
             'page_title' => 'Account Details',
             'user' => $user,
             'account' => $account,
+            'approved_test_numbers' => $approvedTestNumbers,
+        ]);
+    }
+
+    public function saveApprovedTestNumbers(Request $request)
+    {
+        $tenantId = session('customer_tenant_id');
+        if (!$tenantId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+        if (!$account || !$account->isTestStandard()) {
+            return response()->json(['error' => 'This feature is only available for Test Standard accounts'], 403);
+        }
+
+        $validated = $request->validate([
+            'numbers' => 'required|array|max:10',
+            'numbers.*' => ['required', 'string', 'regex:/^\+?[1-9]\d{6,14}$/'],
+        ], [
+            'numbers.*.regex' => 'Each number must be in E.164 format (e.g. +447700900001)',
+            'numbers.max' => 'You can add up to 10 approved test numbers',
+        ]);
+
+        $numbers = array_values(array_unique(array_map(function ($n) {
+            return str_starts_with($n, '+') ? $n : '+' . $n;
+        }, $validated['numbers'])));
+
+        $settings = \App\Models\AccountSettings::firstOrCreate(
+            ['account_id' => $tenantId],
+            []
+        );
+
+        $settings->approved_test_numbers = $numbers;
+        $settings->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Approved test numbers saved successfully',
+            'numbers' => $numbers,
         ]);
     }
     
