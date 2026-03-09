@@ -755,83 +755,193 @@
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-senderids">
-                            SMS SenderIDs <span class="badge" id="badge-senderids">0</span>
+                            SMS SenderIDs <span class="badge" id="badge-senderids">{{ count($assets['sender_ids'] ?? []) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-numbers">
-                            Numbers <span class="badge" id="badge-numbers">0</span>
+                            Numbers <span class="badge" id="badge-numbers">{{ count($assets['numbers'] ?? []) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rcs">
-                            RCS Agents <span class="badge" id="badge-rcs">0</span>
+                            RCS Agents <span class="badge" id="badge-rcs">{{ count($assets['rcs_agents'] ?? []) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-templates">
-                            Templates <span class="badge" id="badge-templates">0</span>
+                            Templates <span class="badge" id="badge-templates">{{ count($assets['templates'] ?? []) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-email">
-                            Email-to-SMS <span class="badge" id="badge-email">0</span>
+                            Email-to-SMS <span class="badge" id="badge-email">{{ count($assets['email_setups'] ?? []) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-api">
-                            API Connections <span class="badge" id="badge-api">0</span>
+                            API Connections <span class="badge" id="badge-api">{{ count($assets['api_connections'] ?? []) }}</span>
                         </button>
                     </li>
                 </ul>
                 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="tab-senderids">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-id-card-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No Sender IDs assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage Sender IDs</a>
-                        </div>
+                        @if(count($assets['sender_ids'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Sender ID</th><th>Status</th><th>Assigned</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['sender_ids'] as $sid)
+                                        <tr>
+                                            <td><strong>{{ $sid['value'] }}</strong></td>
+                                            <td><span class="badge {{ $sid['status'] === 'approved' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($sid['status']) }}</span></td>
+                                            <td class="text-muted">{{ $sid['assigned_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage btn-sm">Manage Sender IDs</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-id-card-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No Sender IDs assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage Sender IDs</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-numbers">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-phone mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No numbers assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage Numbers</a>
-                        </div>
+                        @if(count($assets['numbers'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Number</th><th>Type</th><th>Country</th><th>Assigned</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['numbers'] as $num)
+                                        <tr>
+                                            <td><strong>{{ $num['number'] }}</strong></td>
+                                            <td><span class="badge bg-info text-dark">{{ strtoupper($num['type']) }}</span></td>
+                                            <td>{{ strtoupper($num['country']) }}</td>
+                                            <td class="text-muted">{{ $num['assigned_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.numbers') }}" class="btn btn-manage btn-sm">Manage Numbers</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-phone mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No numbers assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage Numbers</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-rcs">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-comment-dots mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No RCS agents assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage RCS Agents</a>
-                        </div>
+                        @if(count($assets['rcs_agents'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Agent Name</th><th>Status</th><th>Assigned</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['rcs_agents'] as $rcs)
+                                        <tr>
+                                            <td><strong>{{ $rcs['name'] }}</strong></td>
+                                            <td><span class="badge {{ $rcs['status'] === 'active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($rcs['status']) }}</span></td>
+                                            <td class="text-muted">{{ $rcs['assigned_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.rcs-agent') }}" class="btn btn-manage btn-sm">Manage RCS Agents</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-comment-dots mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No RCS agents assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage RCS Agents</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-templates">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-file-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No templates assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.templates') }}" class="btn btn-manage">Manage Templates</a>
-                        </div>
+                        @if(count($assets['templates'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Template Name</th><th>Type</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['templates'] as $tpl)
+                                        <tr>
+                                            <td><strong>{{ $tpl['name'] }}</strong></td>
+                                            <td><span class="badge bg-info text-dark">{{ strtoupper($tpl['type']) }}</span></td>
+                                            <td><span class="badge {{ $tpl['status'] === 'active' ? 'bg-success' : ($tpl['status'] === 'draft' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($tpl['status']) }}</span></td>
+                                            <td class="text-muted">{{ $tpl['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.templates') }}" class="btn btn-manage btn-sm">Manage Templates</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-file-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No templates assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.templates') }}" class="btn btn-manage">Manage Templates</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-email">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-envelope mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No Email-to-SMS setups assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage Email-to-SMS</a>
-                        </div>
+                        @if(count($assets['email_setups'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Setup Name</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['email_setups'] as $es)
+                                        <tr>
+                                            <td><strong>{{ $es['name'] }}</strong></td>
+                                            <td><span class="badge {{ $es['status'] === 'active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($es['status']) }}</span></td>
+                                            <td class="text-muted">{{ $es['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.email-to-sms') }}" class="btn btn-manage btn-sm">Manage Email-to-SMS</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-envelope mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No Email-to-SMS setups assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage Email-to-SMS</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-api">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-plug mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No API connections assigned to this sub-account yet.</p>
-                            <a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage API Connections</a>
-                        </div>
+                        @if(count($assets['api_connections'] ?? []) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Connection Name</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($assets['api_connections'] as $api)
+                                        <tr>
+                                            <td><strong>{{ $api['name'] }}</strong></td>
+                                            <td><span class="badge {{ $api['status'] === 'active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($api['status']) }}</span></td>
+                                            <td class="text-muted">{{ $api['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end p-2"><a href="{{ route('management.api-connections') }}" class="btn btn-manage btn-sm">Manage API Connections</a></div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-plug mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No API connections assigned to this sub-account yet.</p>
+                                <a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage API Connections</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

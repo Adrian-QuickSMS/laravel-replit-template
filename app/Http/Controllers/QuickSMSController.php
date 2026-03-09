@@ -3786,9 +3786,105 @@ class QuickSMSController extends Controller
                         ],
                     ];
 
+                    $subAccountId = $subAccountModel->id;
+                    $morphType = 'App\\Models\\SubAccount';
+
+                    $senderIdAssignments = \App\Models\SenderIdAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('senderId')
+                        ->get()
+                        ->map(function ($a) {
+                            $s = $a->senderId;
+                            return $s ? [
+                                'id' => $s->id,
+                                'value' => $s->sender_id_value,
+                                'status' => $s->workflow_status ?? 'draft',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $numberAssignments = \App\Models\NumberAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('purchasedNumber')
+                        ->get()
+                        ->map(function ($a) {
+                            $n = $a->purchasedNumber;
+                            return $n ? [
+                                'id' => $n->id,
+                                'number' => $n->number,
+                                'type' => $n->number_type ?? 'vmn',
+                                'country' => $n->country_iso ?? 'GB',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $rcsAssignments = \App\Models\RcsAgentAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('rcsAgent')
+                        ->get()
+                        ->map(function ($a) {
+                            $r = $a->rcsAgent;
+                            return $r ? [
+                                'id' => $r->id,
+                                'name' => $r->agent_name ?? $r->name ?? 'Unnamed Agent',
+                                'status' => $r->workflow_status ?? 'draft',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $templates = \App\Models\MessageTemplate::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'type', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($t) {
+                            return [
+                                'id' => $t->id,
+                                'name' => $t->name,
+                                'type' => $t->type,
+                                'status' => $t->status,
+                                'created_at' => $t->created_at ? $t->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $emailSetups = \App\Models\EmailToSmsSetup::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id' => $e->id,
+                                'name' => $e->name,
+                                'status' => $e->status,
+                                'created_at' => $e->created_at ? $e->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $apiConnections = \App\Models\ApiConnection::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($c) {
+                            return [
+                                'id' => $c->id,
+                                'name' => $c->name,
+                                'status' => $c->status,
+                                'created_at' => $c->created_at ? $c->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $assets = [
+                        'sender_ids' => $senderIdAssignments,
+                        'numbers' => $numberAssignments,
+                        'rcs_agents' => $rcsAssignments,
+                        'templates' => $templates,
+                        'email_setups' => $emailSetups,
+                        'api_connections' => $apiConnections,
+                    ];
+
                     return view('quicksms.account.sub-account-detail', [
                         'page_title' => $subAccount['name'],
-                        'sub_account' => $subAccount
+                        'sub_account' => $subAccount,
+                        'assets' => $assets,
                     ]);
                 }
             } catch (\Exception $e) {
