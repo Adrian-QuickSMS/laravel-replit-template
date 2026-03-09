@@ -25,6 +25,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Modules & Data Models
 - **Auth & Accounts:** `accounts`, `users`, `auth_audit_log`.
 - **Sub-Accounts & User Management:** `sub_accounts` (with limits/enforcement: spending caps, message caps, daily limits, enforcement types), `users` (7 roles: owner, admin, messaging_manager, finance, developer, user, readonly; 28 permission toggles; sender capability levels: advanced/restricted/none), `user_invitations` (SHA-256 hashed tokens, 72h expiry, RLS-protected). Managed by `SubAccountController`, `UserManagementController`, and `CheckPermission` middleware. `CustomerAuthenticate` middleware binds the user to Laravel's auth guard via `Auth::setUser()`.
+- **Main Account Overview:** `/account/overview` route displays account status, aggregated limits (summed across all sub-accounts), live usage telemetry, and assigned assets. View: `account-overview.blade.php`. Clickable from the hierarchy tree main account node.
 - **Contact Book:** `contacts`, `tags`, `contact_lists`, `opt_out_lists`, `opt_out_records`, `contact_timeline_events`.
 - **Messaging:** Campaigns, inbox, and a shared send message builder.
 - **API Connections:** `api_connections`, `api_connection_audit_events`.

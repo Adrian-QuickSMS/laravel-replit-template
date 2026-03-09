@@ -101,6 +101,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::put('/account/details/test-numbers', 'saveApprovedTestNumbers')->name('account.details.test-numbers');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
+    Route::get('/account/overview', 'accountOverview')->name('account.overview');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
     Route::get('/account/sub-accounts/{subId}/users/{userId}', 'userDetail')->name('account.users.detail');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');

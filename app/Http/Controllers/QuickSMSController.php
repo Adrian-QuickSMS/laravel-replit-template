@@ -3612,6 +3612,55 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function accountOverview()
+    {
+        $tenantId = session('customer_tenant_id');
+
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $account = \App\Models\Account::find($tenantId);
+
+                if ($account) {
+                    $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)->get();
+                    $totalSubAccounts = $subAccounts->count();
+                    $totalUsers = \App\Models\User::where('tenant_id', $tenantId)->count();
+
+                    $totalSpend = $subAccounts->sum('monthly_spend_used');
+                    $totalMessages = $subAccounts->sum('monthly_messages_used');
+                    $totalSpendCap = $subAccounts->sum('monthly_spending_cap');
+                    $totalMessageCap = $subAccounts->sum('monthly_message_cap');
+
+                    $accountData = [
+                        'id' => $account->id,
+                        'name' => $account->company_name ?? $account->trading_name ?? 'Main Account',
+                        'status' => $account->status,
+                        'account_number' => $account->account_number,
+                        'created_at' => $account->created_at ? $account->created_at->format('Y-m-d') : null,
+                        'total_sub_accounts' => $totalSubAccounts,
+                        'total_users' => $totalUsers,
+                        'monthly_spend' => (float) $totalSpend,
+                        'monthly_messages' => (int) $totalMessages,
+                        'limits' => [
+                            'spend_cap' => (float) $totalSpendCap,
+                            'message_cap' => (int) $totalMessageCap,
+                            'credit_limit' => (float) ($account->credit_limit ?? 0),
+                        ],
+                    ];
+
+                    return view('quicksms.account.account-overview', [
+                        'page_title' => $accountData['name'],
+                        'account' => $accountData,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to load account overview: ' . $e->getMessage());
+            }
+        }
+
+        abort(404, 'Account not found');
+    }
+
     public function subAccountDetail($id)
     {
         $tenantId = session('customer_tenant_id');

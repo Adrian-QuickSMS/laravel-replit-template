@@ -1719,7 +1719,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var html = '';
         
         html += '<div class="main-account-node">';
-        html += '<div>';
+        html += '<div style="cursor: pointer;" onclick="window.location.href=\'/account/overview\'">';
         html += '<div class="account-name">' + escapeHtml(hierarchyData.mainAccount.name) + '</div>';
         html += '<div class="account-info">Main Account</div>';
         html += '</div>';
