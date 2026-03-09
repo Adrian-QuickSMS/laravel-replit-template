@@ -130,14 +130,14 @@ var InboxApp = (function () {
 
         // Contact panel toggle
         bindClick('toggleContactPanel', toggleContactPanel);
-        bindClick('closeContactPanel', toggleContactPanel);
     }
 
-    /* ── Contact panel ─────────────────────────────────── */
+    /* ── Contact panel (modal) ─────────────────────────── */
     function toggleContactPanel() {
-        var panel = document.getElementById('contactPanel');
-        if (!panel) return;
-        panel.classList.toggle('d-none');
+        var modal = document.getElementById('contactPanelModal');
+        if (!modal || typeof bootstrap === 'undefined') return;
+        var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+        bsModal.toggle();
     }
 
     function updateContactPanel(conv) {

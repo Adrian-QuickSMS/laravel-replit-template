@@ -573,40 +573,7 @@
     opacity: 0.9;
 }
 
-/* ─── Contact panel — right sidebar ────────────────────── */
-.contact-panel {
-    width: var(--inbox-contact-w);
-    flex-shrink: 0;
-    border-left: 1px solid var(--inbox-border);
-    background: var(--inbox-bg);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.contact-panel__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.625rem 0.75rem;
-    border-bottom: 1px solid var(--inbox-border);
-    flex-shrink: 0;
-}
-
-.contact-panel__header h6 {
-    color: var(--inbox-text);
-}
-
-.contact-panel__header .btn {
-    color: var(--inbox-text-muted);
-    border: none;
-    background: none;
-}
-
-.contact-panel__body {
-    padding: 1rem 0.75rem;
-    text-align: center;
-}
+/* ─── Contact panel (modal-based) ─────────────────────── */
 
 .contact-panel__avatar {
     width: 56px;
@@ -758,10 +725,6 @@
     background: var(--inbox-primary-light);
 }
 
-[data-theme-version="dark"] .contact-panel__header .btn {
-    color: var(--inbox-text-muted);
-}
-
 [data-theme-version="dark"] .contact-panel__name {
     color: var(--inbox-text);
 }
@@ -792,6 +755,7 @@
 }
 
 /* Dark mode for modals used in inbox */
+[data-theme-version="dark"] #contactPanelModal .modal-content,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-content,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-content,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-content {
@@ -799,12 +763,14 @@
     color: var(--inbox-text);
 }
 
+[data-theme-version="dark"] #contactPanelModal .modal-header,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-header,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-header,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-header {
     border-color: var(--inbox-border);
 }
 
+[data-theme-version="dark"] #contactPanelModal .modal-footer,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-footer,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-footer,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-footer {
@@ -824,18 +790,15 @@
 /* ─── Responsive ───────────────────────────────────────── */
 @media (max-width: 1440px) {
     .inbox-sidebar { width: 280px; min-width: 250px; }
-    .contact-panel { width: 250px; }
     .msg { max-width: 80%; }
 }
 
 @media (max-width: 1200px) {
     .inbox-sidebar { width: 260px; min-width: 240px; }
-    .contact-panel { width: 240px; }
     .msg { max-width: 85%; }
 }
 
 @media (max-width: 992px) {
-    /* Stack layout: sidebar overlaps on mobile */
     .inbox-layout { position: relative; }
 
     .inbox-sidebar {
@@ -851,15 +814,5 @@
 
     .inbox-sidebar.sidebar-hidden {
         transform: translateX(-100%);
-    }
-
-    .contact-panel {
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        z-index: 10;
-        box-shadow: -2px 0 8px rgba(0,0,0,0.1);
     }
 }

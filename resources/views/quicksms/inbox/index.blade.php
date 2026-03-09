@@ -22,11 +22,11 @@
             @include('quicksms.inbox.partials.composer')
         </div>
 
-        {{-- Right: Contact details sidebar --}}
-        @include('quicksms.inbox.partials.contact-sidebar')
-
     </div>
 </div>
+
+{{-- Contact details modal --}}
+@include('quicksms.inbox.partials.contact-sidebar')
 
 {{-- Conversation data for JS --}}
 <script>
