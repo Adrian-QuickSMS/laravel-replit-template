@@ -636,6 +636,39 @@
                         <span class="billing-setting-label">VAT Registered</span>
                         <span class="billing-setting-value" id="settingVatRegistered">Yes</span>
                     </div>
+
+                    <hr class="my-3">
+                    <h6 class="mb-3" style="color: var(--admin-primary); font-weight: 600;">
+                        <i class="fas fa-exchange-alt me-2"></i>Account Status
+                    </h6>
+                    <div class="billing-setting-row">
+                        <span class="billing-setting-label">Current Status</span>
+                        <span class="billing-setting-value" id="currentStatusDisplay">
+                            <span class="pill-status pill-test"><i class="fas fa-flask me-1"></i>Loading...</span>
+                        </span>
+                    </div>
+                    <div class="billing-setting-row">
+                        <span class="billing-setting-label">Change To</span>
+                        <div>
+                            <select class="form-select form-select-sm" id="statusTransitionSelect" style="max-width: 220px;" disabled>
+                                <option value="">Select new status...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="statusReasonRow" class="billing-setting-row" style="display: none;">
+                        <span class="billing-setting-label">Reason</span>
+                        <div style="flex: 1;">
+                            <input type="text" class="form-control form-control-sm" id="statusChangeReason" placeholder="Reason for status change (optional)" maxlength="500">
+                        </div>
+                    </div>
+                    <div id="statusChangeActions" style="display: none; margin-top: 0.5rem;">
+                        <button type="button" class="btn btn-sm btn-admin-primary" id="confirmStatusChangeBtn" onclick="confirmStatusChange()">
+                            <i class="fas fa-check me-1"></i>Apply Status Change
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="cancelStatusChange()">
+                            Cancel
+                        </button>
+                    </div>
                     <div class="mt-3 text-muted small">
                         <i class="fas fa-info-circle me-1"></i>Billing settings are synced with HubSpot.
                     </div>
@@ -797,6 +830,45 @@
     </div>
 </div>
 
+<!-- Account Status Change Confirmation Modal -->
+<div class="modal fade" id="statusChangeConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i>Confirm Status Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Changing the account status will immediately affect the account's capabilities and restrictions.
+                </div>
+                <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+                    <div class="text-center">
+                        <small class="text-muted d-block">Current</small>
+                        <span class="pill-status" id="confirmOldStatus">--</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-muted"></i>
+                    <div class="text-center">
+                        <small class="text-muted d-block">New</small>
+                        <span class="pill-status" id="confirmNewStatus">--</span>
+                    </div>
+                </div>
+                <div id="confirmStatusReason" style="display: none;">
+                    <small class="text-muted">Reason:</small>
+                    <p class="mb-0" id="confirmReasonText"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-admin-primary" id="executeStatusChangeBtn" onclick="executeStatusChange()">
+                    <i class="fas fa-check me-1"></i>Confirm Change
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @include('admin.partials.create-invoice-credit-modal')
 @endsection
 
@@ -864,6 +936,19 @@ var AdminAccountBillingService = (function() {
             }).then(function(response) {
                 if (!response.ok) throw new Error('Update credit limit error: ' + response.status);
                 return response.json();
+            });
+        },
+
+        updateAccountStatus: function(accountId, newStatus, reason) {
+            return fetch('/admin/api/accounts/' + accountId + '/status', {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ status: newStatus, reason: reason || null })
+            }).then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) throw new Error(data.error || 'Update status error: ' + response.status);
+                    return data;
+                });
             });
         }
     };
@@ -1076,8 +1161,9 @@ var AdminBillingAuditLogger = (function() {
     };
 })();
 
+var accountId = '{{ $account_id }}';
+
 document.addEventListener('DOMContentLoaded', function() {
-    var accountId = '{{ $account_id }}';
     
     // Page-level access check
     if (!AdminPermissionService.hasPermission('accounts.view_billing')) {
@@ -1229,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('settingVatRegistered').textContent = data.vatRegistered ? 'Yes' : 'No';
         
         initBillingTypeToggle(data.billingMode, data.name);
+        initAccountStatusControl(data.status);
         
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.logAdminAction('ACCOUNT_BILLING_VIEWED', accountId, { accountName: data.name });
@@ -1977,5 +2064,124 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+var STATUS_META = {
+    pending_verification: { label: 'Pending Verification', icon: 'hourglass-half', pillClass: 'pill-test' },
+    test_standard: { label: 'Test Standard', icon: 'flask', pillClass: 'pill-test' },
+    test_dynamic: { label: 'Test Dynamic', icon: 'flask', pillClass: 'pill-test' },
+    active_standard: { label: 'Live Standard', icon: 'check-circle', pillClass: 'pill-live' },
+    active_dynamic: { label: 'Live Dynamic', icon: 'check-circle', pillClass: 'pill-live' },
+    suspended: { label: 'Suspended', icon: 'ban', pillClass: 'pill-suspended' },
+    closed: { label: 'Closed', icon: 'times-circle', pillClass: 'pill-suspended' }
+};
+
+var STATUS_TRANSITIONS = {
+    pending_verification: ['test_standard', 'test_dynamic', 'closed'],
+    test_standard: ['test_dynamic', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
+    test_dynamic: ['test_standard', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
+    active_standard: ['active_dynamic', 'suspended', 'closed'],
+    active_dynamic: ['active_standard', 'suspended', 'closed'],
+    suspended: ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic', 'closed'],
+    closed: []
+};
+
+var currentAccountStatus = null;
+var statusChangeModal = null;
+
+function initAccountStatusControl(rawStatus) {
+    currentAccountStatus = rawStatus;
+    var meta = STATUS_META[rawStatus] || STATUS_META.pending_verification;
+
+    var displayEl = document.getElementById('currentStatusDisplay');
+    displayEl.innerHTML = '<span class="pill-status ' + meta.pillClass + '"><i class="fas fa-' + meta.icon + ' me-1"></i>' + meta.label + '</span>';
+
+    var select = document.getElementById('statusTransitionSelect');
+    var allowed = STATUS_TRANSITIONS[rawStatus] || [];
+
+    select.innerHTML = '<option value="">Select new status...</option>';
+    allowed.forEach(function(s) {
+        var m = STATUS_META[s];
+        var opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = m.label;
+        select.appendChild(opt);
+    });
+
+    select.disabled = allowed.length === 0;
+
+    select.onchange = function() {
+        var hasSelection = select.value !== '';
+        document.getElementById('statusReasonRow').style.display = hasSelection ? '' : 'none';
+        document.getElementById('statusChangeActions').style.display = hasSelection ? '' : 'none';
+    };
+
+    var modalEl = document.getElementById('statusChangeConfirmModal');
+    if (modalEl) statusChangeModal = new bootstrap.Modal(modalEl);
+}
+
+function cancelStatusChange() {
+    document.getElementById('statusTransitionSelect').value = '';
+    document.getElementById('statusChangeReason').value = '';
+    document.getElementById('statusReasonRow').style.display = 'none';
+    document.getElementById('statusChangeActions').style.display = 'none';
+}
+
+function confirmStatusChange() {
+    var newStatus = document.getElementById('statusTransitionSelect').value;
+    if (!newStatus) return;
+
+    var reason = document.getElementById('statusChangeReason').value;
+    var oldMeta = STATUS_META[currentAccountStatus];
+    var newMeta = STATUS_META[newStatus];
+
+    var oldEl = document.getElementById('confirmOldStatus');
+    oldEl.className = 'pill-status ' + oldMeta.pillClass;
+    oldEl.innerHTML = '<i class="fas fa-' + oldMeta.icon + ' me-1"></i>' + oldMeta.label;
+
+    var newEl = document.getElementById('confirmNewStatus');
+    newEl.className = 'pill-status ' + newMeta.pillClass;
+    newEl.innerHTML = '<i class="fas fa-' + newMeta.icon + ' me-1"></i>' + newMeta.label;
+
+    var reasonSection = document.getElementById('confirmStatusReason');
+    if (reason) {
+        reasonSection.style.display = '';
+        document.getElementById('confirmReasonText').textContent = reason;
+    } else {
+        reasonSection.style.display = 'none';
+    }
+
+    statusChangeModal.show();
+}
+
+function executeStatusChange() {
+    var newStatus = document.getElementById('statusTransitionSelect').value;
+    var reason = document.getElementById('statusChangeReason').value;
+    var btn = document.getElementById('executeStatusChangeBtn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Updating...';
+
+    AdminAccountBillingService.updateAccountStatus(accountId, newStatus, reason).then(function(result) {
+        statusChangeModal.hide();
+        showToast('Account status changed to ' + (STATUS_META[newStatus]?.label || newStatus), 'success');
+
+        initAccountStatusControl(newStatus);
+
+        var statusPill = document.getElementById('statusPill');
+        var meta = STATUS_META[newStatus];
+        statusPill.className = 'pill-status ' + meta.pillClass;
+        statusPill.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>' + meta.label;
+
+        var summaryEl = document.getElementById('summaryAccountStatus');
+        summaryEl.innerHTML = '<span class="pill-status ' + meta.pillClass + '" style="font-size: 0.8rem;"><i class="fas fa-' + meta.icon + ' me-1"></i>' + meta.label + '</span>';
+
+        cancelStatusChange();
+    }).catch(function(err) {
+        showToast('Failed to change status: ' + err.message, 'error');
+    }).finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Change';
+    });
+}
 </script>
 @endpush

@@ -495,6 +495,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/accounts/{accountId}/billing', 'accountBillingApi')->name('admin.api.accounts.billing');
             Route::put('/api/accounts/{accountId}/billing-mode', 'updateAccountBillingMode')->name('admin.api.accounts.billing-mode');
             Route::put('/api/accounts/{accountId}/credit-limit', 'updateAccountCreditLimit')->name('admin.api.accounts.credit-limit');
+            Route::put('/api/accounts/{accountId}/status', 'updateAccountStatus')->name('admin.api.accounts.status');
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
             

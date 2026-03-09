@@ -721,6 +721,86 @@ class AdminController extends Controller
         ]);
     }
 
+    public function updateAccountStatus(Request $request, $accountId)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pending_verification,test_standard,test_dynamic,active_standard,active_dynamic,suspended,closed',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $newStatus = $request->input('status');
+        $previousStatus = $account->status;
+
+        if ($previousStatus === $newStatus) {
+            return response()->json(['success' => false, 'error' => 'Account is already in that status'], 422);
+        }
+
+        if (!$account->canTransitionTo($newStatus)) {
+            $allowed = Account::STATUS_TRANSITIONS[$previousStatus] ?? [];
+            return response()->json([
+                'success' => false,
+                'error' => "Cannot transition from '{$previousStatus}' to '{$newStatus}'",
+                'allowedTransitions' => $allowed,
+            ], 422);
+        }
+
+        try {
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+            DB::transaction(function () use ($account, $newStatus, $previousStatus, $accountId, $request) {
+                $account->transitionTo($newStatus);
+
+                DB::table('auth_audit_log')->insert([
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'tenant_id' => $accountId,
+                    'actor_type' => 'admin',
+                    'actor_id' => session('admin_user_id'),
+                    'actor_email' => session('admin_user_email'),
+                    'event_type' => 'account_status_changed',
+                    'result' => 'success',
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'metadata' => json_encode([
+                        'previous_status' => $previousStatus,
+                        'new_status' => $newStatus,
+                        'reason' => $request->input('reason'),
+                    ]),
+                    'created_at' => now(),
+                ]);
+            });
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            Log::error('Account status change failed', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to update account status. Please try again.'], 500);
+        }
+
+        Log::info('Admin changed account status', [
+            'account_id' => $accountId,
+            'previous_status' => $previousStatus,
+            'new_status' => $newStatus,
+            'reason' => $request->input('reason'),
+            'admin_user' => session('admin_user_email'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'previousStatus' => $previousStatus,
+                'newStatus' => $newStatus,
+            ],
+        ]);
+    }
+
     public function updateAccountCreditLimit(Request $request, $accountId)
     {
         $request->validate([
