@@ -538,11 +538,11 @@ input:focus + .perm-slider {
                                 <div class="form-text">Invitation will be sent to this email address</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
-                                <select class="form-select" id="invite-sub-account" required>
-                                    <option value="">Select Sub-Account...</option>
+                                <label class="form-label">Assign to Sub-Account</label>
+                                <select class="form-select" id="invite-sub-account">
+                                    <option value="">Main Account (no sub-account)</option>
                                 </select>
-                                <div class="form-text">Users belong to exactly one Sub-Account</div>
+                                <div class="form-text">Optionally assign to a sub-account, or leave at Main Account level</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Role <span class="text-danger">*</span></label>
@@ -611,9 +611,9 @@ input:focus + .perm-slider {
                                 <div class="form-text">Minimum 12 characters. User must change this on first login.</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
-                                <select class="form-select" id="direct-sub-account" required>
-                                    <option value="">Select Sub-Account...</option>
+                                <label class="form-label">Assign to Sub-Account</label>
+                                <select class="form-select" id="direct-sub-account">
+                                    <option value="">Main Account (no sub-account)</option>
                                 </select>
                             </div>
                             <div class="row">
@@ -1917,11 +1917,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function openInviteUserModal(preSelectedSubId) {
         document.getElementById('invite-user-form').reset();
         var select = document.getElementById('invite-sub-account');
-        select.innerHTML = '<option value="">Select Sub-Account...</option>';
+        select.innerHTML = '<option value="">Main Account (no sub-account)</option>';
         hierarchyData.subAccounts.forEach(function(sub) {
             var selected = sub.id === preSelectedSubId ? ' selected' : '';
             select.innerHTML += '<option value="' + sub.id + '"' + selected + '>' + escapeHtml(sub.name) + '</option>';
         });
+        
+        var directSelect = document.getElementById('direct-sub-account');
+        if (directSelect) {
+            directSelect.innerHTML = '<option value="">Main Account (no sub-account)</option>';
+            hierarchyData.subAccounts.forEach(function(sub) {
+                var selected = sub.id === preSelectedSubId ? ' selected' : '';
+                directSelect.innerHTML += '<option value="' + sub.id + '"' + selected + '>' + escapeHtml(sub.name) + '</option>';
+            });
+        }
         
         var modal = new bootstrap.Modal(document.getElementById('inviteUserModal'));
         modal.show();
@@ -2046,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var nonMessagingRoles = ['finance', 'readonly'];
         var requiresCapability = !nonMessagingRoles.includes(role);
         
-        if (!email || !subAccountId || !role) {
+        if (!email || !role) {
             showToast('warning', 'Missing Fields', 'Please fill in all required fields');
             return;
         }
@@ -2064,9 +2073,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         var payload = {
             email: email,
-            role: role,
-            sub_account_id: subAccountId
+            role: role
         };
+        if (subAccountId) {
+            payload.sub_account_id = subAccountId;
+        }
         if (requiresCapability && senderCapability) {
             payload.sender_capability = senderCapability;
         }
@@ -2150,7 +2161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var nonMessagingRoles = ['finance', 'readonly'];
         var requiresCapability = !nonMessagingRoles.includes(role);
         
-        if (!firstName || !lastName || !email || !tempPassword || !subAccountId || !role || !reason) {
+        if (!firstName || !lastName || !email || !tempPassword || !role || !reason) {
             showToast('warning', 'Missing Fields', 'Please fill in all required fields');
             return;
         }
@@ -2179,10 +2190,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var payload = {
             email: email,
             role: role,
-            sub_account_id: subAccountId,
             first_name: firstName,
             last_name: lastName
         };
+        if (subAccountId) {
+            payload.sub_account_id = subAccountId;
+        }
         if (requiresCapability && senderCapability) {
             payload.sender_capability = senderCapability;
         }
@@ -2220,7 +2233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var directSelect = document.getElementById('direct-sub-account');
         
         [inviteSelect, directSelect].forEach(function(select) {
-            select.innerHTML = '<option value="">Select Sub-Account...</option>';
+            select.innerHTML = '<option value="">Main Account (no sub-account)</option>';
             subAccounts.forEach(function(sa) {
                 var option = document.createElement('option');
                 option.value = sa.id;
