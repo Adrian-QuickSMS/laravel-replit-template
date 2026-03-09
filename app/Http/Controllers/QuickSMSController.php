@@ -3073,17 +3073,32 @@ class QuickSMSController extends Controller
             return response()->json(['error' => 'This feature is only available for Test Standard accounts'], 403);
         }
 
-        $validated = $request->validate([
-            'numbers' => 'required|array|max:10',
-            'numbers.*' => ['required', 'string', 'regex:/^\+?[1-9]\d{6,14}$/'],
-        ], [
-            'numbers.*.regex' => 'Each number must be in E.164 format (e.g. +447700900001)',
-            'numbers.max' => 'You can add up to 10 approved test numbers',
-        ]);
+        $rawNumbers = $request->input('numbers', []);
+        if (!is_array($rawNumbers) || count($rawNumbers) > 10 || count($rawNumbers) === 0) {
+            return response()->json(['message' => 'Please provide between 1 and 10 numbers'], 422);
+        }
 
-        $numbers = array_values(array_unique(array_map(function ($n) {
-            return str_starts_with($n, '+') ? $n : '+' . $n;
-        }, $validated['numbers'])));
+        $normalized = [];
+        foreach ($rawNumbers as $n) {
+            if (!is_string($n)) {
+                return response()->json(['message' => 'Invalid input'], 422);
+            }
+            $n = preg_replace('/[\s\-\(\)]/', '', trim($n));
+            if (preg_match('/^0[7]\d{9}$/', $n)) {
+                $n = '+44' . substr($n, 1);
+            } elseif (preg_match('/^44[7]\d{9}$/', $n)) {
+                $n = '+' . $n;
+            } elseif (preg_match('/^\+44[7]\d{9}$/', $n)) {
+                // already E.164 UK
+            } else {
+                return response()->json(['message' => 'Invalid number format. Use 07XXX, 447XXX, or +447XXX for UK mobile numbers'], 422);
+            }
+            if (!preg_match('/^\+447\d{9}$/', $n)) {
+                return response()->json(['message' => 'Only UK mobile numbers (+447...) are accepted'], 422);
+            }
+            $normalized[] = $n;
+        }
+        $numbers = array_values(array_unique($normalized));
 
         $settings = \App\Models\AccountSettings::firstOrCreate(
             ['account_id' => $tenantId],

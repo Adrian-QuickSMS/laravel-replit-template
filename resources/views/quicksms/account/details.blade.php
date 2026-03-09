@@ -1037,20 +1037,20 @@
                     <div class="accordion-body">
                         <div class="alert border-0 mb-3" style="background-color: #fff3cd; color: #856404;">
                             <i class="fas fa-info-circle me-2"></i>
-                            While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. Add up to 10 approved test numbers in E.164 format (e.g. +447700900001).
+                            While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. Add up to 10 approved test numbers. You can enter numbers as <strong>07XXX</strong>, <strong>447XXX</strong>, or <strong>+447XXX</strong> — they will be automatically converted to international format.
                         </div>
 
                         <div id="testNumbersList">
                             @forelse($approved_test_numbers ?? [] as $idx => $number)
                             <div class="input-group mb-2 test-number-row">
                                 <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
-                                <input type="tel" class="form-control test-number-input" value="{{ $number }}" placeholder="+447700900001" maxlength="16">
+                                <input type="tel" class="form-control test-number-input" value="{{ $number }}" placeholder="07700 900001" maxlength="16">
                                 <button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>
                             </div>
                             @empty
                             <div class="input-group mb-2 test-number-row">
                                 <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
-                                <input type="tel" class="form-control test-number-input" value="" placeholder="+447700900001" maxlength="16">
+                                <input type="tel" class="form-control test-number-input" value="" placeholder="07700 900001" maxlength="16">
                                 <button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>
                             </div>
                             @endforelse
@@ -2839,7 +2839,7 @@ $(document).ready(function() {
         $('#testNumbersError').addClass('d-none');
         var row = '<div class="input-group mb-2 test-number-row">' +
             '<span class="input-group-text"><i class="fas fa-phone-alt"></i></span>' +
-            '<input type="tel" class="form-control test-number-input" value="" placeholder="+447700900001" maxlength="16">' +
+            '<input type="tel" class="form-control test-number-input" value="" placeholder="07700 900001" maxlength="16">' +
             '<button type="button" class="btn btn-outline-danger btn-remove-test-number" title="Remove"><i class="fas fa-times"></i></button>' +
             '</div>';
         $('#testNumbersList').append(row);
@@ -2861,23 +2861,40 @@ $(document).ready(function() {
         $error.addClass('d-none');
 
         var numbers = [];
-        var e164Regex = /^\+?[1-9]\d{6,14}$/;
         var valid = true;
+
+        function normalizeUkNumber(num) {
+            num = num.replace(/[\s\-\(\)]/g, '');
+            if (num.startsWith('07') && num.length === 11) {
+                return '+44' + num.substring(1);
+            }
+            if (num.startsWith('447') && !num.startsWith('+')) {
+                return '+' + num;
+            }
+            if (num.startsWith('+447')) {
+                return num;
+            }
+            return num.startsWith('+') ? num : '+' + num;
+        }
+
+        var e164Regex = /^\+[1-9]\d{6,14}$/;
 
         $('#testNumbersList .test-number-input').each(function() {
             var val = $.trim($(this).val());
             if (val === '') return;
-            if (!e164Regex.test(val)) {
+            var normalized = normalizeUkNumber(val);
+            if (!e164Regex.test(normalized)) {
                 $(this).addClass('is-invalid');
                 valid = false;
             } else {
                 $(this).removeClass('is-invalid');
-                numbers.push(val.startsWith('+') ? val : '+' + val);
+                $(this).val(normalized);
+                numbers.push(normalized);
             }
         });
 
         if (!valid) {
-            $error.text('One or more numbers are invalid. Use E.164 format (e.g. +447700900001)').removeClass('d-none');
+            $error.text('One or more numbers are invalid. Enter a valid UK mobile number (e.g. 07700 900001, 447700900001, or +447700900001)').removeClass('d-none');
             return;
         }
 
