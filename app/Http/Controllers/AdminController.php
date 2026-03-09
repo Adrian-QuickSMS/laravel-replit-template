@@ -825,16 +825,16 @@ class AdminController extends Controller
                 $account->transitionTo($newStatus);
 
                 DB::table('auth_audit_log')->insert([
-                    'id' => \Illuminate\Support\Str::uuid()->toString(),
                     'tenant_id' => $accountId,
-                    'actor_type' => 'admin',
+                    'actor_type' => 'admin_user',
                     'actor_id' => session('admin_user_id'),
                     'actor_email' => session('admin_user_email'),
-                    'event_type' => 'account_status_changed',
+                    'event_type' => 'account_unlocked',
                     'result' => 'success',
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'metadata' => json_encode([
+                        'action' => 'account_status_changed',
                         'previous_status' => $previousStatus,
                         'new_status' => $newStatus,
                         'reason' => $request->input('reason'),
