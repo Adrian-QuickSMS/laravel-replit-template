@@ -16,6 +16,7 @@ use App\Models\Billing\CampaignEstimateSnapshot;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
 use App\Services\Numbers\NumberService;
+use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -44,6 +45,7 @@ class DeliveryService
     public function __construct(
         private PricingEngine $pricingEngine,
         private BalanceService $balanceService,
+        private TestModeEnforcementService $testModeEnforcement,
     ) {}
 
     /**
@@ -78,6 +80,29 @@ class DeliveryService
             // Step 2: Calculate per-message cost
             $account = Account::find($campaign->account_id);
             $cost = $this->calculateRecipientCost($account, $campaign, $recipient);
+
+            // Step 2.5: Test mode enforcement — per-message checks (credits, recipient, disclaimer)
+            if ($account && $account->isTestMode()) {
+                $messageBody = $recipient->resolved_content ?? $campaign->message_content ?? '';
+                $senderValue = $campaign->getSenderDisplayName() ?? '';
+                $testResult = $this->testModeEnforcement->enforce(
+                    $account, $recipient->mobile_number, $senderValue, $messageBody
+                );
+                if (!$testResult->allowed) {
+                    $recipient->markFailed('Test mode: ' . $testResult->reason, 'TEST_MODE_BLOCKED');
+                    $this->incrementCampaignCounter($campaign, 'failed_count');
+                    Log::info('[DeliveryService] Test mode blocked message', [
+                        'campaign_id' => $campaign->id,
+                        'recipient_id' => $recipient->id,
+                        'reason' => $testResult->reason,
+                    ]);
+                    return false;
+                }
+                // Apply test disclaimer if applicable (Test Standard accounts)
+                if ($testResult->finalContent !== $messageBody) {
+                    $recipient->update(['resolved_content' => $testResult->finalContent]);
+                }
+            }
 
             // Step 3: Build gateway message
             $gatewayMessage = $this->buildGatewayMessage($campaign, $recipient);
