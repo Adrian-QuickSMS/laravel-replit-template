@@ -3742,12 +3742,102 @@ class QuickSMSController extends Controller
                     $currentUser = $request->user();
                     $canManageUsers = $currentUser && in_array($currentUser->role, ['owner', 'admin']);
 
+                    $senderIds = \App\Models\SenderId::where('account_id', $tenantId)
+                        ->select('id', 'sender_id_value', 'workflow_status', 'created_at')
+                        ->orderBy('sender_id_value')
+                        ->get()
+                        ->map(function ($s) {
+                            return [
+                                'id' => $s->id,
+                                'value' => $s->sender_id_value,
+                                'status' => $s->workflow_status ?? 'draft',
+                                'created_at' => $s->created_at ? $s->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $numbers = \App\Models\PurchasedNumber::where('account_id', $tenantId)
+                        ->select('id', 'number', 'number_type', 'country_iso', 'created_at')
+                        ->orderBy('number')
+                        ->get()
+                        ->map(function ($n) {
+                            return [
+                                'id' => $n->id,
+                                'number' => $n->number,
+                                'type' => $n->number_type ?? 'vmn',
+                                'country' => $n->country_iso ?? 'GB',
+                                'created_at' => $n->created_at ? $n->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $rcsAgents = \App\Models\RcsAgent::where('account_id', $tenantId)
+                        ->select('id', 'name', 'workflow_status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($r) {
+                            return [
+                                'id' => $r->id,
+                                'name' => $r->name ?? 'Unnamed Agent',
+                                'status' => $r->workflow_status ?? 'draft',
+                                'created_at' => $r->created_at ? $r->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $templates = \App\Models\MessageTemplate::where('account_id', $tenantId)
+                        ->select('id', 'name', 'type', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($t) {
+                            return [
+                                'id' => $t->id,
+                                'name' => $t->name,
+                                'type' => $t->type,
+                                'status' => $t->status,
+                                'created_at' => $t->created_at ? $t->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $emailSetups = \App\Models\EmailToSmsSetup::where('account_id', $tenantId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id' => $e->id,
+                                'name' => $e->name,
+                                'status' => $e->status,
+                                'created_at' => $e->created_at ? $e->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $apiConns = \App\Models\ApiConnection::where('account_id', $tenantId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($c) {
+                            return [
+                                'id' => $c->id,
+                                'name' => $c->name,
+                                'status' => $c->status,
+                                'created_at' => $c->created_at ? $c->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $assets = [
+                        'sender_ids' => $senderIds,
+                        'numbers' => $numbers,
+                        'rcs_agents' => $rcsAgents,
+                        'templates' => $templates,
+                        'email_setups' => $emailSetups,
+                        'api_connections' => $apiConns,
+                    ];
+
                     return view('quicksms.account.account-overview', [
                         'page_title' => $accountData['name'],
                         'account' => $accountData,
                         'main_account_users' => $mainAccountUsers,
                         'sub_accounts_list' => $subAccountsList,
                         'can_manage_users' => $canManageUsers,
+                        'assets' => $assets,
                     ]);
                 }
             } catch (\Exception $e) {

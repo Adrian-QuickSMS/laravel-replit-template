@@ -601,88 +601,201 @@
                 Assigned Assets
             </h2>
         </div>
+        @php
+            $a = $assets ?? [];
+            $sids = $a['sender_ids'] ?? [];
+            $nums = $a['numbers'] ?? [];
+            $rcs = $a['rcs_agents'] ?? [];
+            $tmpls = $a['templates'] ?? [];
+            $emails = $a['email_setups'] ?? [];
+            $apis = $a['api_connections'] ?? [];
+        @endphp
         <div class="section-body p-0">
             <div class="assets-tabs">
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-senderids">
-                            SMS SenderIDs <span class="badge">0</span>
+                            SMS SenderIDs <span class="badge">{{ count($sids) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-numbers">
-                            Numbers <span class="badge">0</span>
+                            Numbers <span class="badge">{{ count($nums) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rcs">
-                            RCS Agents <span class="badge">0</span>
+                            RCS Agents <span class="badge">{{ count($rcs) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-templates">
-                            Templates <span class="badge">0</span>
+                            Templates <span class="badge">{{ count($tmpls) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-email">
-                            Email-to-SMS <span class="badge">0</span>
+                            Email-to-SMS <span class="badge">{{ count($emails) }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-api">
-                            API Connections <span class="badge">0</span>
+                            API Connections <span class="badge">{{ count($apis) }}</span>
                         </button>
                     </li>
                 </ul>
                 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="tab-senderids">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-id-card-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No Sender IDs assigned to this account yet.</p>
-                            <a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage Sender IDs</a>
-                        </div>
+                        @if(count($sids) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Sender ID</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($sids as $item)
+                                        <tr>
+                                            <td>{{ $item['value'] }}</td>
+                                            <td><span class="badge light badge-{{ $item['status'] === 'approved' ? 'success' : ($item['status'] === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($item['status']) }}</span></td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-id-card-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No Sender IDs assigned to this account yet.</p>
+                                <a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage Sender IDs</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-numbers">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-phone mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No numbers assigned to this account yet.</p>
-                            <a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage Numbers</a>
-                        </div>
+                        @if(count($nums) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Number</th><th>Type</th><th>Country</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($nums as $item)
+                                        <tr>
+                                            <td>{{ $item['number'] }}</td>
+                                            <td>{{ strtoupper($item['type']) }}</td>
+                                            <td>{{ $item['country'] }}</td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-phone mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No numbers assigned to this account yet.</p>
+                                <a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage Numbers</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-rcs">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-comment-dots mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No RCS agents assigned to this account yet.</p>
-                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage RCS Agents</a>
-                        </div>
+                        @if(count($rcs) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Agent Name</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($rcs as $item)
+                                        <tr>
+                                            <td>{{ $item['name'] }}</td>
+                                            <td><span class="badge light badge-{{ $item['status'] === 'approved' ? 'success' : ($item['status'] === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($item['status']) }}</span></td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-comment-dots mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No RCS agents assigned to this account yet.</p>
+                                <a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage RCS Agents</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-templates">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-file-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No templates assigned to this account yet.</p>
-                            <a href="{{ route('management.templates') }}" class="btn btn-manage">Manage Templates</a>
-                        </div>
+                        @if(count($tmpls) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($tmpls as $item)
+                                        <tr>
+                                            <td>{{ $item['name'] }}</td>
+                                            <td>{{ ucfirst($item['type'] ?? '-') }}</td>
+                                            <td><span class="badge light badge-{{ $item['status'] === 'active' ? 'success' : ($item['status'] === 'suspended' ? 'danger' : 'warning') }}">{{ ucfirst($item['status']) }}</span></td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-file-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No templates assigned to this account yet.</p>
+                                <a href="{{ route('management.templates') }}" class="btn btn-manage">Manage Templates</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-email">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-envelope mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No Email-to-SMS setups assigned to this account yet.</p>
-                            <a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage Email-to-SMS</a>
-                        </div>
+                        @if(count($emails) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Name</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($emails as $item)
+                                        <tr>
+                                            <td>{{ $item['name'] }}</td>
+                                            <td><span class="badge light badge-{{ $item['status'] === 'active' ? 'success' : 'warning' }}">{{ ucfirst($item['status']) }}</span></td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-envelope mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No Email-to-SMS setups assigned to this account yet.</p>
+                                <a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage Email-to-SMS</a>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="tab-pane fade" id="tab-api">
-                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
-                            <i class="fas fa-plug mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
-                            <p class="mb-2">No API connections assigned to this account yet.</p>
-                            <a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage API Connections</a>
-                        </div>
+                        @if(count($apis) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0" style="font-size:0.85rem;">
+                                    <thead><tr><th>Name</th><th>Status</th><th>Created</th></tr></thead>
+                                    <tbody>
+                                    @foreach($apis as $item)
+                                        <tr>
+                                            <td>{{ $item['name'] }}</td>
+                                            <td><span class="badge light badge-{{ $item['status'] === 'active' ? 'success' : 'warning' }}">{{ ucfirst($item['status']) }}</span></td>
+                                            <td>{{ $item['created_at'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                                <i class="fas fa-plug mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                                <p class="mb-2">No API connections assigned to this account yet.</p>
+                                <a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage API Connections</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
