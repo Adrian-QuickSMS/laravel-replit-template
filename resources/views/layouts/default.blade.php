@@ -117,6 +117,7 @@
             if($page == 'ui_badge'){ $body_class = 'badge-demo';}
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
+            @if(in_array($account_status_global ?? '', ['test_standard', 'test_dynamic']))
             <!-- TEST MODE BANNER - Collapsible overlay -->
             <div id="test-mode-activation-banner" class="fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: #f0eaf8;">
                 <div class="container-fluid" style="padding: 12px 20px;">
@@ -151,6 +152,7 @@
                 </div>
             </div>
             <!-- END TEST MODE BANNER -->
+            @endif
 
             @include('partials.customer.senderid-returned-banner')
             
