@@ -115,17 +115,8 @@
     var BANNER_STORAGE_KEY = 'quicksms_test_banner_collapsed';
     
     if (testModeBanner) {
-        var lifecycleState = sessionStorage.getItem('lifecycle_state');
-        var isTestMode = false;
+        var isTestMode = lifecycleFromStatus === 'TEST';
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
-        
-        if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
-            isTestMode = AccountLifecycle.isTest();
-        } else if (lifecycleState) {
-            isTestMode = lifecycleState === 'TEST';
-        } else {
-            isTestMode = false;
-        }
         
         // Respect user's collapse preference when showing banner
         if (isTestMode) {
