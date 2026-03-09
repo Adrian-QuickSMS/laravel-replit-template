@@ -125,7 +125,7 @@
                             <i class="fas fa-lock me-3" style="font-size: 20px; color: #6f42c1;"></i>
                             <div>
                                 <strong class="d-block" style="color: #000; font-size: 0.95rem;">Your account is in Test Mode</strong>
-                                <span class="small" style="color: #000;">You can send test messages to approved numbers using QuickSMS test settings. To send live messages, complete your account details and activate your account.</span>
+                                <span class="small" style="color: #000;">You can send test messages to approved numbers using QuickSMS test settings. To send live messages, complete your account details and activate your account.@if(!is_null($test_credits_remaining_global ?? null)) <strong style="color: #6f42c1;">Test credits remaining: {{ $test_credits_remaining_global }}</strong>@endif</span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
