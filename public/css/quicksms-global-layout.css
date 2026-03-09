@@ -452,6 +452,21 @@ body.qsms-fullbleed .qsms-main {
 /* =============================================================================
    UTILITY CLASSES
    ============================================================================= */
+.content-body.qsms-fullbleed {
+    height: calc(100vh - 5.3rem);
+    display: flex;
+    flex-direction: column;
+}
+
+.qsms-fullbleed .qsms-main {
+    flex: 1;
+    min-height: 0;
+}
+
+.qsms-fullbleed .qsms-content-wrap {
+    height: 100%;
+}
+
 .qsms-gap-1 { gap: var(--qsms-spacing-1); }
 .qsms-gap-2 { gap: var(--qsms-spacing-2); }
 .qsms-gap-3 { gap: var(--qsms-spacing-3); }
