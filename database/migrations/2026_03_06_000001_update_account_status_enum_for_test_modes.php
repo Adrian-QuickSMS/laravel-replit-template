@@ -19,10 +19,13 @@ use Illuminate\Support\Facades\DB;
  */
 return new class extends Migration
 {
+    public bool $withinTransaction = false;
+
     public function up(): void
     {
         // Step 1: Add new values to the account_status enum
-        // PostgreSQL requires ALTER TYPE ... ADD VALUE (cannot remove values in a transaction)
+        // PostgreSQL requires ALTER TYPE ... ADD VALUE outside a transaction block.
+        // $withinTransaction = false ensures Laravel does not wrap this migration in a transaction.
         DB::statement("ALTER TYPE account_status ADD VALUE IF NOT EXISTS 'test_standard' AFTER 'pending_verification'");
         DB::statement("ALTER TYPE account_status ADD VALUE IF NOT EXISTS 'test_dynamic' AFTER 'test_standard'");
         DB::statement("ALTER TYPE account_status ADD VALUE IF NOT EXISTS 'active_standard' AFTER 'test_dynamic'");

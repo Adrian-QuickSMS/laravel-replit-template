@@ -446,7 +446,7 @@ class AdminController extends Controller
         })->toArray();
 
         $accounts = Account::select('id', 'company_name', 'trading_name')
-            ->where('status', 'active')
+            ->whereIn('status', Account::OPERATIONAL_STATUSES)
             ->orderBy('company_name')
             ->get()
             ->map(fn($a) => [

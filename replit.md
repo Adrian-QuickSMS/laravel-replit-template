@@ -82,6 +82,26 @@ auth:sanctum middleware         Admin-only middleware
 | Email-to-SMS | 7 normalized tables: `email_to_sms_setups` (core config), `email_to_sms_addresses` (auto-generated email addresses), `email_to_sms_allowed_senders` (whitelisted sender emails), `email_to_sms_recipients` (contact list recipients by type), `email_to_sms_opt_out_config` (opt-out list references), `email_to_sms_reporting_groups`, `email_to_sms_audit_log`. Two types: Standard (direct email-to-SMS) and Contact List (email-to-contact-book with opt-out screening). RLS on all 7 tables. Email generation: `{slug}-{4-digit}@sms.quicksms.com`. Customer API at `/api/email-to-sms/*`, Admin API at `/admin/api/email-to-sms/*`. JS service at `public/js/services/email-to-sms-service.js` with `useMockData: false`. **UI fully wired to real API** — all mock data calls (`getMock*`) and localStorage pending entries removed. Overview, Standard, Contact List tabs, Reporting Groups, and both creation wizards all use real async API calls. Service methods: `createReportingGroup()`, `updateReportingGroup()` added. |
 | Billing Snapshots | `campaign_estimate_snapshots` — immutable pricing record frozen at campaign send time |
 
+### Account Lifecycle & Test Mode (7-Status Model)
+
+The `accounts.status` enum now supports 7 values:
+- `pending_verification` — signup completed, awaiting fraud/identity check
+- `test_standard` — test mode with restrictions (approved numbers only, disclaimer prepended, registered Sender IDs only)
+- `test_dynamic` — test mode with relaxed Sender ID rules (any valid number, any Sender ID passing validation)
+- `active_standard` — live account, registered Sender IDs only
+- `active_dynamic` — live account, any Sender ID passing validation
+- `suspended` — billing or compliance suspension
+- `closed` — permanently closed
+
+`Account::OPERATIONAL_STATUSES` = `[test_standard, test_dynamic, active_standard, active_dynamic]`. Use `whereIn('status', Account::OPERATIONAL_STATUSES)` instead of `where('status', 'active')` when filtering for active/usable accounts. The old `active` value remains in the enum but no rows should use it.
+
+Key services:
+- **`TestModeEnforcementService`** — enforces test-mode restrictions (approved number checks, disclaimer prepending, test credit deduction). Called by `CampaignService` and `DeliveryService`.
+- **`FraudScreeningService`** — fraud detection and screening for account activation.
+- **`Account::transitionTo($newStatus)`** — validates status transitions against the allowed transition map.
+
+`account_settings` has `approved_test_numbers` (JSONB) for Test Standard accounts' approved recipient list.
+
 ### RCS Rich Messaging Backend
 
 - **`rcs_assets` table** — stores uploaded/URL-imported media with edit params (crop/zoom/orientation). Tenant-scoped via `account_id`. Draft assets are cleaned up daily by `php artisan rcs:cleanup-drafts`. Composite index on `(account_id, is_draft, created_at)`.

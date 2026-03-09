@@ -790,7 +790,7 @@ class AdminNumbersApiController extends Controller
 
     public function lookupAccounts(): JsonResponse
     {
-        $accounts = Account::where('status', 'active')
+        $accounts = Account::whereIn('status', Account::OPERATIONAL_STATUSES)
             ->orderBy('company_name')
             ->get(['id', 'company_name', 'trading_name', 'status'])
             ->map(fn ($a) => [
