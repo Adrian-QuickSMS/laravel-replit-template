@@ -227,8 +227,6 @@
             if (contentBody) {
                 if (testModeBanner && testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
                     contentBody.style.paddingTop = testModeBanner.offsetHeight + 'px';
-                } else if (collapsedTab && collapsedTab.style.display !== 'none') {
-                    contentBody.style.paddingTop = '32px';
                 } else {
                     contentBody.style.paddingTop = '';
                 }
