@@ -755,251 +755,83 @@
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-senderids">
-                            SMS SenderIDs <span class="badge">3</span>
+                            SMS SenderIDs <span class="badge" id="badge-senderids">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-numbers">
-                            Numbers <span class="badge">2</span>
+                            Numbers <span class="badge" id="badge-numbers">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rcs">
-                            RCS Agents <span class="badge">1</span>
+                            RCS Agents <span class="badge" id="badge-rcs">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-templates">
-                            Templates <span class="badge">5</span>
+                            Templates <span class="badge" id="badge-templates">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-email">
-                            Email-to-SMS <span class="badge">1</span>
+                            Email-to-SMS <span class="badge" id="badge-email">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-api">
-                            API Connections <span class="badge">2</span>
+                            API Connections <span class="badge" id="badge-api">0</span>
                         </button>
                     </li>
                 </ul>
                 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="tab-senderids">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Name / ID</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">QuickSMS</div>
-                                        <div class="asset-id">SID-001</div>
-                                    </td>
-                                    <td><span class="type-badge">Alphanumeric</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Marketing</div>
-                                        <div class="asset-id">SID-002</div>
-                                    </td>
-                                    <td><span class="type-badge">Alphanumeric</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Alerts</div>
-                                        <div class="asset-id">SID-003</div>
-                                    </td>
-                                    <td><span class="type-badge">Alphanumeric</span></td>
-                                    <td><span class="status-badge pending">Pending</span></td>
-                                    <td><a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-id-card-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No Sender IDs assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.sms-sender-id') }}" class="btn btn-manage">Manage Sender IDs</a>
+                        </div>
                     </div>
                     
                     <div class="tab-pane fade" id="tab-numbers">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Number</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">+44 7700 900123</div>
-                                        <div class="asset-id">NUM-VMN-001</div>
-                                    </td>
-                                    <td><span class="type-badge">VMN</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">88020</div>
-                                        <div class="asset-id">NUM-SC-001</div>
-                                    </td>
-                                    <td><span class="type-badge">Shortcode</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-phone mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No numbers assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.numbers') }}" class="btn btn-manage">Manage Numbers</a>
+                        </div>
                     </div>
                     
                     <div class="tab-pane fade" id="tab-rcs">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Agent Name</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">QuickSMS Brand</div>
-                                        <div class="asset-id">RCS-AGT-001</div>
-                                    </td>
-                                    <td><span class="type-badge">Conversational</span></td>
-                                    <td><span class="status-badge active">Verified</span></td>
-                                    <td><a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-comment-dots mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No RCS agents assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-manage">Manage RCS Agents</a>
+                        </div>
                     </div>
                     
                     <div class="tab-pane fade" id="tab-templates">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Template Name</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Sale Announcement</div>
-                                        <div class="asset-id">TPL-001</div>
-                                    </td>
-                                    <td><span class="type-badge">SMS</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.templates') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Appointment Reminder</div>
-                                        <div class="asset-id">TPL-002</div>
-                                    </td>
-                                    <td><span class="type-badge">SMS</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.templates') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Product Showcase</div>
-                                        <div class="asset-id">TPL-003</div>
-                                    </td>
-                                    <td><span class="type-badge">RCS Rich</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.templates') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Order Confirmation</div>
-                                        <div class="asset-id">TPL-004</div>
-                                    </td>
-                                    <td><span class="type-badge">SMS</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.templates') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Feedback Request</div>
-                                        <div class="asset-id">TPL-005</div>
-                                    </td>
-                                    <td><span class="type-badge">RCS Basic</span></td>
-                                    <td><span class="status-badge pending">Draft</span></td>
-                                    <td><a href="{{ route('management.templates') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-file-alt mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No templates assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.templates') }}" class="btn btn-manage">Manage Templates</a>
+                        </div>
                     </div>
                     
                     <div class="tab-pane fade" id="tab-email">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Email Address</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">alerts@company.quicksms.com</div>
-                                        <div class="asset-id">E2S-001</div>
-                                    </td>
-                                    <td><span class="type-badge">Standard</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-envelope mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No Email-to-SMS setups assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.email-to-sms') }}" class="btn btn-manage">Manage Email-to-SMS</a>
+                        </div>
                     </div>
                     
                     <div class="tab-pane fade" id="tab-api">
-                        <table class="table asset-table">
-                            <thead>
-                                <tr>
-                                    <th>Connection Name</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Production API</div>
-                                        <div class="asset-id">API-001</div>
-                                    </td>
-                                    <td><span class="type-badge">REST v2</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="asset-name">Webhook Endpoint</div>
-                                        <div class="asset-id">API-002</div>
-                                    </td>
-                                    <td><span class="type-badge">Webhook</span></td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                            <i class="fas fa-plug mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                            <p class="mb-2">No API connections assigned to this sub-account yet.</p>
+                            <a href="{{ route('management.api-connections') }}" class="btn btn-manage">Manage API Connections</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1127,10 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
             subAccountName: subAccountName,
             previousStatus: currentStatus,
             ...details,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100',
-            sessionId: 'sess_abc123'
+            timestamp: new Date().toISOString()
         });
     }
     
@@ -1284,10 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
             previousLimits: originalLimits,
             newLimits: newLimits,
             requiresApproval: requiresApproval,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100',
-            sessionId: 'sess_abc123'
+            timestamp: new Date().toISOString()
         });
         
         if (requiresApproval) {

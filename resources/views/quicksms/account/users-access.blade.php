@@ -2875,7 +2875,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     userName: userName,
                     userEmail: userEmail,
                     subAccountId: subId,
-                    triggeredBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
                     timestamp: new Date().toISOString()
                 });
 
