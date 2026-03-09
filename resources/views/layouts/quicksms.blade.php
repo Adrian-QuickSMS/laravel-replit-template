@@ -25,10 +25,20 @@
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {
-    // Mock account data - in production, this comes from backend session
+    var serverAccountStatus = @json($account_status_global ?? null);
+    var lifecycleFromStatus = (function(status) {
+        if (!status) return null;
+        if (status.indexOf('test_') === 0) return 'TEST';
+        if (status.indexOf('active_') === 0) return 'ACTIVE';
+        if (status === 'suspended') return 'SUSPENDED';
+        if (status === 'closed') return 'CLOSED';
+        if (status === 'pending_verification') return 'PENDING';
+        return null;
+    })(serverAccountStatus);
+
     var accountData = {
         account_id: sessionStorage.getItem('account_id') || null,
-        lifecycle_state: sessionStorage.getItem('lifecycle_state') || 'TEST',
+        lifecycle_state: lifecycleFromStatus || sessionStorage.getItem('lifecycle_state') || null,
         state_changed_at: sessionStorage.getItem('state_changed_at') || null,
         suspension_reason: sessionStorage.getItem('suspension_reason') || null
     };
@@ -109,15 +119,12 @@
         var isTestMode = false;
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
         
-        // Check AccountLifecycle if initialized
         if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
             isTestMode = AccountLifecycle.isTest();
         } else if (lifecycleState) {
-            // Fallback to sessionStorage
             isTestMode = lifecycleState === 'TEST';
         } else {
-            // Default: New accounts are TEST mode, show banner
-            isTestMode = true;
+            isTestMode = false;
         }
         
         // Respect user's collapse preference when showing banner
