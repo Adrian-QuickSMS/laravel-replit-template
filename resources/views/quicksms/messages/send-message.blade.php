@@ -100,25 +100,6 @@
             </ol>
         </div>
         
-        @if(!empty($is_test_mode))
-        <div class="alert mb-3 border-0" style="background-color: #fff3cd; color: #856404;">
-            <div class="d-flex align-items-start">
-                <i class="fas fa-flask me-3 mt-1" style="font-size: 1.25rem;"></i>
-                <div class="flex-grow-1">
-                    <strong>Test Mode{{ !empty($is_test_standard) ? ' — Standard' : ' — Dynamic' }}</strong>
-                    <div class="mt-1 small">
-                        @if(!empty($is_test_standard))
-                        <div class="mb-1"><i class="fas fa-stamp me-1"></i> A disclaimer will be prepended to every message: <em>"QuickSMS TEST message. If unexpected, do not trust links or numbers."</em> (+68 chars inc. space)</div>
-                        <div class="mb-1"><i class="fas fa-phone-alt me-1"></i> Recipients are restricted to your <a href="{{ route('account.details') }}" class="fw-bold">approved test numbers</a> ({{ count($approved_test_numbers ?? []) }} configured)</div>
-                        <div class="mb-1"><i class="fas fa-id-card me-1"></i> Sender ID is restricted to "QuickSMS" or your approved Sender IDs</div>
-                        @endif
-                        <div><i class="fas fa-coins me-1"></i> Using test credits: <strong>{{ $test_credits_remaining ?? 0 }}</strong> remaining</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-
         <div class="send-message-layout">
         <div class="send-message-left">
             <div class="card mb-3">
@@ -145,12 +126,17 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6" id="senderIdSection">
-                            <select class="form-select" id="senderId" onchange="updatePreview()">
-                                <option value="">SMS Sender ID *</option>
-                                @foreach($sender_ids as $sender)
-                                <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
-                                @endforeach
-                            </select>
+                            <div class="d-flex align-items-center gap-2">
+                                <select class="form-select" id="senderId" onchange="updatePreview()">
+                                    <option value="">SMS Sender ID *</option>
+                                    @foreach($sender_ids as $sender)
+                                    <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
+                                    @endforeach
+                                </select>
+                                @if(!empty($is_test_standard))
+                                <i class="fas fa-info-circle" style="color: #886CC0; cursor: pointer; font-size: 1rem;" data-bs-toggle="modal" data-bs-target="#testSenderInfoModal" title="Test mode sender restrictions"></i>
+                                @endif
+                            </div>
                         </div>
                         <div class="col-md-6 d-none" id="rcsAgentSection">
                             <select class="form-select" id="rcsAgent" onchange="updatePreview()">
@@ -182,7 +168,11 @@
                     </div>
                     
                     <div id="recipientSummaryText" class="alert mb-3" style="display: none; background-color: #f0ebf8; color: #6b5b95; border: 1px solid #d4c8e8;"></div>
-                    <label class="form-label mb-2">Enter mobile numbers</label>
+                    <label class="form-label mb-2">Enter mobile numbers
+                        @if(!empty($is_test_standard))
+                        <i class="fas fa-info-circle ms-1" style="color: #886CC0; cursor: pointer; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#testRecipientsInfoModal" title="Test mode recipient restrictions"></i>
+                        @endif
+                    </label>
                     <textarea class="form-control mb-3" id="manualNumbers" rows="4" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
                     
                     <div class="d-none mb-3" id="manualValidation">
@@ -254,8 +244,10 @@
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <span class="text-muted me-3">Characters: <strong id="charCount">0</strong></span>
-                            <span class="text-warning small d-none me-3" id="disclaimerCharIndicator"></span>
+                            <span class="text-muted me-3">Characters: <strong id="charCount">{{ !empty($is_test_standard) ? '68' : '0' }}</strong></span>
+                            @if(!empty($is_test_standard))
+                            <i class="fas fa-info-circle me-3" style="color: #886CC0; cursor: pointer; font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#testDisclaimerInfoModal" title="Test disclaimer info"></i>
+                            @endif
                             <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
                             <span class="text-muted" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
                         </div>
@@ -2412,15 +2404,7 @@ function handleContentChange() {
 
     var isTestStandard = {{ !empty($is_test_standard) ? 'true' : 'false' }};
     var disclaimerLength = 68;
-    var totalCharCount = isTestStandard && channel === 'sms' ? charCount + disclaimerLength : charCount;
-
-    var disclaimerIndicator = document.getElementById('disclaimerCharIndicator');
-    if (disclaimerIndicator) {
-        disclaimerIndicator.classList.toggle('d-none', !(isTestStandard && channel === 'sms' && charCount > 0));
-        if (isTestStandard && channel === 'sms' && charCount > 0) {
-            disclaimerIndicator.innerHTML = '<i class="fas fa-plus-circle me-1"></i>+' + disclaimerLength + ' disclaimer = <strong>' + totalCharCount + ' total</strong>';
-        }
-    }
+    var displayCharCount = isTestStandard && channel === 'sms' ? charCount + disclaimerLength : charCount;
 
     if (hasPlaceholders && content.length > 0) {
         document.getElementById('charCount').textContent = 'N/A';
@@ -2432,7 +2416,7 @@ function handleContentChange() {
             document.getElementById('rcsTextHelper').classList.add('d-none');
         }
     } else {
-        document.getElementById('charCount').textContent = charCount;
+        document.getElementById('charCount').textContent = displayCharCount;
         document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
         document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
 
@@ -2444,12 +2428,8 @@ function handleContentChange() {
         } else {
             var singleLimit = isGsm ? 160 : 70;
             var concatLimit = isGsm ? 153 : 67;
-            var segCharCount = isTestStandard && channel === 'sms' ? totalCharCount : charCount;
-            var parts = segCharCount <= singleLimit ? 1 : Math.ceil(segCharCount / concatLimit);
+            var parts = displayCharCount <= singleLimit ? 1 : Math.ceil(displayCharCount / concatLimit);
             segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
-            if (isTestStandard && channel === 'sms' && charCount > 0) {
-                segmentDisplay.innerHTML += ' <span class="text-warning small">(inc. disclaimer)</span>';
-            }
             if (channel !== 'rcs_basic') {
                 document.getElementById('rcsTextHelper').classList.add('d-none');
             }
@@ -5943,4 +5923,68 @@ function showTestSentConfirmation(phoneNumber) {
     });
 }
 </script>
+
+@if(!empty($is_test_standard))
+<div class="modal fade" id="testSenderInfoModal" tabindex="-1" aria-labelledby="testSenderInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
+                <h6 class="modal-title" id="testSenderInfoModalLabel"><i class="fas fa-id-card me-2"></i>Sender ID — Test Mode</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>While your account is in <strong>Test Standard</strong> mode, your Sender ID options are limited to:</p>
+                <ul class="mb-3">
+                    <li><strong>QuickSMS</strong> — the default test sender, available to all test accounts</li>
+                    <li>Any <strong>approved Sender IDs</strong> that have been verified for your account</li>
+                </ul>
+                <p class="mb-0 text-muted">To use custom Sender IDs, activate your account by completing verification.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="testRecipientsInfoModal" tabindex="-1" aria-labelledby="testRecipientsInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
+                <h6 class="modal-title" id="testRecipientsInfoModalLabel"><i class="fas fa-phone-alt me-2"></i>Recipients — Test Mode</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>While your account is in <strong>Test Standard</strong> mode, you can only send messages to your <strong>approved test numbers</strong>.</p>
+                <p>You currently have <strong>{{ count($approved_test_numbers ?? []) }}</strong> approved test number(s) configured.</p>
+                <p class="mb-0">You can manage your approved test numbers from your <a href="{{ route('account.details') }}" class="fw-bold" style="color: #886CC0;">Account Details</a> page.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="testDisclaimerInfoModal" tabindex="-1" aria-labelledby="testDisclaimerInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
+                <h6 class="modal-title" id="testDisclaimerInfoModalLabel"><i class="fas fa-stamp me-2"></i>Character Count — Test Disclaimer</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>The character count includes <strong>68 characters</strong> for the test disclaimer that will be prepended to every message:</p>
+                <div class="p-2 rounded mb-3" style="background-color: #f0ebf8; color: #6b5b95;">
+                    <em>"QuickSMS TEST message. If unexpected, do not trust links or numbers."</em> + space
+                </div>
+                <p class="mb-0 text-muted">This ensures the segment count accurately reflects the final delivered message length. The disclaimer is removed once your account is activated.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
