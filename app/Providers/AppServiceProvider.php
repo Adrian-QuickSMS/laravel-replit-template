@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         View::share('inbox_unread_count', 12);
 
-        View::composer('layouts.default', function ($view) {
+        View::composer(['layouts.default', 'layouts.quicksms'], function ($view) {
             $tenantId = session('customer_tenant_id');
             $testCreditsRemaining = null;
             if ($tenantId) {
