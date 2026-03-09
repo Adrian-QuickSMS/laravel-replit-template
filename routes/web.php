@@ -129,6 +129,47 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
+// =====================================================
+// Sub-Account Management API
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/sub-accounts')->controller(\App\Http\Controllers\SubAccountController::class)->group(function () {
+    Route::get('/', 'index')->name('api.sub-accounts.index');
+    Route::post('/', 'store')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.store');
+    Route::get('/{id}', 'show')->name('api.sub-accounts.show');
+    Route::put('/{id}', 'update')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.update');
+    Route::put('/{id}/limits', 'updateLimits')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.limits');
+    Route::put('/{id}/suspend', 'suspend')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.suspend');
+    Route::put('/{id}/reactivate', 'reactivate')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.reactivate');
+    Route::put('/{id}/archive', 'archive')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.archive');
+});
+
+// =====================================================
+// User Management API
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/users')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
+    Route::get('/', 'index')->name('api.users.index');
+    Route::get('/roles', 'roles')->name('api.users.roles');
+    Route::get('/{id}', 'show')->name('api.users.show');
+    Route::put('/{id}', 'update')->middleware('permission:manage_users')->name('api.users.update');
+    Route::put('/{id}/suspend', 'suspend')->middleware('permission:manage_users')->name('api.users.suspend');
+    Route::put('/{id}/reactivate', 'reactivate')->middleware('permission:manage_users')->name('api.users.reactivate');
+    Route::post('/{id}/transfer-ownership', 'transferOwnership')->middleware('permission:manage_users')->name('api.users.transfer-ownership');
+});
+
+// =====================================================
+// User Invitations API
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:30,1'])->prefix('api/invitations')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
+    Route::get('/', 'listInvitations')->name('api.invitations.index');
+    Route::post('/', 'invite')->middleware('permission:manage_users')->name('api.invitations.store');
+    Route::put('/{id}/revoke', 'revokeInvitation')->middleware('permission:manage_users')->name('api.invitations.revoke');
+});
+
+// Public invitation acceptance (no auth required)
+Route::post('/invitation/accept', [\App\Http\Controllers\UserManagementController::class, 'acceptInvitation'])
+    ->middleware('throttle:10,1')
+    ->name('invitation.accept');
+
 // RCS Agent Registration — Customer Portal API
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
     Route::get('/', 'list')->name('api.rcs-agents.list');

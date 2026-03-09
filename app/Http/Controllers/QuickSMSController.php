@@ -3578,156 +3578,175 @@ class QuickSMSController extends Controller
 
     public function subAccounts()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Sub Accounts',
-            'purpose' => 'Create and manage sub-accounts for organizational units.',
-            'sub_modules' => []
+        $tenantId = session('customer_tenant_id');
+
+        // Load real sub-accounts from database if tenant context exists
+        $subAccountsList = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccountsList = \App\Models\SubAccount::orderBy('name')->get()
+                    ->map(fn($sa) => $sa->toPortalArray())
+                    ->toArray();
+            } catch (\Exception $e) {
+                \Log::warning('Failed to load sub-accounts: ' . $e->getMessage());
+            }
+        }
+
+        return view('quicksms.account.users-access', [
+            'page_title' => 'Sub Accounts, Users and Permissions',
+            'sub_accounts_data' => $subAccountsList,
         ]);
     }
-    
+
     public function subAccountDetail($id)
     {
+        $tenantId = session('customer_tenant_id');
+
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccountModel = \App\Models\SubAccount::find($id);
+
+                if ($subAccountModel) {
+                    $subAccount = [
+                        'id' => $subAccountModel->id,
+                        'name' => $subAccountModel->name,
+                        'description' => $subAccountModel->description,
+                        'status' => $subAccountModel->sub_account_status ?? 'live',
+                        'created_at' => $subAccountModel->created_at->format('Y-m-d'),
+                        'user_count' => $subAccountModel->users()->count(),
+                        'monthly_spend' => (float)($subAccountModel->monthly_spend_used ?? 0),
+                        'monthly_messages' => $subAccountModel->monthly_messages_used ?? 0,
+                        'limits' => [
+                            'spend_cap' => (float)($subAccountModel->monthly_spending_cap ?? 0),
+                            'message_cap' => $subAccountModel->monthly_message_cap ?? 0,
+                            'daily_limit' => $subAccountModel->daily_send_limit ?? 0,
+                            'enforcement_type' => $subAccountModel->enforcement_type ?? 'warn',
+                            'hard_stop' => $subAccountModel->hard_stop_enabled ?? false,
+                        ],
+                    ];
+
+                    return view('quicksms.account.sub-account-detail', [
+                        'page_title' => $subAccount['name'],
+                        'sub_account' => $subAccount
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to load sub-account: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback to mock data for demo/dev if not found in DB
         $subAccounts = [
             'sub-001' => [
-                'id' => 'sub-001',
-                'name' => 'Marketing Department',
-                'status' => 'live',
-                'created_at' => '2024-06-15',
-                'user_count' => 8,
-                'monthly_spend' => 1250.00,
-                'monthly_messages' => 42500,
-                'limits' => [
-                    'spend_cap' => 5000.00,
-                    'message_cap' => 100000,
-                    'daily_limit' => 5000,
-                    'enforcement_type' => 'block',
-                    'hard_stop' => false
-                ]
+                'id' => 'sub-001', 'name' => 'Marketing Department', 'status' => 'live',
+                'created_at' => '2024-06-15', 'user_count' => 8,
+                'monthly_spend' => 1250.00, 'monthly_messages' => 42500,
+                'limits' => ['spend_cap' => 5000.00, 'message_cap' => 100000, 'daily_limit' => 5000, 'enforcement_type' => 'block', 'hard_stop' => false]
             ],
             'sub-002' => [
-                'id' => 'sub-002',
-                'name' => 'Customer Support',
-                'status' => 'live',
-                'created_at' => '2024-08-22',
-                'user_count' => 5,
-                'monthly_spend' => 875.50,
-                'monthly_messages' => 28000,
-                'limits' => [
-                    'spend_cap' => 2000.00,
-                    'message_cap' => 50000,
-                    'daily_limit' => 2000,
-                    'enforcement_type' => 'warn',
-                    'hard_stop' => false
-                ]
+                'id' => 'sub-002', 'name' => 'Customer Support', 'status' => 'live',
+                'created_at' => '2024-08-22', 'user_count' => 5,
+                'monthly_spend' => 875.50, 'monthly_messages' => 28000,
+                'limits' => ['spend_cap' => 2000.00, 'message_cap' => 50000, 'daily_limit' => 2000, 'enforcement_type' => 'warn', 'hard_stop' => false]
             ],
             'sub-003' => [
-                'id' => 'sub-003',
-                'name' => 'Sales Team',
-                'status' => 'suspended',
-                'created_at' => '2024-09-10',
-                'user_count' => 3,
-                'monthly_spend' => 0,
-                'monthly_messages' => 0,
-                'limits' => [
-                    'spend_cap' => 1000.00,
-                    'message_cap' => 25000,
-                    'daily_limit' => 1000,
-                    'enforcement_type' => 'approval',
-                    'hard_stop' => true
-                ]
-            ]
+                'id' => 'sub-003', 'name' => 'Sales Team', 'status' => 'suspended',
+                'created_at' => '2024-09-10', 'user_count' => 3,
+                'monthly_spend' => 0, 'monthly_messages' => 0,
+                'limits' => ['spend_cap' => 1000.00, 'message_cap' => 25000, 'daily_limit' => 1000, 'enforcement_type' => 'approval', 'hard_stop' => true]
+            ],
         ];
-        
+
         $subAccount = $subAccounts[$id] ?? null;
-        
-        if (!$subAccount) {
-            abort(404, 'Sub-Account not found');
-        }
-        
+        if (!$subAccount) abort(404, 'Sub-Account not found');
+
         return view('quicksms.account.sub-account-detail', [
             'page_title' => $subAccount['name'],
             'sub_account' => $subAccount
         ]);
     }
-    
+
     public function userDetail($subId, $userId)
     {
+        $tenantId = session('customer_tenant_id');
+
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+
+                $subAccountModel = \App\Models\SubAccount::find($subId);
+                $userModel = \App\Models\User::find($userId);
+
+                if ($subAccountModel && $userModel) {
+                    $subAccount = ['id' => $subAccountModel->id, 'name' => $subAccountModel->name];
+                    $user = [
+                        'id' => $userModel->id,
+                        'name' => $userModel->first_name . ' ' . $userModel->last_name,
+                        'email' => $userModel->email,
+                        'role' => $userModel->role,
+                        'role_label' => $userModel->getRoleLabel(),
+                        'status' => $userModel->status,
+                        'sender_capability' => $userModel->sender_capability ?? 'none',
+                        'created_at' => $userModel->created_at->format('Y-m-d'),
+                        'last_login' => $userModel->last_login_at?->format('Y-m-d H:i'),
+                        'mfa_enabled' => $userModel->mfa_enabled,
+                        'monthly_spend' => (float)($userModel->monthly_spend_used ?? 0),
+                        'monthly_messages' => $userModel->monthly_messages_used ?? 0,
+                        'message_cap' => $userModel->monthly_message_cap,
+                        'sub_account_id' => $userModel->sub_account_id,
+                    ];
+
+                    return view('quicksms.account.user-detail', [
+                        'page_title' => $user['name'],
+                        'sub_account' => $subAccount,
+                        'user' => $user,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to load user detail: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback to mock data
         $subAccounts = [
             'sub-001' => ['id' => 'sub-001', 'name' => 'Marketing Department'],
             'sub-002' => ['id' => 'sub-002', 'name' => 'Customer Support'],
             'sub-003' => ['id' => 'sub-003', 'name' => 'Sales Team'],
         ];
-        
+
         $users = [
             'user-001' => [
-                'id' => 'user-001',
-                'name' => 'Emma Thompson',
-                'email' => 'emma.thompson@company.com',
-                'role' => 'messaging-manager',
-                'role_label' => 'Messaging Manager',
-                'status' => 'active',
-                'sender_capability' => 'advanced',
-                'created_at' => '2024-06-20',
-                'last_login' => '2026-01-16 09:45',
-                'mfa_enabled' => true,
-                'monthly_spend' => 450.00,
-                'monthly_messages' => 15200,
-                'sub_account_id' => 'sub-001'
+                'id' => 'user-001', 'name' => 'Emma Thompson', 'email' => 'emma.thompson@company.com',
+                'role' => 'messaging-manager', 'role_label' => 'Messaging Manager', 'status' => 'active',
+                'sender_capability' => 'advanced', 'created_at' => '2024-06-20', 'last_login' => '2026-01-16 09:45',
+                'mfa_enabled' => true, 'monthly_spend' => 450.00, 'monthly_messages' => 15200, 'sub_account_id' => 'sub-001'
             ],
             'user-002' => [
-                'id' => 'user-002',
-                'name' => 'Michael Brown',
-                'email' => 'michael.brown@company.com',
-                'role' => 'admin',
-                'role_label' => 'Admin',
-                'status' => 'active',
-                'sender_capability' => 'advanced',
-                'created_at' => '2024-07-15',
-                'last_login' => '2026-01-15 14:20',
-                'mfa_enabled' => true,
-                'monthly_spend' => 320.50,
-                'monthly_messages' => 10800,
-                'sub_account_id' => 'sub-001'
+                'id' => 'user-002', 'name' => 'Michael Brown', 'email' => 'michael.brown@company.com',
+                'role' => 'admin', 'role_label' => 'Admin', 'status' => 'active',
+                'sender_capability' => 'advanced', 'created_at' => '2024-07-15', 'last_login' => '2026-01-15 14:20',
+                'mfa_enabled' => true, 'monthly_spend' => 320.50, 'monthly_messages' => 10800, 'sub_account_id' => 'sub-001'
             ],
             'user-003' => [
-                'id' => 'user-003',
-                'name' => 'Sarah Wilson',
-                'email' => 'sarah.wilson@company.com',
-                'role' => 'finance',
-                'role_label' => 'Finance/Billing',
-                'status' => 'active',
-                'sender_capability' => null,
-                'created_at' => '2024-08-01',
-                'last_login' => '2026-01-14 11:30',
-                'mfa_enabled' => true,
-                'monthly_spend' => 0,
-                'monthly_messages' => 0,
-                'sub_account_id' => 'sub-002'
+                'id' => 'user-003', 'name' => 'Sarah Wilson', 'email' => 'sarah.wilson@company.com',
+                'role' => 'finance', 'role_label' => 'Finance/Billing', 'status' => 'active',
+                'sender_capability' => null, 'created_at' => '2024-08-01', 'last_login' => '2026-01-14 11:30',
+                'mfa_enabled' => true, 'monthly_spend' => 0, 'monthly_messages' => 0, 'sub_account_id' => 'sub-002'
             ],
             'user-004' => [
-                'id' => 'user-004',
-                'name' => 'Chris Martinez',
-                'email' => 'chris.martinez@company.com',
-                'role' => 'messaging-manager',
-                'role_label' => 'Messaging Manager',
-                'status' => 'suspended',
-                'sender_capability' => 'restricted',
-                'created_at' => '2024-09-10',
-                'last_login' => '2026-01-10 08:15',
-                'mfa_enabled' => false,
-                'monthly_spend' => 0,
-                'monthly_messages' => 0,
-                'sub_account_id' => 'sub-002'
+                'id' => 'user-004', 'name' => 'Chris Martinez', 'email' => 'chris.martinez@company.com',
+                'role' => 'messaging-manager', 'role_label' => 'Messaging Manager', 'status' => 'suspended',
+                'sender_capability' => 'restricted', 'created_at' => '2024-09-10', 'last_login' => '2026-01-10 08:15',
+                'mfa_enabled' => false, 'monthly_spend' => 0, 'monthly_messages' => 0, 'sub_account_id' => 'sub-002'
             ],
         ];
-        
+
         $subAccount = $subAccounts[$subId] ?? null;
         $user = $users[$userId] ?? null;
-        
-        if (!$subAccount || !$user) {
-            abort(404, 'User not found');
-        }
-        
+        if (!$subAccount || !$user) abort(404, 'User not found');
+
         return view('quicksms.account.user-detail', [
             'page_title' => $user['name'],
             'sub_account' => $subAccount,

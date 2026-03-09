@@ -37,12 +37,133 @@ class User extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
+    // Role constants
+    const ROLE_OWNER = 'owner';
+    const ROLE_ADMIN = 'admin';
+    const ROLE_MESSAGING_MANAGER = 'messaging_manager';
+    const ROLE_FINANCE = 'finance';
+    const ROLE_DEVELOPER = 'developer';
+    const ROLE_USER = 'user';
+    const ROLE_READONLY = 'readonly';
+
+    const ROLES = [
+        self::ROLE_OWNER,
+        self::ROLE_ADMIN,
+        self::ROLE_MESSAGING_MANAGER,
+        self::ROLE_FINANCE,
+        self::ROLE_DEVELOPER,
+        self::ROLE_USER,
+        self::ROLE_READONLY,
+    ];
+
+    const ROLE_LABELS = [
+        self::ROLE_OWNER => 'Account Owner',
+        self::ROLE_ADMIN => 'Admin',
+        self::ROLE_MESSAGING_MANAGER => 'Messaging Manager',
+        self::ROLE_FINANCE => 'Finance / Billing',
+        self::ROLE_DEVELOPER => 'Developer / API User',
+        self::ROLE_USER => 'User',
+        self::ROLE_READONLY => 'Read-Only / Auditor',
+    ];
+
+    // Sender capability constants
+    const SENDER_ADVANCED = 'advanced';
+    const SENDER_RESTRICTED = 'restricted';
+    const SENDER_NONE = 'none';
+
+    // Default permission toggles per role
+    const ROLE_DEFAULT_PERMISSIONS = [
+        self::ROLE_OWNER => [
+            'create_freeform' => true, 'edit_template_vars' => true, 'use_sms_templates' => true,
+            'use_rcs_templates' => true, 'upload_rcs_media' => true, 'send_one_to_one' => true,
+            'send_bulk' => true, 'access_contact_book' => true, 'access_selected_lists' => true,
+            'create_edit_lists' => true, 'csv_uploads' => true, 'adhoc_numbers' => true,
+            'view_sensitive_fields' => true, 'schedule_campaigns' => true, 'save_drafts' => true,
+            'ab_testing' => true, 'manage_sender_ids' => true, 'manage_rcs_agents' => true,
+            'manage_templates' => true, 'manage_api_connections' => true, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => true, 'export_data' => true,
+            'view_billing' => true, 'manage_users' => true, 'manage_sub_accounts' => true,
+            'manage_security' => true,
+        ],
+        self::ROLE_ADMIN => [
+            'create_freeform' => true, 'edit_template_vars' => true, 'use_sms_templates' => true,
+            'use_rcs_templates' => true, 'upload_rcs_media' => true, 'send_one_to_one' => true,
+            'send_bulk' => true, 'access_contact_book' => true, 'access_selected_lists' => true,
+            'create_edit_lists' => true, 'csv_uploads' => true, 'adhoc_numbers' => true,
+            'view_sensitive_fields' => true, 'schedule_campaigns' => true, 'save_drafts' => true,
+            'ab_testing' => true, 'manage_sender_ids' => true, 'manage_rcs_agents' => true,
+            'manage_templates' => true, 'manage_api_connections' => true, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => true, 'export_data' => true,
+            'view_billing' => false, 'manage_users' => true, 'manage_sub_accounts' => true,
+            'manage_security' => false,
+        ],
+        self::ROLE_MESSAGING_MANAGER => [
+            'create_freeform' => true, 'edit_template_vars' => true, 'use_sms_templates' => true,
+            'use_rcs_templates' => true, 'upload_rcs_media' => true, 'send_one_to_one' => true,
+            'send_bulk' => true, 'access_contact_book' => true, 'access_selected_lists' => true,
+            'create_edit_lists' => true, 'csv_uploads' => true, 'adhoc_numbers' => true,
+            'view_sensitive_fields' => false, 'schedule_campaigns' => true, 'save_drafts' => true,
+            'ab_testing' => true, 'manage_sender_ids' => false, 'manage_rcs_agents' => false,
+            'manage_templates' => false, 'manage_api_connections' => false, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => false, 'export_data' => false,
+            'view_billing' => false, 'manage_users' => false, 'manage_sub_accounts' => false,
+            'manage_security' => false,
+        ],
+        self::ROLE_FINANCE => [
+            'create_freeform' => false, 'edit_template_vars' => false, 'use_sms_templates' => false,
+            'use_rcs_templates' => false, 'upload_rcs_media' => false, 'send_one_to_one' => false,
+            'send_bulk' => false, 'access_contact_book' => false, 'access_selected_lists' => false,
+            'create_edit_lists' => false, 'csv_uploads' => false, 'adhoc_numbers' => false,
+            'view_sensitive_fields' => false, 'schedule_campaigns' => false, 'save_drafts' => false,
+            'ab_testing' => false, 'manage_sender_ids' => false, 'manage_rcs_agents' => false,
+            'manage_templates' => false, 'manage_api_connections' => false, 'view_reports' => true,
+            'view_message_logs' => false, 'view_audit_logs' => false, 'export_data' => true,
+            'view_billing' => true, 'manage_users' => false, 'manage_sub_accounts' => false,
+            'manage_security' => false,
+        ],
+        self::ROLE_DEVELOPER => [
+            'create_freeform' => false, 'edit_template_vars' => false, 'use_sms_templates' => false,
+            'use_rcs_templates' => false, 'upload_rcs_media' => false, 'send_one_to_one' => false,
+            'send_bulk' => false, 'access_contact_book' => false, 'access_selected_lists' => false,
+            'create_edit_lists' => false, 'csv_uploads' => false, 'adhoc_numbers' => false,
+            'view_sensitive_fields' => false, 'schedule_campaigns' => false, 'save_drafts' => false,
+            'ab_testing' => false, 'manage_sender_ids' => false, 'manage_rcs_agents' => false,
+            'manage_templates' => false, 'manage_api_connections' => true, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => false, 'export_data' => false,
+            'view_billing' => false, 'manage_users' => false, 'manage_sub_accounts' => false,
+            'manage_security' => false,
+        ],
+        self::ROLE_USER => [
+            'create_freeform' => true, 'edit_template_vars' => true, 'use_sms_templates' => true,
+            'use_rcs_templates' => false, 'upload_rcs_media' => false, 'send_one_to_one' => true,
+            'send_bulk' => false, 'access_contact_book' => true, 'access_selected_lists' => true,
+            'create_edit_lists' => false, 'csv_uploads' => false, 'adhoc_numbers' => false,
+            'view_sensitive_fields' => false, 'schedule_campaigns' => false, 'save_drafts' => true,
+            'ab_testing' => false, 'manage_sender_ids' => false, 'manage_rcs_agents' => false,
+            'manage_templates' => false, 'manage_api_connections' => false, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => false, 'export_data' => false,
+            'view_billing' => false, 'manage_users' => false, 'manage_sub_accounts' => false,
+            'manage_security' => false,
+        ],
+        self::ROLE_READONLY => [
+            'create_freeform' => false, 'edit_template_vars' => false, 'use_sms_templates' => false,
+            'use_rcs_templates' => false, 'upload_rcs_media' => false, 'send_one_to_one' => false,
+            'send_bulk' => false, 'access_contact_book' => false, 'access_selected_lists' => false,
+            'create_edit_lists' => false, 'csv_uploads' => false, 'adhoc_numbers' => false,
+            'view_sensitive_fields' => false, 'schedule_campaigns' => false, 'save_drafts' => false,
+            'ab_testing' => false, 'manage_sender_ids' => false, 'manage_rcs_agents' => false,
+            'manage_templates' => false, 'manage_api_connections' => false, 'view_reports' => true,
+            'view_message_logs' => true, 'view_audit_logs' => true, 'export_data' => false,
+            'view_billing' => false, 'manage_users' => false, 'manage_sub_accounts' => false,
+            'manage_security' => false,
+        ],
+    ];
+
     protected $fillable = [
         'tenant_id',
         'sub_account_id',
         'user_type',
         'email',
-        'password',
         'first_name',
         'last_name',
         'job_title',
@@ -60,6 +181,14 @@ class User extends Authenticatable
         'failed_login_attempts',
         'account_locked_until',
         'hubspot_contact_id',
+        // Caps & limits
+        'monthly_spending_cap',
+        'monthly_message_cap',
+        'daily_send_limit',
+        'sender_capability',
+        'permission_toggles',
+        'is_account_owner',
+        'owner_since',
     ];
 
     protected $hidden = [
@@ -81,6 +210,15 @@ class User extends Authenticatable
         'password_changed_at' => 'datetime',
         'mfa_enabled' => 'boolean',
         'failed_login_attempts' => 'integer',
+        'monthly_spending_cap' => 'decimal:4',
+        'monthly_message_cap' => 'integer',
+        'daily_send_limit' => 'integer',
+        'monthly_spend_used' => 'decimal:4',
+        'monthly_messages_used' => 'integer',
+        'daily_sends_used' => 'integer',
+        'permission_toggles' => 'array',
+        'is_account_owner' => 'boolean',
+        'owner_since' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -540,11 +678,51 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is the main account owner (cannot be removed, only transferred)
+     */
+    public function isAccountOwner(): bool
+    {
+        return $this->is_account_owner === true;
+    }
+
+    /**
      * Check if user is admin or owner
      */
     public function isAdmin(): bool
     {
         return in_array($this->role, ['owner', 'admin']);
+    }
+
+    /**
+     * Check if user is a messaging manager
+     */
+    public function isMessagingManager(): bool
+    {
+        return $this->role === self::ROLE_MESSAGING_MANAGER;
+    }
+
+    /**
+     * Check if user is a finance user
+     */
+    public function isFinance(): bool
+    {
+        return $this->role === self::ROLE_FINANCE;
+    }
+
+    /**
+     * Check if user is a developer
+     */
+    public function isDeveloper(): bool
+    {
+        return $this->role === self::ROLE_DEVELOPER;
+    }
+
+    /**
+     * Check if user is read-only
+     */
+    public function isReadOnly(): bool
+    {
+        return $this->role === self::ROLE_READONLY;
     }
 
     /**
@@ -561,6 +739,151 @@ class User extends Authenticatable
     public function hasAnyRole(array $roles): bool
     {
         return in_array($this->role, $roles);
+    }
+
+    /**
+     * Get human-readable role label
+     */
+    public function getRoleLabel(): string
+    {
+        return self::ROLE_LABELS[$this->role] ?? ucfirst($this->role);
+    }
+
+    // =====================================================
+    // PERMISSION METHODS
+    // =====================================================
+
+    /**
+     * Get effective permissions: user overrides merged with role defaults.
+     * User-level toggles override role defaults where set.
+     */
+    public function getEffectivePermissions(): array
+    {
+        $defaults = self::ROLE_DEFAULT_PERMISSIONS[$this->role] ?? self::ROLE_DEFAULT_PERMISSIONS[self::ROLE_READONLY];
+        $overrides = $this->permission_toggles ?? [];
+
+        return array_merge($defaults, $overrides);
+    }
+
+    /**
+     * Check if user has a specific permission toggle enabled.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        $permissions = $this->getEffectivePermissions();
+        return $permissions[$permission] ?? false;
+    }
+
+    /**
+     * Check if user can manage other users (based on role + permissions).
+     */
+    public function canManageUsers(): bool
+    {
+        return $this->hasPermission('manage_users');
+    }
+
+    /**
+     * Check if user can manage sub-accounts.
+     */
+    public function canManageSubAccounts(): bool
+    {
+        return $this->hasPermission('manage_sub_accounts');
+    }
+
+    /**
+     * Check if user can send messages.
+     */
+    public function canSendMessages(): bool
+    {
+        return $this->sender_capability !== self::SENDER_NONE
+            && ($this->hasPermission('send_one_to_one') || $this->hasPermission('send_bulk'));
+    }
+
+    /**
+     * Check if user is a main-account-level user (no sub-account restriction).
+     */
+    public function isMainAccountUser(): bool
+    {
+        return $this->sub_account_id === null;
+    }
+
+    /**
+     * Check if user can view a specific sub-account.
+     * Main account users (owner/admin) can view all. Sub-account users can only view their own.
+     */
+    public function canViewSubAccount(string $subAccountId): bool
+    {
+        if ($this->isMainAccountUser() && $this->isAdmin()) {
+            return true;
+        }
+        return $this->sub_account_id === $subAccountId;
+    }
+
+    // =====================================================
+    // USER-LEVEL CAPS
+    // =====================================================
+
+    /**
+     * Validate that user-level caps don't exceed sub-account caps.
+     * Enforced at save time.
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function validateCapsAgainstSubAccount(): void
+    {
+        if (!$this->sub_account_id) return;
+
+        $subAccount = $this->subAccount;
+        if (!$subAccount) return;
+
+        if ($this->monthly_spending_cap !== null && $subAccount->monthly_spending_cap !== null) {
+            if ((float)$this->monthly_spending_cap > (float)$subAccount->monthly_spending_cap) {
+                throw new \InvalidArgumentException(
+                    'User monthly spending cap cannot exceed sub-account cap of ' . $subAccount->monthly_spending_cap
+                );
+            }
+        }
+
+        if ($this->monthly_message_cap !== null && $subAccount->monthly_message_cap !== null) {
+            if ($this->monthly_message_cap > $subAccount->monthly_message_cap) {
+                throw new \InvalidArgumentException(
+                    'User monthly message cap cannot exceed sub-account cap of ' . $subAccount->monthly_message_cap
+                );
+            }
+        }
+
+        if ($this->daily_send_limit !== null && $subAccount->daily_send_limit !== null) {
+            if ($this->daily_send_limit > $subAccount->daily_send_limit) {
+                throw new \InvalidArgumentException(
+                    'User daily send limit cannot exceed sub-account limit of ' . $subAccount->daily_send_limit
+                );
+            }
+        }
+    }
+
+    /**
+     * Transfer account ownership to this user.
+     * The previous owner is demoted to admin.
+     */
+    public function transferOwnership(User $previousOwner): void
+    {
+        if ($this->tenant_id !== $previousOwner->tenant_id) {
+            throw new \InvalidArgumentException('Cannot transfer ownership across accounts');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($previousOwner) {
+            $previousOwner->update([
+                'role' => self::ROLE_ADMIN,
+                'is_account_owner' => false,
+                'owner_since' => null,
+            ]);
+
+            $this->update([
+                'role' => self::ROLE_OWNER,
+                'is_account_owner' => true,
+                'owner_since' => now(),
+            ]);
+        });
     }
 
     // =====================================================
@@ -600,6 +923,7 @@ class User extends Authenticatable
         return [
             'id' => $this->id,
             'tenant_id' => $this->tenant_id,
+            'sub_account_id' => $this->sub_account_id,
             'user_type' => $this->user_type,
             'email' => $this->email,
             'first_name' => $this->first_name,
@@ -607,7 +931,10 @@ class User extends Authenticatable
             'full_name' => $this->first_name . ' ' . $this->last_name,
             'job_title' => $this->job_title,
             'role' => $this->role,
+            'role_label' => $this->getRoleLabel(),
             'status' => $this->status,
+            'sender_capability' => $this->sender_capability ?? self::SENDER_NONE,
+            'is_account_owner' => $this->is_account_owner ?? false,
             'mfa_enabled' => $this->mfa_enabled,
             'email_verified' => $this->hasVerifiedEmail(),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
@@ -615,6 +942,17 @@ class User extends Authenticatable
             'mobile_verified' => $this->hasMobileVerified(),
             'mobile_verified_at' => $this->mobile_verified_at?->toIso8601String(),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
+            'limits' => [
+                'monthly_spending_cap' => $this->monthly_spending_cap,
+                'monthly_message_cap' => $this->monthly_message_cap,
+                'daily_send_limit' => $this->daily_send_limit,
+            ],
+            'usage' => [
+                'monthly_spend_used' => (float)($this->monthly_spend_used ?? 0),
+                'monthly_messages_used' => $this->monthly_messages_used ?? 0,
+                'daily_sends_used' => $this->daily_sends_used ?? 0,
+            ],
+            'permissions' => $this->getEffectivePermissions(),
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

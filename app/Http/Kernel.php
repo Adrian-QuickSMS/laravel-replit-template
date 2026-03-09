@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'enforce.admin.locks' => \App\Http\Middleware\EnforceAdminLocks::class,
         'customer.auth' => \App\Http\Middleware\CustomerAuthenticate::class,
         'api.connection' => \App\Http\Middleware\ApiKeyAuthenticate::class,
+        'permission' => \App\Http\Middleware\CheckPermission::class,
     ];
 }
