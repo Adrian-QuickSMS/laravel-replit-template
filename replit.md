@@ -14,7 +14,7 @@ Preferred communication style: Simple, everyday language.
 - **Multi-tenancy:** Row Level Security (RLS) is strictly enforced at the database level for all tenant-scoped tables, managed by a `SetTenantContext` middleware in `Kernel.php`.
 - **Authentication:** Account creation and login exclusively use stored procedures (`sp_create_account()`, `sp_authenticate_user()`). Passwords are hashed once in the controller.
 - **Database Roles:** Four distinct roles (`portal_ro`, `portal_rw`, `svc_red`, `ops_admin`) manage database access and RLS bypass for different application contexts.
-- **Audit Trail:** Comprehensive audit logging across 16 modules via 5 new immutable tables (`campaign_audit_log`, `user_audit_log`, `account_audit_log`, `number_audit_log`, `admin_audit_log`) plus existing tables (`auth_audit_log`, `api_connection_audit_events`, `routing_audit_log`, `rate_card_audit_log`, `message_template_audit_log`, `email_to_sms_audit_log`, `financial_audit_log`, `purchase_audit_logs`). 55+ event types. Dual-layer immutability (Eloquent `ImmutableAuditLog` trait + PostgreSQL `REVOKE`/triggers). Unified API via `AuditLogApiController` with UNION ALL across all tables. `contact_timeline_events` ENUM columns converted to VARCHAR for extensibility. Full spec in `AUDIT_LOG_SPEC.md`, anti-drift rules in `REPLIT_PROMPT_AUDIT_LOG_COMPLETE.md`.
+- **Audit Trail:** Sensitive actions are logged to an insert-only `auth_audit_log` table.
 - **RED / GREEN Trust Boundary:** Customer-facing (GREEN) operations use `portal_rw` role with RLS, `toPortalArray()` for responses, and Sanctum authentication. Internal/Admin (RED) operations use `svc_red` role, bypassing RLS, and allow full model data. `tenant_id` is always derived server-side.
 
 ### Frontend

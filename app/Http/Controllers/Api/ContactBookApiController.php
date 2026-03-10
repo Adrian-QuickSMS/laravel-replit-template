@@ -9,7 +9,6 @@ use App\Models\ContactTimelineEvent;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\Tag;
-use App\Services\Audit\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -141,23 +140,6 @@ class ContactBookApiController extends Controller
         $contact = Contact::create($validated);
         $contact->load(['tags', 'lists']);
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => $contact->id,
-                'event_type' => 'contact_created',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['mobile_last4' => substr($contact->mobile_number ?? '', -4)],
-                'msisdn_hash' => hash('sha256', $contact->mobile_number ?? ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contact_created', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $contact->toPortalArray()], 201);
     }
 
@@ -188,23 +170,6 @@ class ContactBookApiController extends Controller
         $contact->update($validated);
         $contact->load(['tags', 'lists']);
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => $contact->id,
-                'event_type' => 'contact_updated',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['changed_fields' => array_keys($validated)],
-                'msisdn_hash' => hash('sha256', $contact->mobile_number ?? ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contact_updated', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $contact->toPortalArray()]);
     }
 
@@ -218,23 +183,6 @@ class ContactBookApiController extends Controller
 
         // Soft-delete via Eloquent (preserves record with deleted_at timestamp)
         $contact->delete();
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => $contact->id,
-                'event_type' => 'contact_deleted',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['mobile_last4' => substr($contact->mobile_number ?? '', -4)],
-                'msisdn_hash' => hash('sha256', $contact->mobile_number ?? ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contact_deleted', ['error' => $e->getMessage()]);
-        }
 
         return response()->json(['success' => true, 'message' => 'Contact deleted']);
     }
@@ -343,23 +291,6 @@ class ContactBookApiController extends Controller
 
         $tagNames = implode(', ', $request->input('tags'));
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'tags_assigned',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['tag_names' => $request->input('tags'), 'contact_count' => $contactIds->count()],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record tags_assigned', ['error' => $e->getMessage()]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Added tag(s) \"{$tagNames}\" to {$contactIds->count()} contact(s)",
@@ -393,23 +324,6 @@ class ContactBookApiController extends Controller
         }
 
         $tagNames = implode(', ', $request->input('tags'));
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'tags_removed',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['tag_names' => $request->input('tags'), 'contact_count' => $verifiedContactIds->count()],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record tags_removed', ['error' => $e->getMessage()]);
-        }
 
         return response()->json([
             'success' => true,
@@ -461,23 +375,6 @@ class ContactBookApiController extends Controller
 
         $list->refreshCount();
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'opt_out_manual_add',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['count' => $inserted, 'opt_out_list_id' => $listId],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record opt_out_manual_add', ['error' => $e->getMessage()]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Added {$inserted} number(s) to opt-out list",
@@ -513,23 +410,6 @@ class ContactBookApiController extends Controller
 
         $list->refreshCount();
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'opt_out_manual_remove',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['count' => $deleted, 'opt_out_list_id' => $listId],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record opt_out_manual_remove', ['error' => $e->getMessage()]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Removed {$deleted} number(s) from opt-out list",
@@ -545,23 +425,6 @@ class ContactBookApiController extends Controller
         ]);
 
         $deleted = Contact::whereIn('id', $request->input('contact_ids'))->delete();
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'contacts_bulk_deleted',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['count' => $deleted],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contacts_bulk_deleted', ['error' => $e->getMessage()]);
-        }
 
         return response()->json([
             'success' => true,
@@ -582,109 +445,11 @@ class ContactBookApiController extends Controller
         // Verify contact_ids belong to current tenant
         $count = Contact::whereIn('id', $request->input('contact_ids'))->count();
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'contacts_exported',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['count' => $count, 'format' => $request->input('format', 'csv')],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contacts_exported', ['error' => $e->getMessage()]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Export of {$count} contact(s) initiated",
             'affectedCount' => $count,
         ]);
-    }
-
-    public function bulkImport(Request $request): JsonResponse
-    {
-        $request->validate([
-            'contacts' => 'required|array|min:1|max:5000',
-            'contacts.*.mobile_number' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9]{7,15}$/'],
-            'contacts.*.first_name' => 'nullable|string|max:255',
-            'contacts.*.last_name' => 'nullable|string|max:255',
-            'contacts.*.email' => 'nullable|email|max:255',
-            'contacts.*.custom_data' => 'nullable|array|max:50',
-            'list_id' => 'nullable|uuid',
-            'source' => 'nullable|string|in:csv,xlsx,api',
-        ]);
-
-        $accountId = $this->tenantId();
-        $createdBy = session('customer_email', session('customer_user_id'));
-        $contacts = $request->input('contacts');
-        $created = 0;
-        $skipped = 0;
-
-        DB::transaction(function () use ($contacts, $accountId, $createdBy, $request, &$created, &$skipped) {
-            foreach ($contacts as $row) {
-                $row['account_id'] = $accountId;
-                $row['created_by'] = $createdBy;
-
-                $existing = Contact::where('mobile_number', $row['mobile_number'])->first();
-                if ($existing) {
-                    $skipped++;
-                    continue;
-                }
-
-                $contact = Contact::create($row);
-                $created++;
-
-                if ($request->filled('list_id')) {
-                    DB::statement(
-                        "INSERT INTO contact_list_member (contact_id, list_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
-                        [$contact->id, $request->input('list_id')]
-                    );
-                }
-            }
-
-            if ($request->filled('list_id')) {
-                $list = ContactList::find($request->input('list_id'));
-                if ($list) {
-                    $list->update([
-                        'contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count(),
-                    ]);
-                }
-            }
-        });
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'contacts_imported',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => [
-                    'count' => $created,
-                    'skipped' => $skipped,
-                    'source' => $request->input('source', 'csv'),
-                    'list_id' => $request->input('list_id'),
-                ],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record contacts_imported', ['error' => $e->getMessage()]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Imported {$created} contact(s), skipped {$skipped} duplicate(s)",
-            'created' => $created,
-            'skipped' => $skipped,
-        ], 201);
     }
 
     // =====================================================
@@ -713,24 +478,6 @@ class ContactBookApiController extends Controller
         $validated['account_id'] = $this->tenantId();
 
         $tag = Tag::create($validated);
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'tag_created',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['tag_id' => $tag->id, 'tag_name' => $tag->name],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record tag_created', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $tag->toPortalArray()], 201);
     }
 
@@ -749,23 +496,6 @@ class ContactBookApiController extends Controller
 
         $tag->update($validated);
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'tag_updated',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['tag_id' => $tag->id, 'tag_name' => $tag->name, 'changed_fields' => array_keys($validated)],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record tag_updated', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $tag->toPortalArray()]);
     }
 
@@ -781,23 +511,6 @@ class ContactBookApiController extends Controller
             DB::table('contact_tag')->where('tag_id', $tag->id)->delete();
             $tag->delete();
         });
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'tag_deleted',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['tag_id' => $tag->id, 'tag_name' => $tag->name],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record tag_deleted', ['error' => $e->getMessage()]);
-        }
 
         return response()->json(['success' => true, 'message' => 'Tag deleted']);
     }
@@ -868,23 +581,6 @@ class ContactBookApiController extends Controller
             return $list->fresh();
         });
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'list_created',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['list_id' => $list->id, 'list_name' => $list->name],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record list_created', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $list->toPortalArray()], 201);
     }
 
@@ -904,23 +600,6 @@ class ContactBookApiController extends Controller
 
         $list->update($validated);
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'list_updated',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['list_id' => $list->id, 'list_name' => $list->name, 'changed_fields' => array_keys($validated)],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record list_updated', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['data' => $list->toPortalArray()]);
     }
 
@@ -936,23 +615,6 @@ class ContactBookApiController extends Controller
             DB::table('contact_list_member')->where('list_id', $list->id)->delete();
             $list->delete();
         });
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'list_deleted',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['list_id' => $list->id, 'list_name' => $list->name],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record list_deleted', ['error' => $e->getMessage()]);
-        }
 
         return response()->json(['success' => true, 'message' => 'List deleted']);
     }
@@ -986,23 +648,6 @@ class ContactBookApiController extends Controller
             ]);
         });
 
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'list_members_added',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['list_id' => $list->id, 'list_name' => $list->name, 'count' => $verifiedIds->count()],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record list_members_added', ['error' => $e->getMessage()]);
-        }
-
         return response()->json(['success' => true, 'added' => $verifiedIds->count()]);
     }
 
@@ -1030,23 +675,6 @@ class ContactBookApiController extends Controller
         $list->update([
             'contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count(),
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => null,
-                'event_type' => 'list_members_removed',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['list_id' => $list->id, 'list_name' => $list->name, 'count' => $deleted],
-                'msisdn_hash' => hash('sha256', ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record list_members_removed', ['error' => $e->getMessage()]);
-        }
 
         return response()->json(['success' => true, 'removed' => $deleted]);
     }
@@ -1286,23 +914,6 @@ class ContactBookApiController extends Controller
             'user_id' => session('customer_user_id'),
             'reason' => $request->input('reason', 'User requested reveal'),
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $actor['account_id'],
-                'contact_id' => $contactId,
-                'event_type' => 'msisdn_revealed',
-                'source_module' => 'contact_book',
-                'actor_type' => 'user',
-                'actor_id' => $actor['user_id'],
-                'actor_name' => $actor['user_name'],
-                'metadata' => ['reason' => $request->input('reason', 'User requested reveal')],
-                'msisdn_hash' => hash('sha256', $contact->mobile_number ?? ''),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record msisdn_revealed', ['error' => $e->getMessage()]);
-        }
 
         return response()->json([
             'success' => true,

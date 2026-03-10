@@ -104,6 +104,7 @@ var AccountPolicyService = (function() {
             _policy.mfa_required = value;
             _policy.last_updated = new Date().toISOString();
             notifyListeners('mfa_required', oldValue, value);
+            console.log('[AccountPolicyService] MFA required changed:', oldValue, '->', value);
             return { success: true, old_value: oldValue, new_value: value };
         },
         
@@ -115,6 +116,7 @@ var AccountPolicyService = (function() {
             _policy.mfa_methods[method] = enabled;
             _policy.last_updated = new Date().toISOString();
             notifyListeners('mfa_method_' + method, oldValue, enabled);
+            console.log('[AccountPolicyService] MFA method', method, 'changed:', oldValue, '->', enabled);
             return { success: true, old_value: oldValue, new_value: enabled };
         },
         
@@ -158,6 +160,7 @@ var AccountPolicyService = (function() {
             _policy.ip_allowlist_enabled = value;
             _policy.last_updated = new Date().toISOString();
             notifyListeners('ip_allowlist_enabled', oldValue, value);
+            console.log('[AccountPolicyService] IP allowlist enabled changed:', oldValue, '->', value);
             return { success: true, old_value: oldValue, new_value: value };
         },
         
@@ -165,6 +168,7 @@ var AccountPolicyService = (function() {
             _policy.ip_allowlist.push(entry);
             _policy.last_updated = new Date().toISOString();
             notifyListeners('ip_entry_added', null, entry);
+            console.log('[AccountPolicyService] IP entry added:', entry);
             return { success: true, entry: entry };
         },
         
@@ -176,6 +180,7 @@ var AccountPolicyService = (function() {
             _policy.ip_allowlist[index] = entry;
             _policy.last_updated = new Date().toISOString();
             notifyListeners('ip_entry_updated', oldEntry, entry);
+            console.log('[AccountPolicyService] IP entry updated:', oldEntry, '->', entry);
             return { success: true, old_entry: oldEntry, new_entry: entry };
         },
         
@@ -186,6 +191,7 @@ var AccountPolicyService = (function() {
             var removedEntry = _policy.ip_allowlist.splice(index, 1)[0];
             _policy.last_updated = new Date().toISOString();
             notifyListeners('ip_entry_removed', removedEntry, null);
+            console.log('[AccountPolicyService] IP entry removed:', removedEntry);
             return { success: true, removed_entry: removedEntry };
         },
         
@@ -267,6 +273,7 @@ var AccountPolicyService = (function() {
         
         // Initialize (TODO: fetch from backend API)
         init: function() {
+            console.log('[AccountPolicyService] Initialized - account-wide policy active');
             return Promise.resolve(_policy);
         }
     };

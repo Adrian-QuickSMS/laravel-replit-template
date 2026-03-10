@@ -1,16 +1,5 @@
  var Fillow = function(){
 	 "use strict"
-
-	var _throttle = function(fn, wait) {
-		var timeout = null;
-		return function() {
-			if (!timeout) {
-				timeout = setTimeout(function() { timeout = null; }, wait);
-				fn.apply(this, arguments);
-			}
-		};
-	};
-
 	/* Search Bar ============ */
 	var screenWidth = $( window ).width();
 	var screenHeight = $( window ).height();
@@ -124,6 +113,7 @@
 		$("ul#menu>li").on('click', function() {
 			const sidebarStyle = $('body').attr('data-sidebar-style');
 			if (sidebarStyle === 'mini') {
+				console.log($(this).find('ul'))
 				$(this).find('ul').stop()
 			}
 		})
@@ -163,10 +153,10 @@
 
     var handleHeaderHight = function() {
 		const headerHight = $('.header').innerHeight();
-		$(window).scroll(_throttle(function() {
+		$(window).scroll(function() {
 			if ($('body').attr('data-layout') === "horizontal" && $('body').attr('data-header-position') === "static" && $('body').attr('data-sidebar-position') === "fixed")
 				$(this.window).scrollTop() >= headerHight ? $('.dlabnav').addClass('fixed') : $('.dlabnav').removeClass('fixed')
-		}, 100));
+		});
 	}
 	
 	var handleMenuTabs = function() {
@@ -518,15 +508,11 @@ jQuery(window).on('load',function () {
 });
 /*  Window Load END */
 /* Window Resize START */
-jQuery(window).on('resize', (function() {
-	var resizeTimer = null;
-	return function() {
-		'use strict';
-		if (resizeTimer) clearTimeout(resizeTimer);
-		resizeTimer = setTimeout(function() {
-			Fillow.resize();
+jQuery(window).on('resize',function () {
+	'use strict'; 
+	Fillow.resize();
+	setTimeout(function(){
 			Fillow.handleMenuPosition();
-		}, 150);
-	};
-})());
+	}, 1000);
+});
 /*  Window Resize END */

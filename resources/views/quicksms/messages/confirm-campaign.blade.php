@@ -16,6 +16,45 @@
     <div class="row align-items-start">
         <div class="col-xl-8 col-lg-10">
 
+            @if(!empty($is_test_mode))
+            <div class="alert mb-3 border-0" style="background-color: #fff3cd; color: #856404;">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-flask me-3 mt-1" style="font-size: 1.25rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong>Test Mode{{ !empty($is_test_standard) ? ' — Standard' : ' — Dynamic' }}</strong>
+                        @if(!empty($is_test_standard))
+                        <div class="mt-1 small">
+                            <div class="mb-1"><i class="fas fa-stamp me-1"></i> The disclaimer <em>"QuickSMS TEST message..."</em> (+68 chars inc. space) will be prepended to each SMS</div>
+                            <div><i class="fas fa-coins me-1"></i> This campaign will use <strong>test credits</strong> ({{ $test_credits_remaining ?? 0 }} remaining)</div>
+                        </div>
+                        @else
+                        <div class="mt-1 small"><i class="fas fa-coins me-1"></i> This campaign will use <strong>test credits</strong> ({{ $test_credits_remaining ?? 0 }} remaining)</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(!empty($is_test_standard))
+            @php
+                $approvedCount = count($approved_test_numbers ?? []);
+                $recipientCount = $recipients['valid'] ?? 0;
+            @endphp
+            @if($approvedCount === 0)
+            <div class="alert alert-danger mb-3">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>No approved test numbers configured.</strong> Test Standard accounts can only send to approved numbers.
+                <a href="{{ route('account.details') }}" class="alert-link">Configure approved test numbers</a> before sending.
+            </div>
+            @else
+            <div class="alert mb-3 border-0" style="background-color: #e8f4e8; color: #2d6a2d;">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>{{ $approvedCount }}</strong> approved test {{ $approvedCount === 1 ? 'number' : 'numbers' }} configured:
+                <span class="ms-1">{{ implode(', ', $approved_test_numbers) }}</span>
+            </div>
+            @endif
+            @endif
+
             <div class="card mb-3">
                 <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2" style="color: #886CC0;"></i>Campaign Summary</h4>
@@ -108,28 +147,22 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row text-center mb-3">
-                        <div class="{{ !empty($is_test_standard) && ($blocked_count ?? 0) > 0 ? 'col-6 col-md' : 'col-6 col-md-3' }} mb-3 mb-md-0">
+                        <div class="col-6 col-md-3 mb-3 mb-md-0">
                             <div class="h3 text-primary mb-1">{{ number_format($recipients['total_selected']) }}</div>
                             <small class="text-muted">Total Selected</small>
                         </div>
-                        <div class="{{ !empty($is_test_standard) && ($blocked_count ?? 0) > 0 ? 'col-6 col-md' : 'col-6 col-md-3' }} mb-3 mb-md-0">
+                        <div class="col-6 col-md-3 mb-3 mb-md-0">
                             <div class="h3 text-success mb-1">{{ number_format($recipients['valid']) }}</div>
                             <small class="text-muted">Valid</small>
                         </div>
-                        <div class="{{ !empty($is_test_standard) && ($blocked_count ?? 0) > 0 ? 'col-6 col-md' : 'col-6 col-md-3' }}">
+                        <div class="col-6 col-md-3">
                             <div class="h3 text-danger mb-1">{{ number_format($recipients['invalid']) }}</div>
                             <small class="text-muted">Invalid</small>
                         </div>
-                        <div class="{{ !empty($is_test_standard) && ($blocked_count ?? 0) > 0 ? 'col-6 col-md' : 'col-6 col-md-3' }}">
+                        <div class="col-6 col-md-3">
                             <div class="h3 text-warning mb-1">{{ number_format($recipients['opted_out']) }}</div>
                             <small class="text-muted">Opted-out</small>
                         </div>
-                        @if(!empty($is_test_standard) && ($blocked_count ?? 0) > 0)
-                        <div class="col-6 col-md">
-                            <div class="h3 mb-1" style="color: #dc3545;">{{ number_format($blocked_count) }}</div>
-                            <small class="text-muted">Blocked <a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Why are recipients blocked?"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a></small>
-                        </div>
-                        @endif
                     </div>
 
                     <div class="border-top pt-3">
@@ -180,43 +213,7 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @if(!empty($is_test_standard))
-                            {{-- Test Standard mode: show test credits, not monetary cost --}}
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Deliverable Messages <a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a></div>
-                                <div class="col-6 text-end">{{ number_format($deliverable_count ?? 0) }}</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">SMS Parts (inc. test disclaimer)</div>
-                                <div class="col-6 text-end">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Test Credits Required</div>
-                                <div class="col-6 text-end fw-medium" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
-                            </div>
-                            @if(($test_credits_remaining ?? 0) > 0)
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Test Credits Remaining</div>
-                                <div class="col-6 text-end">{{ number_format($test_credits_remaining) }}</div>
-                            </div>
-                                @if(($test_mode_sms_parts ?? 0) > ($test_credits_remaining ?? 0))
-                                <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                    Insufficient test credits. You need {{ number_format($test_mode_sms_parts ?? 0) }} but only have {{ number_format($test_credits_remaining) }} remaining.
-                                </div>
-                                @endif
-                            @else
-                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
-                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                No test credits available.
-                            </div>
-                            @endif
-                            <hr>
-                            <div class="row">
-                                <div class="col-6 fw-bold">Cost</div>
-                                <div class="col-6 text-end fw-bold h5 mb-0" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }} test {{ ($test_mode_sms_parts ?? 0) === 1 ? 'credit' : 'credits' }}</div>
-                            </div>
-                        @elseif(!empty($realEstimate))
+                        @if(!empty($realEstimate))
                             {{-- Real estimate from backend billing engine --}}
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">Messages</div>
@@ -606,50 +603,6 @@
         </div>
     </div>
 </div>
-
-@if(!empty($is_test_standard))
-<div class="modal fade" id="blockedInfoModal" tabindex="-1" aria-labelledby="blockedInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title" id="blockedInfoModalLabel"><i class="fas fa-flask me-2" style="color: #886CC0;"></i>Test Mode — Standard</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Your account is in <strong>Test Standard</strong> mode. During this mode, messages can only be delivered to your approved test numbers.</p>
-
-                <div class="rounded-3 p-3 mb-3" style="background-color: #f0ebf8;">
-                    <h6 class="mb-2" style="color: #5a3d8a;"><i class="fas fa-phone-alt me-2"></i>Approved Test Numbers</h6>
-                    @if(!empty($approved_test_numbers) && count($approved_test_numbers) > 0)
-                        <ul class="mb-0 ps-3">
-                            @foreach($approved_test_numbers as $number)
-                                <li class="small">{{ $number }}</li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <p class="mb-0 small text-muted">No approved test numbers configured. <a href="{{ route('account.details') }}">Configure them in Account Settings</a>.</p>
-                    @endif
-                </div>
-
-                @if(($blocked_count ?? 0) > 0)
-                <div class="rounded-3 p-3 mb-3" style="background-color: #fff3cd;">
-                    <h6 class="mb-2" style="color: #856404;"><i class="fas fa-ban me-2"></i>Blocked Recipients</h6>
-                    <p class="mb-0 small"><strong>{{ number_format($blocked_count) }}</strong> {{ $blocked_count === 1 ? 'recipient is' : 'recipients are' }} not on your approved test numbers list and will not receive this message.</p>
-                </div>
-                @endif
-
-                <div class="rounded-3 p-3" style="background-color: #e8f4e8;">
-                    <h6 class="mb-2" style="color: #2d6a2d;"><i class="fas fa-stamp me-2"></i>Test Disclaimer</h6>
-                    <p class="mb-0 small">The text <em>"{{ \App\Models\Account::TEST_DISCLAIMER }}"</em> (+{{ \App\Models\Account::TEST_DISCLAIMER_LENGTH + 1 }} chars inc. space) will be prepended to each SMS sent.</p>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Understood</button>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
 @endsection
 
 @push('scripts')

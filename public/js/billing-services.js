@@ -345,6 +345,13 @@
                         profile.creditLimit = 0;
                     }
                     
+                    console.log('[HubSpotBillingService] Billing mode updated', {
+                        accountId: accountId,
+                        previousMode: previousMode,
+                        newMode: mode,
+                        timestamp: profile.lastUpdated
+                    });
+                    
                     return {
                         success: true,
                         data: {
@@ -408,6 +415,13 @@
                     var previousLimit = profile.creditLimit;
                     profile.creditLimit = creditLimit;
                     profile.lastUpdated = new Date().toISOString();
+                    
+                    console.log('[HubSpotBillingService] Credit limit updated', {
+                        accountId: accountId,
+                        previousLimit: previousLimit,
+                        newLimit: creditLimit,
+                        timestamp: profile.lastUpdated
+                    });
                     
                     return {
                         success: true,
@@ -711,6 +725,14 @@
                     }
                     MockDataStore.invoices[request.customerAccountId].unshift(newDocument);
                     
+                    console.log('[InvoicesService] Document created', {
+                        type: type,
+                        documentNumber: documentNumber,
+                        accountId: request.customerAccountId,
+                        total: total,
+                        timestamp: now.toISOString()
+                    });
+                    
                     return {
                         success: true,
                         data: {
@@ -814,6 +836,12 @@
                     
                     var xeroId = 'XERO-' + invoiceNumber.split('-').pop();
                     found.xeroInvoiceId = xeroId;
+                    
+                    console.log('[InvoicesService] Synced to Xero', {
+                        invoiceNumber: invoiceNumber,
+                        xeroInvoiceId: xeroId,
+                        timestamp: new Date().toISOString()
+                    });
                     
                     return {
                         success: true,
@@ -985,5 +1013,7 @@
         AccountDetailsService: AccountDetailsService,
         BillingFacade: BillingFacade
     };
+
+    console.log('[BillingServices] Initialized with mock data:', ServiceConfig.useMockData);
 
 })(typeof window !== 'undefined' ? window : global);

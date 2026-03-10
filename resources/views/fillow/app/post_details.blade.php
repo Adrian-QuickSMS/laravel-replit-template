@@ -281,7 +281,6 @@
                                         <h4 class="comment-reply-title text-primary mb-3" id="reply-title">Leave a Reply
                                         </h4>
                                         <form class="comment-form" id="commentform" method="post">
-                                            @csrf
                                             <div class="row">
                                                 <div class="col-lg-6">
                                                     <div class="mb-3">

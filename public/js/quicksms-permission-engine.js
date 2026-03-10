@@ -43,6 +43,7 @@ var PermissionEngine = (function() {
             userIndexBySubAccount.get(subAccountId).set(user.id, user);
         });
 
+        console.log('[PermissionEngine] Indexed', users.length, 'users across', userIndexBySubAccount.size, 'sub-accounts');
     }
 
     function buildSubAccountIndex(subAccounts) {

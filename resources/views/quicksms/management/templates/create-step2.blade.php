@@ -476,7 +476,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/emoji-picker.js') }}?v=20260310"></script>
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
 <script src="{{ asset('js/rcs-wizard.js') }}"></script>
 <script>
@@ -493,12 +492,13 @@ window.virtual_numbers = @json($virtual_numbers);
 window.optout_domains = @json($optout_domains);
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Emoji picker
-    window.smsEmojiPicker = new QSEmojiPicker({
-        triggerEl: document.getElementById('emojiPickerBtn'),
-        textareaEl: document.getElementById('smsContent'),
-        onInsert: function() { handleContentChange(); }
-    });
+    if (typeof QSEmojiPicker !== 'undefined') {
+        window.smsEmojiPicker = new QSEmojiPicker({
+            triggerEl: document.getElementById('emojiPickerBtn'),
+            textareaEl: document.getElementById('smsContent'),
+            onInsert: function() { handleContentChange(); }
+        });
+    }
 
     initChannelSelector();
     loadSavedData();

@@ -91,7 +91,7 @@
     font-weight: 500;
 }
 
-/* Contact Avatar - Multi-colour pastel */
+/* Contact Avatar - Multi-color pastel */
 .contact-avatar {
     width: 36px;
     height: 36px;
@@ -101,19 +101,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
 }
-.contact-avatar.avatar-purple  { background-color: rgba(111, 66, 193, 0.15); color: #6f42c1; }
-.contact-avatar.avatar-blue    { background-color: rgba(13, 110, 253, 0.15); color: #0d6efd; }
-.contact-avatar.avatar-teal    { background-color: rgba(32, 201, 151, 0.15); color: #0f7b5f; }
-.contact-avatar.avatar-pink    { background-color: rgba(214, 51, 132, 0.15); color: #d63384; }
-.contact-avatar.avatar-orange  { background-color: rgba(253, 126, 20, 0.15); color: #c55a00; }
-.contact-avatar.avatar-green   { background-color: rgba(25, 135, 84, 0.15);  color: #198754; }
-.contact-avatar.avatar-red     { background-color: rgba(220, 53, 69, 0.15);  color: #dc3545; }
-.contact-avatar.avatar-indigo  { background-color: rgba(102, 16, 242, 0.15); color: #6610f2; }
-.contact-avatar.avatar-cyan    { background-color: rgba(13, 202, 240, 0.15); color: #087990; }
-.contact-avatar.avatar-amber   { background-color: rgba(255, 193, 7, 0.15);  color: #997404; }
 
 /* List Icons - Purple pastel (Static & Dynamic) */
 .list-icon-static,

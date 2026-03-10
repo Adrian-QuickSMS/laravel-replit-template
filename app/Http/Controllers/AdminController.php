@@ -17,8 +17,6 @@ use App\Models\RoutingRule;
 use App\Models\RoutingGatewayWeight;
 use App\Models\RoutingCustomerOverride;
 use App\Models\Account;
-use App\Models\AccountAuditLog;
-use App\Models\AdminAuditLog;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -224,6 +222,13 @@ class AdminController extends Controller
             ->orderBy('accounts.created_at', 'desc')
             ->get();
 
+        $accountIds = $accounts->pluck('id')->toArray();
+        $subAccountsByAccount = \App\Models\SubAccount::whereIn('account_id', $accountIds)
+            ->select('id', 'account_id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('account_id');
+
         $counts = [
             'active' => Account::where('id', '!=', $systemId)->whereIn('status', Account::LIVE_STATUSES)->count(),
             'trial' => Account::where('id', '!=', $systemId)->whereIn('status', Account::TEST_STATUSES)->count(),
@@ -240,6 +245,7 @@ class AdminController extends Controller
             'page_title' => 'Account Overview',
             'accounts' => $accounts,
             'counts' => $counts,
+            'subAccountsByAccount' => $subAccountsByAccount,
         ]);
     }
 
@@ -281,6 +287,16 @@ class AdminController extends Controller
             ->orderBy('country_iso')
             ->get();
 
+        $subAccounts = \App\Models\SubAccount::where('account_id', $accountId)
+            ->select('id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get();
+
+        $allUsers = User::where('tenant_id', $accountId)
+            ->select('id', 'first_name', 'last_name', 'email', 'role', 'status', 'sub_account_id', 'is_account_owner')
+            ->orderBy('first_name')
+            ->get();
+
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',
             'account_id' => $accountId,
@@ -291,6 +307,153 @@ class AdminController extends Controller
             'customerPrices' => $customerPrices,
             'tierPrices' => $tierPrices,
             'productTier' => $productTier,
+            'subAccounts' => $subAccounts,
+            'allUsers' => $allUsers,
+        ]);
+    }
+
+    public function updateAccountDetails(Request $request, $accountId)
+    {
+        $account = Account::findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+        $section = $request->input('section');
+
+        switch ($section) {
+            case 'Sign Up Details':
+                $request->validate([
+                    'first_name' => 'required|string|max:255',
+                    'last_name' => 'required|string|max:255',
+                    'job_title' => 'required|string|max:255',
+                    'business_name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255',
+                    'mobile_number' => 'required|string|max:20',
+                ]);
+
+                DB::transaction(function () use ($account, $request) {
+                    $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+                    if ($owner) {
+                        $owner->update([
+                            'first_name' => $request->input('first_name'),
+                            'last_name' => $request->input('last_name'),
+                            'job_title' => $request->input('job_title'),
+                            'email' => $request->input('email'),
+                            'mobile_number' => $request->input('mobile_number'),
+                        ]);
+                    }
+
+                    $account->update([
+                        'company_name' => $request->input('business_name'),
+                        'email' => $request->input('email'),
+                    ]);
+                });
+                break;
+
+            case 'Company Information':
+                $request->validate([
+                    'company_name' => 'required|string|max:255',
+                    'company_type' => 'nullable|string|max:50',
+                    'company_number' => 'nullable|string|max:50',
+                    'business_sector' => 'nullable|string|max:100',
+                    'website' => 'nullable|string|max:255',
+                    'address_line1' => 'nullable|string|max:255',
+                    'address_line2' => 'nullable|string|max:255',
+                    'city' => 'nullable|string|max:100',
+                    'postcode' => 'nullable|string|max:20',
+                    'country' => 'nullable|string|max:5',
+                ]);
+
+                $account->update([
+                    'company_name' => $request->input('company_name'),
+                    'trading_name' => $request->input('trading_name'),
+                    'company_type' => $request->input('company_type'),
+                    'company_number' => $request->input('company_number'),
+                    'business_sector' => $request->input('business_sector'),
+                    'website' => $request->input('website'),
+                    'address_line1' => $request->input('address_line1'),
+                    'address_line2' => $request->input('address_line2'),
+                    'city' => $request->input('city'),
+                    'postcode' => $request->input('postcode'),
+                    'country' => $request->input('country'),
+                ]);
+                break;
+
+            case 'Support & Operations':
+                $request->validate([
+                    'accounts_billing_email' => 'nullable|email|max:255',
+                    'support_contact_email' => 'nullable|email|max:255',
+                    'incident_email' => 'nullable|email|max:255',
+                ]);
+
+                $account->update([
+                    'accounts_billing_email' => $request->input('accounts_billing_email'),
+                    'support_contact_email' => $request->input('support_contact_email'),
+                    'incident_email' => $request->input('incident_email'),
+                ]);
+                break;
+
+            case 'Contract Signatory':
+                $request->validate([
+                    'signatory_name' => 'nullable|string|max:255',
+                    'signatory_title' => 'nullable|string|max:255',
+                    'signatory_email' => 'nullable|email|max:255',
+                ]);
+
+                $account->update([
+                    'signatory_name' => $request->input('signatory_name'),
+                    'signatory_title' => $request->input('signatory_title'),
+                    'signatory_email' => $request->input('signatory_email'),
+                ]);
+                break;
+
+            case 'Billing, VAT and Tax Information':
+                $request->validate([
+                    'purchase_order_number' => 'nullable|string|max:100',
+                    'vat_registered' => 'nullable|string|in:yes,no',
+                    'vat_number' => 'nullable|string|max:20',
+                    'vat_country' => 'nullable|string|max:5',
+                    'reverse_charge' => 'nullable|string|in:yes,no',
+                ]);
+
+                $account->update([
+                    'purchase_order_number' => $request->input('purchase_order_number'),
+                    'vat_registered' => $request->input('vat_registered') === 'yes',
+                    'vat_number' => $request->input('vat_number'),
+                    'tax_country' => $request->input('vat_country'),
+                    'vat_reverse_charges' => $request->input('reverse_charge') === 'yes',
+                ]);
+                break;
+
+            default:
+                return response()->json(['message' => 'Unknown section: ' . $section], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $section . ' saved successfully',
+            'section' => $section,
+        ]);
+    }
+
+    public function accountStructure($accountId)
+    {
+        $account = Account::findOrFail($accountId);
+
+        $subAccounts = \App\Models\SubAccount::where('account_id', $accountId)
+            ->select('id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get();
+
+        $allUsers = User::where('tenant_id', $accountId)
+            ->select('id', 'first_name', 'last_name', 'email', 'role', 'status', 'sub_account_id', 'is_account_owner', 'sender_capability')
+            ->orderBy('first_name')
+            ->get();
+
+        return view('admin.accounts.account-structure', [
+            'page_title' => 'Account Structure',
+            'account_id' => $accountId,
+            'account' => $account,
+            'subAccounts' => $subAccounts,
+            'allUsers' => $allUsers,
         ]);
     }
 
@@ -333,18 +496,8 @@ class AdminController extends Controller
             []
         );
 
-        $oldNumbers = $settings->approved_test_numbers ?? [];
         $settings->approved_test_numbers = $numbers;
         $settings->save();
-
-        try {
-            $adminId = session('admin_user_id');
-            $adminName = session('admin_user_name', 'Admin');
-            AccountAuditLog::record($accountId, 'test_numbers_changed', $adminId, $adminName, "Approved test numbers updated by admin", ['before' => $oldNumbers, 'after' => $numbers]);
-            AdminAuditLog::record('test_numbers_changed', 'account_management', 'medium', $adminId, $adminName, 'account', $accountId, $accountId, "Updated approved test numbers for account {$account->account_number}", ['before' => $oldNumbers, 'after' => $numbers]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record test_numbers_changed', ['error' => $e->getMessage()]);
-        }
 
         return response()->json([
             'success' => true,
@@ -355,9 +508,12 @@ class AdminController extends Controller
 
     public function accountsBilling($accountId)
     {
+        $account = Account::findOrFail($accountId);
+
         return view('admin.accounts.billing', [
             'page_title' => 'Account Billing',
-            'account_id' => $accountId
+            'account_id' => $accountId,
+            'account' => $account,
         ]);
     }
 
@@ -817,16 +973,16 @@ class AdminController extends Controller
                 $account->transitionTo($newStatus);
 
                 DB::table('auth_audit_log')->insert([
-                    'id' => \Illuminate\Support\Str::uuid()->toString(),
                     'tenant_id' => $accountId,
-                    'actor_type' => 'admin',
+                    'actor_type' => 'admin_user',
                     'actor_id' => session('admin_user_id'),
                     'actor_email' => session('admin_user_email'),
-                    'event_type' => 'account_status_changed',
+                    'event_type' => 'account_unlocked',
                     'result' => 'success',
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'metadata' => json_encode([
+                        'action' => 'account_status_changed',
                         'previous_status' => $previousStatus,
                         'new_status' => $newStatus,
                         'reason' => $request->input('reason'),

@@ -11,18 +11,14 @@ use App\Models\Tag;
 use App\Models\Account;
 use App\Models\SenderId;
 use App\Models\User;
-use App\Models\AccountAuditLog;
-use App\Services\Audit\AuditContext;
 
 class QuickSMSController extends Controller
 {
-    const TEST_MODE_SENDER_UUID = '00000000-0000-0000-0000-000000000000';
-
     private function getApprovedSenderIds(): array
     {
         $tenantId = session('customer_tenant_id');
         if (!$tenantId) {
-            return [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
         $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
@@ -36,11 +32,11 @@ class QuickSMSController extends Controller
         $result = [];
 
         if ($account && $account->isTestStandard()) {
-            $result[] = ['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
+            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
         }
 
         if ($senderIds->isEmpty() && empty($result)) {
-            return [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
         foreach ($senderIds as $s) {
@@ -407,6 +403,8 @@ class QuickSMSController extends Controller
         $accountStatus = $account->status ?? null;
         $isTestMode = $account && $account->isTestMode();
         $isTestStandard = $account && $account->isTestStandard();
+        $isTestDynamic = $account && $account->isTestDynamic();
+        $isDynamicSender = $account && in_array($account->status, ['test_dynamic', 'active_dynamic']);
 
         $testCreditsRemaining = null;
         $approvedTestNumbers = [];
@@ -437,6 +435,8 @@ class QuickSMSController extends Controller
             'account_status' => $accountStatus,
             'is_test_mode' => $isTestMode,
             'is_test_standard' => $isTestStandard,
+            'is_test_dynamic' => $isTestDynamic,
+            'is_dynamic_sender' => $isDynamicSender,
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
         ]);
@@ -904,65 +904,9 @@ class QuickSMSController extends Controller
                 ->first();
             $testCreditsRemaining = $wallet ? $wallet->credits_remaining : 0;
         }
-        $blockedCount = 0;
         if ($isTestStandard) {
             $settings = \App\Models\AccountSettings::where('account_id', $accountId)->first();
             $approvedTestNumbers = $settings->approved_test_numbers ?? [];
-
-            $normalizeNumber = function ($num) {
-                $cleaned = preg_replace('/[\s\-\(\)]/', '', $num ?? '');
-                if (str_starts_with($cleaned, '00')) {
-                    $cleaned = substr($cleaned, 2);
-                } elseif (str_starts_with($cleaned, '0')) {
-                    $cleaned = '44' . substr($cleaned, 1);
-                }
-                return ltrim($cleaned, '+');
-            };
-
-            if (!empty($campaignId)) {
-                $pendingCount = \DB::table('campaign_recipients')
-                    ->where('campaign_id', $campaignId)
-                    ->whereIn('status', ['pending', 'queued'])
-                    ->count();
-
-                if (empty($approvedTestNumbers)) {
-                    $blockedCount = $pendingCount;
-                } else {
-                    $normalizedApproved = array_map($normalizeNumber, $approvedTestNumbers);
-
-                    $blockedCount = 0;
-                    \DB::table('campaign_recipients')
-                        ->where('campaign_id', $campaignId)
-                        ->whereIn('status', ['pending', 'queued'])
-                        ->orderBy('id')
-                        ->chunk(1000, function ($recipients) use ($normalizedApproved, $normalizeNumber, &$blockedCount) {
-                            foreach ($recipients as $recipient) {
-                                $normalized = $normalizeNumber($recipient->mobile_number);
-                                if (!in_array($normalized, $normalizedApproved)) {
-                                    $blockedCount++;
-                                }
-                            }
-                        });
-                }
-            } elseif (empty($approvedTestNumbers)) {
-                $blockedCount = $validCount;
-            }
-        }
-
-        $deliverableCount = $validCount;
-        $testModeSmsParts = $totalSmsParts;
-        if ($isTestStandard) {
-            $deliverableCount = max(0, $validCount - $blockedCount);
-
-            $testDisclaimer = \App\Models\Account::TEST_DISCLAIMER . ' ';
-            $originalContent = $sessionData['message_content'] ?? '';
-            if (empty($originalContent) && !empty($campaignId)) {
-                $campaignForContent = \DB::table('campaigns')->where('id', $campaignId)->first(['message_content']);
-                $originalContent = $campaignForContent->message_content ?? '';
-            }
-            $msgContent = $testDisclaimer . $originalContent;
-            $testModeSegments = $this->calculateSmsSegments($msgContent);
-            $testModeSmsParts = $deliverableCount * $testModeSegments;
         }
 
         return view('quicksms.messages.confirm-campaign', [
@@ -981,9 +925,6 @@ class QuickSMSController extends Controller
             'is_test_standard' => $isTestStandard,
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
-            'blocked_count' => $blockedCount,
-            'deliverable_count' => $deliverableCount,
-            'test_mode_sms_parts' => $testModeSmsParts,
         ]);
     }
 
@@ -1087,7 +1028,7 @@ class QuickSMSController extends Controller
 
             if (!$campaign) {
                 $senderIdValue = $sessionData['sender_id_id'] ?? null;
-                if ($senderIdValue === '0' || $senderIdValue === 0 || $senderIdValue === self::TEST_MODE_SENDER_UUID) {
+                if ($senderIdValue === '0' || $senderIdValue === 0) {
                     $senderIdValue = null;
                 }
                 if ($senderIdValue && !is_numeric($senderIdValue)) {
@@ -2517,21 +2458,49 @@ class QuickSMSController extends Controller
 
     public function templateCreateStep3()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Create Template - Settings',
             'isEditMode' => false,
             'isAdminMode' => false,
-            'template' => null
+            'template' => null,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
     public function templateCreateReview()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Create Template - Review',
             'isEditMode' => false,
             'isAdminMode' => false,
-            'template' => null
+            'template' => null,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2585,12 +2554,26 @@ class QuickSMSController extends Controller
             return redirect()->route('management.templates')->with('error', 'Template not found.');
         }
 
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Edit Template - Settings',
             'isEditMode' => true,
             'isAdminMode' => false,
             'templateId' => $templateId,
-            'template' => $template
+            'template' => $template,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2601,12 +2584,26 @@ class QuickSMSController extends Controller
             return redirect()->route('management.templates')->with('error', 'Template not found.');
         }
 
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Edit Template - Review',
             'isEditMode' => true,
             'isAdminMode' => false,
             'templateId' => $templateId,
-            'template' => $template
+            'template' => $template,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2641,9 +2638,9 @@ class QuickSMSController extends Controller
             ->get();
 
         $sender_ids = $approvedIds->isEmpty()
-            ? [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']]
+            ? [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']]
             : $approvedIds->map(fn($s) => [
-                'id' => $s->uuid,
+                'id' => $s->id,
                 'name' => $s->sender_id_value,
                 'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
             ])->toArray();
@@ -2766,6 +2763,7 @@ class QuickSMSController extends Controller
             'socialHoursTo' => $t->social_hours_to ?? '',
             'rcs_content' => $t->rcs_content,
             'status' => $t->status,
+            'sub_account_id' => $t->sub_account_id,
         ];
     }
 
@@ -3168,16 +3166,8 @@ class QuickSMSController extends Controller
             []
         );
 
-        $oldNumbers = $settings->approved_test_numbers ?? [];
         $settings->approved_test_numbers = $numbers;
         $settings->save();
-
-        try {
-            $actor = AuditContext::actor();
-            AccountAuditLog::record($actor['account_id'], 'test_numbers_changed', $actor['user_id'], $actor['user_name'], "Approved test numbers updated", ['before' => $oldNumbers, 'after' => $numbers]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record test_numbers_changed', ['error' => $e->getMessage()]);
-        }
 
         return response()->json([
             'success' => true,
@@ -3185,7 +3175,7 @@ class QuickSMSController extends Controller
             'numbers' => $numbers,
         ]);
     }
-
+    
     public function accountPricingApi(Request $request)
     {
         $tenantId = session('customer_tenant_id');
@@ -3642,32 +3632,224 @@ class QuickSMSController extends Controller
 
     public function usersAndAccess()
     {
+        $tenantId = session('customer_tenant_id');
+        $accountName = 'My Account';
+        if ($tenantId) {
+            try {
+                $account = \App\Models\Account::find($tenantId);
+                if ($account) {
+                    $accountName = $account->company_name ?? $account->trading_name ?? 'My Account';
+                }
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.account.users-access', [
-            'page_title' => 'Users and Access'
+            'page_title' => 'Users and Access',
+            'account_name' => $accountName,
         ]);
     }
 
     public function subAccounts()
     {
         $tenantId = session('customer_tenant_id');
+        $user = \Illuminate\Support\Facades\Auth::user();
 
-        // Load real sub-accounts from database if tenant context exists
-        $subAccountsList = [];
+        $accountName = 'My Account';
+        $currentUserData = [];
         if ($tenantId) {
             try {
-                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
-                $subAccountsList = \App\Models\SubAccount::orderBy('name')->get()
-                    ->map(fn($sa) => $sa->toPortalArray())
-                    ->toArray();
+                $account = \App\Models\Account::find($tenantId);
+                if ($account) {
+                    $accountName = $account->company_name ?? $account->trading_name ?? 'My Account';
+                }
             } catch (\Exception $e) {
-                \Log::warning('Failed to load sub-accounts: ' . $e->getMessage());
+                \Log::warning('Failed to load account: ' . $e->getMessage());
             }
+        }
+
+        if ($user) {
+            $currentUserData = [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'is_account_owner' => $user->is_account_owner ?? false,
+                'sub_account_id' => $user->sub_account_id,
+            ];
         }
 
         return view('quicksms.account.users-access', [
             'page_title' => 'Sub Accounts, Users and Permissions',
-            'sub_accounts_data' => $subAccountsList,
+            'account_name' => $accountName,
+            'current_user' => $currentUserData,
         ]);
+    }
+
+    public function accountOverview(\Illuminate\Http\Request $request)
+    {
+        $tenantId = session('customer_tenant_id');
+
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $account = \App\Models\Account::find($tenantId);
+
+                if ($account) {
+                    $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)->get();
+                    $totalSubAccounts = $subAccounts->count();
+                    $totalUsers = \App\Models\User::where('tenant_id', $tenantId)->count();
+
+                    $totalSpend = $subAccounts->sum('monthly_spend_used');
+                    $totalMessages = $subAccounts->sum('monthly_messages_used');
+                    $totalSpendCap = $subAccounts->sum('monthly_spending_cap');
+                    $totalMessageCap = $subAccounts->sum('monthly_message_cap');
+
+                    $mainAccountUsers = \App\Models\User::where('tenant_id', $tenantId)
+                        ->whereNull('sub_account_id')
+                        ->get()
+                        ->map(function ($u) {
+                            return [
+                                'id' => $u->id,
+                                'name' => trim($u->first_name . ' ' . $u->last_name),
+                                'email' => $u->email,
+                                'role' => $u->role,
+                                'role_label' => $u->getRoleLabel(),
+                                'status' => $u->status,
+                                'sender_capability' => $u->sender_capability ?? 'none',
+                                'is_account_owner' => $u->is_account_owner ?? false,
+                                'last_login' => $u->last_login_at?->format('d M Y H:i'),
+                            ];
+                        })
+                        ->toArray();
+
+                    $subAccountsList = $subAccounts->map(function ($s) {
+                        return ['id' => $s->id, 'name' => $s->name];
+                    })->toArray();
+
+                    $accountData = [
+                        'id' => $account->id,
+                        'name' => $account->company_name ?? $account->trading_name ?? 'Main Account',
+                        'status' => $account->status,
+                        'account_number' => $account->account_number,
+                        'created_at' => $account->created_at ? $account->created_at->format('Y-m-d') : null,
+                        'total_sub_accounts' => $totalSubAccounts,
+                        'total_users' => $totalUsers,
+                        'monthly_spend' => (float) $totalSpend,
+                        'monthly_messages' => (int) $totalMessages,
+                        'limits' => [
+                            'spend_cap' => (float) $totalSpendCap,
+                            'message_cap' => (int) $totalMessageCap,
+                            'credit_limit' => (float) ($account->credit_limit ?? 0),
+                        ],
+                    ];
+
+                    $currentUser = $request->user();
+                    $canManageUsers = $currentUser && in_array($currentUser->role, ['owner', 'admin']);
+
+                    $senderIds = \App\Models\SenderId::where('account_id', $tenantId)
+                        ->select('id', 'sender_id_value', 'workflow_status', 'created_at')
+                        ->orderBy('sender_id_value')
+                        ->get()
+                        ->map(function ($s) {
+                            return [
+                                'id' => $s->id,
+                                'value' => $s->sender_id_value,
+                                'status' => $s->workflow_status ?? 'draft',
+                                'created_at' => $s->created_at ? $s->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $numbers = \App\Models\PurchasedNumber::where('account_id', $tenantId)
+                        ->select('id', 'number', 'number_type', 'country_iso', 'created_at')
+                        ->orderBy('number')
+                        ->get()
+                        ->map(function ($n) {
+                            return [
+                                'id' => $n->id,
+                                'number' => $n->number,
+                                'type' => $n->number_type ?? 'vmn',
+                                'country' => $n->country_iso ?? 'GB',
+                                'created_at' => $n->created_at ? $n->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $rcsAgents = \App\Models\RcsAgent::where('account_id', $tenantId)
+                        ->select('id', 'name', 'workflow_status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($r) {
+                            return [
+                                'id' => $r->id,
+                                'name' => $r->name ?? 'Unnamed Agent',
+                                'status' => $r->workflow_status ?? 'draft',
+                                'created_at' => $r->created_at ? $r->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $templates = \App\Models\MessageTemplate::where('account_id', $tenantId)
+                        ->select('id', 'name', 'type', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($t) {
+                            return [
+                                'id' => $t->id,
+                                'name' => $t->name,
+                                'type' => $t->type,
+                                'status' => $t->status,
+                                'created_at' => $t->created_at ? $t->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $emailSetups = \App\Models\EmailToSmsSetup::where('account_id', $tenantId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id' => $e->id,
+                                'name' => $e->name,
+                                'status' => $e->status,
+                                'created_at' => $e->created_at ? $e->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $apiConns = \App\Models\ApiConnection::where('account_id', $tenantId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($c) {
+                            return [
+                                'id' => $c->id,
+                                'name' => $c->name,
+                                'status' => $c->status,
+                                'created_at' => $c->created_at ? $c->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $assets = [
+                        'sender_ids' => $senderIds,
+                        'numbers' => $numbers,
+                        'rcs_agents' => $rcsAgents,
+                        'templates' => $templates,
+                        'email_setups' => $emailSetups,
+                        'api_connections' => $apiConns,
+                    ];
+
+                    return view('quicksms.account.account-overview', [
+                        'page_title' => $accountData['name'],
+                        'account' => $accountData,
+                        'main_account_users' => $mainAccountUsers,
+                        'sub_accounts_list' => $subAccountsList,
+                        'can_manage_users' => $canManageUsers,
+                        'assets' => $assets,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to load account overview: ' . $e->getMessage());
+            }
+        }
+
+        abort(404, 'Account not found');
     }
 
     public function subAccountDetail($id)
@@ -3698,9 +3880,105 @@ class QuickSMSController extends Controller
                         ],
                     ];
 
+                    $subAccountId = $subAccountModel->id;
+                    $morphType = 'App\\Models\\SubAccount';
+
+                    $senderIdAssignments = \App\Models\SenderIdAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('senderId')
+                        ->get()
+                        ->map(function ($a) {
+                            $s = $a->senderId;
+                            return $s ? [
+                                'id' => $s->id,
+                                'value' => $s->sender_id_value,
+                                'status' => $s->workflow_status ?? 'draft',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $numberAssignments = \App\Models\NumberAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('purchasedNumber')
+                        ->get()
+                        ->map(function ($a) {
+                            $n = $a->purchasedNumber;
+                            return $n ? [
+                                'id' => $n->id,
+                                'number' => $n->number,
+                                'type' => $n->number_type ?? 'vmn',
+                                'country' => $n->country_iso ?? 'GB',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $rcsAssignments = \App\Models\RcsAgentAssignment::where('assignable_type', $morphType)
+                        ->where('assignable_id', $subAccountId)
+                        ->with('rcsAgent')
+                        ->get()
+                        ->map(function ($a) {
+                            $r = $a->rcsAgent;
+                            return $r ? [
+                                'id' => $r->id,
+                                'name' => $r->agent_name ?? $r->name ?? 'Unnamed Agent',
+                                'status' => $r->workflow_status ?? 'draft',
+                                'assigned_at' => $a->created_at ? $a->created_at->format('d M Y') : '-',
+                            ] : null;
+                        })->filter()->values()->toArray();
+
+                    $templates = \App\Models\MessageTemplate::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'type', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($t) {
+                            return [
+                                'id' => $t->id,
+                                'name' => $t->name,
+                                'type' => $t->type,
+                                'status' => $t->status,
+                                'created_at' => $t->created_at ? $t->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $emailSetups = \App\Models\EmailToSmsSetup::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id' => $e->id,
+                                'name' => $e->name,
+                                'status' => $e->status,
+                                'created_at' => $e->created_at ? $e->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $apiConnections = \App\Models\ApiConnection::where('sub_account_id', $subAccountId)
+                        ->select('id', 'name', 'status', 'created_at')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($c) {
+                            return [
+                                'id' => $c->id,
+                                'name' => $c->name,
+                                'status' => $c->status,
+                                'created_at' => $c->created_at ? $c->created_at->format('d M Y') : '-',
+                            ];
+                        })->toArray();
+
+                    $assets = [
+                        'sender_ids' => $senderIdAssignments,
+                        'numbers' => $numberAssignments,
+                        'rcs_agents' => $rcsAssignments,
+                        'templates' => $templates,
+                        'email_setups' => $emailSetups,
+                        'api_connections' => $apiConnections,
+                    ];
+
                     return view('quicksms.account.sub-account-detail', [
                         'page_title' => $subAccount['name'],
-                        'sub_account' => $subAccount
+                        'sub_account' => $subAccount,
+                        'assets' => $assets,
                     ]);
                 }
             } catch (\Exception $e) {
@@ -3708,35 +3986,7 @@ class QuickSMSController extends Controller
             }
         }
 
-        // Fallback to mock data for demo/dev if not found in DB
-        $subAccounts = [
-            'sub-001' => [
-                'id' => 'sub-001', 'name' => 'Marketing Department', 'status' => 'live',
-                'created_at' => '2024-06-15', 'user_count' => 8,
-                'monthly_spend' => 1250.00, 'monthly_messages' => 42500,
-                'limits' => ['spend_cap' => 5000.00, 'message_cap' => 100000, 'daily_limit' => 5000, 'enforcement_type' => 'block', 'hard_stop' => false]
-            ],
-            'sub-002' => [
-                'id' => 'sub-002', 'name' => 'Customer Support', 'status' => 'live',
-                'created_at' => '2024-08-22', 'user_count' => 5,
-                'monthly_spend' => 875.50, 'monthly_messages' => 28000,
-                'limits' => ['spend_cap' => 2000.00, 'message_cap' => 50000, 'daily_limit' => 2000, 'enforcement_type' => 'warn', 'hard_stop' => false]
-            ],
-            'sub-003' => [
-                'id' => 'sub-003', 'name' => 'Sales Team', 'status' => 'suspended',
-                'created_at' => '2024-09-10', 'user_count' => 3,
-                'monthly_spend' => 0, 'monthly_messages' => 0,
-                'limits' => ['spend_cap' => 1000.00, 'message_cap' => 25000, 'daily_limit' => 1000, 'enforcement_type' => 'approval', 'hard_stop' => true]
-            ],
-        ];
-
-        $subAccount = $subAccounts[$id] ?? null;
-        if (!$subAccount) abort(404, 'Sub-Account not found');
-
-        return view('quicksms.account.sub-account-detail', [
-            'page_title' => $subAccount['name'],
-            'sub_account' => $subAccount
-        ]);
+        abort(404, 'Sub-Account not found');
     }
 
     public function userDetail($subId, $userId)
@@ -3780,49 +4030,7 @@ class QuickSMSController extends Controller
             }
         }
 
-        // Fallback to mock data
-        $subAccounts = [
-            'sub-001' => ['id' => 'sub-001', 'name' => 'Marketing Department'],
-            'sub-002' => ['id' => 'sub-002', 'name' => 'Customer Support'],
-            'sub-003' => ['id' => 'sub-003', 'name' => 'Sales Team'],
-        ];
-
-        $users = [
-            'user-001' => [
-                'id' => 'user-001', 'name' => 'Emma Thompson', 'email' => 'emma.thompson@company.com',
-                'role' => 'messaging-manager', 'role_label' => 'Messaging Manager', 'status' => 'active',
-                'sender_capability' => 'advanced', 'created_at' => '2024-06-20', 'last_login' => '2026-01-16 09:45',
-                'mfa_enabled' => true, 'monthly_spend' => 450.00, 'monthly_messages' => 15200, 'sub_account_id' => 'sub-001'
-            ],
-            'user-002' => [
-                'id' => 'user-002', 'name' => 'Michael Brown', 'email' => 'michael.brown@company.com',
-                'role' => 'admin', 'role_label' => 'Admin', 'status' => 'active',
-                'sender_capability' => 'advanced', 'created_at' => '2024-07-15', 'last_login' => '2026-01-15 14:20',
-                'mfa_enabled' => true, 'monthly_spend' => 320.50, 'monthly_messages' => 10800, 'sub_account_id' => 'sub-001'
-            ],
-            'user-003' => [
-                'id' => 'user-003', 'name' => 'Sarah Wilson', 'email' => 'sarah.wilson@company.com',
-                'role' => 'finance', 'role_label' => 'Finance/Billing', 'status' => 'active',
-                'sender_capability' => null, 'created_at' => '2024-08-01', 'last_login' => '2026-01-14 11:30',
-                'mfa_enabled' => true, 'monthly_spend' => 0, 'monthly_messages' => 0, 'sub_account_id' => 'sub-002'
-            ],
-            'user-004' => [
-                'id' => 'user-004', 'name' => 'Chris Martinez', 'email' => 'chris.martinez@company.com',
-                'role' => 'messaging-manager', 'role_label' => 'Messaging Manager', 'status' => 'suspended',
-                'sender_capability' => 'restricted', 'created_at' => '2024-09-10', 'last_login' => '2026-01-10 08:15',
-                'mfa_enabled' => false, 'monthly_spend' => 0, 'monthly_messages' => 0, 'sub_account_id' => 'sub-002'
-            ],
-        ];
-
-        $subAccount = $subAccounts[$subId] ?? null;
-        $user = $users[$userId] ?? null;
-        if (!$subAccount || !$user) abort(404, 'User not found');
-
-        return view('quicksms.account.user-detail', [
-            'page_title' => $user['name'],
-            'sub_account' => $subAccount,
-            'user' => $user
-        ]);
+        abort(404, 'User not found');
     }
 
     public function auditLogs()

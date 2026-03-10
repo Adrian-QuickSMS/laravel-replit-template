@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Account;
 use App\Models\InboxConversation;
 use App\Models\InboxMessage;
+use App\Models\PurchasedNumber;
+use App\Models\SenderId;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -37,7 +39,9 @@ class InboxDeliveryService
         string $content,
         string $channel = 'sms',
         ?array $rcsPayload = null,
-        ?string $senderId = null
+        ?string $purchasedNumberId = null,
+        ?string $rcsAgentId = null,
+        ?string $smsFallbackId = null
     ): array {
         $accountId = $conversation->account_id;
 
@@ -47,8 +51,11 @@ class InboxDeliveryService
             return ['success' => false, 'message' => null, 'error' => $balanceCheck['error']];
         }
 
-        // 2. Determine from/to numbers
-        $fromNumber = $senderId ?? $conversation->source;
+        // 2. Resolve from number from purchased_number_id
+        $fromNumber = $this->resolveFromNumber(
+            $purchasedNumberId ?? $conversation->purchased_number_id,
+            $channel === 'rcs' ? ($smsFallbackId ?? $purchasedNumberId ?? $conversation->purchased_number_id) : null
+        );
         $toNumber = $conversation->phone_number;
 
         // 3. Calculate cost and fragments
@@ -102,6 +109,33 @@ class InboxDeliveryService
         $this->deductBalance($accountId, $cost);
 
         return ['success' => true, 'message' => $message, 'error' => null];
+    }
+
+    private function resolveFromNumber(?string $purchasedNumberId, ?string $fallbackId = null): string
+    {
+        if ($purchasedNumberId) {
+            $number = PurchasedNumber::withoutGlobalScope('tenant')->find($purchasedNumberId);
+            if ($number) {
+                return '+' . $number->number;
+            }
+
+            $sender = SenderId::withoutGlobalScope('tenant')
+                ->where('uuid', $purchasedNumberId)
+                ->where('workflow_status', 'approved')
+                ->first();
+            if ($sender) {
+                return $sender->sender_id_value;
+            }
+        }
+
+        if ($fallbackId && $fallbackId !== $purchasedNumberId) {
+            $fallback = PurchasedNumber::withoutGlobalScope('tenant')->find($fallbackId);
+            if ($fallback) {
+                return '+' . $fallback->number;
+            }
+        }
+
+        return 'QuickSMS';
     }
 
     /**

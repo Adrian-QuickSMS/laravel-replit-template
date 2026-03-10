@@ -33,26 +33,6 @@
             return new Promise(function(resolve) { setTimeout(resolve, delay); });
         },
 
-        _headers: function() {
-            return {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            };
-        },
-
-        _handleResponse: function(response) {
-            if (!response.ok) {
-                return response.json().then(function(err) {
-                    throw new Error(err.message || 'Request failed: ' + response.status);
-                }).catch(function(e) {
-                    if (e.message && e.message.indexOf('Request failed') === 0) throw e;
-                    throw new Error('Request failed: ' + response.status);
-                });
-            }
-            return response.json();
-        },
-
         _mockAccounts: [
             { id: 'ACC-001', name: 'Acme Corp', status: 'active' },
             { id: 'ACC-002', name: 'RetailMax', status: 'active' },
@@ -400,10 +380,8 @@
                 });
             }
 
-            var self = this;
-            return fetch(this.config.baseUrl + '?' + new URLSearchParams(filters), {
-                headers: this._headers()
-            }).then(function(response) { return self._handleResponse(response); });
+            return fetch(this.config.baseUrl + '?' + new URLSearchParams(filters))
+                .then(function(response) { return response.json(); });
         },
 
         getCampaign: function(id) {
@@ -419,10 +397,8 @@
                 });
             }
 
-            var self2 = this;
-            return fetch(this.config.baseUrl + '/' + id, {
-                headers: this._headers()
-            }).then(function(response) { return self2._handleResponse(response); });
+            return fetch(this.config.baseUrl + '/' + id)
+                .then(function(response) { return response.json(); });
         },
 
         getAccounts: function() {
@@ -437,10 +413,8 @@
                 });
             }
 
-            var self2 = this;
-            return fetch('/api/admin/accounts', {
-                headers: this._headers()
-            }).then(function(response) { return self2._handleResponse(response); });
+            return fetch('/api/admin/accounts')
+                .then(function(response) { return response.json(); });
         },
 
         getCampaignStats: function(id) {
@@ -474,10 +448,8 @@
                 });
             }
 
-            var self2 = this;
-            return fetch(this.config.baseUrl + '/' + id + '/stats', {
-                headers: this._headers()
-            }).then(function(response) { return self2._handleResponse(response); });
+            return fetch(this.config.baseUrl + '/' + id + '/stats')
+                .then(function(response) { return response.json(); });
         },
 
         getCampaignDeliveryReport: function(id) {
@@ -516,10 +488,8 @@
                 });
             }
 
-            var self2 = this;
-            return fetch(this.config.baseUrl + '/' + id + '/delivery-report', {
-                headers: this._headers()
-            }).then(function(response) { return self2._handleResponse(response); });
+            return fetch(this.config.baseUrl + '/' + id + '/delivery-report')
+                .then(function(response) { return response.json(); });
         },
 
         exportCampaigns: function(filters, format) {
@@ -528,6 +498,7 @@
 
             if (this.config.useMockData) {
                 return this._mockDelay().then(function() {
+                    console.log('[CampaignsAdminService] Export requested:', { filters: filters, format: format });
                     return {
                         success: true,
                         message: 'Export initiated',
@@ -536,12 +507,11 @@
                 });
             }
 
-            var self2 = this;
             return fetch(this.config.baseUrl + '/export', {
                 method: 'POST',
-                headers: this._headers(),
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filters: filters, format: format })
-            }).then(function(response) { return self2._handleResponse(response); });
+            }).then(function(response) { return response.json(); });
         },
 
         getCampaignAuditHistory: function(id) {
@@ -608,10 +578,8 @@
                 });
             }
 
-            var self2 = this;
-            return fetch(this.config.baseUrl + '/' + id + '/audit', {
-                headers: this._headers()
-            }).then(function(response) { return self2._handleResponse(response); });
+            return fetch(this.config.baseUrl + '/' + id + '/audit')
+                .then(function(response) { return response.json(); });
         }
     };
 

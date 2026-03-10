@@ -116,6 +116,8 @@ var UNIFIED_APPROVAL = (function() {
 
         externalValidationHistory = config.externalValidationHistory || [];
 
+        console.log('[UnifiedApproval] Initialized for', currentEntity.type.label, currentEntity.id);
+        
         checkHighRisk();
         updateUI();
         
@@ -268,7 +270,7 @@ var UNIFIED_APPROVAL = (function() {
             returnedSubmissions[currentEntity.id] = returnState;
             localStorage.setItem('returnedSubmissions', JSON.stringify(returnedSubmissions));
         } catch (e) {
-            // Storage failure is non-critical
+            console.warn('[UnifiedApproval] Could not store returned state:', e);
         }
     }
 
@@ -668,37 +670,36 @@ var UNIFIED_APPROVAL = (function() {
     function populateDiffContent(oldData, newData) {
         var oldContent = document.getElementById('diffOldContent');
         var newContent = document.getElementById('diffNewContent');
-
+        
         if (!oldContent || !newContent) return;
 
-        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
         var allKeys = new Set([...Object.keys(oldData || {}), ...Object.keys(newData || {})]);
-
+        
         var oldHtml = '';
         var newHtml = '';
-
+        
         allKeys.forEach(function(key) {
             if (key === 'capturedAt') return;
-
+            
             var oldVal = oldData ? oldData[key] : null;
             var newVal = newData ? newData[key] : null;
-            var label = esc(formatFieldLabel(key));
-
+            var label = formatFieldLabel(key);
+            
             if (oldVal === newVal) {
-                oldHtml += '<div class="diff-row unchanged"><span class="diff-label">' + label + ':</span> ' + (oldVal ? esc(oldVal) : '—') + '</div>';
-                newHtml += '<div class="diff-row unchanged"><span class="diff-label">' + label + ':</span> ' + (newVal ? esc(newVal) : '—') + '</div>';
+                oldHtml += '<div class="diff-row unchanged"><span class="diff-label">' + label + ':</span> ' + (oldVal || '—') + '</div>';
+                newHtml += '<div class="diff-row unchanged"><span class="diff-label">' + label + ':</span> ' + (newVal || '—') + '</div>';
             } else if (oldVal && !newVal) {
-                oldHtml += '<div class="diff-row removed"><span class="diff-label">' + label + ':</span> ' + esc(oldVal) + '</div>';
+                oldHtml += '<div class="diff-row removed"><span class="diff-label">' + label + ':</span> ' + oldVal + '</div>';
                 newHtml += '<div class="diff-row removed"><span class="diff-label">' + label + ':</span> —</div>';
             } else if (!oldVal && newVal) {
                 oldHtml += '<div class="diff-row added"><span class="diff-label">' + label + ':</span> —</div>';
-                newHtml += '<div class="diff-row added"><span class="diff-label">' + label + ':</span> ' + esc(newVal) + '</div>';
+                newHtml += '<div class="diff-row added"><span class="diff-label">' + label + ':</span> ' + newVal + '</div>';
             } else {
-                oldHtml += '<div class="diff-row changed"><span class="diff-label">' + label + ':</span> ' + esc(oldVal) + '</div>';
-                newHtml += '<div class="diff-row changed"><span class="diff-label">' + label + ':</span> ' + esc(newVal) + '</div>';
+                oldHtml += '<div class="diff-row changed"><span class="diff-label">' + label + ':</span> ' + oldVal + '</div>';
+                newHtml += '<div class="diff-row changed"><span class="diff-label">' + label + ':</span> ' + newVal + '</div>';
             }
         });
-
+        
         oldContent.innerHTML = oldHtml || '<div class="diff-empty">No data</div>';
         newContent.innerHTML = newHtml || '<div class="diff-empty">No data</div>';
     }

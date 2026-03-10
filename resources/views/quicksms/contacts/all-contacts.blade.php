@@ -462,24 +462,14 @@
                                     <td class="py-2">
                                         <div class="d-flex align-items-center">
                                             @php
-                                                $avatarPalette = [
-                                                    ['bg'=>'rgba(111,66,193,0.15)','fg'=>'#6f42c1'],
-                                                    ['bg'=>'rgba(13,110,253,0.15)','fg'=>'#0d6efd'],
-                                                    ['bg'=>'rgba(32,201,151,0.15)','fg'=>'#0f7b5f'],
-                                                    ['bg'=>'rgba(214,51,132,0.15)','fg'=>'#d63384'],
-                                                    ['bg'=>'rgba(253,126,20,0.15)','fg'=>'#c55a00'],
-                                                    ['bg'=>'rgba(25,135,84,0.15)','fg'=>'#198754'],
-                                                    ['bg'=>'rgba(220,53,69,0.15)','fg'=>'#dc3545'],
-                                                    ['bg'=>'rgba(102,16,242,0.15)','fg'=>'#6610f2'],
-                                                    ['bg'=>'rgba(13,202,240,0.15)','fg'=>'#087990'],
-                                                    ['bg'=>'rgba(255,193,7,0.15)','fg'=>'#997404'],
-                                                ];
-                                                $ini = $contact['initials'] ?? '';
-                                                $h = 0;
-                                                for ($i = 0; $i < strlen($ini); $i++) { $h = ord($ini[$i]) + (($h << 5) - $h); }
-                                                $ac = $avatarPalette[abs($h) % count($avatarPalette)];
+                                                $avatarColors = ['#6f42c1','#e83e8c','#20c997','#fd7e14','#0d6efd','#6610f2','#d63384','#198754','#dc3545','#0dcaf0'];
+                                                $cName = ($contact['first_name'] ?? '') . ' ' . ($contact['last_name'] ?? '');
+                                                $cHash = 0;
+                                                for ($ci = 0; $ci < strlen($cName); $ci++) { $cHash = ord($cName[$ci]) + (($cHash << 5) - $cHash); }
+                                                $cIdx = (($cHash % count($avatarColors)) + count($avatarColors)) % count($avatarColors);
+                                                $avatarColor = $avatarColors[$cIdx];
                                             @endphp
-                                            <div class="contact-avatar me-2" style="background-color: {{ $ac['bg'] }}; color: {{ $ac['fg'] }};">
+                                            <div class="contact-avatar me-2" style="background-color: {{ $avatarColor }}20; color: {{ $avatarColor }};">
                                                 {{ $contact['initials'] }}
                                             </div>
                                             <div>
@@ -714,25 +704,6 @@ var customFieldDefinitions = [
     { id: 1, name: 'Company', slug: 'company', type: 'text', defaultValue: '' },
     { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
 ];
-
-var _avatarPalette = [
-    {bg:'rgba(111,66,193,0.15)',fg:'#6f42c1'},
-    {bg:'rgba(13,110,253,0.15)',fg:'#0d6efd'},
-    {bg:'rgba(32,201,151,0.15)',fg:'#0f7b5f'},
-    {bg:'rgba(214,51,132,0.15)',fg:'#d63384'},
-    {bg:'rgba(253,126,20,0.15)',fg:'#c55a00'},
-    {bg:'rgba(25,135,84,0.15)',fg:'#198754'},
-    {bg:'rgba(220,53,69,0.15)',fg:'#dc3545'},
-    {bg:'rgba(102,16,242,0.15)',fg:'#6610f2'},
-    {bg:'rgba(13,202,240,0.15)',fg:'#087990'},
-    {bg:'rgba(255,193,7,0.15)',fg:'#997404'}
-];
-function _avatarColor(initials) {
-    var h = 0;
-    var s = initials || '';
-    for (var i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
-    return _avatarPalette[Math.abs(h) % _avatarPalette.length];
-}
 
 var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 function _apiHeaders() {
@@ -1191,9 +1162,20 @@ function sortContacts(sortKey, direction) {
     renderContactsTable(sortedContacts);
 }
 
+var AVATAR_COLORS = ['#6f42c1','#e83e8c','#20c997','#fd7e14','#0d6efd','#6610f2','#d63384','#198754','#dc3545','#0dcaf0'];
+function getAvatarColor(name) {
+    var hash = 0;
+    var str = name || '?';
+    for (var i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 function renderContactsTable(contacts) {
     const tbody = document.getElementById('contactsTableBody');
-    tbody.innerHTML = contacts.map(contact => `
+    tbody.innerHTML = contacts.map(contact => {
+        var cName = (contact.first_name || '') + ' ' + (contact.last_name || '');
+        var cColor = getAvatarColor(cName);
+        return `
         <tr class="btn-reveal-trigger" data-contact-id="${escapeHtml(contact.id)}" data-first-name="${escapeHtml(contact.firstName || '')}" data-last-name="${escapeHtml(contact.lastName || '')}" data-status="${escapeHtml(contact.status || 'active')}" data-list-scope="${escapeHtml(contact.listScope || '')}">
             <td class="py-2">
                 <div class="form-check custom-checkbox">
@@ -1203,7 +1185,7 @@ function renderContactsTable(contacts) {
             </td>
             <td class="py-2">
                 <div class="d-flex align-items-center">
-                    <div class="contact-avatar me-2" style="background-color: ${_avatarColor(contact.initials).bg}; color: ${_avatarColor(contact.initials).fg};">
+                    <div class="contact-avatar me-2" style="background-color: ${cColor}20; color: ${cColor};">
                         ${escapeHtml(contact.initials)}
                     </div>
                     <div>
@@ -1271,7 +1253,7 @@ function renderContactsTable(contacts) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
     
     document.querySelectorAll('.contact-checkbox').forEach(cb => {
         cb.addEventListener('change', function() {
@@ -1306,10 +1288,13 @@ function viewContact(id) {
     
     document.getElementById('viewContactName').textContent = contact.first_name + ' ' + contact.last_name;
     document.getElementById('viewContactInitials').textContent = contact.initials;
-    var _ac = _avatarColor(contact.initials);
-    var _avatarEl = document.getElementById('viewContactAvatarCircle');
-    _avatarEl.style.backgroundColor = _ac.bg;
-    _avatarEl.style.color = _ac.fg;
+    var vcColor = getAvatarColor((contact.first_name || '') + ' ' + (contact.last_name || ''));
+    var vcAvatar = document.getElementById('viewContactInitials').parentElement;
+    if (vcAvatar) {
+        vcAvatar.style.backgroundColor = vcColor + '20';
+        vcAvatar.style.color = vcColor;
+        vcAvatar.classList.remove('bg-primary', 'text-white');
+    }
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
@@ -2642,7 +2627,7 @@ function saveCustomField() {
             </div>
             <div class="modal-body">
                 <div class="text-center mb-4">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto" id="viewContactAvatarCircle" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
                         <span id="viewContactInitials"></span>
                     </div>
                     <h4 class="mt-3 mb-1" id="viewContactName"></h4>

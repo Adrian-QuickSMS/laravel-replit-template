@@ -143,6 +143,8 @@ var EnforcementRules = (function() {
             changedBy: { userId: 'current-user', role: 'admin' }
         };
 
+        console.log('[AUDIT] Enforcement rule updated:', auditEntry);
+
         return subAccountRules[subAccountId].rules[ruleType];
     }
 
@@ -352,6 +354,8 @@ var EnforcementRules = (function() {
             userId: action.userId || 'unknown'
         };
 
+        console.log('[AUDIT] Enforcement event:', auditEntry);
+
         return auditEntry;
     }
 
@@ -370,6 +374,8 @@ var EnforcementRules = (function() {
 
         pendingAlerts.push(alert);
 
+        console.log('[ALERT] Queued enforcement alert:', alert);
+
         return alert;
     }
 
@@ -377,6 +383,7 @@ var EnforcementRules = (function() {
         var toSend = pendingAlerts.filter(function(a) { return !a.sent; });
 
         toSend.forEach(function(alert) {
+            console.log('[ALERT] Sending:', alert.type, 'to', alert.recipients.join(', '));
             alert.sent = true;
             alert.sentAt = new Date().toISOString();
         });
@@ -420,6 +427,8 @@ var EnforcementRules = (function() {
             timestamp: new Date().toISOString()
         };
 
+        console.log('[AUDIT] Override requested:', auditEntry);
+
         return { success: true, override: override };
     }
 
@@ -432,6 +441,8 @@ var EnforcementRules = (function() {
             timestamp: new Date().toISOString()
         };
 
+        console.log('[AUDIT] Override approved:', auditEntry);
+
         return { success: true, status: 'approved' };
     }
 
@@ -440,6 +451,14 @@ var EnforcementRules = (function() {
 
         usage.dailySends += messageCount;
         usage.monthlySpend += cost;
+
+        console.log('[USAGE] Recorded:', {
+            subAccountId: subAccountId,
+            messageCount: messageCount,
+            cost: cost,
+            newDailyTotal: usage.dailySends,
+            newMonthlyTotal: usage.monthlySpend
+        });
 
         return usage;
     }

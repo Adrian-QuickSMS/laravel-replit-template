@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class InboxMessage extends Model
 {
@@ -63,7 +64,12 @@ class InboxMessage extends Model
             }
         });
 
-        // Encrypt content on save
+        static::creating(function (self $msg) {
+            if (empty($msg->id)) {
+                $msg->id = (string) Str::uuid();
+            }
+        });
+
         static::saving(function (self $msg) {
             if ($msg->isDirty('content') && $msg->content !== null) {
                 $msg->content_encrypted = Crypt::encryptString($msg->content);
@@ -102,10 +108,12 @@ class InboxMessage extends Model
      */
     public function toPortalArray(): array
     {
+        $text = $this->decrypted_content ?? '';
+
         $data = [
             'id' => $this->id,
             'direction' => $this->direction,
-            'content' => $this->content ?? '',
+            'content' => $text,
             'time' => $this->sent_at ? $this->sent_at->format('g:i A') : '',
             'date' => $this->sent_at ? $this->sent_at->format('d M Y') : '',
             'status' => $this->status,
@@ -115,8 +123,8 @@ class InboxMessage extends Model
         if ($this->rcs_payload) {
             $data['type'] = 'rich_card';
             $data['rich_card'] = $this->rcs_payload;
-            if ($this->content) {
-                $data['caption'] = $this->content;
+            if ($text) {
+                $data['caption'] = $text;
             }
         }
 

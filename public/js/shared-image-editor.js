@@ -129,11 +129,6 @@
     };
 
     function SharedImageEditor(options) {
-        if (options) {
-            delete options.__proto__;
-            delete options.constructor;
-            delete options.prototype;
-        }
         this.options = Object.assign({
             containerId: null,
             preset: null,
@@ -677,6 +672,7 @@
     SharedImageEditor.prototype.setPreset = function(presetName) {
         var preset = PRESET_CONFIGS[presetName];
         if (!preset) {
+            console.warn('[SharedImageEditor] Unknown preset:', presetName);
             return;
         }
 

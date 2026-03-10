@@ -344,6 +344,8 @@ var ReportingAccess = (function() {
             ipAddress: '192.168.1.100'
         };
 
+        console.log('[AUDIT] Data unmasked:', auditEntry);
+
         return {
             success: true,
             sessionKey: sessionKey,

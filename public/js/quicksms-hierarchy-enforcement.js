@@ -246,6 +246,14 @@ var HierarchyEnforcement = (function() {
     }
 
     function notifyPermissionChange(auditRecord) {
+        console.log('[NOTIFICATION] Permission change notification:', {
+            to: auditRecord.targetUserId,
+            change: auditRecord.permissionKey,
+            newValue: auditRecord.newValue,
+            changedBy: auditRecord.changedBy.userId,
+            timestamp: auditRecord.timestamp
+        });
+
         return {
             notified: true,
             recipients: [auditRecord.targetUserId],
@@ -261,6 +269,8 @@ var HierarchyEnforcement = (function() {
                 timestamp: new Date().toISOString(),
                 corrected: true
             };
+
+            console.log('[ENFORCEMENT] Flat user list requested, enforcing hierarchy:', violation);
 
             return {
                 enforced: true,
@@ -352,6 +362,7 @@ var HierarchyEnforcement = (function() {
     }
 
     function alertSecurityTeam(violation) {
+        console.log('[SECURITY ALERT] Critical violation detected:', violation.rule.code);
     }
 
     function getEnforcementStatus() {

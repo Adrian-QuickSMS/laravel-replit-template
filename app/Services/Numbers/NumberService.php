@@ -14,8 +14,6 @@ use App\Models\VmnPoolNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Models\NumberAuditLog;
-use App\Services\Audit\AuditContext;
 use Illuminate\Support\Str;
 
 /**
@@ -282,13 +280,6 @@ class NumberService
                 'number' => $number->number,
                 'account_id' => $number->account_id,
             ]);
-
-            try {
-                $actor = AuditContext::actor();
-                NumberAuditLog::record($number->account_id, 'vmn_released', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} released", ['number' => $number->number, 'type' => $number->number_type ?? 'vmn']);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record vmn_released', ['error' => $e->getMessage()]);
-            }
         });
     }
 
@@ -337,13 +328,6 @@ class NumberService
             'number_id' => $number->id,
             'reason' => $reason,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($number->account_id, 'number_suspended', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} suspended", ['reason' => $reason]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record number_suspended', ['error' => $e->getMessage()]);
-        }
     }
 
     /**
@@ -363,13 +347,6 @@ class NumberService
         Log::info('[NumberService] Number reactivated', [
             'number_id' => $number->id,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($number->account_id, 'number_reactivated', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} reactivated");
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record number_reactivated', ['error' => $e->getMessage()]);
-        }
     }
 
     // =====================================================
@@ -401,13 +378,6 @@ class NumberService
             'number_id' => $number->id,
             'keys_updated' => array_keys($sanitized),
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($number->account_id, 'number_configured', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} configuration updated", ['config_keys_changed' => array_keys($config)]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record number_configured', ['error' => $e->getMessage()]);
-        }
 
         return $number->fresh();
     }
@@ -454,7 +424,7 @@ class NumberService
         int $priority = 0,
         bool $chargeForReply = true
     ): NumberAutoReplyRule {
-        $rule = NumberAutoReplyRule::withoutGlobalScopes()->create([
+        return NumberAutoReplyRule::withoutGlobalScopes()->create([
             'account_id' => $number->account_id,
             'purchased_number_id' => $number->id,
             'keyword' => strtoupper(trim($keyword)),
@@ -464,15 +434,6 @@ class NumberService
             'priority' => $priority,
             'charge_for_reply' => $chargeForReply,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($number->account_id, 'auto_reply_created', $number->id, $actor['user_id'], $actor['user_name'], "Auto-reply rule created for {$number->number}: keyword '{$keyword}'", ['keyword' => $keyword, 'match_type' => $matchType, 'rule_id' => $rule->id]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record auto_reply_created', ['error' => $e->getMessage()]);
-        }
-
-        return $rule;
     }
 
     /**
@@ -488,15 +449,6 @@ class NumberService
         }
 
         $rule->update($filtered);
-
-        try {
-            $actor = AuditContext::actor();
-            $number = $rule->purchasedNumber ?? null;
-            NumberAuditLog::record($number?->account_id ?? AuditContext::accountId(), 'auto_reply_updated', $number?->id, $actor['user_id'], $actor['user_name'], "Auto-reply rule updated", ['rule_id' => $rule->id, 'changes' => array_keys($data)]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record auto_reply_updated', ['error' => $e->getMessage()]);
-        }
-
         return $rule->fresh();
     }
 
@@ -505,14 +457,6 @@ class NumberService
      */
     public function deleteAutoReplyRule(NumberAutoReplyRule $rule): void
     {
-        try {
-            $actor = AuditContext::actor();
-            $number = $rule->purchasedNumber ?? null;
-            NumberAuditLog::record($number?->account_id ?? AuditContext::accountId(), 'auto_reply_deleted', $number?->id, $actor['user_id'], $actor['user_name'], "Auto-reply rule deleted: keyword '{$rule->keyword}'", ['rule_id' => $rule->id, 'keyword' => $rule->keyword]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record auto_reply_deleted', ['error' => $e->getMessage()]);
-        }
-
         $rule->delete();
     }
 
@@ -548,21 +492,12 @@ class NumberService
             return $existing;
         }
 
-        $assignment = NumberAssignment::create([
+        return NumberAssignment::create([
             'purchased_number_id' => $number->id,
             'assignable_type' => $assignableType,
             'assignable_id' => $assignableId,
             'assigned_by' => $assignedBy->id,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($number->account_id, 'vmn_assigned', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} assigned", ['assignable_type' => $assignableType, 'assignable_id' => $assignableId]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record vmn_assigned', ['error' => $e->getMessage()]);
-        }
-
-        return $assignment;
     }
 
     /**
@@ -570,15 +505,7 @@ class NumberService
      */
     public function unassignNumber(string $assignmentId): void
     {
-        $assignment = NumberAssignment::findOrFail($assignmentId);
-        $assignment->delete();
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record($assignment->purchasedNumber?->account_id ?? AuditContext::accountId(), 'vmn_unassigned', $assignment->purchased_number_id, $actor['user_id'], $actor['user_name'], "Number assignment removed", ['assignment_id' => $assignmentId]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record vmn_unassigned', ['error' => $e->getMessage()]);
-        }
+        NumberAssignment::findOrFail($assignmentId)->delete();
     }
 
     /**
@@ -618,13 +545,6 @@ class NumberService
             }
         }
 
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record(AuditContext::accountId(), 'vmn_bulk_assigned', null, $actor['user_id'], $actor['user_name'], "{$created} numbers bulk assigned", ['count' => $created, 'assignable_type' => $assignableType, 'assignable_id' => $assignableId]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record vmn_bulk_assigned', ['error' => $e->getMessage()]);
-        }
-
         return $created;
     }
 
@@ -644,13 +564,6 @@ class NumberService
                 $this->releaseNumber($number);
                 $released++;
             }
-        }
-
-        try {
-            $actor = AuditContext::actor();
-            NumberAuditLog::record(AuditContext::accountId(), 'vmn_bulk_released', null, $actor['user_id'], $actor['user_name'], "{$released} numbers bulk released", ['count' => $released]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record vmn_bulk_released', ['error' => $e->getMessage()]);
         }
 
         return $released;

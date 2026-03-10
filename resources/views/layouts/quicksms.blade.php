@@ -25,10 +25,20 @@
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {
-    // Mock account data - in production, this comes from backend session
+    var serverAccountStatus = @json($account_status_global ?? null);
+    var lifecycleFromStatus = (function(status) {
+        if (!status) return null;
+        if (status.indexOf('test_') === 0) return 'TEST';
+        if (status.indexOf('active_') === 0) return 'ACTIVE';
+        if (status === 'suspended') return 'SUSPENDED';
+        if (status === 'closed') return 'CLOSED';
+        if (status === 'pending_verification') return 'PENDING';
+        return null;
+    })(serverAccountStatus);
+
     var accountData = {
         account_id: sessionStorage.getItem('account_id') || null,
-        lifecycle_state: sessionStorage.getItem('lifecycle_state') || 'TEST',
+        lifecycle_state: lifecycleFromStatus || sessionStorage.getItem('lifecycle_state') || null,
         state_changed_at: sessionStorage.getItem('state_changed_at') || null,
         suspension_reason: sessionStorage.getItem('suspension_reason') || null
     };
@@ -98,20 +108,45 @@
         }
     };
 
-    // Respect user's collapse preference for the test mode banner (server-side controls initial visibility)
+    // Show/hide TEST mode activation banner based on account state
+    // Default: Show banner if no lifecycle state is set (new accounts default to TEST)
     var testModeBanner = document.getElementById('test-mode-activation-banner');
     var collapsedTab = document.getElementById('test-mode-collapsed-tab');
     var BANNER_STORAGE_KEY = 'quicksms_test_banner_collapsed';
-    var isTestAccount = {{ ($is_test_account_global ?? false) ? 'true' : 'false' }};
     
-    if (isTestAccount && testModeBanner) {
+    if (testModeBanner) {
+        var isTestMode = lifecycleFromStatus === 'TEST';
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
-        if (isCollapsed) {
-            testModeBanner.style.display = 'none';
-            if (collapsedTab) collapsedTab.style.display = 'block';
+        
+        if (isTestMode) {
+            if (isCollapsed) {
+                testModeBanner.style.display = 'none';
+                if (collapsedTab) collapsedTab.style.display = 'block';
+            } else {
+                testModeBanner.style.display = 'block';
+                if (collapsedTab) collapsedTab.style.display = 'none';
+            }
         } else {
-            testModeBanner.style.display = 'block';
+            testModeBanner.style.display = 'none';
             if (collapsedTab) collapsedTab.style.display = 'none';
+        }
+        
+        if (typeof AccountLifecycle !== 'undefined') {
+            AccountLifecycle.onStateChange(function(newState, oldState) {
+                var stillCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
+                if (newState === 'TEST') {
+                    if (stillCollapsed) {
+                        testModeBanner.style.display = 'none';
+                        if (collapsedTab) collapsedTab.style.display = 'block';
+                    } else {
+                        testModeBanner.style.display = 'block';
+                        if (collapsedTab) collapsedTab.style.display = 'none';
+                    }
+                } else {
+                    testModeBanner.style.display = 'none';
+                    if (collapsedTab) collapsedTab.style.display = 'none';
+                }
+            });
         }
     }
 })();

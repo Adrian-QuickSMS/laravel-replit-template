@@ -67,6 +67,12 @@
             this._fragmentsUsed = options.fragments_used || 0;
             this._fragmentsRemaining = this.CONFIG.max_fragments - this._fragmentsUsed;
             
+            console.log('[TestMode] Initialized:', {
+                verified_mobile: this._maskNumber(this._verifiedMobile),
+                approved_numbers: this._approvedTestNumbers.length,
+                fragments_remaining: this._fragmentsRemaining
+            });
+            
             return this;
         },
         
@@ -492,6 +498,8 @@
             this._fragmentsUsed += count;
             this._fragmentsRemaining = Math.max(0, this.CONFIG.max_fragments - this._fragmentsUsed);
             
+            console.log('[TestMode] Fragments used:', count, 'Remaining:', this._fragmentsRemaining);
+            
             // Persist to session
             sessionStorage.setItem('test_mode_fragments_used', this._fragmentsUsed);
             
@@ -508,9 +516,7 @@
         
         setVerifiedMobile: function(number) {
             this._verifiedMobile = this._normalizeNumber(number);
-            // Store only a masked version in sessionStorage to avoid PII exposure
-            var masked = typeof maskMobile === 'function' ? maskMobile(this._verifiedMobile) : this._verifiedMobile;
-            sessionStorage.setItem('test_mode_verified_mobile', masked);
+            sessionStorage.setItem('test_mode_verified_mobile', this._verifiedMobile);
         },
         
         addApprovedTestNumber: function(number) {
@@ -815,14 +821,12 @@
                 // Update local account details
                 Object.assign(self._accountDetails, formData);
                 
-                // Save to sessionStorage for persistence (strip sensitive fields)
-                var safeDetails = Object.assign({}, self._accountDetails);
-                delete safeDetails.apiKey;
-                delete safeDetails.apiSecret;
-                delete safeDetails.password;
-                sessionStorage.setItem('account_details', JSON.stringify(safeDetails));
+                // Save to sessionStorage for persistence
+                sessionStorage.setItem('account_details', JSON.stringify(self._accountDetails));
                 
                 // Log for backend integration
+                console.log('[PaymentGating] Account details updated:', formData);
+                
                 // TODO: Backend integration - POST /api/account/details
                 
                 modal.hide();

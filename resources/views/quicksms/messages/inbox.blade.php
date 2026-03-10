@@ -203,8 +203,8 @@ body[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked
     min-height: 40px;
     max-height: 40px;
     border-radius: 50%;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
+    background-color: var(--primary) !important;
+    color: white !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -945,7 +945,7 @@ span.badge.channel-pill-rcs,
                                             <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
                                                 <i class="fas fa-user-tag"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" title="Insert emoji">
+                                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" onclick="toggleEmojiPicker()" title="Insert emoji">
                                                 <i class="fas fa-smile"></i>
                                             </button>
                                         </div>
@@ -1185,8 +1185,99 @@ span.badge.channel-pill-rcs,
     </div>
 </div>
 
-{{-- Emoji picker is now handled by the shared QSEmojiPicker popover component --}}
-@include('quicksms.partials.emoji-picker')
+<div class="modal fade" id="emojiPickerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-smile me-2"></i>Insert Emoji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning py-2 mb-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Emojis switch the message to Unicode encoding, reducing characters per segment.
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control form-control-sm" id="emojiSearch" placeholder="Search emojis..." oninput="filterEmojis(this.value)">
+                </div>
+                <div class="mb-3" id="recentlyUsedSection">
+                    <h6 class="text-muted mb-2">Recently Used</h6>
+                    <div class="d-flex flex-wrap gap-1" id="recentlyUsedEmojis">
+                        <span class="text-muted small">No recent emojis</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Commonly Used</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="common">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😊')">😊</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👍')">👍</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('❤️')">❤️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🎉')">🎉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✅')">✅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('⭐')">⭐</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📱')">📱</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📞')">📞</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📧')">📧</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📅')">📅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('⏰')">⏰</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💊')">💊</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Smileys & People</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="smileys">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😀')">😀</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😃')">😃</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😄')">😄</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😁')">😁</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😅')">😅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😂')">😂</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🤣')">🤣</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😇')">😇</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🙂')">🙂</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😉')">😉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😍')">😍</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🥰')">🥰</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😘')">😘</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😋')">😋</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😎')">😎</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🤔')">🤔</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Gestures</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="gestures">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👌')">👌</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✌️')">✌️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👋')">👋</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👏')">👏</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🙏')">🙏</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✨')">✨</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💯')">💯</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🔥')">🔥</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👎')">👎</button>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <h6 class="text-muted mb-2">Hearts & Symbols</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="hearts">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💙')">💙</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💚')">💚</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💜')">💜</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💛')">💛</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🧡')">🧡</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🖤')">🖤</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💔')">💔</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💕')">💕</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="aiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -1390,24 +1481,6 @@ span.badge.channel-pill-rcs,
 // INBOX FILTER SYSTEM - Complete Implementation
 // ========================================
 
-var _inboxAvatarPalette = [
-    {bg:'rgba(111,66,193,0.15)',fg:'#6f42c1'},
-    {bg:'rgba(13,110,253,0.15)',fg:'#0d6efd'},
-    {bg:'rgba(32,201,151,0.15)',fg:'#0f7b5f'},
-    {bg:'rgba(214,51,132,0.15)',fg:'#d63384'},
-    {bg:'rgba(253,126,20,0.15)',fg:'#c55a00'},
-    {bg:'rgba(25,135,84,0.15)',fg:'#198754'},
-    {bg:'rgba(220,53,69,0.15)',fg:'#dc3545'},
-    {bg:'rgba(102,16,242,0.15)',fg:'#6610f2'},
-    {bg:'rgba(13,202,240,0.15)',fg:'#087990'},
-    {bg:'rgba(255,193,7,0.15)',fg:'#997404'}
-];
-function _inboxAvatarColor(initials) {
-    var h = 0, s = initials || '';
-    for (var i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
-    return _inboxAvatarPalette[Math.abs(h) % _inboxAvatarPalette.length];
-}
-
 // Calculate if a conversation is awaiting reply for 48+ hours
 function isAwaitingReply48h(conv) {
     // Check if last message was inbound (received) and older than 48 hours
@@ -1493,21 +1566,7 @@ var chatSearchIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
     console.log('[Inbox] Loaded', conversationsData.length, 'conversations');
-
-    // Apply multi-color avatars to server-rendered elements
-    document.querySelectorAll('.chat-img').forEach(function(el) {
-        var initials = el.textContent.trim();
-        var ac = _inboxAvatarColor(initials);
-        el.style.backgroundColor = ac.bg;
-        el.style.color = ac.fg;
-    });
-    var cpAvatar = document.getElementById('contactAvatar');
-    if (cpAvatar) {
-        var cpAc = _inboxAvatarColor(cpAvatar.textContent.trim());
-        cpAvatar.style.backgroundColor = cpAc.bg;
-        cpAvatar.style.color = cpAc.fg;
-    }
-
+    
     // Layout is handled by CSS with absolute positioned composer
     // Chat area uses flex: 1 1 0 with padding-bottom for composer overlay space
     console.log('[Layout] Using CSS flex layout with absolute positioned composer');
@@ -1608,6 +1667,14 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInConversation(this.value);
     });
     
+    document.addEventListener('click', function(e) {
+        var picker = document.getElementById('emojiPickerContainer');
+        var btn = document.getElementById('emojiPickerBtn');
+        if (picker && !picker.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            picker.classList.add('d-none');
+        }
+    });
+    
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -1701,11 +1768,7 @@ function selectConversation(id) {
     }
     
     // Update chat header
-    var _chatAvatarEl = document.getElementById('chatAvatar');
-    _chatAvatarEl.textContent = convData.initials;
-    var _chatAc = _inboxAvatarColor(convData.initials);
-    _chatAvatarEl.style.backgroundColor = _chatAc.bg;
-    _chatAvatarEl.style.color = _chatAc.fg;
+    document.getElementById('chatAvatar').textContent = convData.initials;
     document.getElementById('chatName').textContent = convData.contactName;
     document.getElementById('chatPhone').textContent = convData.phoneMasked;
     
@@ -1738,9 +1801,8 @@ function selectConversation(id) {
     convData.messages.forEach(function(msg) {
         var html = '';
         if (msg.direction === 'inbound') {
-            var _msgAc = _inboxAvatarColor(convData.initials);
             html = '<div class="media my-3 justify-content-start align-items-start">' +
-                '<div class="chat-img chat-img-sm me-3" style="background-color:' + _msgAc.bg + ';color:' + _msgAc.fg + ';">' + convData.initials + '</div>' +
+                '<div class="chat-img chat-img-sm me-3">' + convData.initials + '</div>' +
                 '<div><div class="message-received"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
                 '<small class="text-muted">' + msg.time + '</small></div></div>';
         } else if (msg.type === 'rich_card' && msg.rich_card) {
@@ -1778,11 +1840,7 @@ function selectConversation(id) {
 }
 
 function updateContactPanel(conv) {
-    var _cpAvatar = document.getElementById('contactAvatar');
-    _cpAvatar.textContent = conv.initials;
-    var _cpAc = _inboxAvatarColor(conv.initials);
-    _cpAvatar.style.backgroundColor = _cpAc.bg;
-    _cpAvatar.style.color = _cpAc.fg;
+    document.getElementById('contactAvatar').textContent = conv.initials;
     document.getElementById('contactName').textContent = conv.contactName;
     document.getElementById('contactPhone').textContent = conv.phoneMasked;
     
@@ -1827,11 +1885,7 @@ function openViewContactModal() {
     var conv = conversationsData.find(function(c) { return c.id === currentConversationId; });
     if (!conv) return;
     
-    var _vcAvatar = document.getElementById('viewContactAvatar');
-    _vcAvatar.textContent = conv.initials;
-    var _vcAc = _inboxAvatarColor(conv.initials);
-    _vcAvatar.style.backgroundColor = _vcAc.bg;
-    _vcAvatar.style.color = _vcAc.fg;
+    document.getElementById('viewContactAvatar').textContent = conv.initials;
     document.getElementById('viewContactName').textContent = conv.name;
     document.getElementById('viewContactPhone').textContent = conv.phone_masked;
     
@@ -1985,24 +2039,70 @@ function updateCharCount() {
     }
 }
 
-// Emoji picker — initialised via shared QSEmojiPicker component
-window.smsEmojiPicker = new QSEmojiPicker({
-    triggerEl: document.getElementById('emojiPickerBtn'),
-    textareaEl: document.getElementById('replyMessage'),
-    onInsert: function() { updateCharCount(); }
-});
-
 function toggleEmojiPicker() {
-    if (window.smsEmojiPicker) window.smsEmojiPicker.toggle();
+    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    loadRecentlyUsedEmojis();
+    modal.show();
+}
+
+var recentlyUsedEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
+
+function loadRecentlyUsedEmojis() {
+    var container = document.getElementById('recentlyUsedEmojis');
+    if (recentlyUsedEmojis.length === 0) {
+        container.innerHTML = '<span class="text-muted small">No recent emojis</span>';
+    } else {
+        container.innerHTML = recentlyUsedEmojis.map(function(emoji) {
+            return '<button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal(\'' + emoji + '\')">' + emoji + '</button>';
+        }).join('');
+    }
+}
+
+function addToRecentEmojis(emoji) {
+    recentlyUsedEmojis = recentlyUsedEmojis.filter(function(e) { return e !== emoji; });
+    recentlyUsedEmojis.unshift(emoji);
+    if (recentlyUsedEmojis.length > 12) recentlyUsedEmojis = recentlyUsedEmojis.slice(0, 12);
+    localStorage.setItem('recentEmojis', JSON.stringify(recentlyUsedEmojis));
 }
 
 function insertEmojiFromModal(emoji) {
-    // Legacy compat
+    var textarea = document.getElementById('replyMessage');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
     updateCharCount();
+    addToRecentEmojis(emoji);
+    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
 }
 
 function insertEmoji(emoji) {
-    updateCharCount();
+    insertEmojiFromModal(emoji);
+}
+
+function filterEmojis(searchTerm) {
+    var emojiNames = {
+        '😊': 'smile happy', '👍': 'thumbs up like', '❤️': 'heart love red', '🎉': 'party celebrate',
+        '✅': 'check done complete', '⭐': 'star favorite', '📱': 'phone mobile', '📞': 'call phone',
+        '📧': 'email mail', '📅': 'calendar date', '⏰': 'clock time alarm', '💊': 'pill medicine',
+        '😀': 'grin smile', '😃': 'smiley happy', '😄': 'grin happy', '😁': 'beam smile',
+        '😅': 'sweat smile nervous', '😂': 'laugh tears joy', '🤣': 'rofl laugh', '😇': 'angel innocent',
+        '🙂': 'smile slight', '😉': 'wink', '😍': 'heart eyes love', '🥰': 'love hearts',
+        '😘': 'kiss love', '😋': 'yummy delicious', '😎': 'cool sunglasses', '🤔': 'thinking hmm',
+        '👌': 'ok perfect', '✌️': 'peace victory', '👋': 'wave hello hi bye', '👏': 'clap applause',
+        '🙏': 'pray please thanks', '✨': 'sparkle magic', '💯': 'hundred perfect', '🔥': 'fire hot',
+        '👎': 'thumbs down dislike', '💙': 'blue heart', '💚': 'green heart', '💜': 'purple heart',
+        '💛': 'yellow heart', '🧡': 'orange heart', '🖤': 'black heart', '💔': 'broken heart', '💕': 'hearts love'
+    };
+    searchTerm = searchTerm.toLowerCase();
+    document.querySelectorAll('.emoji-category .emoji-btn').forEach(function(btn) {
+        var emoji = btn.textContent.trim();
+        var names = emojiNames[emoji] || '';
+        var match = emoji.includes(searchTerm) || names.includes(searchTerm);
+        btn.style.display = searchTerm === '' || match ? '' : 'none';
+    });
 }
 
 var inboxTemplates = @json($templates ?? []);

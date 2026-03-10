@@ -579,207 +579,24 @@ $(document).ready(function() {
 
     function init() {
         console.log('[DataSeparation] Initializing with strict data separation');
-        console.log('[Immutability] Append-only:', IMMUTABILITY_CONTROLS.appendOnly,
+        console.log('[Immutability] Append-only:', IMMUTABILITY_CONTROLS.appendOnly, 
                     '| Retention:', IMMUTABILITY_CONTROLS.retentionYears, 'years');
 
+        customerLogs = generateMockCustomerLogs();
+        adminLogs = generateMockAdminLogs();
+
+        var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
+        var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
+
+        console.log('[DataSeparation] Customer logs validated:', customerValidation.validLogs.length, '/', customerLogs.length);
+        console.log('[DataSeparation] Admin logs validated:', adminValidation.validLogs.length, '/', adminLogs.length);
+
+        renderCustomerLogs();
+        renderAdminLogs();
+        updateAdminStats();
         bindCustomerSelectorEvents();
         bindAdminFilterEvents();
         bindEvents();
-
-        // Fetch live data from backend APIs
-        fetchAdminAuditLogs();
-
-        // Fetch real customer audit logs via admin API
-        fetchCustomerAuditLogs();
-    }
-
-    function fetchAdminAuditLogs(params) {
-        params = params || {};
-        var query = new URLSearchParams();
-        query.set('per_page', '200');
-        query.set('page', params.page || '1');
-
-        if (params.category) query.set('category', params.category);
-        if (params.severity) query.set('severity', params.severity);
-        if (params.action) query.set('action', params.action);
-        if (params.account_id) query.set('account_id', params.account_id);
-        if (params.from) query.set('from', params.from);
-        if (params.to) query.set('to', params.to);
-
-        var adminApiUrl = '{{ route("admin.api.audit-logs.index") }}';
-
-        $.ajax({
-            url: adminApiUrl + '?' + query.toString(),
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                adminLogs = (response.data || []).map(function(row) {
-                    return mapAdminApiRowToLog(row);
-                });
-
-                var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
-                console.log('[DataSeparation] Admin logs validated:', adminValidation.validLogs.length, '/', adminLogs.length);
-
-                renderAdminLogs();
-                updateAdminStats();
-            },
-            error: function(xhr) {
-                console.error('[AdminAudit] Failed to fetch admin logs:', xhr.status);
-                // Fall back to mock data so the page isn't broken
-                adminLogs = generateMockAdminLogs();
-                var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
-                console.log('[DataSeparation] Using mock admin logs, validated:', adminValidation.validLogs.length, '/', adminLogs.length);
-                renderAdminLogs();
-                updateAdminStats();
-            }
-        });
-    }
-
-    function fetchCustomerAuditLogs(params) {
-        params = params || {};
-        var query = new URLSearchParams();
-        query.set('per_page', '200');
-        query.set('page', params.page || '1');
-
-        // If a specific customer is selected, filter by their account_id
-        var accountFilter = params.account_id || selectedCustomerId;
-        if (accountFilter) {
-            query.set('account_id', accountFilter);
-        } else {
-            // Fetch logs for all known customers
-            var firstCustomer = allCustomers.length > 0 ? allCustomers[0].id : null;
-            if (!firstCustomer) {
-                customerLogs = [];
-                renderCustomerLogs();
-                return;
-            }
-            // Fetch across all customers by omitting account_id (admin endpoint returns all)
-            // We'll make individual requests for each customer for proper data separation
-            customerLogs = [];
-            var pending = allCustomers.length;
-            allCustomers.forEach(function(customer) {
-                var q = new URLSearchParams();
-                q.set('per_page', '50');
-                q.set('account_id', customer.id);
-                $.ajax({
-                    url: '{{ route("admin.api.customer-audit-logs.index") }}?' + q.toString(),
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        (response.data || []).forEach(function(row) {
-                            customerLogs.push(mapCustomerApiRowToLog(row, customer));
-                        });
-                    },
-                    complete: function() {
-                        pending--;
-                        if (pending <= 0) {
-                            customerLogs.sort(function(a, b) {
-                                return new Date(b.timestamp) - new Date(a.timestamp);
-                            });
-                            var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
-                            console.log('[DataSeparation] Customer logs validated:', customerValidation.validLogs.length, '/', customerLogs.length);
-                            renderCustomerLogs();
-                        }
-                    }
-                });
-            });
-            return;
-        }
-
-        var customerAuditUrl = '{{ route("admin.api.customer-audit-logs.index") }}';
-
-        $.ajax({
-            url: customerAuditUrl + '?' + query.toString(),
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                var customer = allCustomers.find(function(c) { return c.id === accountFilter; }) || { id: accountFilter, name: 'Unknown' };
-                customerLogs = (response.data || []).map(function(row) {
-                    return mapCustomerApiRowToLog(row, customer);
-                });
-
-                var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
-                console.log('[DataSeparation] Customer logs validated:', customerValidation.validLogs.length, '/', customerLogs.length);
-
-                renderCustomerLogs();
-            },
-            error: function(xhr) {
-                console.error('[CustomerAudit] Failed to fetch customer logs:', xhr.status);
-                // Fall back to mock data so the page isn't broken
-                customerLogs = generateMockCustomerLogs();
-                var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
-                console.log('[DataSeparation] Using mock customer logs, validated:', customerValidation.validLogs.length, '/', customerLogs.length);
-                renderCustomerLogs();
-            }
-        });
-    }
-
-    /**
-     * Map a customer audit API row to the log shape the customer viewer expects.
-     */
-    function mapCustomerApiRowToLog(row, customer) {
-        var severityMap = {
-            'authentication': 'medium',
-            'user_management': 'medium',
-            'messaging': 'low',
-            'account': 'medium',
-            'api': 'high',
-            'financial': 'medium'
-        };
-        return {
-            id: row.id || '',
-            timestamp: row.created_at || new Date().toISOString(),
-            customer: customer,
-            tenant_id: customer.id,
-            action: (row.action || '').toUpperCase(),
-            category: row.category || 'account',
-            severity: severityMap[row.category] || 'low',
-            actor: {
-                email: row.user_name || 'unknown',
-                name: row.user_name || 'Unknown',
-                role: 'User'
-            },
-            target: escapeHtml(row.details || ''),
-            ip: row.ip_address || '',
-            result: 'success',
-            isInternalOnly: false,
-            isAdminEvent: false,
-            details: row.details || '',
-            module: row.module || ''
-        };
-    }
-
-    /**
-     * Map an admin audit API row to the log shape the UI expects.
-     */
-    function mapAdminApiRowToLog(row) {
-        return {
-            id: row.id || '',
-            timestamp: row.created_at || new Date().toISOString(),
-            eventType: row.action || '',
-            eventLabel: (row.action || '').replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }),
-            category: row.category || 'admin',
-            severity: row.severity || 'medium',
-            actor: {
-                email: row.admin_user_name || 'unknown',
-                name: row.admin_user_name || 'Unknown Admin',
-                role: 'Admin'
-            },
-            admin_actor_id: row.admin_user_id || 'unknown',
-            target: row.target_type ? {
-                name: row.target_type + (row.target_id ? ' ' + row.target_id.substring(0, 8) : ''),
-                id: row.target_id,
-                type: row.target_type
-            } : { name: '-', type: 'system' },
-            targetType: row.target_type || 'system',
-            customer_id_impacted: null,
-            ip: row.ip_address || '-',
-            result: 'success',
-            reason: row.details || null,
-            details: row.metadata || {},
-            isInternalOnly: true,
-            isAdminEvent: true
-        };
     }
 
     var CUSTOMER_FACING_EVENT_TYPES = [
@@ -1076,18 +893,18 @@ $(document).ready(function() {
             var row = document.createElement('tr');
             row.className = 'customer-audit-log-row';
             
-            var customerCell = showCustomerColumn
-                ? '<td class="customer-col"><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + escapeHtml(log.customer.name) + '</span></td>'
+            var customerCell = showCustomerColumn 
+                ? '<td class="customer-col"><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + log.customer.name + '</span></td>' 
                 : '';
-
+            
             var targetDetails = formatTargetDetails(log);
-
-            row.innerHTML =
-                '<td>' + escapeHtml(formatTimestamp(log.timestamp)) + '</td>' +
+            
+            row.innerHTML = 
+                '<td>' + formatTimestamp(log.timestamp) + '</td>' +
                 customerCell +
-                '<td><span class="badge customer-category-badge-' + escapeHtml(log.category) + '">' + formatCategory(log.category) + '</span></td>' +
-                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
-                '<td>' + escapeHtml(log.actor) + '</td>' +
+                '<td><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
+                '<td>' + log.actionLabel + '</td>' +
+                '<td>' + log.actor + '</td>' +
                 '<td>' + targetDetails + '</td>';
             row.onclick = function() { showCustomerLogDetail(log); };
             tbody.appendChild(row);
@@ -1125,25 +942,25 @@ $(document).ready(function() {
         var parts = [];
         
         if (log.target && typeof log.target === 'string') {
-            parts.push('<span class="text-dark">' + escapeHtml(log.target) + '</span>');
+            parts.push('<span class="text-dark">' + log.target + '</span>');
         } else if (log.target && typeof log.target === 'object') {
             if (log.target.userName) {
-                parts.push('<span class="text-dark">' + escapeHtml(log.target.userName) + '</span>');
+                parts.push('<span class="text-dark">' + log.target.userName + '</span>');
             }
             if (log.target.resourceType) {
-                parts.push('<span class="badge bg-light text-muted" style="font-size: 0.7rem;">' + escapeHtml(log.target.resourceType) + '</span>');
+                parts.push('<span class="badge bg-light text-muted" style="font-size: 0.7rem;">' + log.target.resourceType + '</span>');
             }
             if (log.target.resourceId) {
-                parts.push('<code class="small">' + escapeHtml(log.target.resourceId) + '</code>');
+                parts.push('<code class="small">' + log.target.resourceId + '</code>');
             }
         }
-
+        
         if (log.details && Object.keys(log.details).length > 0) {
             var detailKeys = Object.keys(log.details).slice(0, 2);
             detailKeys.forEach(function(key) {
                 var val = log.details[key];
                 if (typeof val === 'string' && val.length < 50) {
-                    parts.push('<span class="text-muted small">' + formatCategory(key) + ': ' + escapeHtml(val) + '</span>');
+                    parts.push('<span class="text-muted small">' + formatCategory(key) + ': ' + val + '</span>');
                 }
             });
         }
@@ -1157,34 +974,34 @@ $(document).ready(function() {
         
         var html = '<div class="customer-log-detail-section">' +
             '<h6><i class="fas fa-info-circle me-2"></i>Summary</h6>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">What</span><span class="customer-log-detail-value">' + escapeHtml(log.actionLabel) + ' <code class="ms-2">(' + escapeHtml(log.action) + ')</code></span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Who</span><span class="customer-log-detail-value">' + escapeHtml(log.actor) + '</span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">When</span><span class="customer-log-detail-value">' + escapeHtml(timestamp.toISOString()) + '</span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Module</span><span class="customer-log-detail-value"><span class="badge customer-category-badge-' + escapeHtml(log.category) + '">' + formatCategory(log.category) + '</span></span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Result</span><span class="customer-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger') + '">' + escapeHtml(capitalize(log.result)) + '</span></span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Customer</span><span class="customer-log-detail-value">' + escapeHtml(log.customer ? log.customer.name : '-') + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">What</span><span class="customer-log-detail-value">' + log.actionLabel + ' <code class="ms-2">(' + log.action + ')</code></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Who</span><span class="customer-log-detail-value">' + log.actor + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">When</span><span class="customer-log-detail-value">' + timestamp.toISOString() + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Module</span><span class="customer-log-detail-value"><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Result</span><span class="customer-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger') + '">' + capitalize(log.result) + '</span></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Customer</span><span class="customer-log-detail-value">' + (log.customer ? log.customer.name : '-') + '</span></div>' +
         '</div>';
 
         if (log.target) {
             html += '<div class="customer-log-detail-section">' +
                 '<h6><i class="fas fa-bullseye me-2"></i>Target References</h6>';
             if (typeof log.target === 'string') {
-                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Target</span><span class="customer-log-detail-value">' + escapeHtml(log.target) + '</span></div>';
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Target</span><span class="customer-log-detail-value">' + log.target + '</span></div>';
             } else if (typeof log.target === 'object') {
                 if (log.target.userId) {
-                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User ID</span><span class="customer-log-detail-value"><code>' + escapeHtml(log.target.userId) + '</code></span></div>';
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User ID</span><span class="customer-log-detail-value"><code>' + log.target.userId + '</code></span></div>';
                 }
                 if (log.target.userName) {
-                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Name</span><span class="customer-log-detail-value">' + escapeHtml(log.target.userName) + '</span></div>';
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Name</span><span class="customer-log-detail-value">' + log.target.userName + '</span></div>';
                 }
                 if (log.target.resourceType) {
                     html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Resource Type</span><span class="customer-log-detail-value">' + formatCategory(log.target.resourceType) + '</span></div>';
                 }
                 if (log.target.resourceId) {
-                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Resource ID</span><span class="customer-log-detail-value"><code>' + escapeHtml(log.target.resourceId) + '</code></span></div>';
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Resource ID</span><span class="customer-log-detail-value"><code>' + log.target.resourceId + '</code></span></div>';
                 }
                 if (log.target.name) {
-                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Name</span><span class="customer-log-detail-value">' + escapeHtml(log.target.name) + '</span></div>';
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Name</span><span class="customer-log-detail-value">' + log.target.name + '</span></div>';
                 }
             }
             html += '</div>';
@@ -1194,25 +1011,25 @@ $(document).ready(function() {
             html += '<div class="customer-log-detail-section">' +
                 '<h6><i class="fas fa-exchange-alt me-2"></i>Before / After</h6>';
             if (log.before) {
-                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Before</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + escapeHtml(JSON.stringify(log.before, null, 2)) + '</pre></span></div>';
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Before</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + JSON.stringify(log.before, null, 2) + '</pre></span></div>';
             }
             if (log.after) {
-                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">After</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + escapeHtml(JSON.stringify(log.after, null, 2)) + '</pre></span></div>';
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">After</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + JSON.stringify(log.after, null, 2) + '</pre></span></div>';
             }
             html += '</div>';
         }
 
         html += '<div class="customer-log-detail-section">' +
             '<h6><i class="fas fa-network-wired me-2"></i>Context</h6>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">IP Address</span><span class="customer-log-detail-value">' + escapeHtml(log.ip || log.context?.ipAddress || '-') + '</span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Agent</span><span class="customer-log-detail-value small">' + escapeHtml(log.userAgent || log.context?.userAgent || '-') + '</span></div>' +
-            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Log ID</span><span class="customer-log-detail-value"><code>' + escapeHtml(log.id) + '</code></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">IP Address</span><span class="customer-log-detail-value">' + (log.ip || log.context?.ipAddress || '-') + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Agent</span><span class="customer-log-detail-value small">' + (log.userAgent || log.context?.userAgent || '-') + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Log ID</span><span class="customer-log-detail-value"><code>' + log.id + '</code></span></div>' +
         '</div>';
 
         if (log.details && Object.keys(log.details).length > 0) {
             html += '<div class="customer-log-detail-section">' +
                 '<h6><i class="fas fa-code me-2"></i>Metadata JSON</h6>' +
-                '<pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.75rem; border-radius: 0.25rem; max-height: 200px; overflow: auto;">' + escapeHtml(JSON.stringify(log.details, null, 2)) + '</pre>' +
+                '<pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.75rem; border-radius: 0.25rem; max-height: 200px; overflow: auto;">' + JSON.stringify(log.details, null, 2) + '</pre>' +
             '</div>';
         }
 
@@ -1259,9 +1076,9 @@ $(document).ready(function() {
                 : '<span class="badge" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; font-size: 0.75rem;">Failed</span>';
             var riskBadge = formatRiskBadge(log.eventType);
             
-            row.innerHTML =
-                '<td>' + escapeHtml(formatTimestamp(log.timestamp)) + '</td>' +
-                '<td>' + escapeHtml(log.actor.email) + '</td>' +
+            row.innerHTML = 
+                '<td>' + formatTimestamp(log.timestamp) + '</td>' +
+                '<td>' + log.actor.email + '</td>' +
                 '<td>' + customerImpacted + '</td>' +
                 '<td>' + moduleBadge + '</td>' +
                 '<td>' + actionBadge + '</td>' +
@@ -1280,8 +1097,8 @@ $(document).ready(function() {
 
     function formatCustomerImpacted(target, targetType) {
         if (targetType === 'customer' && target) {
-            return '<span class="badge" style="background-color: rgba(30, 58, 95, 0.1); color: #1e3a5f; font-size: 0.75rem;">' +
-                   escapeHtml(target.name) + '</span>';
+            return '<span class="badge" style="background-color: rgba(30, 58, 95, 0.1); color: #1e3a5f; font-size: 0.75rem;">' + 
+                   target.name + '</span>';
         } else if (targetType === 'admin' && target) {
             return '<span class="text-muted small" style="font-style: italic;">N/A (Admin Target)</span>';
         } else {
@@ -1323,7 +1140,7 @@ $(document).ready(function() {
         var label = moduleLabels[category] || formatCategory(category);
         var bgColor = moduleColors[category] || 'rgba(30, 58, 95, 0.15)';
         var textColor = textColors[category] || '#1e3a5f';
-        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + escapeHtml(label) + '</span>';
+        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + label + '</span>';
     }
 
     function formatActionBadge(eventType, eventLabel, severity) {
@@ -1341,7 +1158,7 @@ $(document).ready(function() {
             textColor = '#dc3545';
         }
         
-        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + escapeHtml(eventLabel) + '</span>';
+        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + eventLabel + '</span>';
     }
 
     var HIGH_RISK_EVENT_TYPES = [
@@ -1497,7 +1314,7 @@ $(document).ready(function() {
             searchInput.val('');
             updateSubAccountFilter(null);
             customerPage = 1;
-            fetchCustomerAuditLogs();
+            renderCustomerLogs();
         });
 
         function showCustomerDropdown(query) {
@@ -1538,7 +1355,7 @@ $(document).ready(function() {
                 }
                 resultsContainer.hide();
                 customerPage = 1;
-                fetchCustomerAuditLogs();
+                renderCustomerLogs();
             });
         }
     }
@@ -1714,35 +1531,35 @@ $(document).ready(function() {
         if (type === 'customer') {
             content = '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-info-circle me-2"></i>Event Information</h6>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + escapeHtml(log.id) + '</code></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + escapeHtml(log.timestamp) + '</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Action</div><div class="admin-log-detail-value">' + escapeHtml(log.actionLabel) + '</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Category</div><div class="admin-log-detail-value"><span class="badge customer-category-badge-' + escapeHtml(log.category) + '">' + formatCategory(log.category) + '</span></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge customer-severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalize(log.severity)) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + log.id + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + log.timestamp + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Action</div><div class="admin-log-detail-value">' + log.actionLabel + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Category</div><div class="admin-log-detail-value"><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge customer-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
                 '</div>' +
                 '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-building me-2"></i>Account Context</h6>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Customer</div><div class="admin-log-detail-value">' + escapeHtml(log.customer.name) + ' (' + escapeHtml(log.customer.account_number) + ')</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor</div><div class="admin-log-detail-value">' + escapeHtml(log.actor) + '</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + escapeHtml(log.target) + '</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + escapeHtml(log.ip) + '</code></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + escapeHtml(capitalize(log.result)) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Customer</div><div class="admin-log-detail-value">' + log.customer.name + ' (' + log.customer.account_number + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor</div><div class="admin-log-detail-value">' + log.actor + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + log.target + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + log.ip + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
                 '</div>';
         } else {
             content = '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-user-shield me-2"></i>Admin Event Information</h6>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + escapeHtml(log.id) + '</code></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + escapeHtml(log.timestamp) + '</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event Type</div><div class="admin-log-detail-value"><span class="badge admin-category-badge-admin">' + escapeHtml(log.eventLabel) + '</span></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge admin-severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalize(log.severity)) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + log.id + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + log.timestamp + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event Type</div><div class="admin-log-detail-value"><span class="badge admin-category-badge-admin">' + log.eventLabel + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge admin-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
                 '</div>' +
                 '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-users me-2"></i>Participants</h6>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor Admin</div><div class="admin-log-detail-value">' + escapeHtml(log.actor.name) + ' (' + escapeHtml(log.actor.email) + ')</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + escapeHtml(log.target.name) + ' (' + escapeHtml(log.target.email) + ')</div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + escapeHtml(log.ip) + '</code></div></div>' +
-                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + escapeHtml(capitalize(log.result)) + '</span></div></div>' +
-                (log.reason ? '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Reason</div><div class="admin-log-detail-value">' + escapeHtml(log.reason) + '</div></div>' : '') +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor Admin</div><div class="admin-log-detail-value">' + log.actor.name + ' (' + log.actor.email + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + log.target.name + ' (' + log.target.email + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + log.ip + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
+                (log.reason ? '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Reason</div><div class="admin-log-detail-value">' + log.reason + '</div></div>' : '') +
                 '</div>';
         }
 
@@ -1761,21 +1578,11 @@ $(document).ready(function() {
     }
 
     function formatCategory(cat) {
-        return escapeHtml(cat.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); }));
+        return cat.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
     }
 
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    /**
-     * Escape HTML special characters to prevent XSS when inserting API data into DOM.
-     */
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        var div = document.createElement('div');
-        div.textContent = String(str);
-        return div.innerHTML;
     }
 
     function bindEvents() {
@@ -1800,24 +1607,16 @@ $(document).ready(function() {
 
         $('#internalSearchInput').on('input', function() {
             var query = $(this).val().toLowerCase();
-            if (query) {
-                // Re-fetch from API with search isn't supported, filter client-side
-                var originalLogs = adminLogs;
-                var filtered = adminLogs.filter(function(log) {
-                    return log.eventLabel.toLowerCase().includes(query) ||
-                           (log.actor && log.actor.email && log.actor.email.toLowerCase().includes(query)) ||
-                           (log.actor && log.actor.name && log.actor.name.toLowerCase().includes(query)) ||
-                           (log.target && log.target.name && log.target.name.toLowerCase().includes(query)) ||
-                           log.id.toLowerCase().includes(query);
-                });
-                adminLogs = filtered;
-                adminPage = 1;
-                renderAdminLogs();
-                adminLogs = originalLogs; // Restore full set for next search
-            } else {
-                adminPage = 1;
-                renderAdminLogs();
-            }
+            var allLogs = generateMockAdminLogs();
+            var filtered = allLogs.filter(function(log) {
+                return log.eventLabel.toLowerCase().includes(query) ||
+                       log.actor.email.toLowerCase().includes(query) ||
+                       (log.target && log.target.email && log.target.email.toLowerCase().includes(query)) ||
+                       log.id.toLowerCase().includes(query);
+            });
+            adminLogs = filtered.length > 0 || query ? filtered : allLogs;
+            adminPage = 1;
+            renderAdminLogs();
         });
 
         $('#copyLogDetail').on('click', function() {

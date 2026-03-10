@@ -120,19 +120,36 @@ var ConversationList = (function () {
         updateUnreadBadge();
     }
 
+    var AVATAR_COLORS = [
+        '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
+        '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
+    ];
+
+    function getAvatarColor(name) {
+        var hash = 0;
+        var str = name || '?';
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
     /* ── Create a single conversation DOM element ──────── */
     function createItemElement(conv) {
         var div = document.createElement('div');
         div.className = 'conv-item' +
             (conv.unread ? ' conv-item--unread' : '') +
+            (conv.awaiting_reply_48h ? ' conv-item--awaiting' : '') +
             (conv.id === activeId ? ' conv-item--active' : '');
         div.setAttribute('data-id', conv.id);
 
         var snippet = conv.last_message || '';
         if (snippet.length > 45) snippet = snippet.substring(0, 45) + '…';
 
+        var color = getAvatarColor(conv.name);
+
         div.innerHTML =
-            '<div class="conv-item__avatar"><span class="conv-item__initials">' + escapeHtml(conv.initials) + '</span></div>' +
+            '<div class="conv-item__avatar" style="background-color: ' + color + '20; color: ' + color + ';"><span class="conv-item__initials">' + escapeHtml(conv.initials) + '</span></div>' +
             '<div class="conv-item__body">' +
                 '<div class="conv-item__top">' +
                     '<span class="conv-item__name">' + escapeHtml(conv.name) + '</span>' +
@@ -140,10 +157,7 @@ var ConversationList = (function () {
                 '</div>' +
                 '<div class="conv-item__bottom">' +
                     '<span class="conv-item__snippet">' + escapeHtml(snippet) + '</span>' +
-                    '<div class="conv-item__badges">' +
-                        '<span class="conv-item__channel conv-item__channel--' + conv.channel + '">' + conv.channel.toUpperCase() + '</span>' +
-                        (conv.unread_count > 0 ? '<span class="conv-item__unread-badge">' + conv.unread_count + '</span>' : '') +
-                    '</div>' +
+                    (conv.unread ? '<span class="conv-item__unread-dot"></span>' : '') +
                 '</div>' +
             '</div>';
 
@@ -212,6 +226,7 @@ var ConversationList = (function () {
             conv.last_message = text;
             conv.last_message_time = time || 'Just now';
             conv.timestamp = Math.floor(Date.now() / 1000);
+            conv.awaiting_reply_48h = false;
             render();
         }
     }

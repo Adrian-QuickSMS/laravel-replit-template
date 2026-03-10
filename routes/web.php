@@ -101,6 +101,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::put('/account/details/test-numbers', 'saveApprovedTestNumbers')->name('account.details.test-numbers');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
+    Route::get('/account/overview', 'accountOverview')->name('account.overview');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
     Route::get('/account/sub-accounts/{subId}/users/{userId}', 'userDetail')->name('account.users.detail');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
@@ -113,16 +114,6 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/support/knowledge-base/test-mode', 'knowledgeBaseTestMode')->name('support.knowledge-base.test-mode');
     
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
-});
-
-// =====================================================
-// Unified Audit Log API (customer portal)
-// =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
-    ->controller(\App\Http\Controllers\Api\AuditLogApiController::class)->group(function () {
-    Route::get('/', 'index')->name('api.audit-logs.index');
-    Route::get('/modules', 'modules')->name('api.audit-logs.modules');
-    Route::get('/stats', 'stats')->name('api.audit-logs.stats');
 });
 
 Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
@@ -207,7 +198,6 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->g
     Route::post('/bulk/remove-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveTags'])->name('api.contacts.bulk.remove-tags');
     Route::post('/bulk/delete', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkDelete'])->name('api.contacts.bulk.delete');
     Route::post('/bulk/export', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkExport'])->name('api.contacts.bulk.export');
-    Route::post('/bulk/import', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkImport'])->name('api.contacts.bulk.import');
     Route::post('/bulk/add-to-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddToOptOut'])->name('api.contacts.bulk.add-to-opt-out');
     Route::post('/bulk/remove-from-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveFromOptOut'])->name('api.contacts.bulk.remove-from-opt-out');
 
@@ -242,7 +232,6 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/opt-out-lists
 
 Route::middleware(['customer.auth', 'throttle:60,1'])->delete('/api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
 
-// Inbox API (session-based auth — same pattern as contact book, notifications)
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
     Route::get('/conversations', 'apiConversations')->name('api.inbox.conversations');
     Route::get('/conversations/{id}/messages', 'apiMessages')->name('api.inbox.messages');
@@ -253,7 +242,6 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/inbox')->cont
     Route::get('/unread-count', 'apiUnreadCount')->name('api.inbox.unread-count');
 });
 
-// Inbound message webhook (no auth middleware — gateways authenticate via signature)
 Route::post('/webhook/inbound/{gateway}', [\App\Http\Controllers\Api\InboundWebhookController::class, 'receive'])
     ->name('webhook.inbound')
     ->middleware('throttle:300,1');
@@ -500,6 +488,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/accounts/sub-accounts', 'accountsSubAccounts')->name('admin.accounts.sub-accounts');
             Route::get('/accounts/balances', 'accountsBalances')->name('admin.accounts.balances');
             Route::get('/accounts/details/{accountId}', 'accountsDetails')->name('admin.accounts.details');
+            Route::get('/accounts/{accountId}/structure', 'accountStructure')->name('admin.accounts.structure');
             Route::get('/accounts/{accountId}/billing', 'accountsBilling')->name('admin.accounts.billing');
             
             Route::get('/reporting/message-log', 'reportingMessageLog')->name('admin.reporting.message-log');
@@ -559,6 +548,7 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
             Route::get('/api/billing/invoices', 'billingInvoicesApi')->name('admin.api.billing.invoices');
+            Route::put('/api/accounts/{accountId}/details', 'updateAccountDetails')->name('admin.api.accounts.details.update');
             Route::put('/api/accounts/{accountId}/test-numbers', 'saveAccountTestNumbers')->name('admin.api.accounts.test-numbers');
             Route::get('/api/accounts/{accountId}/pricing', 'accountPricingApi')->name('admin.api.accounts.pricing');
             Route::put('/api/accounts/{accountId}/pricing', 'updateAccountPricing')->name('admin.api.accounts.pricing.update');
@@ -581,10 +571,6 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
-
-            // Unified admin audit log API
-            Route::get('/api/audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminIndex'])->name('admin.api.audit-logs.index');
-            Route::get('/api/customer-audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminCustomerIndex'])->name('admin.api.customer-audit-logs.index');
 
             Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.admin-users.index');

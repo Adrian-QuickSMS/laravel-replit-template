@@ -178,9 +178,9 @@
             <div class="account-id">{{ $account->account_number ?? $account_id }}</div>
         </div>
         <div class="account-actions">
-            <button class="btn btn-admin-outline btn-sm" onclick="openAccountStructureModal()">
+            <a href="{{ route('admin.accounts.structure', $account_id) }}" class="btn btn-admin-outline btn-sm">
                 <i class="fas fa-sitemap me-1"></i>View Account Structure
-            </button>
+            </a>
             <a href="{{ route('admin.accounts.overview') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-arrow-left me-1"></i>Back to Accounts
             </a>
@@ -760,7 +760,6 @@
     </div>
 </div>
 
-@include('admin.accounts.partials.account-structure-modal')
 
 <!-- Edit Pricing Modal -->
 <div class="modal fade" id="editPricingModal" tabindex="-1" aria-labelledby="editPricingModalLabel" aria-hidden="true">
@@ -934,8 +933,8 @@
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script>
+var accountId = @json($account_id);
 document.addEventListener('DOMContentLoaded', function() {
-    var accountId = @json($account_id);
     
     var data = {
         name: @json($account->company_name ?? 'Unknown Account'),
@@ -968,79 +967,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-var accountStructureModal = null;
-var currentHierarchyData = null;
-
-function openAccountStructureModal() {
-    var accountId = @json($account_id);
-    var accountName = document.getElementById('accountName').textContent;
-    
-    if (!accountStructureModal) {
-        accountStructureModal = new bootstrap.Modal(document.getElementById('accountStructureModal'));
-    }
-    
-    document.getElementById('accountStructureModalLabel').textContent = 'Account Structure — ' + accountName;
-    
-    currentHierarchyData = {
-        main: { name: @json($account->company_name ?? 'Unknown'), id: @json($account->account_number ?? $account_id), status: @json(ucfirst($account->status ?? 'active')), type: @json(ucfirst($account->account_type ?? 'standard')) },
-        subAccounts: [],
-        mainUsers: [
-            @if($owner)
-            { name: @json(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')), email: @json($owner->email ?? ''), role: @json(ucfirst($owner->role ?? 'owner')), status: @json(ucfirst($owner->status ?? 'active')) }
-            @endif
-        ]
-    };
-    
-    renderHierarchyTree();
-    accountStructureModal.show();
-    
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('ACCOUNT_STRUCTURE_VIEWED', 'ACCOUNTS', { accountId: accountId });
-    }
-}
-
-function renderHierarchyTree() {
-    var data = currentHierarchyData;
-    var html = '<div class="tree-item main-account" onclick="selectNode(\'main\')"><span class="tree-node-name">' + data.main.name + '</span></div>';
-    
-    if (data.mainUsers) {
-        data.mainUsers.forEach(function(u, i) {
-            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'main-user\', ' + i + ')"><span class="tree-node-name">' + u.name + '</span><span class="badge light badge-primary ms-2">' + u.role + '</span></div></div>';
-        });
-    }
-    
-    if (data.subAccounts) {
-        data.subAccounts.forEach(function(s, i) {
-            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub\', ' + i + ')"><span class="tree-node-name">' + s.name + '</span><span class="badge light badge-success ms-2">' + s.status + '</span></div></div>';
-        });
-    }
-    
-    document.getElementById('hierarchyTree').innerHTML = html;
-}
-
-function selectNode(type, index) {
-    var data = currentHierarchyData;
-    var html = '';
-    if (type === 'main') {
-        html = '<h6>Main Account</h6><table class="table table-sm"><tr><th>Status</th><td><span class="badge light badge-success">' + data.main.status + '</span></td></tr><tr><th>Type</th><td>' + data.main.type + '</td></tr></table>';
-    } else if (type === 'main-user') {
-        var u = data.mainUsers[index];
-        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + u.name + '</td></tr><tr><th>Email</th><td>' + u.email + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + u.role + '</span></td></tr></table>';
-    } else if (type === 'sub') {
-        var s = data.subAccounts[index];
-        html = '<h6>Sub-Account</h6><table class="table table-sm"><tr><th>Name</th><td>' + s.name + '</td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + s.status + '</span></td></tr></table>';
-    }
-    document.getElementById('nodeDetailsPanel').innerHTML = html;
-}
-
-function addSubAccount() { alert('Add Sub-account'); }
-function inviteUser() { alert('Invite User'); }
-
 var editPricingModalInstance = null;
 var editPricingData = [];
 
 function editPricingModal() {
-    var accountId = @json($account_id);
     if (!editPricingModalInstance) {
         editPricingModalInstance = new bootstrap.Modal(document.getElementById('editPricingModal'));
     }
@@ -1287,7 +1217,6 @@ function checkPricingChanges() {
 var tierChangeConfirmModalInstance = null;
 
 function saveAccountPricing() {
-    var accountId = @json($account_id);
     var selectedTier = document.getElementById('editPricingTierSelect').value;
     var originalTier = document.getElementById('editPricingTierSelect').getAttribute('data-original-tier');
     var changedPrices = [];
@@ -1391,7 +1320,6 @@ function saveAccountPricing() {
 function executeTierChange() {
     if (tierChangeConfirmModalInstance) tierChangeConfirmModalInstance.hide();
 
-    var accountId = @json($account_id);
     var selectedTier = document.getElementById('editPricingTierSelect').value;
     var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
 
@@ -1460,31 +1388,91 @@ function showSaveConfirmModal(sectionName) {
     saveConfirmModal.show();
 }
 
+function gatherSectionData(sectionName) {
+    var data = { section: sectionName };
+    switch (sectionName) {
+        case 'Sign Up Details':
+            data.first_name = $('#signupFirstName').val();
+            data.last_name = $('#signupLastName').val();
+            data.job_title = $('#signupJobTitle').val();
+            data.business_name = $('#signupBusinessName').val();
+            data.email = $('#signupEmail').val();
+            data.mobile_number = $('#signupMobile').val();
+            break;
+        case 'Company Information':
+            data.company_name = $('#companyName').val();
+            data.trading_name = $('#tradingName').val();
+            data.company_type = $('#companyTypeSelector .selectable-tile.selected').data('type') || '';
+            data.company_number = $('#companyNumber').val();
+            data.business_sector = $('#companySector').val();
+            data.website = $('#companyWebsite').val();
+            data.address_line1 = $('#regAddress1').val();
+            data.address_line2 = $('#regAddress2').val();
+            data.city = $('#regCity').val();
+            data.postcode = $('#regPostcode').val();
+            data.country = $('#regCountry').val();
+            break;
+        case 'Support & Operations':
+            data.accounts_billing_email = $('#billingEmail').val();
+            data.support_contact_email = $('#supportEmail').val();
+            data.incident_email = $('#incidentEmail').val();
+            break;
+        case 'Contract Signatory':
+            data.signatory_name = $('#signatoryName').val();
+            data.signatory_title = $('#signatoryTitle').val();
+            data.signatory_email = $('#signatoryEmail').val();
+            break;
+        case 'Billing, VAT and Tax Information':
+            data.purchase_order_number = $('#purchaseOrderNumber').val();
+            data.vat_registered = $('#vatRegistered').val();
+            data.vat_number = $('#vatNumber').val();
+            data.vat_country = $('#vatCountry').val();
+            data.reverse_charge = $('#reverseCharge').val();
+            break;
+    }
+    return data;
+}
+
 function confirmSaveChanges() {
-    // Close the modal
     if (saveConfirmModal) {
         saveConfirmModal.hide();
     }
-    
-    // TODO: Backend integration - Save changes to database
-    // This is where the actual save API call would go
-    console.log('[AccountDetails] Saving changes for section:', currentSectionName);
-    
-    // Show success toast
+
+    var sectionData = gatherSectionData(currentSectionName);
     var toastEl = document.getElementById('saveSuccessToast');
-    toastEl.querySelector('.toast-body').innerHTML = 
-        '<i class="fas fa-check-circle me-2"></i>' + currentSectionName + ' saved successfully!';
-    var toast = new bootstrap.Toast(toastEl);
-    toast.show();
-    
-    // Log audit event
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAction({
-            eventType: 'ACCOUNT_DETAILS_UPDATED',
-            section: currentSectionName,
-            accountId: accountId
-        });
-    }
+
+    fetch('/admin/api/accounts/' + accountId + '/details', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(sectionData)
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.json().then(function(err) { throw err; });
+        }
+        return response.json();
+    })
+    .then(function(result) {
+        toastEl.querySelector('.toast-body').innerHTML =
+            '<i class="fas fa-check-circle me-2"></i>' + currentSectionName + ' saved successfully!';
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    })
+    .catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Failed to save changes. Please try again.';
+        if (err && err.errors) {
+            var fields = Object.keys(err.errors);
+            msg = err.errors[fields[0]][0];
+        }
+        toastEl.querySelector('.toast-body').innerHTML =
+            '<i class="fas fa-exclamation-triangle me-2 text-danger"></i>' + msg;
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    });
 }
 
 // Test Numbers Management
@@ -1593,5 +1581,13 @@ $('#saveAdminTestNumbers').on('click', function() {
         }
     });
 });
+
+if (window.location.hash === '#pricing') {
+    var pricingTab = document.getElementById('pricing-tab');
+    if (pricingTab) {
+        var tab = new bootstrap.Tab(pricingTab);
+        tab.show();
+    }
+}
 </script>
 @endpush

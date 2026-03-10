@@ -15,8 +15,6 @@ use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use App\Models\CampaignAuditLog;
-use App\Services\Audit\AuditContext;
 
 /**
  * CampaignService — orchestrates the full campaign lifecycle.
@@ -109,13 +107,6 @@ class CampaignService
             'type' => $campaign->type,
         ]);
 
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_created', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' created", ['channel' => $campaign->type ?? 'sms', 'message_type' => $campaign->encoding ?? null, 'sub_account_id' => $campaign->sub_account_id ?? null]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
-
         return $campaign;
     }
 
@@ -133,8 +124,6 @@ class CampaignService
         if (array_key_exists('rcs_content', $data)) {
             $data['rcs_content'] = $this->sanitizeRcsContent($data['rcs_content']);
         }
-
-        $before = $campaign->only(['name', 'message_content', 'scheduled_at', 'sender_id_id', 'rcs_agent_id', 'opt_out_enabled']);
 
         $campaign->fill($data);
 
@@ -170,17 +159,6 @@ class CampaignService
 
         $campaign->updated_by = $data['updated_by'] ?? $campaign->updated_by;
         $campaign->save();
-
-        try {
-            $actor = AuditContext::actor();
-            $after = $campaign->only(['name', 'message_content', 'scheduled_at', 'sender_id_id', 'rcs_agent_id', 'opt_out_enabled']);
-            $changes = AuditContext::diff($before, $after);
-            if (!empty($changes)) {
-                CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_edited', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' edited", ['changes' => $changes]);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $campaign;
     }
@@ -322,13 +300,6 @@ class CampaignService
             'campaign_id' => $campaign->id,
             'recipients_resolved' => $resolverResult->totalCreated,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_prepared', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' prepared", ['recipient_count' => $resolverResult->totalRecipients ?? 0, 'dedup_removed' => $resolverResult->duplicatesRemoved ?? 0, 'opted_out' => $resolverResult->optedOut ?? 0]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $resolverResult;
     }
@@ -572,34 +543,19 @@ class CampaignService
     {
         $errors = [];
 
-        // Check 1: For test_standard, mark unapproved recipients as skipped before credit check
-        if ($account->isTestStandard()) {
-            $this->skipUnapprovedTestRecipients($account, $campaign);
-        }
-
-        // Check 2: Verify fragment count against available test credits (only pending/approved recipients)
+        // Check 1: Verify total fragment count against available test credits
         $totalFragments = DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_PENDING)
             ->sum('segments');
 
-        if ($totalFragments === 0 && $account->isTestStandard()) {
-            $errors[] = "No deliverable recipients. All recipients are blocked because they are not on your approved test numbers list.";
-            return $errors;
-        }
-
-        $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $account->id)
-            ->where('expired', false)
-            ->orderByDesc('created_at')
-            ->first();
-        $availableCredits = $wallet ? $wallet->credits_remaining : 0;
-
+        $availableCredits = $account->getAvailableCredits();
         if ($totalFragments > $availableCredits) {
             $errors[] = "Insufficient test credits. This campaign requires {$totalFragments} fragments "
                 . "but you have {$availableCredits} remaining. Reduce recipients or contact support.";
         }
 
-        // Check 3: SenderID validation through TestModeEnforcementService
+        // Check 2: SenderID validation through TestModeEnforcementService
         if ($campaign->isSms() && $campaign->sender_id_id) {
             $sender = SenderId::withoutGlobalScope('tenant')->find($campaign->sender_id_id);
             if ($sender) {
@@ -607,6 +563,18 @@ class CampaignService
                 if (!$senderCheck['allowed']) {
                     $errors[] = $senderCheck['reason'];
                 }
+            }
+        }
+
+        // Check 3: Recipient validation (test_standard must use approved numbers)
+        if ($account->isTestStandard()) {
+            $unapproved = $this->findUnapprovedTestRecipients($account, $campaign);
+            if (!empty($unapproved)) {
+                $count = count($unapproved);
+                $sample = implode(', ', array_slice($unapproved, 0, 3));
+                $errors[] = "Test Standard accounts can only send to approved test numbers. "
+                    . "{$count} recipient(s) are not approved (e.g. {$sample}). "
+                    . "Add them via the portal or upgrade to Test Dynamic.";
             }
         }
 
@@ -638,7 +606,7 @@ class CampaignService
                     ->where('campaign_id', $campaign->id)
                     ->where('status', CampaignRecipient::STATUS_PENDING)
                     ->limit(10)
-                    ->pluck('mobile_number')
+                    ->pluck('phone_number')
                     ->toArray();
             }
 
@@ -667,82 +635,14 @@ class CampaignService
                     if (count($unapproved) >= 10) {
                         return false; // Stop chunking
                     }
-                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->mobile_number), '+');
+                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->phone_number), '+');
                     if (!in_array($normalized, $normalizedApproved)) {
-                        $unapproved[] = $recipient->mobile_number;
+                        $unapproved[] = $recipient->phone_number;
                     }
                 }
             });
 
         return $unapproved;
-    }
-
-    /**
-     * Mark unapproved test recipients as skipped so they are not sent to.
-     * Only applies to test_standard accounts.
-     */
-    private function skipUnapprovedTestRecipients(Account $account, Campaign $campaign): int
-    {
-        $settings = $account->settings;
-        $approvedNumbers = $settings?->approved_test_numbers ?? [];
-
-        if (empty($approvedNumbers)) {
-            $skipped = DB::table('campaign_recipients')
-                ->where('campaign_id', $campaign->id)
-                ->where('status', CampaignRecipient::STATUS_PENDING)
-                ->update([
-                    'status' => CampaignRecipient::STATUS_SKIPPED,
-                    'failure_reason' => 'Not on approved test numbers list',
-                    'updated_at' => now(),
-                ]);
-            return $skipped;
-        }
-
-        $normalizedApproved = array_map(function ($num) {
-            $cleaned = preg_replace('/[\s\-\(\)]/', '', $num);
-            if (str_starts_with($cleaned, '00')) {
-                $cleaned = substr($cleaned, 2);
-            } elseif (str_starts_with($cleaned, '0')) {
-                $cleaned = '44' . substr($cleaned, 1);
-            }
-            return ltrim($cleaned, '+');
-        }, $approvedNumbers);
-
-        $skippedCount = 0;
-        $idsToSkip = [];
-
-        DB::table('campaign_recipients')
-            ->where('campaign_id', $campaign->id)
-            ->where('status', CampaignRecipient::STATUS_PENDING)
-            ->orderBy('id')
-            ->chunk(1000, function ($recipients) use ($normalizedApproved, &$idsToSkip) {
-                foreach ($recipients as $recipient) {
-                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->mobile_number ?? ''), '+');
-                    if (!in_array($normalized, $normalizedApproved)) {
-                        $idsToSkip[] = $recipient->id;
-                    }
-                }
-            });
-
-        if (!empty($idsToSkip)) {
-            foreach (array_chunk($idsToSkip, 500) as $chunk) {
-                $skippedCount += DB::table('campaign_recipients')
-                    ->whereIn('id', $chunk)
-                    ->update([
-                        'status' => CampaignRecipient::STATUS_SKIPPED,
-                        'failure_reason' => 'Not on approved test numbers list',
-                        'updated_at' => now(),
-                    ]);
-            }
-        }
-
-        \Log::info('[Campaign] Skipped unapproved test recipients', [
-            'campaign_id' => $campaign->id,
-            'skipped_count' => $skippedCount,
-            'approved_numbers_count' => count($approvedNumbers),
-        ]);
-
-        return $skippedCount;
     }
 
     // =====================================================
@@ -788,13 +688,6 @@ class CampaignService
                 'reservation_id' => $preflightResult->reservationId,
             ]);
 
-            try {
-                $actor = AuditContext::actor();
-                CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_sent', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' sent", ['recipient_count' => $campaign->total_recipients ?? 0, 'estimated_cost' => $campaign->estimated_cost ?? null, 'reservation_id' => $preflightResult->reservationId ?? null]);
-            } catch (\Throwable $e) {
-                Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-            }
-
             return $preflightResult;
         });
     }
@@ -828,13 +721,6 @@ class CampaignService
             'scheduled_at' => $scheduledAt,
             'timezone' => $timezone,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_scheduled', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' scheduled for {$scheduledAt}", ['scheduled_at' => $scheduledAt, 'timezone' => $timezone]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $campaign;
     }
@@ -896,13 +782,6 @@ class CampaignService
             'sent_so_far' => $campaign->sent_count,
         ]);
 
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_paused', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' paused", ['sent_so_far' => $campaign->total_sent ?? 0, 'remaining' => ($campaign->total_recipients ?? 0) - ($campaign->total_sent ?? 0)]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
-
         return $campaign;
     }
 
@@ -916,13 +795,6 @@ class CampaignService
         Log::info('[CampaignService] Campaign resumed', [
             'campaign_id' => $campaign->id,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_resumed', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' resumed");
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $campaign;
     }
@@ -942,13 +814,6 @@ class CampaignService
             'campaign_id' => $campaign->id,
         ]);
 
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_cancelled', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' cancelled", ['status_at_cancel' => $campaign->getOriginal('status') ?? $campaign->status, 'sent_count' => $campaign->total_sent ?? 0]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
-
         return $campaign;
     }
 
@@ -963,13 +828,6 @@ class CampaignService
         Log::info('[CampaignService] Campaign archived', [
             'campaign_id' => $campaign->id,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_archived', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' archived", ['final_status' => $campaign->getOriginal('status') ?? 'completed']);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $campaign;
     }
@@ -995,12 +853,6 @@ class CampaignService
             'actual_cost' => $campaign->actual_cost,
         ]);
 
-        try {
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_completed', null, 'System', "Campaign '{$campaign->name}' completed", ['delivered' => $campaign->total_delivered ?? 0, 'failed' => $campaign->total_failed ?? 0, 'pending' => $campaign->total_pending ?? 0, 'total_cost' => $campaign->actual_cost ?? null]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
-
         return $campaign;
     }
 
@@ -1025,12 +877,6 @@ class CampaignService
             'campaign_id' => $campaign->id,
             'reason' => $reason,
         ]);
-
-        try {
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_failed', null, 'System', "Campaign '{$campaign->name}' failed: {$reason}", ['reason' => $reason]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return $campaign;
     }
@@ -1067,13 +913,6 @@ class CampaignService
             'clone_id' => $clone->id,
         ]);
 
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($clone->account_id, $clone->id, 'campaign_cloned', $actor['user_id'], $actor['user_name'], "Campaign cloned from '{$original->name}'", ['source_campaign_id' => $original->id, 'new_campaign_id' => $clone->id]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
-
         return $clone;
     }
 
@@ -1108,13 +947,6 @@ class CampaignService
         Log::info('[CampaignService] Campaign deleted', [
             'campaign_id' => $campaign->id,
         ]);
-
-        try {
-            $actor = AuditContext::actor();
-            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_deleted', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' deleted", ['status_at_delete' => $campaign->status]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record campaign audit', ['error' => $e->getMessage()]);
-        }
 
         return true;
     }

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Campaign;
 use App\Models\CampaignOptOutUrl;
-use App\Models\ContactTimelineEvent;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\PurchasedNumber;
@@ -407,20 +406,6 @@ class OptOutService
             'source' => $source,
             'is_duplicate' => $isDuplicate,
         ]);
-
-        try {
-            ContactTimelineEvent::withoutGlobalScopes()->create([
-                'account_id' => $campaign->account_id,
-                'contact_id' => null,
-                'event_type' => 'opt_out_automatic',
-                'source_module' => 'system',
-                'actor_type' => 'system',
-                'metadata' => ['mobile_last4' => substr($mobileNumber, -4), 'source' => $source, 'campaign_id' => $campaign->id, 'is_duplicate' => $isDuplicate],
-                'msisdn_hash' => hash('sha256', $mobileNumber),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('[AuditLog] Failed to record opt_out_automatic', ['error' => $e->getMessage()]);
-        }
 
         return !$isDuplicate;
     }

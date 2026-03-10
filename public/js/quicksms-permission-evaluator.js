@@ -223,6 +223,14 @@ var PermissionEvaluator = (function() {
     function canWithAudit(context) {
         var result = evaluate(context);
         
+        console.log('[PermissionEvaluator] Decision:', {
+            permission: result.permission,
+            allowed: result.allowed,
+            decidedAt: result.decidedAt,
+            reason: result.finalReason,
+            path: result.decisionPath.map(function(p) { return p.layer; }).join(' → ')
+        });
+        
         return result;
     }
 

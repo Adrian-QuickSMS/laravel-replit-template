@@ -1335,7 +1335,7 @@ var AuditLogger = (function() {
                 console.error('[AuditLogger] Approved event types:', APPROVED_EVENT_CODES.join(', '));
                 return null;
             } else {
-
+                console.warn('[AuditLogger] WARNING: Event type "' + eventType + '" is not in the approved catalogue.');
             }
         }
 
@@ -1386,6 +1386,8 @@ var AuditLogger = (function() {
 
         trackEventEmission(entry.module, eventType);
 
+        console.log('[AUDIT]', formatLogEntry(entry));
+
         if (eventDef.severity === 'critical' || eventDef.severity === 'high') {
             notifySecurityTeam(entry);
         }
@@ -1405,6 +1407,7 @@ var AuditLogger = (function() {
     }
 
     function notifySecurityTeam(entry) {
+        console.log('[SECURITY ALERT]', entry.description, '-', entry.severity.toUpperCase());
     }
 
     function getCatalogue() {
@@ -1738,6 +1741,8 @@ var AuditLogger = (function() {
                 return false;
             }
             if (years > RETENTION_POLICY.MAX_RETENTION_YEARS) {
+                console.warn('[AuditLogger] Retention period capped at ' + 
+                    RETENTION_POLICY.MAX_RETENTION_YEARS + ' years');
                 years = RETENTION_POLICY.MAX_RETENTION_YEARS;
             }
             enterpriseRetentionConfig.retentionYears = years;
@@ -2012,6 +2017,7 @@ var AuditLogger = (function() {
         }
 
         if (registeredModules[moduleId]) {
+            console.warn('[AuditLogger] Module "' + moduleId + '" is already registered');
             return { success: true, warning: 'ALREADY_REGISTERED', module: registeredModules[moduleId] };
         }
 
@@ -2027,6 +2033,7 @@ var AuditLogger = (function() {
             emissionCount: 0
         };
 
+        console.log('[AuditLogger] Module registered: ' + normalizedModuleId);
         return { success: true, module: registeredModules[normalizedModuleId] };
     }
 

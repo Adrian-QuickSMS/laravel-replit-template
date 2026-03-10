@@ -3,7 +3,6 @@ var InvoiceCreditModal = (function() {
     var selectedCustomer = null;
     var customerSearchTimeout = null;
     var isCustomerLocked = false;
-    var isSubmitting = false;
     var lockedCustomerData = null;
     var onSuccessCallback = null;
     
@@ -45,19 +44,17 @@ var InvoiceCreditModal = (function() {
     
     function renderCustomerDropdown(customers) {
         var dropdown = document.getElementById('customerTypeaheadDropdown');
-        dropdown.innerHTML = '';
         if (customers.length === 0) {
             dropdown.innerHTML = '<div class="customer-typeahead-no-results">No customers found</div>';
         } else {
-            var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
             dropdown.innerHTML = customers.map(function(c) {
-                return '<div class="customer-typeahead-item" data-id="' + esc(c.id) + '" data-name="' + esc(c.name) + '" data-status="' + esc(c.status) + '">' +
+                return '<div class="customer-typeahead-item" data-id="' + c.id + '" data-name="' + c.name + '" data-status="' + c.status + '">' +
                     '<div class="d-flex align-items-center justify-content-between">' +
                         '<div>' +
-                            '<span class="customer-name">' + esc(c.name) + '</span>' +
-                            '<span class="customer-account-id ms-2">' + esc(c.id) + '</span>' +
+                            '<span class="customer-name">' + c.name + '</span>' +
+                            '<span class="customer-account-id ms-2">' + c.id + '</span>' +
                         '</div>' +
-                        '<span class="badge ' + getStatusBadgeClass(c.status) + ' badge-sm">' + esc(c.status) + '</span>' +
+                        '<span class="badge ' + getStatusBadgeClass(c.status) + ' badge-sm">' + c.status + '</span>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -200,8 +197,7 @@ var InvoiceCreditModal = (function() {
         var errorAlert = document.getElementById('modalErrorAlert');
         document.getElementById('modalErrorMessage').textContent = message;
         document.getElementById('modalErrorRef').textContent = 'Error reference: ' + referenceId;
-        var safeCustomerId = encodeURIComponent(customerId || 'unknown');
-        document.getElementById('viewCustomerBillingBtn').href = '/admin/accounts/' + safeCustomerId + '/billing';
+        document.getElementById('viewCustomerBillingBtn').href = '/admin/accounts/' + (customerId || 'unknown') + '/billing';
         errorAlert.classList.remove('d-none');
         errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -327,11 +323,9 @@ var InvoiceCreditModal = (function() {
         document.getElementById('createInvoiceCreditModal').addEventListener('hidden.bs.modal', resetForm);
         
         document.getElementById('modalSubmitBtn').addEventListener('click', function() {
-            if (isSubmitting) return;
-            isSubmitting = true;
             var submitBtn = this;
             var originalBtnHtml = submitBtn.innerHTML;
-
+            
             document.getElementById('modalErrorAlert').classList.add('d-none');
             
             var lineTotal = parseFloat(document.getElementById('itemQuantity').value) * parseFloat(document.getElementById('itemUnitPrice').value);
@@ -380,9 +374,8 @@ var InvoiceCreditModal = (function() {
                         });
                     }
                     
-                    isSubmitting = false;
                     modal.hide();
-
+                    
                     if (onSuccessCallback) {
                         onSuccessCallback(response, payload);
                     }
@@ -402,7 +395,6 @@ var InvoiceCreditModal = (function() {
                         error.referenceId || 'ERR-UNKNOWN',
                         selectedCustomer ? selectedCustomer.id : null
                     );
-                    isSubmitting = false;
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
                 });

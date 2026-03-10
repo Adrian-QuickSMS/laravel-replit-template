@@ -34,6 +34,9 @@
             keyboardslider.noUiSlider.set(value - 10);
         }
 
+        console.log(e)
+        console.log(e.which)
+
         if (e.which === 39) {
             keyboardslider.noUiSlider.set(value + 10);
         }
