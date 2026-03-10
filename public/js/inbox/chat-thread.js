@@ -52,8 +52,11 @@ var ChatThread = (function () {
         if (name) name.textContent = conv.name || conv.phone_masked || '';
 
         var metaText = conv.phone_masked || '';
-        if (conv.channel) metaText += ' · ' + conv.channel.toUpperCase();
-        if (conv.source) metaText += ' via ' + conv.source;
+        if (conv.reply_to_label) {
+            metaText += ' · ' + conv.reply_to_label;
+        } else if (conv.channel) {
+            metaText += ' · ' + conv.channel.toUpperCase();
+        }
         if (meta) meta.textContent = metaText;
 
         // Update read/unread button text
