@@ -312,6 +312,128 @@ class AdminController extends Controller
         ]);
     }
 
+    public function updateAccountDetails(Request $request, $accountId)
+    {
+        $account = Account::findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+        $section = $request->input('section');
+
+        switch ($section) {
+            case 'Sign Up Details':
+                $request->validate([
+                    'first_name' => 'required|string|max:255',
+                    'last_name' => 'required|string|max:255',
+                    'job_title' => 'required|string|max:255',
+                    'business_name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255',
+                    'mobile_number' => 'required|string|max:20',
+                ]);
+
+                DB::transaction(function () use ($account, $request) {
+                    $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+                    if ($owner) {
+                        $owner->update([
+                            'first_name' => $request->input('first_name'),
+                            'last_name' => $request->input('last_name'),
+                            'job_title' => $request->input('job_title'),
+                            'email' => $request->input('email'),
+                            'mobile_number' => $request->input('mobile_number'),
+                        ]);
+                    }
+
+                    $account->update([
+                        'company_name' => $request->input('business_name'),
+                        'email' => $request->input('email'),
+                    ]);
+                });
+                break;
+
+            case 'Company Information':
+                $request->validate([
+                    'company_name' => 'required|string|max:255',
+                    'company_type' => 'nullable|string|max:50',
+                    'company_number' => 'nullable|string|max:50',
+                    'business_sector' => 'nullable|string|max:100',
+                    'website' => 'nullable|string|max:255',
+                    'address_line1' => 'nullable|string|max:255',
+                    'address_line2' => 'nullable|string|max:255',
+                    'city' => 'nullable|string|max:100',
+                    'postcode' => 'nullable|string|max:20',
+                    'country' => 'nullable|string|max:5',
+                ]);
+
+                $account->update([
+                    'company_name' => $request->input('company_name'),
+                    'trading_name' => $request->input('trading_name'),
+                    'company_type' => $request->input('company_type'),
+                    'company_number' => $request->input('company_number'),
+                    'business_sector' => $request->input('business_sector'),
+                    'website' => $request->input('website'),
+                    'address_line1' => $request->input('address_line1'),
+                    'address_line2' => $request->input('address_line2'),
+                    'city' => $request->input('city'),
+                    'postcode' => $request->input('postcode'),
+                    'country' => $request->input('country'),
+                ]);
+                break;
+
+            case 'Support & Operations':
+                $request->validate([
+                    'accounts_billing_email' => 'nullable|email|max:255',
+                    'support_contact_email' => 'nullable|email|max:255',
+                    'incident_email' => 'nullable|email|max:255',
+                ]);
+
+                $account->update([
+                    'accounts_billing_email' => $request->input('accounts_billing_email'),
+                    'support_contact_email' => $request->input('support_contact_email'),
+                    'incident_email' => $request->input('incident_email'),
+                ]);
+                break;
+
+            case 'Contract Signatory':
+                $request->validate([
+                    'signatory_name' => 'nullable|string|max:255',
+                    'signatory_title' => 'nullable|string|max:255',
+                    'signatory_email' => 'nullable|email|max:255',
+                ]);
+
+                $account->update([
+                    'signatory_name' => $request->input('signatory_name'),
+                    'signatory_title' => $request->input('signatory_title'),
+                    'signatory_email' => $request->input('signatory_email'),
+                ]);
+                break;
+
+            case 'Billing, VAT and Tax Information':
+                $request->validate([
+                    'purchase_order_number' => 'nullable|string|max:100',
+                    'vat_registered' => 'nullable|string|in:yes,no',
+                    'vat_number' => 'nullable|string|max:20',
+                    'vat_country' => 'nullable|string|max:5',
+                    'reverse_charge' => 'nullable|string|in:yes,no',
+                ]);
+
+                $account->update([
+                    'purchase_order_number' => $request->input('purchase_order_number'),
+                    'vat_registered' => $request->input('vat_registered') === 'yes',
+                    'vat_number' => $request->input('vat_number'),
+                    'tax_country' => $request->input('vat_country'),
+                    'vat_reverse_charges' => $request->input('reverse_charge') === 'yes',
+                ]);
+                break;
+
+            default:
+                return response()->json(['message' => 'Unknown section: ' . $section], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $section . ' saved successfully',
+            'section' => $section,
+        ]);
+    }
+
     public function accountStructure($accountId)
     {
         $account = Account::findOrFail($accountId);

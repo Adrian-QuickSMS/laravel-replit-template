@@ -544,6 +544,7 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
             Route::get('/api/billing/invoices', 'billingInvoicesApi')->name('admin.api.billing.invoices');
+            Route::put('/api/accounts/{accountId}/details', 'updateAccountDetails')->name('admin.api.accounts.details.update');
             Route::put('/api/accounts/{accountId}/test-numbers', 'saveAccountTestNumbers')->name('admin.api.accounts.test-numbers');
             Route::get('/api/accounts/{accountId}/pricing', 'accountPricingApi')->name('admin.api.accounts.pricing');
             Route::put('/api/accounts/{accountId}/pricing', 'updateAccountPricing')->name('admin.api.accounts.pricing.update');
