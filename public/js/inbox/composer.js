@@ -318,6 +318,9 @@ var Composer = (function () {
             opt.textContent = t.name;
             opt.setAttribute('data-content', t.content || '');
             opt.setAttribute('data-channel', t.channel || 'SMS');
+            if (t.rcs_payload) {
+                opt.setAttribute('data-rcs-payload', JSON.stringify(t.rcs_payload));
+            }
             selector.appendChild(opt);
         });
     }
@@ -330,10 +333,48 @@ var Composer = (function () {
         var selected = selector.options[selector.selectedIndex];
         if (!selected) return;
 
+        var channel = selected.getAttribute('data-channel') || 'SMS';
+        var rcsPayloadStr = selected.getAttribute('data-rcs-payload') || '';
         var content = selected.getAttribute('data-content') || '';
-        if (content) {
-            var textarea = document.getElementById('replyMessage');
+        var textarea = document.getElementById('replyMessage');
+
+        if (rcsPayloadStr) {
+            try {
+                var rcsData = JSON.parse(rcsPayloadStr);
+                pendingRcsPayload = rcsData;
+                setRcsPayload(rcsData);
+            } catch (e) {
+                pendingRcsPayload = null;
+            }
+
+            if (channel.indexOf('Rich') !== -1) {
+                setChannel('rcs_rich');
+            } else {
+                setChannel('rcs_basic');
+            }
+
             if (textarea) {
+                var rcsText = '';
+                if (rcsData && rcsData.text) {
+                    rcsText = rcsData.text;
+                } else if (rcsData && rcsData.cards && rcsData.cards[0]) {
+                    rcsText = rcsData.cards[0].description || rcsData.cards[0].title || '';
+                } else if (rcsData && rcsData.description) {
+                    rcsText = rcsData.description;
+                } else if (rcsData && rcsData.title) {
+                    rcsText = rcsData.title;
+                }
+                textarea.value = rcsText || content;
+                updateCharCount();
+            }
+        } else {
+            if (channel.indexOf('RCS') !== -1 || channel.indexOf('rcs') !== -1) {
+                setChannel('rcs_basic');
+            } else {
+                setChannel('sms');
+            }
+
+            if (textarea && content) {
                 textarea.value = content;
                 updateCharCount();
                 textarea.focus();
