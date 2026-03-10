@@ -217,9 +217,10 @@ function openRcsWizard() {
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
+        loadCardData(rcsCurrentCard);
         var configCol = document.getElementById('rcsConfigColumn');
         if (configCol) configCol.focus();
-    }, 100);
+    }, 200);
 }
 
 function initializeMessageTypeUI() {
@@ -806,50 +807,74 @@ function loadRcsFromStorage() {
     
     try {
         var payload = JSON.parse(stored);
+        if (!payload || !payload.cards || !payload.cards.length) return false;
         
-        var typeEl = document.getElementById('rcsType' + (payload.type === 'carousel' ? 'Carousel' : 'Single'));
-        if (typeEl) typeEl.checked = true;
-        toggleRcsMessageType();
-        
+        rcsCardsData = {};
         rcsCardCount = payload.cardCount || payload.cards.length;
+        rcsCurrentCard = 1;
+        
         payload.cards.forEach(function(cardData) {
             var cardNum = cardData.order;
             rcsCardsData[cardNum] = {
                 media: {
-                    source: cardData.media.source,
-                    url: cardData.media.url,
-                    savedDataUrl: cardData.media.savedDataUrl || null,
-                    hostedUrl: cardData.media.hostedUrl || null,
-                    assetUuid: cardData.media.assetUuid || null,
+                    source: cardData.media ? cardData.media.source : null,
+                    url: cardData.media ? cardData.media.url : null,
+                    savedDataUrl: cardData.media ? (cardData.media.savedDataUrl || null) : null,
+                    hostedUrl: cardData.media ? (cardData.media.hostedUrl || null) : null,
+                    assetUuid: cardData.media ? (cardData.media.assetUuid || null) : null,
+                    originalUrl: cardData.media ? (cardData.media.originalUrl || null) : null,
                     file: null,
-                    fileName: cardData.media.fileName,
-                    fileSize: cardData.media.fileSize,
-                    dimensions: cardData.media.dimensions,
-                    orientation: cardData.media.orientation,
-                    zoom: cardData.media.zoom || 100,
-                    cropOffsetX: cardData.media.cropOffsetX || 0,
-                    cropOffsetY: cardData.media.cropOffsetY || 0
+                    fileName: cardData.media ? cardData.media.fileName : null,
+                    fileSize: cardData.media ? (cardData.media.fileSize || 0) : 0,
+                    dimensions: cardData.media ? cardData.media.dimensions : null,
+                    orientation: cardData.media ? (cardData.media.orientation || 'vertical_short') : 'vertical_short',
+                    cardWidth: cardData.media ? (cardData.media.cardWidth || 'medium') : 'medium',
+                    zoom: cardData.media ? (cardData.media.zoom || 100) : 100,
+                    cropOffsetX: cardData.media ? (cardData.media.cropOffsetX || 0) : 0,
+                    cropOffsetY: cardData.media ? (cardData.media.cropOffsetY || 0) : 0
                 },
-                description: cardData.description,
-                textBody: cardData.textBody,
-                buttons: cardData.buttons.map(function(btn) {
+                description: cardData.description || '',
+                textBody: cardData.textBody || '',
+                buttons: (cardData.buttons || []).map(function(btn) {
                     var buttonObj = { label: btn.label, type: btn.type };
-                    if (btn.type === 'url') buttonObj.url = btn.action ? btn.action.url : '';
-                    if (btn.type === 'phone') buttonObj.phone = btn.action ? btn.action.phoneNumber : '';
+                    if (btn.type === 'url') buttonObj.url = btn.action ? btn.action.url : (btn.url || '');
+                    if (btn.type === 'phone') buttonObj.phone = btn.action ? btn.action.phoneNumber : (btn.phone || '');
                     if (btn.type === 'calendar') {
-                        buttonObj.eventTitle = btn.action ? btn.action.title : '';
-                        buttonObj.eventStart = btn.action ? btn.action.startTime : '';
-                        buttonObj.eventEnd = btn.action ? btn.action.endTime : '';
-                        buttonObj.eventDesc = btn.action ? btn.action.description : '';
+                        buttonObj.eventTitle = btn.action ? btn.action.title : (btn.eventTitle || '');
+                        buttonObj.eventStart = btn.action ? btn.action.startTime : (btn.eventStart || '');
+                        buttonObj.eventEnd = btn.action ? btn.action.endTime : (btn.eventEnd || '');
+                        buttonObj.eventDesc = btn.action ? btn.action.description : (btn.eventDesc || '');
                     }
                     return buttonObj;
                 })
             };
         });
         
-        rcsCurrentCard = 1;
+        var isCarousel = payload.type === 'carousel' && rcsCardCount > 1;
+        var singleRadio = document.getElementById('rcsTypeSingle');
+        var carouselRadio = document.getElementById('rcsTypeCarousel');
+        if (isCarousel && carouselRadio) {
+            carouselRadio.checked = true;
+        } else if (singleRadio) {
+            singleRadio.checked = true;
+        }
+        
+        var carouselNav = document.getElementById('rcsCarouselNav');
+        var cardLabel = document.getElementById('rcsCurrentCardLabel');
+        var cardWidthSection = document.getElementById('rcsCardWidthSection');
+        var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+        var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
+        var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
+        if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
+        if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
+        if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
+        if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+        if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
+        if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
+        
         rebuildCardTabs();
         loadCardData(1);
+        updateRcsCardCount();
         rcsPersistentPayload = payload;
         return true;
     } catch (e) {
