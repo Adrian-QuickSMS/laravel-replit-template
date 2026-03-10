@@ -635,7 +635,7 @@ class CampaignService
                     ->where('campaign_id', $campaign->id)
                     ->where('status', CampaignRecipient::STATUS_PENDING)
                     ->limit(10)
-                    ->pluck('phone_number')
+                    ->pluck('mobile_number')
                     ->toArray();
             }
 
@@ -664,9 +664,9 @@ class CampaignService
                     if (count($unapproved) >= 10) {
                         return false; // Stop chunking
                     }
-                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->phone_number), '+');
+                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->mobile_number), '+');
                     if (!in_array($normalized, $normalizedApproved)) {
-                        $unapproved[] = $recipient->phone_number;
+                        $unapproved[] = $recipient->mobile_number;
                     }
                 }
             });
