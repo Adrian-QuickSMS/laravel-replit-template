@@ -1,0 +1,23 @@
+Already Resolved (no action needed)
+1. Sidebar contradiction — No longer an issue. The current codebase has no "Inbox v2 (POC)" link in the sidebar. Line 18 of quicksms-sidebar.blade.php just has a single "Inbox" link pointing to route('messages.inbox'). The v2 POC link removal has already been applied cleanly. Your concern was valid at prompt-writing time but is moot now.
+
+2. Old inbox API routes left behind — Already clean. grep for inbox.api. returns zero matches anywhere in the codebase. All routes use the new api.inbox.* naming. The old QuickSMSController-based inbox API routes have been fully removed.
+
+3. Route name mismatch in Blade templates — No risk. The only Blade route() calls referencing inbox use messages.inbox (the page route), not any API route names. JS files use hardcoded /api/inbox/... paths via a config object, not Laravel route() helpers.
+
+Still Valid Concerns
+4. Dead code in QuickSMSController — Worth confirming. The old inbox(), conversations(), messages(), reply() etc. methods on QuickSMSController are likely still present but unreachable. Not a runtime risk, but cleanup debt.
+
+5. Migration ordering — Your observation about 2026_03_10_000001 is correct but low-risk since the tables are brand new (inbox_conversations, inbox_messages, inbox_read_receipts). No collision possible unless someone independently created those same table names.
+
+6. InboxService/InboxDeliveryService constructor resolution — You correctly verified both have no constructor parameters. No container resolution risk.
+
+Assessment of Your 3 Recommendations
+#	Recommendation	Status
+1	Clarify sidebar instruction	Moot — already applied correctly
+2	Fix route conflict guidance	Moot — old routes already removed
+3	Confirm no Blade templates use old route names	Confirmed safe — zero inbox.api.* references in Blade files
+Bottom Line
+Your review was thorough and every risk you identified was real at the time of writing. The good news is that all three high/medium risks have already been resolved in the current codebase state. The cherry-pick was executed correctly — old routes were replaced (not duplicated), the sidebar was updated cleanly, and no Blade templates reference stale route names.
+
+The only remaining item worth tracking is the dead code cleanup on QuickSMSController (old inbox methods that are now unreachable). That's a low-priority housekeeping task, not a deployment risk.
