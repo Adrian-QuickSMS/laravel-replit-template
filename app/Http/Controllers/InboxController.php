@@ -220,12 +220,14 @@ class InboxController extends Controller
             ->orderByDesc('updated_at')
             ->get()
             ->map(fn ($t) => [
-                'id'          => $t->id,
-                'name'        => $t->name,
-                'content'     => $t->content ?? '',
-                'channel'     => $typeToChannel[$t->type] ?? 'SMS',
-                'status'      => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                'rcs_payload' => $t->rcs_content,
+                'id'           => $t->id,
+                'name'         => $t->name,
+                'content'      => $t->content ?? '',
+                'channel'      => $typeToChannel[$t->type] ?? 'SMS',
+                'status'       => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'rcs_payload'  => $t->rcs_content,
+                'sender_id'    => $t->sender_id_id,
+                'rcs_agent_id' => $t->rcs_agent_id,
             ])
             ->toArray();
     }
