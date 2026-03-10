@@ -548,6 +548,7 @@ function applyRcsContent() {
         } else {
             console.log('[RCS Apply] updateRcsWizardPreviewInMain not available');
         }
+        window.dispatchEvent(new CustomEvent('rcsContentApplied', { detail: payload }));
     }, 100);
 }
 

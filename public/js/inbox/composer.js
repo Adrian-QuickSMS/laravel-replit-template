@@ -64,6 +64,25 @@ var Composer = (function () {
         bindRcsWizard();
         bindRcsClear();
         populateSenderDropdowns();
+        rehydrateRcsPayload();
+    }
+
+    function rehydrateRcsPayload() {
+        try {
+            var stored = sessionStorage.getItem('quicksms_rcs_draft');
+            if (stored) {
+                var data = JSON.parse(stored);
+                if (data && data.cards) {
+                    pendingRcsPayload = data;
+                    var summary = document.getElementById('rcsConfiguredSummary');
+                    var clearBtn = document.getElementById('rcsClearBtn');
+                    var wizardText = document.getElementById('rcsWizardBtnText');
+                    if (summary) summary.classList.remove('d-none');
+                    if (clearBtn) clearBtn.classList.remove('d-none');
+                    if (wizardText) wizardText.textContent = 'Edit RCS Message';
+                }
+            }
+        } catch (e) {}
     }
 
     function bindChannelToggle() {
@@ -269,26 +288,13 @@ var Composer = (function () {
             }
         });
 
-        var applyBtn = document.getElementById('rcsApplyContentBtn');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', function () {
-                if (typeof handleRcsApplyContent === 'function') {
-                    handleRcsApplyContent();
-                }
-                if (typeof getRcsPayloadForSubmission === 'function') {
-                    var payload = getRcsPayloadForSubmission();
-                    if (payload) {
-                        setRcsPayload(payload);
-                        setChannel('rcs_rich');
-                    }
-                }
-                var modal = document.getElementById('rcsWizardModal');
-                if (modal && typeof bootstrap !== 'undefined') {
-                    var instance = bootstrap.Modal.getInstance(modal);
-                    if (instance) instance.hide();
-                }
-            });
-        }
+        window.addEventListener('rcsContentApplied', function (e) {
+            var payload = e.detail;
+            if (payload && payload.cards) {
+                setRcsPayload(payload);
+                setChannel('rcs_rich');
+            }
+        });
     }
 
     function bindTemplatePicker() {
@@ -657,6 +663,7 @@ var Composer = (function () {
 
     function clearRcsPayload() {
         pendingRcsPayload = null;
+        sessionStorage.removeItem('quicksms_rcs_draft');
         var summary = document.getElementById('rcsConfiguredSummary');
         var clearBtn = document.getElementById('rcsClearBtn');
         var wizardText = document.getElementById('rcsWizardBtnText');
