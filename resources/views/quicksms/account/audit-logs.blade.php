@@ -386,6 +386,20 @@
                                         <option value="PURCHASE_COMPLETED">Purchase Completed</option>
                                         <option value="INVOICE_GENERATED">Invoice Generated</option>
                                     </optgroup>
+                                    <optgroup label="Contact Book">
+                                        <option value="contact_created">Contact Created</option>
+                                        <option value="contact_updated">Contact Updated</option>
+                                        <option value="contact_deleted">Contact Deleted</option>
+                                        <option value="contacts_bulk_deleted">Contacts Bulk Deleted</option>
+                                        <option value="contacts_imported">Contacts Imported</option>
+                                        <option value="contacts_exported">Contacts Exported</option>
+                                        <option value="tag_created">Tag Created</option>
+                                        <option value="tag_deleted">Tag Deleted</option>
+                                        <option value="tags_assigned">Tags Assigned</option>
+                                        <option value="tags_removed">Tags Removed</option>
+                                        <option value="list_created">List Created</option>
+                                        <option value="list_deleted">List Deleted</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>

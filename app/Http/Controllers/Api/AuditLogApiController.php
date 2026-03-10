@@ -491,8 +491,8 @@ class AuditLogApiController extends Controller
         if (!empty($src['custom_select'])) {
             $select = $this->buildCustomSelect($table, $module, $category);
         } else {
-            $entityCol = $src['entity_col'] ? ", {$src['entity_col']} AS entity_id" : ", NULL::UUID AS entity_id";
-            $select = "SELECT id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, details, metadata::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at{$entityCol} FROM {$table}";
+            $entityCol = $src['entity_col'] ? ", {$src['entity_col']}::TEXT AS entity_id" : ", NULL::TEXT AS entity_id";
+            $select = "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, metadata::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at{$entityCol} FROM {$table}";
         }
 
         $conditions = [];
@@ -562,17 +562,17 @@ class AuditLogApiController extends Controller
     private function buildCustomSelect(string $table, string $module, string $category): string
     {
         return match ($table) {
-            'auth_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id AS user_id, actor_email AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::UUID AS entity_id FROM auth_audit_log",
+            'auth_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type::TEXT AS action, actor_id::TEXT AS user_id, actor_email AS user_name, NULL::TEXT AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id FROM auth_audit_log",
 
-            'api_connection_audit_events' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id AS user_id, actor_name AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, api_connection_id AS entity_id FROM api_connection_audit_events",
+            'api_connection_audit_events' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id::TEXT AS user_id, actor_name AS user_name, NULL::TEXT AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, api_connection_id::TEXT AS entity_id FROM api_connection_audit_events",
 
-            'message_template_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, details, '{}'::TEXT AS metadata, NULL AS ip_address, created_at, template_id AS entity_id FROM message_template_audit_log",
+            'message_template_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, '{}'::TEXT AS metadata, NULL::TEXT AS ip_address, created_at, template_id::TEXT AS entity_id FROM message_template_audit_log",
 
-            'email_to_sms_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, setup_id AS entity_id FROM email_to_sms_audit_log",
+            'email_to_sms_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, NULL::TEXT AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, setup_id::TEXT AS entity_id FROM email_to_sms_audit_log",
 
-            'contact_timeline_events' => "SELECT event_id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id AS user_id, actor_name AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, NULL AS ip_address, created_at, contact_id AS entity_id FROM contact_timeline_events",
+            'contact_timeline_events' => "SELECT event_id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id::TEXT AS user_id, actor_name AS user_name, NULL::TEXT AS details, COALESCE(metadata, '{}')::TEXT AS metadata, NULL::TEXT AS ip_address, created_at, contact_id::TEXT AS entity_id FROM contact_timeline_events",
 
-            default => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::UUID AS entity_id FROM {$table}",
+            default => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id FROM {$table}",
         };
     }
 }
