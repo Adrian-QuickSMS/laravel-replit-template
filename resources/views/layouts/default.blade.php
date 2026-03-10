@@ -118,7 +118,7 @@
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
             <!-- TEST MODE BANNER - Collapsible overlay -->
-            <div id="test-mode-activation-banner" class="fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: #f0eaf8;">
+            <div id="test-mode-activation-banner" class="fade show mb-0" role="alert" style="display: {{ ($is_test_account_global ?? false) ? 'block' : 'none' }}; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: #f0eaf8;">
                 <div class="container-fluid" style="padding: 12px 20px;">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-flex align-items-center">
@@ -143,8 +143,8 @@
                 </div>
             </div>
             <!-- Collapsed Test Mode Tab -->
-            <div id="test-mode-collapsed-tab" style="display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1050; cursor: pointer;">
-                <div style="background: linear-gradient(135deg, #886cc0, #6f42c1); color: white; padding: 6px 16px; border-radius: 0 0 8px 8px; font-size: 0.8rem; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;">
+            <div id="test-mode-collapsed-tab" style="display: none; text-align: center; cursor: pointer; padding: 0; margin: 0;">
+                <div style="display: inline-flex; background: linear-gradient(135deg, #886cc0, #6f42c1); color: white; padding: 6px 16px; border-radius: 0 0 8px 8px; font-size: 0.8rem; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.15); align-items: center; gap: 8px;">
                     <i class="fas fa-lock" style="font-size: 12px;"></i>
                     <span>Test Mode</span>
                     <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
@@ -216,21 +216,15 @@
     <script>
     (function() {
         var STORAGE_KEY = 'quicksms_test_banner_collapsed';
+        var isTestAccount = {{ ($is_test_account_global ?? false) ? 'true' : 'false' }};
         var testModeBanner = document.getElementById('test-mode-activation-banner');
         var collapsedTab = document.getElementById('test-mode-collapsed-tab');
         var closeBtn = document.getElementById('test-mode-banner-close');
-        var contentBody = document.querySelector('.content-body');
         
-        function adjustContentPadding() {
-            if (contentBody) {
-                if (testModeBanner && testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
-                    contentBody.style.paddingTop = testModeBanner.offsetHeight + 'px';
-                } else if (collapsedTab && collapsedTab.style.display !== 'none') {
-                    contentBody.style.paddingTop = '32px';
-                } else {
-                    contentBody.style.paddingTop = '';
-                }
-            }
+        if (!isTestAccount) {
+            if (testModeBanner) testModeBanner.style.display = 'none';
+            if (collapsedTab) collapsedTab.style.display = 'none';
+            return;
         }
         
         function collapseBanner() {
@@ -238,7 +232,6 @@
                 testModeBanner.style.display = 'none';
                 collapsedTab.style.display = 'block';
                 localStorage.setItem(STORAGE_KEY, 'true');
-                adjustContentPadding();
             }
         }
         
@@ -247,49 +240,15 @@
                 collapsedTab.style.display = 'none';
                 testModeBanner.style.display = 'block';
                 localStorage.setItem(STORAGE_KEY, 'false');
-                adjustContentPadding();
             }
         }
         
-        // Restore saved state on page load
-        function restoreBannerState() {
-            var isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
-            if (testModeBanner && collapsedTab) {
-                if (isCollapsed) {
-                    testModeBanner.style.display = 'none';
-                    collapsedTab.style.display = 'block';
-                } else {
-                    collapsedTab.style.display = 'none';
-                    testModeBanner.style.display = 'block';
-                }
-                adjustContentPadding();
-            }
-        }
-        
-        // Close button collapses the banner
         if (closeBtn) {
             closeBtn.addEventListener('click', collapseBanner);
         }
         
-        // Collapsed tab expands the banner
         if (collapsedTab) {
             collapsedTab.addEventListener('click', expandBanner);
-        }
-        
-        // Observe banner visibility changes to adjust padding
-        if (testModeBanner) {
-            var observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'style') {
-                        setTimeout(adjustContentPadding, 10);
-                    }
-                });
-            });
-            observer.observe(testModeBanner, { attributes: true });
-            
-            // Restore state and adjust padding
-            restoreBannerState();
-            setTimeout(adjustContentPadding, 100);
         }
     })();
     </script>

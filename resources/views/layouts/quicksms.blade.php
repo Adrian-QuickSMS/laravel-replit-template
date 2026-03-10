@@ -98,59 +98,20 @@
         }
     };
 
-    // Show/hide TEST mode activation banner based on account state
-    // Default: Show banner if no lifecycle state is set (new accounts default to TEST)
+    // Respect user's collapse preference for the test mode banner (server-side controls initial visibility)
     var testModeBanner = document.getElementById('test-mode-activation-banner');
     var collapsedTab = document.getElementById('test-mode-collapsed-tab');
     var BANNER_STORAGE_KEY = 'quicksms_test_banner_collapsed';
+    var isTestAccount = {{ ($is_test_account_global ?? false) ? 'true' : 'false' }};
     
-    if (testModeBanner) {
-        var lifecycleState = sessionStorage.getItem('lifecycle_state');
-        var isTestMode = false;
+    if (isTestAccount && testModeBanner) {
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
-        
-        // Check AccountLifecycle if initialized
-        if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
-            isTestMode = AccountLifecycle.isTest();
-        } else if (lifecycleState) {
-            // Fallback to sessionStorage
-            isTestMode = lifecycleState === 'TEST';
-        } else {
-            // Default: New accounts are TEST mode, show banner
-            isTestMode = true;
-        }
-        
-        // Respect user's collapse preference when showing banner
-        if (isTestMode) {
-            if (isCollapsed) {
-                testModeBanner.style.display = 'none';
-                if (collapsedTab) collapsedTab.style.display = 'block';
-            } else {
-                testModeBanner.style.display = 'block';
-                if (collapsedTab) collapsedTab.style.display = 'none';
-            }
-        } else {
+        if (isCollapsed) {
             testModeBanner.style.display = 'none';
+            if (collapsedTab) collapsedTab.style.display = 'block';
+        } else {
+            testModeBanner.style.display = 'block';
             if (collapsedTab) collapsedTab.style.display = 'none';
-        }
-        
-        // Listen for state changes to update banner visibility
-        if (typeof AccountLifecycle !== 'undefined') {
-            AccountLifecycle.onStateChange(function(newState, oldState) {
-                var stillCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
-                if (newState === 'TEST') {
-                    if (stillCollapsed) {
-                        testModeBanner.style.display = 'none';
-                        if (collapsedTab) collapsedTab.style.display = 'block';
-                    } else {
-                        testModeBanner.style.display = 'block';
-                        if (collapsedTab) collapsedTab.style.display = 'none';
-                    }
-                } else {
-                    testModeBanner.style.display = 'none';
-                    if (collapsedTab) collapsedTab.style.display = 'none';
-                }
-            });
         }
     }
 })();

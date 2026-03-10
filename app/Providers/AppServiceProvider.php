@@ -25,9 +25,11 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['layouts.default', 'layouts.quicksms'], function ($view) {
             $tenantId = session('customer_tenant_id');
             $testCreditsRemaining = null;
+            $isTestAccount = false;
             if ($tenantId) {
                 $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
                 if ($account && in_array($account->status, ['test_standard', 'test_dynamic'])) {
+                    $isTestAccount = true;
                     $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $tenantId)
                         ->where('expired', false)
                         ->orderByDesc('created_at')
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
             $view->with('test_credits_remaining_global', $testCreditsRemaining);
+            $view->with('is_test_account_global', $isTestAccount);
         });
     }
 }
