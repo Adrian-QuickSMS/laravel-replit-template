@@ -499,22 +499,33 @@ var Composer = (function () {
     function updateSenderFromConversation(conv) {
         if (!conv) return;
 
-        if (conv.source_type === 'rcs_agent') {
+        if (conv.rcs_agent_id) {
             var rcsSelect = document.getElementById('inboxRcsAgentSelect');
-            if (rcsSelect && conv.source) {
+            if (rcsSelect) {
                 for (var i = 0; i < rcsSelect.options.length; i++) {
-                    if (rcsSelect.options[i].value === conv.source || rcsSelect.options[i].textContent === conv.source) {
+                    if (rcsSelect.options[i].value === conv.rcs_agent_id) {
                         rcsSelect.selectedIndex = i;
                         break;
                     }
                 }
             }
-        } else {
+        }
+
+        if (conv.purchased_number_id) {
             var senderSelect = document.getElementById('inboxSenderSelect');
-            if (senderSelect && conv.source) {
+            if (senderSelect) {
                 for (var i = 0; i < senderSelect.options.length; i++) {
-                    if (senderSelect.options[i].value === conv.source || senderSelect.options[i].textContent === conv.source) {
+                    if (senderSelect.options[i].value === conv.purchased_number_id) {
                         senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
+            if (fallbackSelect) {
+                for (var i = 0; i < fallbackSelect.options.length; i++) {
+                    if (fallbackSelect.options[i].value === conv.purchased_number_id) {
+                        fallbackSelect.selectedIndex = i;
                         break;
                     }
                 }

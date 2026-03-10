@@ -26,7 +26,7 @@ class InboxController extends Controller
     {
         $conversations = $this->inbox->getConversationsArray();
         $unreadCount = $this->inbox->getUnreadCount();
-        $senderIds = $this->getApprovedSenderIds();
+        $senderIds = $this->getInboxVmns();
         $rcsAgents = $this->getRcsAgentsForView();
         $templates = $this->getTemplatesForView();
 
@@ -90,10 +90,12 @@ class InboxController extends Controller
         }
 
         $request->validate([
-            'message'     => 'required_without:rcs_payload|string|max:1600',
-            'channel'     => 'required|in:sms,rcs',
-            'rcs_payload' => 'nullable|array',
-            'sender_id'   => 'nullable|string|max:50',
+            'message'      => 'required_without:rcs_payload|string|max:1600',
+            'channel'      => 'required|in:sms,rcs',
+            'rcs_payload'  => 'nullable|array',
+            'sender_id'    => 'nullable|string|max:100',
+            'rcs_agent'    => 'nullable|string|max:100',
+            'sms_fallback' => 'nullable|string|max:100',
         ]);
 
         $conversation = InboxConversation::find($conversationId);
@@ -106,7 +108,9 @@ class InboxController extends Controller
             $request->input('message', ''),
             $request->input('channel', 'sms'),
             $request->input('rcs_payload'),
-            $request->input('sender_id')
+            $request->input('sender_id'),
+            $request->input('rcs_agent'),
+            $request->input('sms_fallback')
         );
 
         if (!$result['success']) {
@@ -202,6 +206,34 @@ class InboxController extends Controller
             ];
         }
         return $result;
+    }
+
+    private function getInboxVmns(): array
+    {
+        $tenantId = session('customer_tenant_id');
+        if (!$tenantId) {
+            return [];
+        }
+
+        $numbers = \App\Models\PurchasedNumber::where('account_id', $tenantId)
+            ->where('status', \App\Models\PurchasedNumber::STATUS_ACTIVE)
+            ->orderBy('number')
+            ->get();
+
+        return $numbers->map(function ($n) {
+            $formatted = '+' . $n->number;
+            $label = $n->friendly_name
+                ? $n->friendly_name . ' (' . $formatted . ')'
+                : $formatted;
+
+            $type = $n->number_type === 'vmn' ? 'vmn' : 'shortcode';
+
+            return [
+                'id'   => $n->id,
+                'name' => $label,
+                'type' => $type,
+            ];
+        })->values()->toArray();
     }
 
     private function getTemplatesForView(): array

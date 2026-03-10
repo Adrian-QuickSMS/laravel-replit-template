@@ -14,7 +14,7 @@
             <div class="d-flex gap-2">
                 <div class="flex-fill" id="inboxSenderIdSection">
                     <select class="form-select form-select-sm" id="inboxSenderSelect">
-                        <option value="">SMS Sender ID *</option>
+                        <option value="">Reply From (VMN) *</option>
                     </select>
                 </div>
                 <div class="flex-fill d-none" id="inboxRcsAgentSection">
@@ -24,7 +24,7 @@
                 </div>
                 <div class="flex-fill d-none" id="inboxSmsFallbackSection">
                     <select class="form-select form-select-sm" id="inboxSmsFallbackSelect">
-                        <option value="">SMS Fallback *</option>
+                        <option value="">SMS Fallback (VMN) *</option>
                     </select>
                 </div>
             </div>

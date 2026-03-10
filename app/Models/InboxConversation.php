@@ -210,6 +210,7 @@ class InboxConversation extends Model
             'source' => $this->source,
             'source_type' => $this->source_type,
             'sender_id' => $this->sender_id,
+            'purchased_number_id' => $this->purchased_number_id,
             'unread' => $this->unread_count > 0,
             'unread_count' => $this->unread_count,
             'last_message' => $this->last_message_content ?? '',
