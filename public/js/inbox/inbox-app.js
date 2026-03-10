@@ -8,6 +8,7 @@ var InboxApp = (function () {
 
     var config = {};
     var activeConversation = null;
+    var _selectRequestId = 0;
 
     // Local storage for contact notes and tags (mock — replace with API)
     var contactData = {};
@@ -37,12 +38,13 @@ var InboxApp = (function () {
             apiPost(config.routes.messages + '/' + conv.id + '/read');
         }
 
-        // Fetch messages from API then load chat thread
+        var requestId = ++_selectRequestId;
         fetch(config.routes.messages + '/' + conv.id + '/messages', {
             headers: { 'Accept': 'application/json' }
         })
         .then(function (res) { return res.json(); })
         .then(function (json) {
+            if (requestId !== _selectRequestId) return;
             if (json.success && json.data) {
                 conv.messages = json.data;
                 if (json.contact) {
@@ -55,6 +57,7 @@ var InboxApp = (function () {
             ChatThread.load(conv);
         })
         .catch(function () {
+            if (requestId !== _selectRequestId) return;
             conv.messages = [];
             ChatThread.load(conv);
         });

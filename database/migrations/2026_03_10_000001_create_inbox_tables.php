@@ -138,6 +138,14 @@ return new class extends Migration
             CREATE INDEX idx_inbox_msg_content_fts ON inbox_messages
                 USING gin(to_tsvector('english', COALESCE(content, '')));
         ");
+
+        $inboxTables = ['inbox_conversations', 'inbox_messages', 'inbox_read_receipts'];
+        foreach ($inboxTables as $tbl) {
+            DB::unprepared("GRANT SELECT, INSERT, UPDATE, DELETE ON {$tbl} TO portal_rw");
+            DB::unprepared("GRANT SELECT ON {$tbl} TO portal_ro");
+            DB::unprepared("GRANT ALL ON {$tbl} TO svc_red");
+            DB::unprepared("GRANT ALL ON {$tbl} TO ops_admin");
+        }
     }
 
     public function down(): void

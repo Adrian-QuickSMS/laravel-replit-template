@@ -102,10 +102,12 @@ class InboxMessage extends Model
      */
     public function toPortalArray(): array
     {
+        $text = $this->decrypted_content ?? '';
+
         $data = [
             'id' => $this->id,
             'direction' => $this->direction,
-            'content' => $this->content ?? '',
+            'content' => $text,
             'time' => $this->sent_at ? $this->sent_at->format('g:i A') : '',
             'date' => $this->sent_at ? $this->sent_at->format('d M Y') : '',
             'status' => $this->status,
@@ -115,8 +117,8 @@ class InboxMessage extends Model
         if ($this->rcs_payload) {
             $data['type'] = 'rich_card';
             $data['rich_card'] = $this->rcs_payload;
-            if ($this->content) {
-                $data['caption'] = $this->content;
+            if ($text) {
+                $data['caption'] = $text;
             }
         }
 
