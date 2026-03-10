@@ -13,14 +13,47 @@ var ChatThread = (function () {
     function load(conv) {
         currentConv = conv;
 
-        // Show header + messages, hide empty state
         toggle('chatEmpty', false);
         toggle('chatHeader', true);
         toggle('chatArea', true);
 
         updateHeader(conv);
-        renderMessages(conv.messages, conv.channel);
-        scrollToBottom();
+
+        if (conv.messages && conv.messages.length > 0) {
+            renderMessages(conv.messages, conv.channel);
+            scrollToBottom();
+        } else {
+            var area = document.getElementById('chatArea');
+            if (area) area.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin"></i> Loading messages...</div>';
+
+            var config = window.__inbox || {};
+            var url = (config.routes && config.routes.messages ? config.routes.messages : '/api/inbox/conversations') + '/' + conv.id + '/messages';
+            var requestedId = conv.id;
+
+            fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrfToken || '' }
+            })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function (json) {
+                if (!currentConv || currentConv.id !== requestedId) return;
+                if (json.success && json.data) {
+                    conv.messages = json.data;
+                    renderMessages(json.data, conv.channel);
+                    scrollToBottom();
+                } else {
+                    if (area) area.innerHTML = '<div class="text-center text-muted py-4">No messages yet</div>';
+                }
+            })
+            .catch(function (err) {
+                console.error('[ChatThread] Failed to load messages:', err);
+                if (currentConv && currentConv.id === requestedId && area) {
+                    area.innerHTML = '<div class="text-center text-muted py-4">Failed to load messages</div>';
+                }
+            });
+        }
     }
 
     /* ── Update chat header ────────────────────────────── */
