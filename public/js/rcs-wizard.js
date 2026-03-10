@@ -1412,8 +1412,8 @@ function saveRcsImageEdits() {
         hideRcsProcessingIndicator();
     }).catch(function(err) {
         hideRcsProcessingIndicator();
-        console.error('[RCS Save Error]', err);
-        showRcsMediaError('Failed to save image. Please try again.');
+        console.error('[RCS Save Error]', err.message || err);
+        showRcsMediaError('Failed to save image: ' + (err.message || 'Please try again.'));
     });
 }
 
@@ -1517,7 +1517,7 @@ function saveRcsImageEditsAndContinue() {
         executePendingNavigation();
     }).catch(function(err) {
         hideRcsProcessingIndicator();
-        console.error('[RCS Save Error]', err);
+        console.error('[RCS Save Error]', err.message || err);
         showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
     });
 }
