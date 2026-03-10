@@ -3567,14 +3567,29 @@ function loadRcsPayloadIntoWizard(payload) {
         };
     }
 
-    if (typeof toggleRcsMessageType === 'function') toggleRcsMessageType();
+    var carouselNav = document.getElementById('rcsCarouselNav');
+    var cardLabel = document.getElementById('rcsCurrentCardLabel');
+    var cardWidthSection = document.getElementById('rcsCardWidthSection');
+    var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+    var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
+    var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
+    if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
+    if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
+    if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
+    if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+    if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
+    if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
 
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
         payload.cards.forEach(function(card, index) {
             rcsCardsData[index + 1] = mapCardToInternal(card);
         });
-        if (typeof rebuildCardTabs === 'function') rebuildCardTabs();
+        rebuildCardTabs();
+        loadCardData(1);
+        updateRcsCardCount();
+    } else if (payload.cards && payload.cards.length === 1) {
+        rcsCardsData[1] = mapCardToInternal(payload.cards[0]);
         loadCardData(1);
     } else if (payload.card) {
         rcsCardsData[1] = mapCardToInternal(payload.card);
@@ -3590,5 +3605,5 @@ function loadRcsPayloadIntoWizard(payload) {
         setTimeout(updateRcsPreview, 200);
     }
 
-    console.log('[RCS Wizard] Template loaded successfully');
+    console.log('[RCS Wizard] Template loaded as', isCarousel ? 'carousel with ' + rcsCardCount + ' cards' : 'single card');
 }
