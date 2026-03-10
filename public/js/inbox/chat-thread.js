@@ -135,41 +135,51 @@ var ChatThread = (function () {
 
         var rc = msg.rich_card;
 
-        // Image (reject javascript: and data: URIs for security)
-        if (rc.image && !/^\s*(javascript|data):/i.test(rc.image)) {
+        var imageUrl = rc.image || (rc.media && (rc.media.savedDataUrl || rc.media.hostedUrl || rc.media.url)) || null;
+        var cardTitle = rc.title || rc.description || '';
+        var cardDesc = rc.description ? (rc.textBody || '') : (rc.textBody || rc.description || '');
+        if (rc.title && rc.description) cardDesc = rc.description;
+        if (!rc.title && rc.description && rc.textBody) {
+            cardTitle = rc.description;
+            cardDesc = rc.textBody;
+        }
+        var cardButtons = rc.buttons || (rc.button ? [{ label: rc.button }] : []);
+
+        if (imageUrl && !/^\s*javascript:/i.test(imageUrl)) {
             var img = document.createElement('img');
-            img.src = rc.image;
-            img.alt = rc.title || '';
-            img.style.height = '140px';
+            img.src = imageUrl;
+            img.alt = cardTitle || '';
+            img.style.width = '100%';
+            img.style.maxHeight = '200px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px 8px 0 0';
             img.onerror = function () { this.style.display = 'none'; };
             card.appendChild(img);
         }
 
-        // Body
         var body = document.createElement('div');
         body.className = 'msg__rich-card-body';
-        if (rc.title) {
+        if (cardTitle) {
             var title = document.createElement('div');
             title.className = 'msg__rich-card-title';
-            title.textContent = rc.title;
+            title.textContent = cardTitle;
             body.appendChild(title);
         }
-        if (rc.description) {
+        if (cardDesc) {
             var desc = document.createElement('div');
             desc.className = 'msg__rich-card-desc';
-            desc.textContent = rc.description;
+            desc.textContent = cardDesc;
             body.appendChild(desc);
         }
         card.appendChild(body);
 
-        // Button
-        if (rc.button) {
+        cardButtons.forEach(function (b) {
             var btn = document.createElement('a');
             btn.href = 'javascript:void(0)';
             btn.className = 'msg__rich-card-btn';
-            btn.textContent = rc.button;
+            btn.textContent = b.label || b.text || 'Action';
             card.appendChild(btn);
-        }
+        });
 
         // Caption below card
         var timeLine = document.createElement('div');
