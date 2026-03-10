@@ -850,7 +850,7 @@ function loadRcsFromStorage() {
             };
         });
         
-        var isCarousel = payload.type === 'carousel' && rcsCardCount > 1;
+        var isCarousel = (payload.type === 'carousel' || rcsCardCount > 1) && rcsCardCount > 1;
         var singleRadio = document.getElementById('rcsTypeSingle');
         var carouselRadio = document.getElementById('rcsTypeCarousel');
         if (isCarousel && carouselRadio) {
@@ -3501,7 +3501,7 @@ function loadRcsPayloadIntoWizard(payload) {
     rcsCurrentCard = 1;
 
     var type = payload.type || 'standalone';
-    var isCarousel = type === 'carousel';
+    var isCarousel = type === 'carousel' || (Array.isArray(payload.cards) && payload.cards.length > 1);
 
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
