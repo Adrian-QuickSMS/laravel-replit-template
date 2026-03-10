@@ -1380,15 +1380,17 @@ function saveRcsImageEdits() {
         }
 
         var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         return fetch('/api/rcs/assets/process-upload', {
             method: 'POST',
-            headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken.getAttribute('content') } : {},
+            headers: headers,
             credentials: 'same-origin',
             body: formData
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Upload failed');
+                    throw new Error(data.error || data.message || 'Upload failed');
                 }
                 return { croppedDataUrl: croppedDataUrl, data: data };
             });
@@ -1478,15 +1480,17 @@ function saveRcsImageEditsAndContinue() {
         }
 
         var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         return fetch('/api/rcs/assets/process-upload', {
             method: 'POST',
-            headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken.getAttribute('content') } : {},
+            headers: headers,
             credentials: 'same-origin',
             body: formData
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Upload failed');
+                    throw new Error(data.error || data.message || 'Upload failed');
                 }
                 return { croppedDataUrl: croppedDataUrl, data: data };
             });
