@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\InboxConversation;
 use App\Models\InboxMessage;
 use App\Models\PurchasedNumber;
+use App\Models\SenderId;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -116,6 +117,14 @@ class InboxDeliveryService
             $number = PurchasedNumber::withoutGlobalScope('tenant')->find($purchasedNumberId);
             if ($number) {
                 return '+' . $number->number;
+            }
+
+            $sender = SenderId::withoutGlobalScope('tenant')
+                ->where('uuid', $purchasedNumberId)
+                ->where('workflow_status', 'approved')
+                ->first();
+            if ($sender) {
+                return $sender->sender_id_value;
             }
         }
 

@@ -26,7 +26,7 @@ class InboxController extends Controller
     {
         $conversations = $this->inbox->getConversationsArray();
         $unreadCount = $this->inbox->getUnreadCount();
-        $senderIds = $this->getInboxVmns();
+        $senderIds = $this->getInboxSenders();
         $rcsAgents = $this->getRcsAgentsForView();
         $templates = $this->getTemplatesForView();
 
@@ -208,32 +208,57 @@ class InboxController extends Controller
         return $result;
     }
 
-    private function getInboxVmns(): array
+    private function getInboxSenders(): array
     {
         $tenantId = session('customer_tenant_id');
         if (!$tenantId) {
             return [];
         }
 
+        $result = [];
+
         $numbers = \App\Models\PurchasedNumber::where('account_id', $tenantId)
             ->where('status', \App\Models\PurchasedNumber::STATUS_ACTIVE)
             ->orderBy('number')
             ->get();
 
-        return $numbers->map(function ($n) {
+        foreach ($numbers as $n) {
             $formatted = '+' . $n->number;
             $label = $n->friendly_name
                 ? $n->friendly_name . ' (' . $formatted . ')'
                 : $formatted;
-
             $type = $n->number_type === 'vmn' ? 'vmn' : 'shortcode';
 
-            return [
+            $result[] = [
                 'id'   => $n->id,
                 'name' => $label,
                 'type' => $type,
             ];
-        })->values()->toArray();
+        }
+
+        $linkedSenderIds = $numbers->pluck('sender_id_id')->filter()->toArray();
+
+        $senderIds = \App\Models\SenderId::where('account_id', $tenantId)
+            ->where('workflow_status', 'approved')
+            ->whereNotIn('uuid', $linkedSenderIds)
+            ->orderByDesc('is_default')
+            ->orderBy('sender_id_value')
+            ->get();
+
+        foreach ($senderIds as $s) {
+            $result[] = [
+                'id'   => $s->uuid,
+                'name' => $s->sender_id_value,
+                'type' => $s->sender_type === 'NUMERIC' ? 'numeric' : 'alphanumeric',
+            ];
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+        if ($account && $account->isTestStandard() && empty($result)) {
+            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
+        }
+
+        return $result;
     }
 
     private function getTemplatesForView(): array
@@ -263,9 +288,10 @@ class InboxController extends Controller
             ->orderByDesc('updated_at')
             ->get()
             ->map(function ($t) use ($typeToChannel, $senderToVmn) {
-                $vmnId = null;
-                if ($t->sender_id_id && isset($senderToVmn[$t->sender_id_id])) {
-                    $vmnId = $senderToVmn[$t->sender_id_id];
+                $senderId = $t->sender_id_id;
+                $dropdownId = null;
+                if ($senderId) {
+                    $dropdownId = $senderToVmn[$senderId] ?? $senderId;
                 }
 
                 return [
@@ -275,7 +301,7 @@ class InboxController extends Controller
                     'channel'      => $typeToChannel[$t->type] ?? 'SMS',
                     'status'       => $t->status === 'active' ? 'Live' : ucfirst($t->status),
                     'rcs_payload'  => $t->rcs_content,
-                    'vmn_id'       => $vmnId,
+                    'sender_id'    => $dropdownId,
                     'rcs_agent_id' => $t->rcs_agent_id,
                 ];
             })

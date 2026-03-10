@@ -14,7 +14,7 @@
             <div class="d-flex gap-2">
                 <div class="flex-fill" id="inboxSenderIdSection">
                     <select class="form-select form-select-sm" id="inboxSenderSelect">
-                        <option value="">Reply From (VMN) *</option>
+                        <option value="">Reply From (Sender) *</option>
                     </select>
                 </div>
                 <div class="flex-fill d-none" id="inboxRcsAgentSection">

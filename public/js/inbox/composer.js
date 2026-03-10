@@ -321,8 +321,8 @@ var Composer = (function () {
             if (t.rcs_payload) {
                 opt.setAttribute('data-rcs-payload', JSON.stringify(t.rcs_payload));
             }
-            if (t.vmn_id) {
-                opt.setAttribute('data-vmn-id', t.vmn_id);
+            if (t.sender_id) {
+                opt.setAttribute('data-sender-id', t.sender_id);
             }
             if (t.rcs_agent_id) {
                 opt.setAttribute('data-rcs-agent-id', t.rcs_agent_id);
@@ -342,7 +342,7 @@ var Composer = (function () {
         var channel = selected.getAttribute('data-channel') || 'SMS';
         var rcsPayloadStr = selected.getAttribute('data-rcs-payload') || '';
         var content = selected.getAttribute('data-content') || '';
-        var templateVmnId = selected.getAttribute('data-vmn-id') || '';
+        var templateSenderId = selected.getAttribute('data-sender-id') || '';
         var templateRcsAgentId = selected.getAttribute('data-rcs-agent-id') || '';
         var textarea = document.getElementById('replyMessage');
 
@@ -350,11 +350,11 @@ var Composer = (function () {
         var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
         var rcsSelect = document.getElementById('inboxRcsAgentSelect');
 
-        if (senderSelect && templateVmnId) {
-            senderSelect.value = templateVmnId;
+        if (senderSelect && templateSenderId) {
+            senderSelect.value = templateSenderId;
         }
-        if (fallbackSelect && templateVmnId) {
-            fallbackSelect.value = templateVmnId;
+        if (fallbackSelect && templateSenderId) {
+            fallbackSelect.value = templateSenderId;
         }
         if (rcsSelect && templateRcsAgentId) {
             rcsSelect.value = templateRcsAgentId;
@@ -413,7 +413,13 @@ var Composer = (function () {
             senderList.forEach(function (s) {
                 var opt = document.createElement('option');
                 opt.value = typeof s === 'string' ? s : (s.value || s.id || s);
-                opt.textContent = typeof s === 'string' ? s : (s.label || s.name || s.value || s);
+                var label = typeof s === 'string' ? s : (s.label || s.name || s.value || s);
+                var sType = (s && s.type) ? s.type : '';
+                if (sType === 'alphanumeric' || sType === 'numeric') {
+                    label = label + ' (Alpha)';
+                }
+                opt.textContent = label;
+                opt.setAttribute('data-sender-type', sType);
                 senderSelect.appendChild(opt);
             });
         }
@@ -432,6 +438,8 @@ var Composer = (function () {
         var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
         if (fallbackSelect && senderList.length) {
             senderList.forEach(function (s) {
+                var sType = (s && s.type) ? s.type : '';
+                if (sType === 'alphanumeric' || sType === 'numeric') return;
                 var opt = document.createElement('option');
                 opt.value = typeof s === 'string' ? s : (s.value || s.id || s);
                 opt.textContent = typeof s === 'string' ? s : (s.label || s.name || s.value || s);
