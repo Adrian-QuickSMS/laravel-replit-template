@@ -610,7 +610,7 @@ function updateRcsWizardPreview() {
     var container = document.getElementById('rcsWizardPreviewContainer');
     if (!container) return;
     
-    var agentSelect = document.getElementById('rcsAgent');
+    var agentSelect = document.getElementById('rcsAgent') || document.getElementById('inboxRcsAgentSelect');
     var agentName = 'QuickSMS Brand';
     var agentTagline = 'Business messaging';
     var agentLogo = '/images/rcs-agents/quicksms-brand.svg';
@@ -618,7 +618,7 @@ function updateRcsWizardPreview() {
     if (agentSelect && agentSelect.selectedIndex > 0) {
         var selectedOption = agentSelect.options[agentSelect.selectedIndex];
         agentName = selectedOption.getAttribute('data-name') || selectedOption.text;
-        agentTagline = selectedOption.getAttribute('data-tagline') || '';
+        agentTagline = selectedOption.getAttribute('data-tagline') || agentTagline;
         agentLogo = selectedOption.getAttribute('data-logo') || agentLogo;
     }
     

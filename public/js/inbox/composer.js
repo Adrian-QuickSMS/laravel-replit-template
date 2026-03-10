@@ -435,7 +435,13 @@ var Composer = (function () {
             rcsList.forEach(function (a) {
                 var opt = document.createElement('option');
                 opt.value = typeof a === 'string' ? a : (a.value || a.id || a);
-                opt.textContent = typeof a === 'string' ? a : (a.label || a.name || a.value || a);
+                var name = typeof a === 'string' ? a : (a.label || a.name || a.value || a);
+                opt.textContent = name;
+                if (a && typeof a === 'object') {
+                    opt.setAttribute('data-name', a.name || name);
+                    opt.setAttribute('data-tagline', a.tagline || '');
+                    opt.setAttribute('data-logo', a.logo || '');
+                }
                 rcsSelect.appendChild(opt);
             });
         }
