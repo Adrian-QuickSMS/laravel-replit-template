@@ -386,9 +386,12 @@ class AdminController extends Controller
 
     public function accountsBilling($accountId)
     {
+        $account = Account::findOrFail($accountId);
+
         return view('admin.accounts.billing', [
             'page_title' => 'Account Billing',
-            'account_id' => $accountId
+            'account_id' => $accountId,
+            'account' => $account,
         ]);
     }
 

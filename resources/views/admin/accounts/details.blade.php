@@ -1524,5 +1524,13 @@ $('#saveAdminTestNumbers').on('click', function() {
         }
     });
 });
+
+if (window.location.hash === '#pricing') {
+    var pricingTab = document.getElementById('pricing-tab');
+    if (pricingTab) {
+        var tab = new bootstrap.Tab(pricingTab);
+        tab.show();
+    }
+}
 </script>
 @endpush

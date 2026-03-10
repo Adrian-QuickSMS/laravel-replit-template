@@ -506,8 +506,8 @@
     <div class="billing-header">
         <div class="billing-header-left">
             <div class="billing-header-info">
-                <h4 id="customerName">Loading...</h4>
-                <div class="account-id-text">{{ $account_id }}</div>
+                <h4 id="customerName">{{ $account->company_name ?? 'Loading...' }}</h4>
+                <div class="account-id-text">{{ $account->account_number ?? $account_id }}</div>
                 <div class="billing-header-pills">
                     <span class="pill-status pill-live" id="statusPill"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>Live</span>
                     <span class="pill-status pill-prepaid" id="billingModePill"><i class="fas fa-wallet me-1"></i>Prepaid</span>
@@ -521,14 +521,32 @@
             <button class="btn btn-admin-outline btn-sm" id="createCreditBtn" style="display: none;">
                 <i class="fas fa-credit-card me-1"></i>Create Credit
             </button>
-            <a href="#" class="btn btn-admin-outline btn-sm" id="hubspotLink" target="_blank">
-                <i class="fas fa-external-link-alt me-1"></i>View in HubSpot
+            <a href="{{ route('admin.accounts.structure', $account_id) }}" class="btn btn-admin-outline btn-sm">
+                <i class="fas fa-sitemap me-1"></i>View Account Structure
             </a>
-            <a href="{{ route('admin.accounts.details', ['accountId' => $account_id]) }}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i>Back to Account
+            <a href="{{ route('admin.accounts.overview') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Back to Accounts
             </a>
         </div>
     </div>
+
+    <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.accounts.details', ['accountId' => $account_id]) }}">
+                <i class="fas fa-building me-2"></i>Details
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.accounts.details', ['accountId' => $account_id]) }}#pricing">
+                <i class="fas fa-tags me-2"></i>Pricing
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" href="{{ route('admin.accounts.billing', ['accountId' => $account_id]) }}">
+                <i class="fas fa-file-invoice-dollar me-2"></i>Billing
+            </a>
+        </li>
+    </ul>
 
     <div class="billing-summary-bar" id="billingSummaryBar">
         <div class="row align-items-center g-0">
@@ -1275,10 +1293,13 @@ document.addEventListener('DOMContentLoaded', function() {
         billingModePill.innerHTML = '<i class="fas fa-' + (data.billingMode === 'postpaid' ? 'credit-card' : 'wallet') + 
             ' me-1"></i>' + data.billingMode.charAt(0).toUpperCase() + data.billingMode.slice(1);
         
-        if (data.hubspotId) {
-            document.getElementById('hubspotLink').href = 'https://app.hubspot.com/contacts/company/' + data.hubspotId;
-        } else {
-            document.getElementById('hubspotLink').classList.add('d-none');
+        var hubspotLink = document.getElementById('hubspotLink');
+        if (hubspotLink) {
+            if (data.hubspotId) {
+                hubspotLink.href = 'https://app.hubspot.com/contacts/company/' + data.hubspotId;
+            } else {
+                hubspotLink.classList.add('d-none');
+            }
         }
         
         document.getElementById('summaryBillingMode').innerHTML = 
