@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\AccountCredit;
 use App\Services\SenderIdEnforcementService;
 use Illuminate\Support\Facades\Log;
+use App\Models\AccountAuditLog;
 
 /**
  * Account Observer
@@ -67,6 +68,19 @@ class AccountObserver
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
             ]);
+
+            try {
+                // Attempt to capture the admin or user who triggered the status change
+                $actorId = session('admin_user_id') ?? session('customer_user_id');
+                $actorName = session('admin_user_name') ?? session('customer_user_name', 'System');
+                if (!$actorId && auth()->check()) {
+                    $actorId = auth()->id();
+                    $actorName = auth()->user()->name ?? auth()->user()->email ?? 'System';
+                }
+                AccountAuditLog::record($account->id, 'account_status_transition', $actorId, $actorName ?: 'System', "Account status changed from {$oldStatus} to {$newStatus}", ['before' => ['status' => $oldStatus], 'after' => ['status' => $newStatus]]);
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record account_status_transition', ['error' => $e->getMessage()]);
+            }
 
             // Void remaining test credits when transitioning from test to live mode
             if (in_array($oldStatus, Account::TEST_STATUSES) && in_array($newStatus, Account::LIVE_STATUSES)) {
@@ -158,6 +172,12 @@ class AccountObserver
             'account_type' => $account->account_type,
             'status' => $account->status,
         ]);
+
+        try {
+            AccountAuditLog::record($account->id, 'account_created', null, 'System', "Account created: {$account->company_name}", ['account_number' => $account->account_number, 'account_type' => $account->account_type, 'status' => $account->status]);
+        } catch (\Throwable $e) {
+            \Log::warning('[AuditLog] Failed to record account_created', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

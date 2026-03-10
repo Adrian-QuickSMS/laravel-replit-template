@@ -76,7 +76,7 @@ var ADMIN_AUDIT = (function() {
 
     function init() {
         loadFromStorage();
-        console.log('[AdminAudit] Initialized with', auditLog.length, 'admin entries');
+
     }
 
     function loadFromStorage() {
@@ -96,8 +96,11 @@ var ADMIN_AUDIT = (function() {
 
     function saveToStorage() {
         try {
-            localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(auditLog));
-            localStorage.setItem(CUSTOMER_AUDIT_STORAGE_KEY, JSON.stringify(customerAuditLog));
+            // Only persist last 50 entries to limit localStorage exposure of sensitive audit data
+            var trimmedAuditLog = auditLog.slice(-50);
+            var trimmedCustomerLog = customerAuditLog.slice(-50);
+            localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(trimmedAuditLog));
+            localStorage.setItem(CUSTOMER_AUDIT_STORAGE_KEY, JSON.stringify(trimmedCustomerLog));
         } catch (e) {
             console.error('[AdminAudit] Failed to save to storage:', e);
         }
@@ -623,10 +626,6 @@ var ADMIN_AUDIT = (function() {
         
         if (entry.severity === 'CRITICAL') {
             console.error(prefix, JSON.stringify(logData, null, 2));
-        } else if (entry.severity === 'HIGH') {
-            console.warn(prefix, JSON.stringify(logData, null, 2));
-        } else {
-            console.log(prefix, JSON.stringify(logData, null, 2));
         }
     }
 

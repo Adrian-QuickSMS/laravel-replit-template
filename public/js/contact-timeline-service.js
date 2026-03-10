@@ -503,7 +503,6 @@ var ContactTimelineService = (function() {
             };
             
             if (config.useMockData) {
-                console.log('[AuditLogger] Event emitted:', eventType, auditEvent);
                 return Promise.resolve({ success: true, event_id: generateUUID() });
             }
             
@@ -742,7 +741,6 @@ var ContactTimelineService = (function() {
             masked: true
         }).then(function() {
             if (config.useMockData) {
-                console.log('[Timeline] Export requested for contact:', contactId, 'Format:', format);
                 return Promise.resolve({
                     success: true,
                     download_url: '/api/contacts/' + contactId + '/timeline/export?format=' + format + '&token=mock_' + generateUUID()
@@ -1464,7 +1462,6 @@ var ContactTimelineService = (function() {
     function revealMsisdn(contactId, reason) {
         if (config.useMockData) {
             return simulateDelay(100, 300).then(function() {
-                console.log('[Audit] MSISDN revealed for contact ' + contactId + ', reason: ' + reason);
                 return {
                     msisdn: '+447700' + Math.floor(Math.random() * 900000 + 100000),
                     revealed_at: new Date().toISOString()

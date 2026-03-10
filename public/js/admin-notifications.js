@@ -76,7 +76,6 @@ var ADMIN_NOTIFICATIONS = (function() {
     var alertQueue = [];
 
     function init() {
-        console.log('[AdminNotifications] Initialized');
         renderNotificationBell();
         startSlaMonitoring();
     }
@@ -109,7 +108,6 @@ var ADMIN_NOTIFICATIONS = (function() {
             }, 'MEDIUM');
         }
 
-        console.log('[AdminNotifications] Customer notification sent:', notification);
         showNotificationSentToast(notification);
 
         return notification;
@@ -226,20 +224,21 @@ var ADMIN_NOTIFICATIONS = (function() {
             return;
         }
 
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
         var html = '';
         unacknowledged.forEach(function(alert) {
             var alertType = INTERNAL_ALERT_TYPES[alert.type];
             html += '\
-            <div class="alert-item priority-' + alert.priority.toLowerCase() + '">\
+            <div class="alert-item priority-' + esc(alert.priority.toLowerCase()) + '">\
                 <div class="alert-item-icon" style="color:' + alertType.color + '">\
                     <i class="fas ' + alertType.icon + '"></i>\
                 </div>\
                 <div class="alert-item-content">\
-                    <div class="alert-item-title">' + alert.title + '</div>\
-                    <div class="alert-item-detail">' + alert.requestId + '</div>\
-                    <div class="alert-item-time">' + formatTimeAgo(alert.createdAt) + '</div>\
+                    <div class="alert-item-title">' + esc(alert.title) + '</div>\
+                    <div class="alert-item-detail">' + esc(alert.requestId) + '</div>\
+                    <div class="alert-item-time">' + esc(formatTimeAgo(alert.createdAt)) + '</div>\
                 </div>\
-                <button class="alert-item-ack" onclick="ADMIN_NOTIFICATIONS.acknowledgeAlert(\'' + alert.id + '\')">\
+                <button class="alert-item-ack" onclick="ADMIN_NOTIFICATIONS.acknowledgeAlert(\'' + esc(alert.id) + '\')">\
                     <i class="fas fa-check"></i>\
                 </button>\
             </div>';
@@ -291,6 +290,7 @@ var ADMIN_NOTIFICATIONS = (function() {
     }
 
     function showToast(title, message, color, icon) {
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
         var existingToasts = document.querySelectorAll('.notification-toast');
         var topOffset = 20 + (existingToasts.length * 90);
 
@@ -298,8 +298,8 @@ var ADMIN_NOTIFICATIONS = (function() {
         <div class="notification-toast" style="border-left-color:' + color + '; top:' + topOffset + 'px">\
             <div class="toast-icon" style="color:' + color + '"><i class="fas ' + icon + '"></i></div>\
             <div class="toast-content">\
-                <div class="toast-title">' + title + '</div>\
-                <div class="toast-message">' + message + '</div>\
+                <div class="toast-title">' + esc(title) + '</div>\
+                <div class="toast-message">' + esc(message) + '</div>\
             </div>\
             <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>\
         </div>';
@@ -315,11 +315,9 @@ var ADMIN_NOTIFICATIONS = (function() {
     }
 
     function playAlertSound(priority) {
-        console.log('[AdminNotifications] Alert sound:', priority);
     }
 
     function startSlaMonitoring() {
-        console.log('[AdminNotifications] SLA monitoring started');
     }
 
     function checkSlaBreach(requestId, submittedAt, assetType) {
@@ -360,6 +358,7 @@ var ADMIN_NOTIFICATIONS = (function() {
     function showCustomerNotificationModal(type, requestId, assetType, customerEmail, onSend) {
         var notificationType = CUSTOMER_NOTIFICATION_TYPES[type];
         if (!notificationType) return;
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
 
         var existingModal = document.getElementById('customerNotificationModal');
         if (existingModal) existingModal.remove();
@@ -378,11 +377,11 @@ var ADMIN_NOTIFICATIONS = (function() {
                         <div class="notification-preview">\
                             <div class="preview-header">\
                                 <div class="preview-label">To:</div>\
-                                <div class="preview-value">' + customerEmail + '</div>\
+                                <div class="preview-value">' + esc(customerEmail) + '</div>\
                             </div>\
                             <div class="preview-header">\
                                 <div class="preview-label">Subject:</div>\
-                                <div class="preview-value">' + notificationType.subject.replace('{assetType}', assetType) + '</div>\
+                                <div class="preview-value">' + esc(notificationType.subject.replace('{assetType}', assetType)) + '</div>\
                             </div>\
                             <div class="preview-body">\
                                 ' + templateContent + '\
@@ -395,7 +394,7 @@ var ADMIN_NOTIFICATIONS = (function() {
                     </div>\
                     <div class="modal-footer">\
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\
-                        <button type="button" class="btn btn-primary" onclick="ADMIN_NOTIFICATIONS.confirmSendNotification(\'' + type + '\', \'' + requestId + '\', \'' + assetType + '\', \'' + customerEmail + '\')" style="background:' + notificationType.color + ';border-color:' + notificationType.color + '">\
+                        <button type="button" class="btn btn-primary" onclick="ADMIN_NOTIFICATIONS.confirmSendNotification(\'' + esc(type) + '\', \'' + esc(requestId) + '\', \'' + esc(assetType) + '\', \'' + esc(customerEmail) + '\')" style="background:' + notificationType.color + ';border-color:' + notificationType.color + '">\
                             <i class="fas fa-paper-plane me-1"></i> Send Notification\
                         </button>\
                     </div>\

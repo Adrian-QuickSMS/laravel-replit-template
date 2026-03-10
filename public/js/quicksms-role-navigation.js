@@ -100,13 +100,11 @@ var RoleNavigation = (function() {
     function init(userRole) {
         currentUserRole = userRole || 'auditor';
         applyNavigationVisibility();
-        console.log('[RoleNavigation] Initialized with role:', currentUserRole);
     }
 
     function applyNavigationVisibility() {
         var roleDef = ROLE_DEFINITIONS[currentUserRole];
         if (!roleDef) {
-            console.warn('[RoleNavigation] Unknown role:', currentUserRole);
             return;
         }
 
@@ -212,8 +210,6 @@ var RoleNavigation = (function() {
             ipAddress: '192.168.1.100'
         };
 
-        console.log('[AUDIT] Role change:', auditEntry);
-        
         auditCallbacks.forEach(function(cb) {
             try { cb(auditEntry); } catch (e) { console.error(e); }
         });

@@ -37,7 +37,6 @@
 .inbox-container {
     padding: 0;
     height: 100%;
-    max-height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -160,6 +159,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
+    background: var(--inbox-primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -169,6 +169,7 @@
 .conv-item__initials {
     font-size: 0.75rem;
     font-weight: 600;
+    color: var(--inbox-primary);
 }
 
 .conv-item__body {
@@ -215,23 +216,54 @@
     min-width: 0;
 }
 
-.conv-item__unread-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--inbox-primary);
+.conv-item__badges {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     flex-shrink: 0;
     margin-left: 0.35rem;
 }
 
-.conv-item--awaiting {
-    background: #fff8e1;
-    border-left: 3px solid #f9a825;
+.conv-item__channel {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-[data-theme-version="dark"] .conv-item--awaiting {
-    background: #3e3520;
-    border-left-color: #f9a825;
+.conv-item__channel--sms {
+    background: var(--inbox-sms-bg);
+    color: #2d8a4e;
+}
+
+.conv-item__channel--rcs {
+    background: var(--inbox-rcs-bg);
+    color: #6b4fa0;
+}
+
+[data-theme-version="dark"] .conv-item__channel--sms {
+    color: #5fdb82;
+}
+
+[data-theme-version="dark"] .conv-item__channel--rcs {
+    color: #b49ee0;
+}
+
+.conv-item__unread-badge {
+    background: var(--inbox-primary);
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
 }
 
 /* ─── Chat pane — centre column ────────────────────────── */
@@ -281,11 +313,13 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
+    background: var(--inbox-primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 600;
+    color: var(--inbox-primary);
     flex-shrink: 0;
 }
 
@@ -401,27 +435,6 @@
     border-radius: 3px;
     margin-left: 4px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    line-height: 1.4;
-}
-
-.msg__channel-pill--sms {
-    background: var(--inbox-sms-bg);
-    color: #2d8a4e;
-}
-
-.msg__channel-pill--rcs {
-    background: var(--inbox-rcs-bg);
-    color: #6b4fa0;
-}
-
-[data-theme-version="dark"] .msg__channel-pill--sms {
-    color: #5fdb82;
-}
-
-[data-theme-version="dark"] .msg__channel-pill--rcs {
-    color: #b49ee0;
 }
 
 /* Date separator */
@@ -470,9 +483,7 @@
 
 .msg__rich-card img {
     width: 100%;
-    max-height: 200px;
     object-fit: cover;
-    border-radius: 8px 8px 0 0;
 }
 
 .msg__rich-card-body {
@@ -505,134 +516,143 @@
     background: var(--inbox-primary-light);
 }
 
-.msg__carousel-strip {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 4px 2px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    max-width: 420px;
-}
-
-.msg__carousel-strip::-webkit-scrollbar {
-    height: 4px;
-}
-
-.msg__carousel-strip::-webkit-scrollbar-thumb {
-    background: var(--inbox-border);
-    border-radius: 2px;
-}
-
-.msg__carousel-tile {
-    flex: 0 0 180px;
-    width: 180px;
-    scroll-snap-align: start;
-}
-
-.msg__carousel-tile img {
-    height: 120px;
-}
-
-.msg__carousel-tile .msg__rich-card-body {
-    padding: 0.375rem 0.5rem;
-}
-
-.msg__carousel-tile .msg__rich-card-title {
-    font-size: 0.75rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.msg__carousel-tile .msg__rich-card-desc {
-    font-size: 0.6875rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.msg__carousel-tile .msg__rich-card-btn {
-    font-size: 0.6875rem;
-    padding: 0.25rem 0.5rem;
-}
-
-.msg__carousel-hint {
-    font-size: 0.6875rem;
-    color: var(--inbox-text-muted);
-    text-align: right;
-    margin-top: 4px;
-    padding-right: 2px;
-}
-
-/* ─── Chat pane + composer wrapper ─────────────────────── */
-.chat-pane-with-composer {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* ─── Reply composer (v1-matching card layout) ─────────── */
-#replyComposer {
+/* ─── Reply composer (matches Send Message page styling) ── */
+.inbox-composer {
     flex-shrink: 0;
     border-top: 1px solid var(--inbox-border);
     background: var(--inbox-bg);
-    max-height: 50vh;
-    overflow-y: auto;
+    padding: 0.75rem 1rem;
 }
 
-#replyComposer .card-body {
-    padding: 0.5rem 0.75rem;
+.inbox-composer__channel-bar {
+    margin-bottom: 0.5rem;
 }
 
-#replyComposer .btn-group .btn-outline-primary {
-    font-size: 0.8125rem;
+.inbox-composer__channel-bar .btn-outline-primary {
     border-color: var(--inbox-primary);
     color: var(--inbox-primary);
 }
 
-#replyComposer .btn-group .btn-check:checked + .btn-outline-primary {
+.inbox-composer__channel-bar .btn-check:checked + .btn-outline-primary {
     background: var(--inbox-primary);
     border-color: var(--inbox-primary);
     color: #fff;
 }
 
-#replyComposer .form-select-sm {
+.inbox-composer__sender {
+    font-size: 0.75rem;
+    color: var(--inbox-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.inbox-composer__sender:empty {
+    display: none;
+}
+
+.inbox-composer__rcs-summary {
+    padding: 0.375rem 0.5rem;
+    background: var(--inbox-rcs-bg);
+    border-radius: 0.375rem;
+    margin-bottom: 0.375rem;
+}
+
+.inbox-composer__template-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.inbox-composer__content-label {
+    font-size: 0.8125rem;
+    color: var(--inbox-text);
+}
+
+.inbox-composer__textarea-wrap {
+    background: var(--inbox-bg);
+    border-color: var(--inbox-border) !important;
+    margin-bottom: 0;
+}
+
+.inbox-composer__textarea {
+    resize: none;
+    font-size: 0.8125rem;
+    min-height: 4rem;
+    max-height: 10rem;
+    background: transparent;
+    color: var(--inbox-text);
+}
+
+.inbox-composer__textarea:focus {
+    box-shadow: none;
+}
+
+.inbox-composer__textarea-wrap .btn-light {
     font-size: 0.8125rem;
 }
 
-#replyComposer .form-label {
+.inbox-composer__stats {
     font-size: 0.8125rem;
 }
 
-#replyComposer textarea.form-control {
-    font-size: 0.8125rem;
-    min-height: 60px;
-}
-
-#replyComposer .btn-primary {
+.inbox-composer__send {
     background: var(--inbox-primary);
     border-color: var(--inbox-primary);
+    font-size: 0.8125rem;
+    padding: 0.375rem 1rem;
 }
 
-#replyComposer .btn-primary:hover {
+.inbox-composer__send:hover {
     opacity: 0.9;
 }
 
-/* ─── Contact panel (modal-based) ─────────────────────── */
+/* ─── Contact panel — right sidebar ────────────────────── */
+.contact-panel {
+    width: var(--inbox-contact-w);
+    flex-shrink: 0;
+    border-left: 1px solid var(--inbox-border);
+    background: var(--inbox-bg);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.contact-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--inbox-border);
+    flex-shrink: 0;
+}
+
+.contact-panel__header h6 {
+    color: var(--inbox-text);
+}
+
+.contact-panel__header .btn {
+    color: var(--inbox-text-muted);
+    border: none;
+    background: none;
+}
+
+.contact-panel__body {
+    padding: 1rem 0.75rem;
+    text-align: center;
+}
 
 .contact-panel__avatar {
     width: 56px;
     height: 56px;
     border-radius: 50%;
+    background: var(--inbox-primary-light);
     margin: 0 auto 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.125rem;
     font-weight: 600;
+    color: var(--inbox-primary);
 }
 
 .contact-panel__name {
@@ -691,37 +711,41 @@
     color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] #replyComposer {
-    background: var(--inbox-bg);
-    border-color: var(--inbox-border);
-}
-
-[data-theme-version="dark"] #replyComposer .card-body {
-    background: var(--inbox-bg);
-}
-
-[data-theme-version="dark"] #replyComposer textarea.form-control {
+[data-theme-version="dark"] .inbox-composer__textarea-wrap {
     background: var(--inbox-bg-alt);
-    border-color: var(--inbox-border);
+    border-color: var(--inbox-border) !important;
+}
+
+[data-theme-version="dark"] .inbox-composer__textarea {
+    background: transparent;
     color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] #replyComposer textarea.form-control::placeholder {
+[data-theme-version="dark"] .inbox-composer__textarea::placeholder {
     color: var(--inbox-text-muted);
 }
 
-[data-theme-version="dark"] #replyComposer .form-select {
-    background: var(--inbox-bg-alt);
-    border-color: var(--inbox-border);
-    color: var(--inbox-text);
-}
-
-[data-theme-version="dark"] #replyComposer .form-label {
-    color: var(--inbox-text);
-}
-
-[data-theme-version="dark"] #replyComposer .border {
+[data-theme-version="dark"] .inbox-composer__textarea-wrap .btn-light {
+    background: var(--inbox-bg);
     border-color: var(--inbox-border) !important;
+    color: var(--inbox-text-muted);
+}
+
+[data-theme-version="dark"] .inbox-composer__textarea-wrap .btn-light:hover {
+    color: var(--inbox-primary);
+}
+
+[data-theme-version="dark"] .inbox-composer__content-label {
+    color: var(--inbox-text);
+}
+
+[data-theme-version="dark"] .inbox-composer__stats {
+    color: var(--inbox-text-muted);
+}
+
+[data-theme-version="dark"] .inbox-composer__template-row .btn-outline-secondary {
+    border-color: var(--inbox-border);
+    color: var(--inbox-text-muted);
 }
 
 [data-theme-version="dark"] .chat-pane__header-actions .btn {
@@ -771,11 +795,7 @@
     background: var(--inbox-primary-light);
 }
 
-[data-theme-version="dark"] .msg__carousel-strip::-webkit-scrollbar-thumb {
-    background: var(--inbox-border);
-}
-
-[data-theme-version="dark"] .msg__carousel-hint {
+[data-theme-version="dark"] .contact-panel__header .btn {
     color: var(--inbox-text-muted);
 }
 
@@ -803,13 +823,16 @@
     background: var(--inbox-bg-alt) !important;
 }
 
-[data-theme-version="dark"] #replyComposer .btn-group .btn-outline-primary {
+[data-theme-version="dark"] .inbox-composer__channel-bar .btn-outline-primary {
     border-color: var(--inbox-primary);
     color: #b49ee0;
 }
 
+[data-theme-version="dark"] .inbox-composer__rcs-summary {
+    background: var(--inbox-rcs-bg);
+}
+
 /* Dark mode for modals used in inbox */
-[data-theme-version="dark"] #contactPanelModal .modal-content,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-content,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-content,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-content {
@@ -817,14 +840,12 @@
     color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] #contactPanelModal .modal-header,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-header,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-header,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-header {
     border-color: var(--inbox-border);
 }
 
-[data-theme-version="dark"] #contactPanelModal .modal-footer,
 [data-theme-version="dark"] #inboxEmojiPickerModal .modal-footer,
 [data-theme-version="dark"] #inboxPersonalisationModal .modal-footer,
 [data-theme-version="dark"] #inboxAiAssistantModal .modal-footer {
@@ -844,15 +865,18 @@
 /* ─── Responsive ───────────────────────────────────────── */
 @media (max-width: 1440px) {
     .inbox-sidebar { width: 280px; min-width: 250px; }
+    .contact-panel { width: 250px; }
     .msg { max-width: 80%; }
 }
 
 @media (max-width: 1200px) {
     .inbox-sidebar { width: 260px; min-width: 240px; }
+    .contact-panel { width: 240px; }
     .msg { max-width: 85%; }
 }
 
 @media (max-width: 992px) {
+    /* Stack layout: sidebar overlaps on mobile */
     .inbox-layout { position: relative; }
 
     .inbox-sidebar {
@@ -870,22 +894,13 @@
         transform: translateX(-100%);
     }
 
-    .chat-pane-with-composer {
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .chat-pane {
-        flex: none;
-        min-height: auto;
-    }
-
-    .chat-pane__messages {
-        max-height: none;
-        overflow: visible;
-    }
-
-    #replyComposer {
-        max-height: none;
+    .contact-panel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        z-index: 10;
+        box-shadow: -2px 0 8px rgba(0,0,0,0.1);
     }
 }

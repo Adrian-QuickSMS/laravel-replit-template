@@ -27,7 +27,7 @@ class RcsAssetService
         string $url,
         array $editParams = [],
         ?string $draftSession = null,
-        $userId = null,
+        ?int $userId = null,
         ?string $accountId = null
     ): array {
         $imageData = $this->fetchImage($url);
@@ -65,7 +65,7 @@ class RcsAssetService
         $file,
         array $editParams = [],
         ?string $draftSession = null,
-        $userId = null,
+        ?int $userId = null,
         ?string $accountId = null
     ): array {
         $mimeType = $file->getMimeType();

@@ -4,10 +4,6 @@
 
 @push('styles')
 <style>
-#messageLogTable td,
-#messageLogTable th {
-    color: #000;
-}
 .message-log-container {
     height: calc(100vh - 120px);
     display: flex;

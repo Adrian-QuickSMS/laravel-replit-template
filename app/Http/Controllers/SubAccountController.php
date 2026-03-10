@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Models\UserAuditLog;
+use App\Services\Audit\AuditContext;
 
 /**
  * Sub-Account Management Controller
@@ -154,6 +156,13 @@ class SubAccountController extends Controller
                 'created_by' => $user->id,
             ]);
 
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_created', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' created", ['name' => $subAccount->name, 'monthly_spending_cap' => $subAccount->monthly_spending_cap ?? null, 'enforcement_type' => $subAccount->enforcement_type ?? null]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_created', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Sub-account created successfully',
@@ -191,7 +200,16 @@ class SubAccountController extends Controller
                 return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
             }
 
+            $before = $subAccount->only(['name', 'description']);
+
             $subAccount->update($request->only(['name', 'description']));
+
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_edited', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' updated", ['changes' => AuditContext::diff($before, $subAccount->only(['name', 'description']))]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_edited', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -239,10 +257,19 @@ class SubAccountController extends Controller
                 return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
             }
 
+            $beforeLimits = $subAccount->only(['monthly_spending_cap', 'monthly_message_cap', 'daily_send_limit', 'enforcement_type', 'hard_stop_enabled']);
+
             $subAccount->updateLimits($request->only([
                 'monthly_spending_cap', 'monthly_message_cap', 'daily_send_limit',
                 'enforcement_type', 'hard_stop_enabled',
             ]), $user->id);
+
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_limits_updated', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' limits updated", ['changes' => AuditContext::diff($beforeLimits, $subAccount->only(['monthly_spending_cap', 'monthly_message_cap', 'daily_send_limit', 'enforcement_type', 'hard_stop_enabled']))]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_limits_updated', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -279,6 +306,13 @@ class SubAccountController extends Controller
                 'suspended_by' => $user->id,
             ]);
 
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_suspended', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' suspended");
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_suspended', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Sub-account suspended',
@@ -312,6 +346,13 @@ class SubAccountController extends Controller
                 'reactivated_by' => $user->id,
             ]);
 
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_reactivated', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' reactivated");
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_reactivated', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Sub-account reactivated',
@@ -344,6 +385,13 @@ class SubAccountController extends Controller
                 'sub_account_id' => $id,
                 'archived_by' => $user->id,
             ]);
+
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::recordSubAccountEvent($actor['account_id'], 'sub_account_archived', $subAccount->id, $actor['user_id'], $actor['user_name'], "Sub-account '{$subAccount->name}' archived");
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record sub_account_archived', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',

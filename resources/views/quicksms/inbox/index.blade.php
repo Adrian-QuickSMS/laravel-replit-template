@@ -17,17 +17,17 @@
         {{-- Left: Conversation list --}}
         @include('quicksms.inbox.partials.conversation-list')
 
-        {{-- Centre: Chat thread + composer --}}
-        <div class="chat-pane-with-composer">
-            @include('quicksms.inbox.partials.chat-pane')
-            @include('quicksms.inbox.partials.composer')
-        </div>
+        {{-- Centre: Chat thread --}}
+        @include('quicksms.inbox.partials.chat-pane')
+
+        {{-- Centre bottom: Reply composer --}}
+        @include('quicksms.inbox.partials.composer')
+
+        {{-- Right: Contact details sidebar --}}
+        @include('quicksms.inbox.partials.contact-sidebar')
 
     </div>
 </div>
-
-{{-- Contact details modal --}}
-@include('quicksms.inbox.partials.contact-sidebar')
 
 {{-- Conversation data for JS --}}
 <script>

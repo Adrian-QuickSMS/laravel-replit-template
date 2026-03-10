@@ -180,7 +180,11 @@ var dlabPiety = function(){
 			height: 100
 		});
 		
-		 setInterval(function() {
+		 var pietyInterval = setInterval(function() {
+			if (!document.body.contains(t[0])) {
+				clearInterval(pietyInterval);
+				return;
+			}
 			var e = Math.round(10 * Math.random()),
 			i = t.text().split(",");
 			i.shift(), i.push(e), t.text(i.join(",")).change()

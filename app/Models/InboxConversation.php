@@ -199,8 +199,6 @@ class InboxConversation extends Model
             ? strtoupper(mb_substr($contact->first_name, 0, 1) . mb_substr($contact->last_name, 0, 1))
             : '??';
 
-        $replyToLabel = $this->buildReplyToLabel();
-
         $data = [
             'id' => $this->id,
             'phone' => $phone,
@@ -212,8 +210,6 @@ class InboxConversation extends Model
             'source' => $this->source,
             'source_type' => $this->source_type,
             'sender_id' => $this->sender_id,
-            'purchased_number_id' => $this->purchased_number_id,
-            'reply_to_label' => $replyToLabel,
             'unread' => $this->unread_count > 0,
             'unread_count' => $this->unread_count,
             'last_message' => $this->last_message_content ?? '',
@@ -234,40 +230,5 @@ class InboxConversation extends Model
         }
 
         return $data;
-    }
-
-    private function buildReplyToLabel(): string
-    {
-        if ($this->channel === 'rcs' && $this->rcs_agent_id) {
-            $agent = $this->relationLoaded('rcsAgent')
-                ? $this->rcsAgent
-                : RcsAgent::withoutGlobalScope('tenant')
-                    ->where('uuid', $this->rcs_agent_id)
-                    ->first();
-            if ($agent) {
-                return 'RCS Agent: ' . $agent->name;
-            }
-        }
-
-        if ($this->purchased_number_id) {
-            $pn = $this->relationLoaded('purchasedNumber')
-                ? $this->purchasedNumber
-                : null;
-            if (!$pn) {
-                $pn = PurchasedNumber::withoutGlobalScope('tenant')
-                    ->find($this->purchased_number_id);
-            }
-            if ($pn) {
-                $formatted = '+' . $pn->number;
-                $typeLabel = $pn->number_type === 'vmn' ? 'VMN' : 'Shortcode';
-                $label = $typeLabel . ' ' . $formatted;
-                if ($pn->friendly_name) {
-                    $label = $pn->friendly_name . ' (' . $formatted . ')';
-                }
-                return $label;
-            }
-        }
-
-        return $this->channel === 'rcs' ? 'RCS' : 'SMS';
     }
 }

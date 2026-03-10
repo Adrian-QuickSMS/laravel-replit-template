@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\AccountAuditLog;
+use App\Models\AdminAuditLog;
 
 class BillingAdminController extends Controller
 {
@@ -149,6 +151,15 @@ class BillingAdminController extends Controller
             $this->getAdminId($request), 'admin'
         );
 
+        try {
+            $adminId = $this->getAdminId($request);
+            $adminName = session('admin_user_name', 'Admin');
+            AccountAuditLog::record($id, 'billing_config_changed', $adminId, $adminName, "Billing type changed from {$old} to {$request->input('billing_type')}", ['field' => 'billing_type', 'before' => $old, 'after' => $request->input('billing_type')]);
+            AdminAuditLog::record('billing_config_changed', 'billing', 'high', $adminId, $adminName, 'account', $id, $id, "Changed billing type for account", ['field' => 'billing_type', 'before' => $old, 'after' => $request->input('billing_type')]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record billing_config_changed', ['error' => $e->getMessage()]);
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -159,6 +170,9 @@ class BillingAdminController extends Controller
     {
         $request->validate(['billing_method' => 'required|in:submitted,delivered']);
 
+        $account = Account::findOrFail($id);
+        $old = $account->billing_method;
+
         DB::statement("UPDATE accounts SET billing_method = ? WHERE id = ?", [$request->input('billing_method'), $id]);
 
         FinancialAuditLog::record(
@@ -166,6 +180,15 @@ class BillingAdminController extends Controller
             null, ['billing_method' => $request->input('billing_method')],
             $this->getAdminId($request), 'admin'
         );
+
+        try {
+            $adminId = $this->getAdminId($request);
+            $adminName = session('admin_user_name', 'Admin');
+            AccountAuditLog::record($id, 'billing_config_changed', $adminId, $adminName, "Billing method changed from {$old} to {$request->input('billing_method')}", ['field' => 'billing_method', 'before' => $old, 'after' => $request->input('billing_method')]);
+            AdminAuditLog::record('billing_config_changed', 'billing', 'high', $adminId, $adminName, 'account', $id, $id, "Changed billing method for account", ['field' => 'billing_method', 'before' => $old, 'after' => $request->input('billing_method')]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record billing_config_changed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -198,6 +221,14 @@ class BillingAdminController extends Controller
             );
         });
 
+        try {
+            $adminName = session('admin_user_name', 'Admin');
+            AccountAuditLog::record($id, 'billing_config_changed', $adminId, $adminName, "Credit limit changed from {$old} to {$new}", ['field' => 'credit_limit', 'before' => $old, 'after' => $new]);
+            AdminAuditLog::record('billing_config_changed', 'billing', 'high', $adminId, $adminName, 'account', $id, $id, "Changed credit limit for account", ['field' => 'credit_limit', 'before' => $old, 'after' => $new]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record billing_config_changed', ['error' => $e->getMessage()]);
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -208,7 +239,18 @@ class BillingAdminController extends Controller
     {
         $request->validate(['payment_terms_days' => 'required|integer|in:15,30,60']);
 
-        Account::findOrFail($id)->update(['payment_terms_days' => $request->input('payment_terms_days')]);
+        $account = Account::findOrFail($id);
+        $oldTerms = $account->payment_terms_days;
+        $account->update(['payment_terms_days' => $request->input('payment_terms_days')]);
+
+        try {
+            $adminId = $this->getAdminId($request);
+            $adminName = session('admin_user_name', 'Admin');
+            AccountAuditLog::record($id, 'billing_config_changed', $adminId, $adminName, "Payment terms changed from {$oldTerms} to {$request->input('payment_terms_days')} days", ['field' => 'payment_terms_days', 'before' => $oldTerms, 'after' => $request->input('payment_terms_days')]);
+            AdminAuditLog::record('billing_config_changed', 'billing', 'medium', $adminId, $adminName, 'account', $id, $id, "Changed payment terms for account", ['field' => 'payment_terms_days', 'before' => $oldTerms, 'after' => $request->input('payment_terms_days')]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record billing_config_changed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true]);
     }

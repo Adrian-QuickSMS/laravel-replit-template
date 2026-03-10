@@ -8,28 +8,26 @@ var InboxApp = (function () {
 
     var config = {};
     var activeConversation = null;
-    var _selectRequestId = 0;
 
+    // Local storage for contact notes and tags (mock — replace with API)
     var contactData = {};
-    var availableTags = [];
-    var availableLists = [];
 
     /* ── Boot ──────────────────────────────────────────── */
     function init() {
         config = window.__inbox || {};
 
+        // Initialise sub-modules
         ConversationList.init(config.conversations || [], onConversationSelect);
         Composer.init(onSendReply);
 
         bindGlobalEvents();
         bindContactSidebar();
-        fetchAvailableTags();
-        fetchAvailableLists();
     }
 
     /* ── Called when a conversation is selected ─────────── */
     function onConversationSelect(conv) {
         activeConversation = conv;
+        ChatThread.load(conv);
         Composer.show();
         Composer.setChannelFromConversation(conv);
         updateContactPanel(conv);
@@ -39,30 +37,6 @@ var InboxApp = (function () {
             ConversationList.markRead(conv.id);
             apiPost(config.routes.messages + '/' + conv.id + '/read');
         }
-
-        var requestId = ++_selectRequestId;
-        fetch(config.routes.messages + '/' + conv.id + '/messages', {
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(function (res) { return res.json(); })
-        .then(function (json) {
-            if (requestId !== _selectRequestId) return;
-            if (json.success && json.data) {
-                conv.messages = json.data;
-                if (json.contact) {
-                    conv.name = json.contact.name || conv.name;
-                    conv.initials = json.contact.initials || conv.initials;
-                }
-            } else {
-                conv.messages = [];
-            }
-            ChatThread.load(conv);
-        })
-        .catch(function () {
-            if (requestId !== _selectRequestId) return;
-            conv.messages = [];
-            ChatThread.load(conv);
-        });
     }
 
     /* ── Called when user sends a reply ─────────────────── */
@@ -88,16 +62,12 @@ var InboxApp = (function () {
             ConversationList.updateSnippet(conv.id, payload.message, timeStr);
         }
 
-        var postData = {
+        // API call
+        apiPost(config.routes.sendReply + '/' + conv.id + '/reply', {
             message: payload.message,
             channel: payload.channel,
             rcs_payload: payload.rcs_payload
-        };
-        if (payload.sender_id) postData.sender_id = payload.sender_id;
-        if (payload.rcs_agent) postData.rcs_agent = payload.rcs_agent;
-        if (payload.sms_fallback) postData.sms_fallback = payload.sms_fallback;
-
-        apiPost(config.routes.sendReply + '/' + conv.id + '/reply', postData);
+        });
     }
 
     /* ── Global event bindings ─────────────────────────── */
@@ -156,28 +126,14 @@ var InboxApp = (function () {
 
         // Contact panel toggle
         bindClick('toggleContactPanel', toggleContactPanel);
+        bindClick('closeContactPanel', toggleContactPanel);
     }
 
-    /* ── Contact panel (modal) ─────────────────────────── */
+    /* ── Contact panel ─────────────────────────────────── */
     function toggleContactPanel() {
-        var modal = document.getElementById('contactPanelModal');
-        if (!modal || typeof bootstrap === 'undefined') return;
-        var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-        bsModal.toggle();
-    }
-
-    var AVATAR_COLORS = [
-        '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
-        '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
-    ];
-
-    function getAvatarColor(name) {
-        var hash = 0;
-        var str = name || '?';
-        for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        var panel = document.getElementById('contactPanel');
+        if (!panel) return;
+        panel.classList.toggle('d-none');
     }
 
     function updateContactPanel(conv) {
@@ -188,22 +144,9 @@ var InboxApp = (function () {
         setTextContent('contactFirstDate', conv.first_contact || '');
 
         var avatar = document.getElementById('contactAvatar');
-        if (avatar) {
-            avatar.textContent = conv.initials || '?';
-            var color = getAvatarColor(conv.name);
-            avatar.style.backgroundColor = color + '20';
-            avatar.style.color = color;
-        }
+        if (avatar) avatar.textContent = conv.initials || '?';
 
-        var viewBtn = document.getElementById('viewInContactsBtn');
-        if (viewBtn) {
-            if (conv.contact_id) {
-                viewBtn.href = '/contacts/all?highlight=' + conv.contact_id;
-            } else {
-                viewBtn.href = '/contacts/all';
-            }
-        }
-
+        // Load tags and notes for this contact
         renderContactTags(conv.id);
         renderContactNotes(conv.id);
         renderContactLists(conv.id);
@@ -211,40 +154,37 @@ var InboxApp = (function () {
 
     /* ── Contact Sidebar: Tags, Notes, Lists ──────────── */
     function bindContactSidebar() {
+        // Tag add form toggle
         bindClick('showAddTagBtn', function () {
             var form = document.getElementById('addTagForm');
             var btn = document.getElementById('showAddTagBtn');
             if (form) form.classList.remove('d-none');
             if (btn) btn.classList.add('d-none');
-            populateTagDropdown();
+            var input = document.getElementById('newTagInput');
+            if (input) input.focus();
         });
 
         bindClick('cancelTagBtn', function () {
-            resetTagForm();
+            var form = document.getElementById('addTagForm');
+            var btn = document.getElementById('showAddTagBtn');
+            if (form) form.classList.add('d-none');
+            if (btn) btn.classList.remove('d-none');
+            var input = document.getElementById('newTagInput');
+            if (input) input.value = '';
         });
 
         bindClick('saveTagBtn', function () {
-            var select = document.getElementById('existingTagSelect');
             var input = document.getElementById('newTagInput');
-            var tagName = '';
-            if (select && select.value) {
-                tagName = select.options[select.selectedIndex].textContent;
-            } else if (input && input.value.trim()) {
-                tagName = input.value.trim();
-            }
-            if (!tagName) return;
-            addTag(tagName);
-            resetTagForm();
+            if (!input || !input.value.trim()) return;
+            addTag(input.value.trim());
+            input.value = '';
+            var form = document.getElementById('addTagForm');
+            var btn = document.getElementById('showAddTagBtn');
+            if (form) form.classList.add('d-none');
+            if (btn) btn.classList.remove('d-none');
         });
 
-        var existingTagSelect = document.getElementById('existingTagSelect');
-        if (existingTagSelect) {
-            existingTagSelect.addEventListener('change', function () {
-                var input = document.getElementById('newTagInput');
-                if (this.value && input) input.value = '';
-            });
-        }
-
+        // Enter key on tag input
         var tagInput = document.getElementById('newTagInput');
         if (tagInput) {
             tagInput.addEventListener('keydown', function (e) {
@@ -253,12 +193,9 @@ var InboxApp = (function () {
                     document.getElementById('saveTagBtn').click();
                 }
             });
-            tagInput.addEventListener('input', function () {
-                var select = document.getElementById('existingTagSelect');
-                if (this.value && select) select.value = '';
-            });
         }
 
+        // Note add form toggle
         bindClick('showAddNoteBtn', function () {
             var form = document.getElementById('addNoteForm');
             var btn = document.getElementById('showAddNoteBtn');
@@ -287,45 +224,6 @@ var InboxApp = (function () {
             if (form) form.classList.add('d-none');
             if (btn) btn.classList.remove('d-none');
         });
-
-        bindClick('showAddToListBtn', function () {
-            var form = document.getElementById('addToListForm');
-            var btn = document.getElementById('showAddToListBtn');
-            if (form) form.classList.remove('d-none');
-            if (btn) btn.classList.add('d-none');
-            populateListDropdown();
-        });
-
-        bindClick('cancelAddToListBtn', function () {
-            resetListForm();
-        });
-
-        bindClick('confirmAddToListBtn', function () {
-            var select = document.getElementById('addToListSelect');
-            if (!select || !select.value) return;
-            addToList(select.value, select.options[select.selectedIndex].textContent);
-            resetListForm();
-        });
-    }
-
-    function resetTagForm() {
-        var form = document.getElementById('addTagForm');
-        var btn = document.getElementById('showAddTagBtn');
-        if (form) form.classList.add('d-none');
-        if (btn) btn.classList.remove('d-none');
-        var input = document.getElementById('newTagInput');
-        if (input) input.value = '';
-        var select = document.getElementById('existingTagSelect');
-        if (select) select.value = '';
-    }
-
-    function resetListForm() {
-        var form = document.getElementById('addToListForm');
-        var btn = document.getElementById('showAddToListBtn');
-        if (form) form.classList.add('d-none');
-        if (btn) btn.classList.remove('d-none');
-        var select = document.getElementById('addToListSelect');
-        if (select) select.value = '';
     }
 
     function getContactData(convId) {
@@ -335,92 +233,24 @@ var InboxApp = (function () {
         return contactData[convId];
     }
 
-    /* ── Fetch available tags & lists ─────────────────── */
-    function fetchAvailableTags() {
-        fetch('/api/tags', {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrfToken || '' }
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (json) {
-            availableTags = (json.data || []).map(function (t) {
-                return { id: t.id, name: t.name, color: t.color || '#6f42c1' };
-            });
-        })
-        .catch(function () { availableTags = []; });
-    }
-
-    function fetchAvailableLists() {
-        fetch('/api/contact-lists', {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrfToken || '' }
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (json) {
-            availableLists = (json.data || []).map(function (l) {
-                return { id: l.id, name: l.name };
-            });
-        })
-        .catch(function () { availableLists = []; });
-    }
-
-    function populateTagDropdown() {
-        var select = document.getElementById('existingTagSelect');
-        if (!select) return;
-        while (select.options.length > 1) select.remove(1);
-
-        var data = activeConversation ? getContactData(activeConversation.id) : { tags: [] };
-        var existingNames = data.tags.map(function (t) { return t.name.toLowerCase(); });
-
-        availableTags.forEach(function (tag) {
-            if (existingNames.indexOf(tag.name.toLowerCase()) === -1) {
-                var opt = document.createElement('option');
-                opt.value = tag.id;
-                opt.textContent = tag.name;
-                select.appendChild(opt);
-            }
-        });
-    }
-
-    function populateListDropdown() {
-        var select = document.getElementById('addToListSelect');
-        if (!select) return;
-        while (select.options.length > 1) select.remove(1);
-
-        var data = activeConversation ? getContactData(activeConversation.id) : { lists: [] };
-        var existingIds = data.lists.map(function (l) { return l.id; });
-
-        availableLists.forEach(function (list) {
-            if (existingIds.indexOf(list.id) === -1) {
-                var opt = document.createElement('option');
-                opt.value = list.id;
-                opt.textContent = list.name;
-                select.appendChild(opt);
-            }
-        });
-    }
-
     /* ── Tags ─────────────────────────────────────────── */
-    var PASTEL_TAG_CLASSES = [
-        'badge-pastel-primary', 'badge-pastel-success', 'badge-pastel-info',
-        'badge-pastel-warning', 'badge-pastel-pink', 'badge-pastel-green',
-        'badge-pastel-secondary', 'badge-pastel-danger'
-    ];
-
-    function getTagPastelClass(index) {
-        return PASTEL_TAG_CLASSES[index % PASTEL_TAG_CLASSES.length];
-    }
+    var TAG_COLORS = ['#886CC0', '#34C759', '#FF9500', '#FF3B30', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55'];
 
     function addTag(name) {
         if (!activeConversation) return;
         var data = getContactData(activeConversation.id);
+        // Prevent duplicate
         if (data.tags.some(function (t) { return t.name.toLowerCase() === name.toLowerCase(); })) return;
-        data.tags.push({ name: name, created: new Date().toISOString() });
+        data.tags.push({
+            name: name,
+            color: TAG_COLORS[data.tags.length % TAG_COLORS.length],
+            created: new Date().toISOString()
+        });
         renderContactTags(activeConversation.id);
 
+        // API call (when backend is ready)
         if (activeConversation.contact_id) {
-            apiPost('/api/contacts/bulk/add-tags', {
-                contact_ids: [activeConversation.contact_id],
-                tags: [name]
-            });
+            apiPost('/api/contacts/' + activeConversation.contact_id + '/tags', { name: name });
         }
     }
 
@@ -428,14 +258,6 @@ var InboxApp = (function () {
         var data = getContactData(convId);
         data.tags = data.tags.filter(function (t) { return t.name !== tagName; });
         renderContactTags(convId);
-
-        var conv = ConversationList.getById ? ConversationList.getById(convId) : activeConversation;
-        if (conv && conv.contact_id) {
-            apiPost('/api/contacts/bulk/remove-tags', {
-                contact_ids: [conv.contact_id],
-                tags: [tagName]
-            });
-        }
     }
 
     function renderContactTags(convId) {
@@ -451,11 +273,10 @@ var InboxApp = (function () {
             return;
         }
 
-        container.innerHTML = data.tags.map(function (tag, i) {
-            var cls = getTagPastelClass(i);
-            return '<span class="badge rounded-pill ' + cls + ' me-1 mb-1" style="cursor: pointer;" ' +
+        container.innerHTML = data.tags.map(function (tag) {
+            return '<span class="badge me-1 mb-1" style="background-color: ' + tag.color + '; cursor: pointer;" ' +
                 'title="Click to remove" onclick="InboxApp.removeTag(\'' + convId + '\', \'' + escapeAttr(tag.name) + '\')">' +
-                escapeHtml(tag.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem; opacity: 0.7;"></i></span>';
+                escapeHtml(tag.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem;"></i></span>';
         }).join('');
     }
 
@@ -501,37 +322,6 @@ var InboxApp = (function () {
     }
 
     /* ── Lists ────────────────────────────────────────── */
-    function addToList(listId, listName) {
-        if (!activeConversation || !activeConversation.contact_id) return;
-        var data = getContactData(activeConversation.id);
-        if (data.lists.some(function (l) { return l.id === listId; })) return;
-        data.lists.push({ id: listId, name: listName });
-        renderContactLists(activeConversation.id);
-
-        apiPost('/api/contact-lists/' + listId + '/members', {
-            contact_ids: [activeConversation.contact_id]
-        });
-    }
-
-    function removeFromList(convId, listId) {
-        var data = getContactData(convId);
-        data.lists = data.lists.filter(function (l) { return l.id !== listId; });
-        renderContactLists(convId);
-
-        var conv = ConversationList.getById ? ConversationList.getById(convId) : activeConversation;
-        if (conv && conv.contact_id) {
-            fetch('/api/contact-lists/' + listId + '/members', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': config.csrfToken || '',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ contact_ids: [conv.contact_id] })
-            }).catch(function (err) { console.warn('[Inbox] Remove from list error:', err); });
-        }
-    }
-
     function renderContactLists(convId) {
         var container = document.getElementById('contactLists');
         if (!container) return;
@@ -543,9 +333,7 @@ var InboxApp = (function () {
         }
 
         container.innerHTML = data.lists.map(function (list) {
-            return '<span class="badge badge-pastel-info rounded-pill me-1 mb-1" style="cursor: pointer;" ' +
-                'title="Click to remove" onclick="InboxApp.removeFromList(\'' + convId + '\', \'' + escapeAttr(list.id) + '\')">' +
-                escapeHtml(list.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem; opacity: 0.7;"></i></span>';
+            return '<span class="badge bg-secondary me-1 mb-1">' + escapeHtml(list.name) + '</span>';
         }).join('');
     }
 
@@ -582,46 +370,9 @@ var InboxApp = (function () {
                 'Accept': 'application/json'
             },
             body: body ? JSON.stringify(body) : undefined
-        }).then(function (res) {
-            if (!res.ok) {
-                return res.json().then(function (data) {
-                    var errMsg = data.message || 'Request failed (' + res.status + ')';
-                    console.error('[Inbox] API error ' + res.status + ':', errMsg);
-                    showToast(errMsg, 'error');
-                    return data;
-                }).catch(function () {
-                    console.error('[Inbox] API error ' + res.status);
-                    showToast('Request failed (' + res.status + ')', 'error');
-                });
-            }
-            return res.json();
         }).catch(function (err) {
-            console.warn('[Inbox] Network error:', err);
-            showToast('Network error — message not sent', 'error');
+            console.warn('[Inbox] API error:', err);
         });
-    }
-
-    function showToast(message, type) {
-        var container = document.getElementById('inboxToastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'inboxToastContainer';
-            container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;';
-            document.body.appendChild(container);
-        }
-        var toast = document.createElement('div');
-        toast.className = 'alert alert-' + (type === 'error' ? 'danger' : 'success') + ' alert-dismissible fade show';
-        toast.style.cssText = 'min-width:300px;margin-bottom:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-        var msgSpan = document.createElement('span');
-        msgSpan.textContent = message;
-        toast.appendChild(msgSpan);
-        var closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'btn-close';
-        closeBtn.setAttribute('data-bs-dismiss', 'alert');
-        toast.appendChild(closeBtn);
-        container.appendChild(toast);
-        setTimeout(function () { if (toast.parentNode) toast.remove(); }, 6000);
     }
 
     function bindClick(id, handler) {
@@ -649,8 +400,7 @@ var InboxApp = (function () {
     return {
         init: init,
         comingSoon: comingSoon,
-        removeTag: removeTag,
-        removeFromList: removeFromList
+        removeTag: removeTag
     };
 })();
 

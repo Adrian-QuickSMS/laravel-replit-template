@@ -295,12 +295,6 @@ var SecurityControls = (function() {
     }
 
     function propagateSuspension(userId) {
-        console.log('[SECURITY] Propagating suspension for user:', userId);
-        console.log('[SECURITY] - Invalidating all active sessions');
-        console.log('[SECURITY] - Revoking API tokens');
-        console.log('[SECURITY] - Blocking pending operations');
-        console.log('[SECURITY] - Notifying connected services');
-
         return {
             sessionsInvalidated: true,
             tokensRevoked: true,
@@ -501,7 +495,6 @@ var SecurityControls = (function() {
     }
 
     function logSecurityEvent(eventType, userId, details) {
-        console.log('[SECURITY EVENT]', eventType, userId, details);
     }
 
     return {

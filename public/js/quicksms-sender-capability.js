@@ -49,7 +49,6 @@ var SenderCapability = (function() {
             applyCapabilityRestrictions();
         }
         
-        console.log('[SenderCapability] Initialized:', { capability: currentCapability, role: currentRole });
     }
 
     function hasMessagingAccess() {
@@ -251,8 +250,6 @@ var SenderCapability = (function() {
             timestamp: new Date().toISOString(),
             ipAddress: '192.168.1.100'
         };
-
-        console.log('[AUDIT] Sender capability changed:', auditEntry);
 
         return {
             success: true,

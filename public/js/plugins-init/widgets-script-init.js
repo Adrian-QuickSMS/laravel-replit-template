@@ -172,7 +172,11 @@
 				}
 			});
 			
-			setInterval(function() {
+			var widgetChartInterval = setInterval(function() {
+				if (!document.body.contains(chart.canvas)) {
+					clearInterval(widgetChartInterval);
+					return;
+				}
 				chart.config.data.datasets[0].data.push(
 					Math.floor(10 + Math.random() * 80)
 				);

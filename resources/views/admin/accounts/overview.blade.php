@@ -452,23 +452,7 @@
                         <tr class="sub-account-row" data-parent="{{ $acct->account_number }}">
                             <td colspan="7">
                                 <div class="sub-account-table-wrapper">
-                                    @php $subs = $subAccountsByAccount[$acct->id] ?? collect(); @endphp
-                                    @if($subs->count() > 0)
-                                        <table class="table table-sm mb-0" style="font-size:0.8rem;background:#f8f9fc;">
-                                            <thead><tr><th style="padding-left:2.5rem;">Sub-Account</th><th>Status</th><th>Actions</th></tr></thead>
-                                            <tbody>
-                                            @foreach($subs as $sa)
-                                                <tr>
-                                                    <td style="padding-left:2.5rem;"><i class="fas fa-sitemap me-2 text-muted" style="font-size:0.7rem;"></i>{{ $sa->name }}</td>
-                                                    <td><span class="badge light badge-success">{{ ucfirst($sa->sub_account_status ?? 'live') }}</span></td>
-                                                    <td><a href="{{ route('admin.accounts.details', $acct->id) }}" class="btn btn-sm btn-outline-primary" style="font-size:0.7rem;padding:0.15rem 0.5rem;">View</a></td>
-                                                </tr>
-                                            @endforeach
-                                            </tbody>
-                                        </table>
-                                    @else
-                                        <span class="no-sub-accounts">No sub-accounts configured</span>
-                                    @endif
+                                    <span class="no-sub-accounts">No sub-accounts configured</span>
                                 </div>
                             </td>
                         </tr>

@@ -178,7 +178,6 @@ var AdminControlPlane = (function() {
         if (SHARED_DEFINITIONS[type] && SHARED_DEFINITIONS[type][key]) {
             return SHARED_DEFINITIONS[type][key];
         }
-        console.warn('[AdminControlPlane] Unknown shared definition:', type, key);
         return null;
     }
 
@@ -272,7 +271,6 @@ var AdminControlPlane = (function() {
         var cached = queryCache[key];
 
         if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
-            console.log('[AdminControlPlane] Cache hit:', key);
             return cached.data;
         }
 
@@ -299,7 +297,6 @@ var AdminControlPlane = (function() {
         } else {
             queryCache = {};
         }
-        console.log('[AdminControlPlane] Cache cleared:', pattern || 'all');
     }
 
     function serverSideQuery(endpoint, params, callback) {
@@ -312,7 +309,6 @@ var AdminControlPlane = (function() {
         }
 
         if (validation.warnings.length > 0) {
-            console.warn('[AdminControlPlane] Query warnings:', validation.warnings);
         }
 
         var cached = getCached(endpoint, params);
@@ -325,8 +321,6 @@ var AdminControlPlane = (function() {
             page: 1,
             limit: NFR_CONSTRAINTS.queryLimits.defaultPageSize
         }, validation.params);
-
-        console.log('[AdminControlPlane] Server-side query:', endpoint, queryParams);
 
         fetch('/admin/api/' + endpoint, {
             method: 'POST',
@@ -353,7 +347,8 @@ var AdminControlPlane = (function() {
 
         var warning = document.createElement('div');
         warning.className = 'admin-perf-warning';
-        warning.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + message +
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
+        warning.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + esc(message) +
             '<button class="btn-close-warning" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
 
         var container = document.querySelector('.admin-dashboard') || document.querySelector('.content-body');
@@ -471,7 +466,6 @@ var AdminControlPlane = (function() {
 
     function assertSuperset(adminFeature, customerFeature) {
         if (!customerFeature) {
-            console.warn('[AdminControlPlane] Admin feature has no customer equivalent - ensure this is intentional');
             return true;
         }
 
@@ -557,7 +551,7 @@ var AdminControlPlane = (function() {
                     sessionStart: new Date().toISOString()
                 };
             } catch (e) {
-                console.warn('[AdminControlPlane] Failed to parse admin user meta');
+                // Parse failure - fall through to defaults
             }
         }
         return {
@@ -672,9 +666,6 @@ var AdminControlPlane = (function() {
             return;
         }
         
-        console.log('[AdminControlPlane] Initialized for:', currentAdmin.email);
-        console.log('[AdminControlPlane] Access Rules:', ACCESS_RULES);
-        console.log('[AdminControlPlane] Global Rules:', GLOBAL_RULES);
         updateAdminDisplay();
         bindEvents();
         initFilterSystem();
@@ -730,7 +721,6 @@ var AdminControlPlane = (function() {
                 return ACCESS_RULES[key].enforced;
             })
         };
-        console.log('[AdminControlPlane][ACCESS]', JSON.stringify(entry));
     }
 
     function logSecurityViolation(violations) {
@@ -751,7 +741,6 @@ var AdminControlPlane = (function() {
             input.addEventListener('change', function(e) {
                 var filterKey = e.target.dataset.adminFilter;
                 pendingFilters[filterKey] = e.target.value;
-                console.log('[AdminControlPlane] Filter pending:', filterKey, '=', e.target.value);
             });
         });
 
@@ -772,16 +761,13 @@ var AdminControlPlane = (function() {
 
     function setPendingFilter(key, value) {
         pendingFilters[key] = value;
-        console.log('[AdminControlPlane] Filter pending:', key, '=', value);
     }
 
     function applyFilters() {
         if (GLOBAL_RULES.filtering.autoFilter) {
-            console.warn('[AdminControlPlane] Auto-filter is disabled by global rules');
         }
 
         appliedFilters = Object.assign({}, pendingFilters);
-        console.log('[AdminControlPlane] Filters applied:', appliedFilters);
 
         logAdminAction('FILTERS_APPLIED', 'current_view', {
             filters: appliedFilters
@@ -808,7 +794,6 @@ var AdminControlPlane = (function() {
         var event = new CustomEvent('adminFiltersCleared');
         document.dispatchEvent(event);
 
-        console.log('[AdminControlPlane] Filters cleared');
     }
 
     function getAppliedFilters() {
@@ -817,7 +802,6 @@ var AdminControlPlane = (function() {
 
     function drillDown(targetModule, targetId, context) {
         if (currentDrillDepth >= GLOBAL_RULES.filtering.maxDrillDepth) {
-            console.warn('[AdminControlPlane] Max drill depth reached:', GLOBAL_RULES.filtering.maxDrillDepth);
             return false;
         }
 
@@ -993,18 +977,13 @@ var AdminControlPlane = (function() {
             });
             
             if (isMutation && (!entry.beforeValues && !entry.afterValues)) {
-                console.warn('[AdminControlPlane] Mutation action without before/after values:', action);
                 entry.complianceWarning = 'MISSING_BEFORE_AFTER_VALUES';
             }
         }
 
-        // Log based on severity
+        // Log critical audit events as errors
         if (severity === 'CRITICAL') {
             console.error('[ADMIN_AUDIT][CRITICAL]', JSON.stringify(entry, null, 2));
-        } else if (severity === 'HIGH') {
-            console.warn('[ADMIN_AUDIT][HIGH]', JSON.stringify(entry, null, 2));
-        } else {
-            console.log('[ADMIN_AUDIT][' + severity + ']', JSON.stringify(entry, null, 2));
         }
 
         if (typeof fetch !== 'undefined') {
@@ -1016,7 +995,7 @@ var AdminControlPlane = (function() {
                 },
                 body: JSON.stringify(entry)
             }).catch(function(err) {
-                console.warn('[AdminControlPlane] Failed to send audit log to server:', err);
+                console.error('[AdminControlPlane] Failed to send audit log to server:', err);
             });
         }
 
@@ -1042,7 +1021,6 @@ var AdminControlPlane = (function() {
 
     function startImpersonation(accountId, accountName, reason) {
         if (!IMPERSONATION_CONFIG.enabled) {
-            console.warn('[AdminControlPlane] Impersonation is disabled');
             return { success: false, error: 'Impersonation is disabled' };
         }
         
@@ -1259,11 +1237,12 @@ var AdminControlPlane = (function() {
     function createRevealModal(targetId, dataType, recordId) {
         var modal = document.createElement('div');
         modal.className = 'modal fade';
-        modal.innerHTML = 
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
+        modal.innerHTML =
             '<div class="modal-dialog modal-sm">' +
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
-                        '<h5 class="modal-title">Reveal ' + dataType + '</h5>' +
+                        '<h5 class="modal-title">Reveal ' + esc(dataType) + '</h5>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
                     '</div>' +
                     '<div class="modal-body">' +
@@ -1394,7 +1373,6 @@ var AdminControlPlane = (function() {
         init: function(assetType) {
             this.assetType = assetType;
             this.bindEvents();
-            console.log('[ApprovalFramework] Initialized for:', assetType);
         },
 
         bindEvents: function() {
@@ -1480,7 +1458,6 @@ var AdminControlPlane = (function() {
         },
 
         loadItemDetails: function(itemId) {
-            console.log('[ApprovalFramework] Loading details for:', itemId);
         },
 
         approve: function(itemId, notes) {
@@ -1632,7 +1609,6 @@ var AdminControlPlane = (function() {
         },
 
         showToast: function(message, type) {
-            console.log('[ApprovalFramework] Toast:', type, message);
         },
 
         getRejectTemplates: function() {

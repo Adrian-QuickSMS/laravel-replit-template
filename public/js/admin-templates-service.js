@@ -731,7 +731,7 @@ const AdminTemplatesService = (function() {
             details,
             adminUser: typeof AdminControlPlane !== 'undefined' ? AdminControlPlane.getCurrentUser() : { email: 'admin@quicksms.co.uk' }
         };
-        console.log('[AdminTemplatesService][AUDIT]', JSON.stringify(auditEntry));
+        // Audit entry created (logging removed for production)
     }
 
     return {

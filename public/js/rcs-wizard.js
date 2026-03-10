@@ -2,8 +2,6 @@
  * RCS Content Wizard - Shared JavaScript
  * Used by both Send Message and Inbox pages
  */
-console.log('[RCS Wizard] Script loading...');
-
 var rcsCardCount = 1;
 var rcsCurrentCard = 1;
 var rcsMaxCards = 10;
@@ -106,7 +104,6 @@ window.onrcsMediaLoadSuccess = function(data) {
             onUrlImageLoaded(data.url);
         };
         img.onerror = function() {
-            console.log('[RCS Load] CORS blocked, proxying through server:', data.url);
             proxyRcsImageThroughServer(data.url, function(proxyResult) {
                 if (proxyResult && proxyResult.dataUrl) {
                     var proxyImg = new Image();
@@ -183,8 +180,7 @@ function initializeRcsCard(cardNum) {
                 cropOffsetY: 0,
                 assetUuid: null,
                 hostedUrl: null,
-                originalUrl: null,
-                savedDataUrl: null
+                originalUrl: null
             },
             description: '',
             textBody: '',
@@ -217,10 +213,9 @@ function openRcsWizard() {
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
-        loadCardData(rcsCurrentCard);
         var configCol = document.getElementById('rcsConfigColumn');
         if (configCol) configCol.focus();
-    }, 200);
+    }, 100);
 }
 
 function initializeMessageTypeUI() {
@@ -317,8 +312,7 @@ function loadCardData(cardNum) {
         hideRcsHostedUrl();
     }
     
-    var effectiveMediaUrl = card.media.savedDataUrl || card.media.hostedUrl || card.media.url;
-    if (effectiveMediaUrl) {
+    if (card.media.url) {
         var cardWidth = card.media.cardWidth || 'medium';
         var widthRadio = document.getElementById('rcsCardWidth' + cardWidth.charAt(0).toUpperCase() + cardWidth.slice(1));
         if (widthRadio) widthRadio.checked = true;
@@ -329,7 +323,7 @@ function loadCardData(cardNum) {
         if (orientRadio && !orientRadio.disabled) orientRadio.checked = true;
         updateRcsCropFrame(card.media.orientation);
         
-        showRcsMediaPreview(effectiveMediaUrl);
+        showRcsMediaPreview(card.media.hostedUrl || card.media.url);
         updateRcsImageInfo();
         
         setTimeout(function() {
@@ -445,7 +439,6 @@ function buildRcsPayload() {
             media: {
                 source: card.media.source,
                 url: card.media.url,
-                savedDataUrl: card.media.savedDataUrl || null,
                 hostedUrl: card.media.hostedUrl || null,
                 assetUuid: card.media.assetUuid || null,
                 fileName: card.media.fileName,
@@ -492,21 +485,17 @@ function buildRcsPayload() {
 
 function persistRcsPayload(payload) {
     rcsPersistentPayload = payload;
-    console.log('RCS Payload persisted:', JSON.stringify(payload, null, 2));
     sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
 }
 
 function applyRcsContent() {
-    console.log('[RCS Apply] applyRcsContent started');
     saveCurrentCardData();
-    
+
     var validation = validateRcsContent();
-    console.log('[RCS Apply] Validation result:', JSON.stringify(validation));
     
     hideRcsValidationErrors();
     
     if (!validation.valid) {
-        console.log('[RCS Apply] Validation failed, showing errors');
         showRcsValidationErrors(validation.errors, validation.warnings);
         return;
     }
@@ -541,18 +530,12 @@ function applyRcsContent() {
     if (clearBtnInbox) clearBtnInbox.classList.remove('d-none');
     if (wizardBtnTextInbox) wizardBtnTextInbox.textContent = 'Edit RCS Message';
     
-    console.log('[RCS Apply] Closing wizard modal');
     closeRcsWizardModal();
-    
+
     setTimeout(function() {
-        console.log('[RCS Apply] Calling updateRcsWizardPreviewInMain');
         if (typeof updateRcsWizardPreviewInMain === 'function') {
             updateRcsWizardPreviewInMain();
-            console.log('[RCS Apply] Preview updated successfully');
-        } else {
-            console.log('[RCS Apply] updateRcsWizardPreviewInMain not available');
         }
-        window.dispatchEvent(new CustomEvent('rcsContentApplied', { detail: payload }));
     }, 100);
 }
 
@@ -615,7 +598,7 @@ function updateRcsWizardPreview() {
     var container = document.getElementById('rcsWizardPreviewContainer');
     if (!container) return;
     
-    var agentSelect = document.getElementById('rcsAgent') || document.getElementById('inboxRcsAgentSelect');
+    var agentSelect = document.getElementById('rcsAgent');
     var agentName = 'QuickSMS Brand';
     var agentTagline = 'Business messaging';
     var agentLogo = '/images/rcs-agents/quicksms-brand.svg';
@@ -623,7 +606,7 @@ function updateRcsWizardPreview() {
     if (agentSelect && agentSelect.selectedIndex > 0) {
         var selectedOption = agentSelect.options[agentSelect.selectedIndex];
         agentName = selectedOption.getAttribute('data-name') || selectedOption.text;
-        agentTagline = selectedOption.getAttribute('data-tagline') || agentTagline;
+        agentTagline = selectedOption.getAttribute('data-tagline') || '';
         agentLogo = selectedOption.getAttribute('data-logo') || agentLogo;
     }
     
@@ -673,16 +656,12 @@ function getWizardCardSchema(cardNum) {
         hostedUrl = rcsMediaData.hostedUrl || null;
         // For preview display, use savedDataUrl first (immediate after save), 
         // then try resolver, then fall back to original url
-        console.log('[RCS Schema] isCurrentCard, checking savedDataUrl:', !!rcsMediaData.savedDataUrl);
         if (rcsMediaData.savedDataUrl) {
             displayUrl = rcsMediaData.savedDataUrl;
-            console.log('[RCS Schema] Using savedDataUrl, length:', displayUrl.length);
         } else if (hostedUrl) {
             displayUrl = resolveRcsMediaUrl(hostedUrl);
-            console.log('[RCS Schema] Using resolved hostedUrl');
         } else {
             displayUrl = rcsMediaData.url;
-            console.log('[RCS Schema] Using original url');
         }
     } else {
         // For other cards, use hostedUrl as source of truth
@@ -807,74 +786,45 @@ function loadRcsFromStorage() {
     
     try {
         var payload = JSON.parse(stored);
-        if (!payload || !payload.cards || !payload.cards.length) return false;
         
-        rcsCardsData = {};
-        rcsCardCount = payload.cardCount || payload.cards.length;
-        rcsCurrentCard = 1;
+        var typeEl = document.getElementById('rcsType' + (payload.type === 'carousel' ? 'Carousel' : 'Single'));
+        if (typeEl) typeEl.checked = true;
+        toggleRcsMessageType();
         
+        rcsCardCount = payload.cardCount;
         payload.cards.forEach(function(cardData) {
             var cardNum = cardData.order;
             rcsCardsData[cardNum] = {
                 media: {
-                    source: cardData.media ? cardData.media.source : null,
-                    url: cardData.media ? cardData.media.url : null,
-                    savedDataUrl: cardData.media ? (cardData.media.savedDataUrl || null) : null,
-                    hostedUrl: cardData.media ? (cardData.media.hostedUrl || null) : null,
-                    assetUuid: cardData.media ? (cardData.media.assetUuid || null) : null,
-                    originalUrl: cardData.media ? (cardData.media.originalUrl || null) : null,
+                    source: cardData.media.source,
+                    url: cardData.media.url,
                     file: null,
-                    fileName: cardData.media ? cardData.media.fileName : null,
-                    fileSize: cardData.media ? (cardData.media.fileSize || 0) : 0,
-                    dimensions: cardData.media ? cardData.media.dimensions : null,
-                    orientation: cardData.media ? (cardData.media.orientation || 'vertical_short') : 'vertical_short',
-                    cardWidth: cardData.media ? (cardData.media.cardWidth || 'medium') : 'medium',
-                    zoom: cardData.media ? (cardData.media.zoom || 100) : 100,
-                    cropOffsetX: cardData.media ? (cardData.media.cropOffsetX || 0) : 0,
-                    cropOffsetY: cardData.media ? (cardData.media.cropOffsetY || 0) : 0
+                    fileName: cardData.media.fileName,
+                    fileSize: cardData.media.fileSize,
+                    dimensions: cardData.media.dimensions,
+                    orientation: cardData.media.orientation,
+                    zoom: cardData.media.zoom,
+                    cropOffsetX: cardData.media.cropOffsetX,
+                    cropOffsetY: cardData.media.cropOffsetY
                 },
-                description: cardData.description || '',
-                textBody: cardData.textBody || '',
-                buttons: (cardData.buttons || []).map(function(btn) {
+                description: cardData.description,
+                textBody: cardData.textBody,
+                buttons: cardData.buttons.map(function(btn) {
                     var buttonObj = { label: btn.label, type: btn.type };
-                    if (btn.type === 'url') buttonObj.url = btn.action ? btn.action.url : (btn.url || '');
-                    if (btn.type === 'phone') buttonObj.phone = btn.action ? btn.action.phoneNumber : (btn.phone || '');
+                    if (btn.type === 'url') buttonObj.url = btn.action.url;
+                    if (btn.type === 'phone') buttonObj.phone = btn.action.phoneNumber;
                     if (btn.type === 'calendar') {
-                        buttonObj.eventTitle = btn.action ? btn.action.title : (btn.eventTitle || '');
-                        buttonObj.eventStart = btn.action ? btn.action.startTime : (btn.eventStart || '');
-                        buttonObj.eventEnd = btn.action ? btn.action.endTime : (btn.eventEnd || '');
-                        buttonObj.eventDesc = btn.action ? btn.action.description : (btn.eventDesc || '');
+                        buttonObj.eventTitle = btn.action.title;
+                        buttonObj.eventStart = btn.action.startTime;
+                        buttonObj.eventEnd = btn.action.endTime;
+                        buttonObj.eventDesc = btn.action.description;
                     }
                     return buttonObj;
                 })
             };
         });
         
-        var isCarousel = (payload.type === 'carousel' || rcsCardCount > 1) && rcsCardCount > 1;
-        var singleRadio = document.getElementById('rcsTypeSingle');
-        var carouselRadio = document.getElementById('rcsTypeCarousel');
-        if (isCarousel && carouselRadio) {
-            carouselRadio.checked = true;
-        } else if (singleRadio) {
-            singleRadio.checked = true;
-        }
-        
-        var carouselNav = document.getElementById('rcsCarouselNav');
-        var cardLabel = document.getElementById('rcsCurrentCardLabel');
-        var cardWidthSection = document.getElementById('rcsCardWidthSection');
-        var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
-        var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
-        var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
-        if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
-        if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
-        if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
-        if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
-        if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
-        if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
-        
-        rebuildCardTabs();
         loadCardData(1);
-        updateRcsCardCount();
         rcsPersistentPayload = payload;
         return true;
     } catch (e) {
@@ -1273,7 +1223,6 @@ function proxyRcsImageThroughServer(url, callback) {
     })
     .then(function(data) {
         if (data.success && data.dataUrl) {
-            console.log('[RCS Proxy] Image proxied successfully, size:', data.size);
             callback(data);
         } else {
             console.error('[RCS Proxy] Server returned error:', data.error);
@@ -1338,13 +1287,6 @@ function generateCroppedImageDataUrl() {
             var sourceWidth = rcsCropState.frameWidth / totalScale;
             var sourceHeight = rcsCropState.frameHeight / totalScale;
             
-            console.log('[RCS Crop] Natural:', naturalWidth, 'x', naturalHeight);
-            console.log('[RCS Crop] Display:', displayWidth.toFixed(1), 'x', displayHeight.toFixed(1), 'totalScale:', totalScale.toFixed(4));
-            console.log('[RCS Crop] Frame:', rcsCropState.frameWidth, 'x', rcsCropState.frameHeight);
-            console.log('[RCS Crop] Offset:', rcsCropState.offsetX, ',', rcsCropState.offsetY);
-            console.log('[RCS Crop] FrameRel:', frameLeftRelativeToImage.toFixed(1), ',', frameTopRelativeToImage.toFixed(1));
-            console.log('[RCS Crop] Source rect:', sourceX.toFixed(1), sourceY.toFixed(1), sourceWidth.toFixed(1), sourceHeight.toFixed(1));
-            
             // Clamp source coordinates to valid image bounds
             var clampedSourceX = Math.max(0, sourceX);
             var clampedSourceY = Math.max(0, sourceY);
@@ -1372,15 +1314,12 @@ function generateCroppedImageDataUrl() {
             
             try {
                 var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                console.log('[RCS Crop] Generated data URL, length:', dataUrl.length);
                 resolve(dataUrl);
             } catch (canvasError) {
                 console.error('[RCS Crop] Canvas toDataURL failed (CORS?):', canvasError);
                 if (rcsMediaData.source === 'upload' && rcsMediaData.url && rcsMediaData.url.startsWith('data:')) {
-                    console.log('[RCS Crop] Using original data URL for file upload');
                     resolve(rcsMediaData.url);
                 } else {
-                    console.log('[RCS Crop] Fallback to original URL');
                     resolve(rcsMediaData.url || rcsMediaData.originalUrl);
                 }
             }
@@ -1414,17 +1353,15 @@ function saveRcsImageEdits() {
         }
 
         var csrfToken = document.querySelector('meta[name="csrf-token"]');
-        var headers = { 'Accept': 'application/json' };
-        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         return fetch('/api/rcs/assets/process-upload', {
             method: 'POST',
-            headers: headers,
+            headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken.getAttribute('content') } : {},
             credentials: 'same-origin',
             body: formData
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || data.message || 'Upload failed');
+                    throw new Error(data.error || 'Upload failed');
                 }
                 return { croppedDataUrl: croppedDataUrl, data: data };
             });
@@ -1446,8 +1383,8 @@ function saveRcsImageEdits() {
         hideRcsProcessingIndicator();
     }).catch(function(err) {
         hideRcsProcessingIndicator();
-        console.error('[RCS Save Error]', err.message || err);
-        showRcsMediaError('Failed to save image: ' + (err.message || 'Please try again.'));
+        console.error('[RCS Save Error]', err);
+        showRcsMediaError('Failed to save image. Please try again.');
     });
 }
 
@@ -1514,17 +1451,15 @@ function saveRcsImageEditsAndContinue() {
         }
 
         var csrfToken = document.querySelector('meta[name="csrf-token"]');
-        var headers = { 'Accept': 'application/json' };
-        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         return fetch('/api/rcs/assets/process-upload', {
             method: 'POST',
-            headers: headers,
+            headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken.getAttribute('content') } : {},
             credentials: 'same-origin',
             body: formData
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || data.message || 'Upload failed');
+                    throw new Error(data.error || 'Upload failed');
                 }
                 return { croppedDataUrl: croppedDataUrl, data: data };
             });
@@ -1551,7 +1486,7 @@ function saveRcsImageEditsAndContinue() {
         executePendingNavigation();
     }).catch(function(err) {
         hideRcsProcessingIndicator();
-        console.error('[RCS Save Error]', err.message || err);
+        console.error('[RCS Save Error]', err);
         showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
     });
 }
@@ -1675,17 +1610,11 @@ function closeRcsWizardModal() {
 }
 
 function handleRcsApplyContent() {
-    console.log('[RCS Apply] handleRcsApplyContent called');
     var dirty = isRcsImageDirty();
-    console.log('[RCS Apply] isRcsImageDirty:', dirty);
-    console.log('[RCS Apply] rcsMediaData:', JSON.stringify(rcsMediaData));
-    console.log('[RCS Apply] rcsImageDirtyState:', JSON.stringify(rcsImageDirtyState));
-    
+
     if (dirty) {
-        console.log('[RCS Apply] Showing unsaved changes modal');
         showRcsUnsavedChangesModal({ type: 'applyContent' });
     } else {
-        console.log('[RCS Apply] Calling applyRcsContent directly');
         applyRcsContent();
     }
 }
@@ -1809,7 +1738,6 @@ function loadRcsMediaUrl() {
                 onImageLoaded(url);
             };
             img.onerror = function() {
-                console.log('[RCS Load] CORS blocked in loadRcsMediaUrl, proxying:', url);
                 proxyRcsImageThroughServer(url, function(proxyResult) {
                     if (proxyResult && proxyResult.dataUrl) {
                         var proxyImg = new Image();
@@ -3324,31 +3252,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Footer button handlers - using addEventListener for reliable event binding
     var cancelBtn = document.getElementById('rcsWizardCancelBtn');
     if (cancelBtn) {
-        console.log('[RCS Wizard] Cancel button found, binding event');
         cancelBtn.addEventListener('click', function(e) {
-            console.log('[RCS Wizard] Cancel button clicked');
             e.preventDefault();
             e.stopPropagation();
             handleRcsWizardClose();
         });
-    } else {
-        console.log('[RCS Wizard] Cancel button not found');
     }
     
     var applyBtn = document.getElementById('rcsApplyContentBtn');
     if (applyBtn) {
-        console.log('[RCS Wizard] Apply button found, binding event');
         applyBtn.addEventListener('click', function(e) {
-            console.log('[RCS Wizard] Apply button clicked');
             e.preventDefault();
             e.stopPropagation();
             handleRcsApplyContent();
         });
-    } else {
-        console.log('[RCS Wizard] Apply button not found');
     }
-    
-    console.log('[RCS Wizard] DOMContentLoaded complete');
 });
 
 /**
@@ -3499,13 +3417,11 @@ function validateRcsHttpsUrl(input) {
 function loadRcsPayloadIntoWizard(payload) {
     if (!payload) return;
 
-    console.log('[RCS Wizard] Loading template payload:', payload);
-
     rcsCardsData = {};
     rcsCurrentCard = 1;
 
     var type = payload.type || 'standalone';
-    var isCarousel = type === 'carousel' || (Array.isArray(payload.cards) && payload.cards.length > 1);
+    var isCarousel = type === 'carousel';
 
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
@@ -3571,29 +3487,14 @@ function loadRcsPayloadIntoWizard(payload) {
         };
     }
 
-    var carouselNav = document.getElementById('rcsCarouselNav');
-    var cardLabel = document.getElementById('rcsCurrentCardLabel');
-    var cardWidthSection = document.getElementById('rcsCardWidthSection');
-    var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
-    var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
-    var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
-    if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
-    if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
-    if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
-    if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
-    if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
-    if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
+    if (typeof toggleRcsMessageType === 'function') toggleRcsMessageType();
 
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
         payload.cards.forEach(function(card, index) {
             rcsCardsData[index + 1] = mapCardToInternal(card);
         });
-        rebuildCardTabs();
-        loadCardData(1);
-        updateRcsCardCount();
-    } else if (payload.cards && payload.cards.length === 1) {
-        rcsCardsData[1] = mapCardToInternal(payload.cards[0]);
+        if (typeof rebuildCardTabs === 'function') rebuildCardTabs();
         loadCardData(1);
     } else if (payload.card) {
         rcsCardsData[1] = mapCardToInternal(payload.card);
@@ -3609,5 +3510,4 @@ function loadRcsPayloadIntoWizard(payload) {
         setTimeout(updateRcsPreview, 200);
     }
 
-    console.log('[RCS Wizard] Template loaded as', isCarousel ? 'carousel with ' + rcsCardCount + ' cards' : 'single card');
 }

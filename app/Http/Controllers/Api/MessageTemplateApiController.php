@@ -99,7 +99,6 @@ class MessageTemplateApiController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
             'status' => 'nullable|string|in:draft,active',
-            'sub_account_id' => 'nullable|uuid',
             // Sender / RCS Agent
             'sender_id_id' => 'nullable|uuid',
             'rcs_agent_id' => 'nullable|uuid',
@@ -135,15 +134,6 @@ class MessageTemplateApiController extends Controller
                 );
             } catch (\RuntimeException $e) {
                 return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
-            }
-        }
-
-        if (!empty($validated['sub_account_id'])) {
-            $ownsSubAccount = \App\Models\SubAccount::where('id', $validated['sub_account_id'])
-                ->where('account_id', $this->tenantId())
-                ->exists();
-            if (!$ownsSubAccount) {
-                return response()->json(['status' => 'error', 'message' => 'Invalid sub-account.'], 422);
             }
         }
 
@@ -184,7 +174,6 @@ class MessageTemplateApiController extends Controller
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
             'status' => 'nullable|string|in:draft,active,suspended,archived',
-            'sub_account_id' => 'nullable|uuid',
             // Sender / RCS Agent
             'sender_id_id' => 'nullable|uuid',
             'rcs_agent_id' => 'nullable|uuid',
@@ -224,15 +213,6 @@ class MessageTemplateApiController extends Controller
                 );
             } catch (\RuntimeException $e) {
                 return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
-            }
-        }
-
-        if (array_key_exists('sub_account_id', $validated) && !empty($validated['sub_account_id'])) {
-            $ownsSubAccount = \App\Models\SubAccount::where('id', $validated['sub_account_id'])
-                ->where('account_id', $this->tenantId())
-                ->exists();
-            if (!$ownsSubAccount) {
-                return response()->json(['status' => 'error', 'message' => 'Invalid sub-account.'], 422);
             }
         }
 

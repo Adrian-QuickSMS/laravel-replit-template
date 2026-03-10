@@ -23,7 +23,7 @@
             this.loadNotificationHistory();
             this.setupNotificationUI();
             this.checkEnforcementStatus();
-            console.log('[EnforcementNotifications] Initialized');
+
         },
 
         loadNotificationHistory: function() {
@@ -34,7 +34,7 @@
                     this.notificationHistory = new Map(Object.entries(data));
                 }
             } catch (e) {
-                console.warn('[EnforcementNotifications] Could not load history:', e);
+
             }
         },
 
@@ -43,7 +43,7 @@
                 const data = Object.fromEntries(this.notificationHistory);
                 localStorage.setItem('qsms_notification_history', JSON.stringify(data));
             } catch (e) {
-                console.warn('[EnforcementNotifications] Could not save history:', e);
+
             }
         },
 
@@ -81,7 +81,7 @@
 
         sendNotification: function(notification) {
             if (this.isDuplicate(notification.type, notification.subAccountId)) {
-                console.log('[EnforcementNotifications] Duplicate notification suppressed:', notification.type);
+
                 return false;
             }
 
@@ -111,7 +111,7 @@
                 }
             };
 
-            console.log('[EnforcementNotifications] Email sent (TODO: Backend integration):', emailPayload);
+
         },
 
         getEmailTemplate: function(type) {
@@ -183,7 +183,7 @@
                 deduplicated: false
             };
 
-            console.log('[AUDIT] Enforcement notification logged:', auditEntry);
+
         },
 
         showToastNotification: function(notification) {
@@ -212,6 +212,7 @@
                 max-width: 360px;
             `;
 
+            var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return String(s || ''); };
             toast.innerHTML = `
                 <div style="display: flex; gap: 0.75rem;">
                     <div style="flex-shrink: 0;">
@@ -219,10 +220,10 @@
                     </div>
                     <div style="flex: 1;">
                         <div style="font-weight: 600; font-size: 0.875rem; color: #374151; margin-bottom: 0.25rem;">
-                            ${notification.title}
+                            ${esc(notification.title)}
                         </div>
                         <div style="font-size: 0.8rem; color: #6b7280; line-height: 1.4;">
-                            ${notification.message}
+                            ${esc(notification.message)}
                         </div>
                         <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 0.5rem;">
                             Just now

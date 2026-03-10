@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccountAuditLog;
 use App\Models\InboxConversation;
+use App\Services\Audit\AuditContext;
 use App\Services\InboxDeliveryService;
 use App\Services\InboxService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InboxController extends Controller
 {
@@ -26,7 +29,7 @@ class InboxController extends Controller
     {
         $conversations = $this->inbox->getConversationsArray();
         $unreadCount = $this->inbox->getUnreadCount();
-        $senderIds = $this->getInboxSenders();
+        $senderIds = $this->getApprovedSenderIds();
         $rcsAgents = $this->getRcsAgentsForView();
         $templates = $this->getTemplatesForView();
 
@@ -90,12 +93,10 @@ class InboxController extends Controller
         }
 
         $request->validate([
-            'message'      => 'required_without:rcs_payload|string|max:1600',
-            'channel'      => 'required|in:sms,rcs',
-            'rcs_payload'  => 'nullable|array',
-            'sender_id'    => 'nullable|string|max:100',
-            'rcs_agent'    => 'nullable|string|max:100',
-            'sms_fallback' => 'nullable|string|max:100',
+            'message'     => 'required_without:rcs_payload|string|max:1600',
+            'channel'     => 'required|in:sms,rcs',
+            'rcs_payload' => 'nullable|array',
+            'sender_id'   => 'nullable|string|max:50',
         ]);
 
         $conversation = InboxConversation::find($conversationId);
@@ -108,9 +109,7 @@ class InboxController extends Controller
             $request->input('message', ''),
             $request->input('channel', 'sms'),
             $request->input('rcs_payload'),
-            $request->input('sender_id'),
-            $request->input('rcs_agent'),
-            $request->input('sms_fallback')
+            $request->input('sender_id')
         );
 
         if (!$result['success']) {
@@ -118,6 +117,13 @@ class InboxController extends Controller
                 'success' => false,
                 'message' => $result['error'],
             ], 422);
+        }
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'inbox_reply_sent', $actor['user_id'], $actor['user_name'], "Reply sent to conversation", ['conversation_id' => $conversationId, 'channel' => $request->input('channel', 'sms')]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record inbox_reply_sent', ['error' => $e->getMessage()]);
         }
 
         return response()->json([
@@ -135,12 +141,26 @@ class InboxController extends Controller
 
         $this->inbox->markRead($conversationId, $user);
 
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'conversation_marked_read', $actor['user_id'], $actor['user_name'], "Conversation marked as read", ['conversation_id' => $conversationId]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record conversation_marked_read', ['error' => $e->getMessage()]);
+        }
+
         return response()->json(['success' => true]);
     }
 
     public function apiMarkUnread(string $conversationId): JsonResponse
     {
         $this->inbox->markUnread($conversationId);
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'conversation_marked_unread', $actor['user_id'], $actor['user_name'], "Conversation marked as unread", ['conversation_id' => $conversationId]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record conversation_marked_unread', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -208,63 +228,8 @@ class InboxController extends Controller
         return $result;
     }
 
-    private function getInboxSenders(): array
-    {
-        $tenantId = session('customer_tenant_id');
-        if (!$tenantId) {
-            return [];
-        }
-
-        $result = [];
-
-        $numbers = \App\Models\PurchasedNumber::where('account_id', $tenantId)
-            ->where('status', \App\Models\PurchasedNumber::STATUS_ACTIVE)
-            ->orderBy('number')
-            ->get();
-
-        foreach ($numbers as $n) {
-            $formatted = '+' . $n->number;
-            $label = $n->friendly_name
-                ? $n->friendly_name . ' (' . $formatted . ')'
-                : $formatted;
-            $type = $n->number_type === 'vmn' ? 'vmn' : 'shortcode';
-
-            $result[] = [
-                'id'   => $n->id,
-                'name' => $label,
-                'type' => $type,
-            ];
-        }
-
-        $linkedSenderIds = $numbers->pluck('sender_id_id')->filter()->toArray();
-
-        $senderIds = \App\Models\SenderId::where('account_id', $tenantId)
-            ->where('workflow_status', 'approved')
-            ->whereNotIn('uuid', $linkedSenderIds)
-            ->orderByDesc('is_default')
-            ->orderBy('sender_id_value')
-            ->get();
-
-        foreach ($senderIds as $s) {
-            $result[] = [
-                'id'   => $s->uuid,
-                'name' => $s->sender_id_value,
-                'type' => $s->sender_type === 'NUMERIC' ? 'numeric' : 'alphanumeric',
-            ];
-        }
-
-        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
-        if ($account && $account->isTestStandard() && empty($result)) {
-            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
-        }
-
-        return $result;
-    }
-
     private function getTemplatesForView(): array
     {
-        $tenantId = session('customer_tenant_id');
-
         $typeToChannel = [
             'sms'          => 'SMS',
             'rcs_basic'    => 'Basic RCS + SMS',
@@ -272,39 +237,20 @@ class InboxController extends Controller
             'rcs_carousel' => 'Rich RCS + SMS',
         ];
 
-        $senderToVmn = [];
-        if ($tenantId) {
-            $senderToVmn = \App\Models\PurchasedNumber::where('account_id', $tenantId)
-                ->where('status', \App\Models\PurchasedNumber::STATUS_ACTIVE)
-                ->whereNotNull('sender_id_id')
-                ->pluck('id', 'sender_id_id')
-                ->toArray();
-        }
-
         return \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
             ->where(function ($q) {
                 $q->where('trigger_type', 'portal')->orWhereNull('trigger_type');
             })
             ->orderByDesc('updated_at')
             ->get()
-            ->map(function ($t) use ($typeToChannel, $senderToVmn) {
-                $senderId = $t->sender_id_id;
-                $dropdownId = null;
-                if ($senderId) {
-                    $dropdownId = $senderToVmn[$senderId] ?? $senderId;
-                }
-
-                return [
-                    'id'           => $t->id,
-                    'name'         => $t->name,
-                    'content'      => $t->content ?? '',
-                    'channel'      => $typeToChannel[$t->type] ?? 'SMS',
-                    'status'       => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                    'rcs_payload'  => $t->rcs_content,
-                    'sender_id'    => $dropdownId,
-                    'rcs_agent_id' => $t->rcs_agent_id,
-                ];
-            })
+            ->map(fn ($t) => [
+                'id'          => $t->id,
+                'name'        => $t->name,
+                'content'     => $t->content ?? '',
+                'channel'     => $typeToChannel[$t->type] ?? 'SMS',
+                'status'      => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'rcs_payload' => $t->rcs_content,
+            ])
             ->toArray();
     }
 

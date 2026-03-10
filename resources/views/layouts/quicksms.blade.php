@@ -25,20 +25,10 @@
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {
-    var serverAccountStatus = @json($account_status_global ?? null);
-    var lifecycleFromStatus = (function(status) {
-        if (!status) return null;
-        if (status.indexOf('test_') === 0) return 'TEST';
-        if (status.indexOf('active_') === 0) return 'ACTIVE';
-        if (status === 'suspended') return 'SUSPENDED';
-        if (status === 'closed') return 'CLOSED';
-        if (status === 'pending_verification') return 'PENDING';
-        return null;
-    })(serverAccountStatus);
-
+    // Mock account data - in production, this comes from backend session
     var accountData = {
         account_id: sessionStorage.getItem('account_id') || null,
-        lifecycle_state: lifecycleFromStatus || sessionStorage.getItem('lifecycle_state') || null,
+        lifecycle_state: sessionStorage.getItem('lifecycle_state') || 'TEST',
         state_changed_at: sessionStorage.getItem('state_changed_at') || null,
         suspension_reason: sessionStorage.getItem('suspension_reason') || null
     };
@@ -115,9 +105,22 @@
     var BANNER_STORAGE_KEY = 'quicksms_test_banner_collapsed';
     
     if (testModeBanner) {
-        var isTestMode = lifecycleFromStatus === 'TEST';
+        var lifecycleState = sessionStorage.getItem('lifecycle_state');
+        var isTestMode = false;
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
         
+        // Check AccountLifecycle if initialized
+        if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
+            isTestMode = AccountLifecycle.isTest();
+        } else if (lifecycleState) {
+            // Fallback to sessionStorage
+            isTestMode = lifecycleState === 'TEST';
+        } else {
+            // Default: New accounts are TEST mode, show banner
+            isTestMode = true;
+        }
+        
+        // Respect user's collapse preference when showing banner
         if (isTestMode) {
             if (isCollapsed) {
                 testModeBanner.style.display = 'none';
@@ -131,6 +134,7 @@
             if (collapsedTab) collapsedTab.style.display = 'none';
         }
         
+        // Listen for state changes to update banner visibility
         if (typeof AccountLifecycle !== 'undefined') {
             AccountLifecycle.onStateChange(function(newState, oldState) {
                 var stillCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';

@@ -197,8 +197,6 @@
             this._stateChangedAt = accountData.state_changed_at || null;
             this._stateLoadedAt = new Date().toISOString();
 
-            console.log('[AccountLifecycle] Initialized:', this._currentState, 'for account:', this._accountId);
-
             // Emit event for UI components to react
             this._emitStateEvent('lifecycle:initialized', {
                 state: this._currentState,
@@ -416,8 +414,6 @@
                 requested_by: 'current_user' // Backend fills actual user
             };
             
-            console.log('[AccountLifecycle] Requesting transition:', transitionData);
-            
             // Mock backend call
             // In production: POST /api/account/lifecycle/transition
             setTimeout(function() {
@@ -455,7 +451,6 @@
                     transitioned_at: self._stateChangedAt
                 };
                 
-                console.log('[AccountLifecycle] Transition complete:', result);
                 if (callback) callback(result);
             }, 500);
         },
@@ -495,11 +490,9 @@
         setActivationStatus: function(key, value) {
             if (this.ACTIVATION_REQUIREMENTS.hasOwnProperty(key)) {
                 this._activationStatus[key] = !!value;
-                console.log('[AccountLifecycle] Activation status updated:', key, '=', value);
-                
+
                 // Check if ready for activation
                 if (this.canActivate()) {
-                    console.log('[AccountLifecycle] All activation requirements met - ready for activation');
                 }
             }
         },
@@ -581,8 +574,6 @@
                 activated_at: new Date().toISOString()
             };
             
-            console.log('[AccountLifecycle] Activating account:', activationData);
-            
             // Atomic transition with logging
             // In production: POST /api/account/activate
             this.requestTransition(
@@ -605,7 +596,6 @@
                             activated_at: activationData.activated_at
                         });
                         
-                        console.log('[AccountLifecycle] Account activated successfully');
                     }
                     
                     if (callback) callback(result);
@@ -630,8 +620,7 @@
             };
             
             this._auditLog.push(entry);
-            console.log('[AccountLifecycle] Activation audit:', entry);
-            
+
             // TODO: Backend - POST /api/audit/account-activation
             return entry;
         },
@@ -646,7 +635,6 @@
                 this.activateAccount(paymentReference, callback);
             } else {
                 // Payment made but still waiting for account details
-                console.log('[AccountLifecycle] Payment recorded, awaiting account details completion');
                 if (callback) callback({ 
                     success: true, 
                     activated: false,
@@ -665,7 +653,6 @@
                 this.activateAccount(null, callback);
             } else {
                 // Details complete but still waiting for payment
-                console.log('[AccountLifecycle] Account details complete, awaiting first payment');
                 if (callback) callback({
                     success: true,
                     activated: false,
@@ -777,8 +764,6 @@
                 override_at: new Date().toISOString()
             };
             
-            console.log('[AccountLifecycle] Admin override activation:', overrideData);
-            
             // In production: POST /api/admin/account/activate-override
             // Server validates admin permissions, logs to secure audit table
             this.requestTransition(
@@ -803,7 +788,6 @@
                             activated_at: overrideData.override_at
                         });
                         
-                        console.log('[AccountLifecycle] Admin override activation complete');
                     }
                     
                     if (callback) callback(result);
@@ -841,8 +825,7 @@
             };
             
             this._auditLog.push(entry);
-            console.log('[AccountLifecycle] Admin override audit:', JSON.stringify(entry, null, 2));
-            
+
             // TODO: Backend - POST /api/audit/admin-override
             // This MUST be stored in a tamper-proof audit table
             return entry;
@@ -930,8 +913,7 @@
             };
             
             this._auditLog.push(entry);
-            console.log('[Audit]', action + ':', JSON.stringify(entry, null, 2));
-            
+
             // TODO: Backend - POST /api/audit/log
             return entry;
         },
@@ -1144,8 +1126,7 @@
             };
             
             this._auditLog.push(entry);
-            console.log('[AccountLifecycle] Audit:', entry);
-            
+
             // In production: POST /api/audit/account-lifecycle
             return entry;
         },

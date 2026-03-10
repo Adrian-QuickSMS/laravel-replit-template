@@ -23,40 +23,18 @@ var ChatThread = (function () {
         scrollToBottom();
     }
 
-    var AVATAR_COLORS = [
-        '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
-        '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
-    ];
-
-    function getAvatarColor(name) {
-        var hash = 0;
-        var str = name || '?';
-        for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-    }
-
     /* ── Update chat header ────────────────────────────── */
     function updateHeader(conv) {
         var avatar = document.getElementById('chatHeaderAvatar');
         var name = document.getElementById('chatHeaderName');
         var meta = document.getElementById('chatHeaderMeta');
 
-        if (avatar) {
-            avatar.textContent = conv.initials || '?';
-            var color = getAvatarColor(conv.name);
-            avatar.style.backgroundColor = color + '20';
-            avatar.style.color = color;
-        }
+        if (avatar) avatar.textContent = conv.initials || '?';
         if (name) name.textContent = conv.name || conv.phone_masked || '';
 
         var metaText = conv.phone_masked || '';
-        if (conv.reply_to_label) {
-            metaText += ' · ' + conv.reply_to_label;
-        } else if (conv.channel) {
-            metaText += ' · ' + conv.channel.toUpperCase();
-        }
+        if (conv.channel) metaText += ' · ' + conv.channel.toUpperCase();
+        if (conv.source) metaText += ' via ' + conv.source;
         if (meta) meta.textContent = metaText;
 
         // Update read/unread button text
@@ -85,11 +63,6 @@ var ChatThread = (function () {
 
             // Rich card or text bubble
             if (msg.type === 'rich_card' && msg.rich_card) {
-                if (msg.rich_card.type === 'carousel' && Array.isArray(msg.rich_card.cards) && msg.rich_card.cards.length > 1) {
-                    msg.carousel_cards = msg.rich_card.cards;
-                }
-                area.appendChild(createRichCardBubble(msg, channel));
-            } else if (msg.carousel_cards && msg.carousel_cards.length > 1) {
                 area.appendChild(createRichCardBubble(msg, channel));
             } else {
                 area.appendChild(createBubble(msg, channel));
@@ -117,7 +90,7 @@ var ChatThread = (function () {
         timeLine.innerHTML = escapeHtml(msg.time || '');
         if (isOut) {
             timeLine.innerHTML += ' <i class="fas fa-check msg__delivery-icon text-muted"></i>';
-            timeLine.innerHTML += ' <span class="msg__channel-pill msg__channel-pill--' +
+            timeLine.innerHTML += ' <span class="msg__channel-pill conv-item__channel conv-item__channel--' +
                 channel + '">' + channel.toUpperCase() + '</span>';
         }
 
@@ -127,57 +100,7 @@ var ChatThread = (function () {
         return wrapper;
     }
 
-    /* ── Build a single card DOM element ─────────────── */
-    function buildCardElement(rc) {
-        var card = document.createElement('div');
-        card.className = 'msg__rich-card';
-
-        var imageUrl = rc.image || (rc.media && (rc.media.savedDataUrl || rc.media.hostedUrl || rc.media.url)) || null;
-        var cardTitle = rc.title || rc.description || '';
-        var cardDesc = rc.description ? (rc.textBody || '') : (rc.textBody || rc.description || '');
-        if (rc.title && rc.description) cardDesc = rc.description;
-        if (!rc.title && rc.description && rc.textBody) {
-            cardTitle = rc.description;
-            cardDesc = rc.textBody;
-        }
-        var cardButtons = rc.buttons || (rc.button ? [{ label: rc.button }] : []);
-
-        if (imageUrl && !/^\s*javascript:/i.test(imageUrl)) {
-            var img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = cardTitle || '';
-            img.onerror = function () { this.style.display = 'none'; };
-            card.appendChild(img);
-        }
-
-        var body = document.createElement('div');
-        body.className = 'msg__rich-card-body';
-        if (cardTitle) {
-            var title = document.createElement('div');
-            title.className = 'msg__rich-card-title';
-            title.textContent = cardTitle;
-            body.appendChild(title);
-        }
-        if (cardDesc) {
-            var desc = document.createElement('div');
-            desc.className = 'msg__rich-card-desc';
-            desc.textContent = cardDesc;
-            body.appendChild(desc);
-        }
-        card.appendChild(body);
-
-        cardButtons.forEach(function (b) {
-            var btn = document.createElement('a');
-            btn.href = 'javascript:void(0)';
-            btn.className = 'msg__rich-card-btn';
-            btn.textContent = b.label || b.text || 'Action';
-            card.appendChild(btn);
-        });
-
-        return card;
-    }
-
-    /* ── Create a rich card / carousel bubble ──────────── */
+    /* ── Create a rich card bubble ─────────────────────── */
     function createRichCardBubble(msg, channel) {
         var wrapper = document.createElement('div');
         wrapper.className = 'msg msg--out msg--rcs';
@@ -185,38 +108,55 @@ var ChatThread = (function () {
 
         var inner = document.createElement('div');
 
-        var cards = msg.carousel_cards || [];
-        var singleCard = msg.rich_card || null;
+        var card = document.createElement('div');
+        card.className = 'msg__rich-card';
 
-        if (cards.length > 1) {
-            var strip = document.createElement('div');
-            strip.className = 'msg__carousel-strip';
+        var rc = msg.rich_card;
 
-            cards.forEach(function (rc) {
-                var tile = buildCardElement(rc);
-                tile.classList.add('msg__carousel-tile');
-                strip.appendChild(tile);
-            });
-
-            inner.appendChild(strip);
-
-            var hint = document.createElement('div');
-            hint.className = 'msg__carousel-hint';
-            hint.innerHTML = '<i class="fas fa-images me-1"></i>Carousel &middot; ' + cards.length + ' cards &middot; swipe to view';
-            inner.appendChild(hint);
-        } else {
-            var rc = cards.length === 1 ? cards[0] : singleCard;
-            if (rc) {
-                inner.appendChild(buildCardElement(rc));
-            }
+        // Image (reject javascript: and data: URIs for security)
+        if (rc.image && !/^\s*(javascript|data):/i.test(rc.image)) {
+            var img = document.createElement('img');
+            img.src = rc.image;
+            img.alt = rc.title || '';
+            img.style.height = '140px';
+            img.onerror = function () { this.style.display = 'none'; };
+            card.appendChild(img);
         }
 
+        // Body
+        var body = document.createElement('div');
+        body.className = 'msg__rich-card-body';
+        if (rc.title) {
+            var title = document.createElement('div');
+            title.className = 'msg__rich-card-title';
+            title.textContent = rc.title;
+            body.appendChild(title);
+        }
+        if (rc.description) {
+            var desc = document.createElement('div');
+            desc.className = 'msg__rich-card-desc';
+            desc.textContent = rc.description;
+            body.appendChild(desc);
+        }
+        card.appendChild(body);
+
+        // Button
+        if (rc.button) {
+            var btn = document.createElement('a');
+            btn.href = 'javascript:void(0)';
+            btn.className = 'msg__rich-card-btn';
+            btn.textContent = rc.button;
+            card.appendChild(btn);
+        }
+
+        // Caption below card
         var timeLine = document.createElement('div');
         timeLine.className = 'msg__time';
         timeLine.innerHTML = escapeHtml(msg.time || '') +
             ' <i class="fas fa-check msg__delivery-icon text-muted"></i>' +
-            ' <span class="msg__channel-pill msg__channel-pill--rcs">RCS</span>';
+            ' <span class="msg__channel-pill conv-item__channel conv-item__channel--rcs">RCS</span>';
 
+        inner.appendChild(card);
         if (msg.caption) {
             var cap = document.createElement('div');
             cap.className = 'msg__bubble';
@@ -256,14 +196,11 @@ var ChatThread = (function () {
         var area = document.getElementById('chatArea');
         if (!area) return;
 
-        var isCarousel = payload.type === 'carousel' && payload.cards && payload.cards.length > 1;
-
         var msg = {
             direction: 'outbound',
-            type: isCarousel ? 'carousel' : 'rich_card',
+            type: 'rich_card',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            rich_card: !isCarousel ? (payload.cards ? payload.cards[0] : payload) : null,
-            carousel_cards: isCarousel ? payload.cards : [],
+            rich_card: payload.cards ? payload.cards[0] : payload,
             caption: payload.caption || ''
         };
 

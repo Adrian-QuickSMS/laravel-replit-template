@@ -165,7 +165,6 @@ var PermissionManager = (function() {
     var auditCallbacks = [];
 
     function init() {
-        console.log('[PermissionManager] Initialized');
     }
 
     function getCategories() {
@@ -220,8 +219,6 @@ var PermissionManager = (function() {
             ipAddress: '192.168.1.100'
         };
         
-        console.log('[AUDIT] Permission override:', auditEntry);
-        
         auditCallbacks.forEach(function(cb) {
             try { cb(auditEntry); } catch (e) { console.error(e); }
         });
@@ -248,8 +245,6 @@ var PermissionManager = (function() {
             timestamp: new Date().toISOString(),
             ipAddress: '192.168.1.100'
         };
-        
-        console.log('[AUDIT] Permission override cleared:', auditEntry);
         
         auditCallbacks.forEach(function(cb) {
             try { cb(auditEntry); } catch (e) { console.error(e); }

@@ -103,7 +103,6 @@
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
-    color: #212529;
 }
 .audit-logs-table tbody tr:hover {
     background-color: rgba(111, 66, 193, 0.03);
@@ -115,7 +114,7 @@
     transition: background-color 0.15s ease;
 }
 .audit-log-row:hover { background-color: rgba(111, 66, 193, 0.03); }
-.audit-log-row td { vertical-align: middle; padding: 0.75rem; color: #212529; }
+.audit-log-row td { vertical-align: middle; padding: 0.75rem; }
 
 .table-read-only th { 
     background-color: #fafafa; 
@@ -854,130 +853,6 @@ $(document).ready(function() {
         ACCESS_REVIEW: { category: 'compliance', severity: 'medium', label: 'Access Review Completed' }
     };
 
-    function generateHash(data) {
-        var str = JSON.stringify(data);
-        var hash = 0;
-        for (var i = 0; i < str.length; i++) {
-            var char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return Math.abs(hash).toString(16).padStart(8, '0').substring(0, 8);
-    }
-
-    function generateMockAuditData() {
-        var actions = [
-            { type: 'USER_CREATED', category: 'user_management', severity: 'high' },
-            { type: 'USER_INVITED', category: 'user_management', severity: 'medium' },
-            { type: 'USER_SUSPENDED', category: 'user_management', severity: 'high' },
-            { type: 'ROLE_CHANGED', category: 'access_control', severity: 'high' },
-            { type: 'PERMISSION_GRANTED', category: 'access_control', severity: 'medium' },
-            { type: 'PERMISSION_REVOKED', category: 'access_control', severity: 'medium' },
-            { type: 'MFA_ENABLED', category: 'security', severity: 'medium' },
-            { type: 'MFA_DISABLED', category: 'security', severity: 'high' },
-            { type: 'LOGIN_SUCCESS', category: 'authentication', severity: 'low' },
-            { type: 'LOGIN_FAILED', category: 'authentication', severity: 'medium' },
-            { type: 'LOGIN_BLOCKED', category: 'authentication', severity: 'high' },
-            { type: 'PASSWORD_CHANGED', category: 'authentication', severity: 'medium' },
-            { type: 'ENFORCEMENT_TRIGGERED', category: 'enforcement', severity: 'medium' },
-            { type: 'ENFORCEMENT_OVERRIDE_APPROVED', category: 'enforcement', severity: 'high' },
-            { type: 'DATA_EXPORTED', category: 'data_access', severity: 'medium' },
-            { type: 'DATA_UNMASKED', category: 'data_access', severity: 'high' },
-            { type: 'ACCOUNT_ACTIVATED', category: 'account', severity: 'high' },
-            { type: 'CAMPAIGN_SUBMITTED', category: 'messaging', severity: 'low' },
-            { type: 'CAMPAIGN_APPROVED', category: 'messaging', severity: 'medium' },
-            { type: 'CAMPAIGN_REJECTED', category: 'messaging', severity: 'medium' },
-            { type: 'CAMPAIGN_SENT', category: 'messaging', severity: 'low' },
-            { type: 'OPT_OUT_RECEIVED', category: 'messaging', severity: 'medium' },
-            { type: 'PURCHASE_COMPLETED', category: 'financial', severity: 'medium' },
-            { type: 'INVOICE_GENERATED', category: 'financial', severity: 'low' },
-            { type: 'CREDIT_APPLIED', category: 'financial', severity: 'medium' },
-            { type: 'SAR_REQUEST', category: 'gdpr', severity: 'high' },
-            { type: 'CONSENT_UPDATED', category: 'gdpr', severity: 'medium' },
-            { type: 'ACCESS_REVIEW', category: 'compliance', severity: 'medium' }
-        ];
-
-        var actors = [
-            { userId: 'usr-001', userName: 'Sarah Johnson', role: 'owner', subAccountId: null },
-            { userId: 'usr-002', userName: 'James Wilson', role: 'admin', subAccountId: 'sa-001' },
-            { userId: 'usr-003', userName: 'Emily Chen', role: 'messaging_manager', subAccountId: 'sa-002' },
-            { userId: 'usr-004', userName: 'Michael Brown', role: 'developer', subAccountId: 'sa-001' },
-            { userId: 'usr-005', userName: 'Lisa Anderson', role: 'finance', subAccountId: 'sa-003' },
-            { userId: 'system', userName: 'System', role: 'system', subAccountId: null }
-        ];
-
-        var targets = [
-            { userId: 'usr-006', userName: 'New User', role: 'read_only', subAccountId: 'sa-002' },
-            { userId: 'usr-007', userName: 'Test User', role: 'messaging_manager', subAccountId: 'sa-001' },
-            { resourceType: 'sub_account', resourceId: 'sa-001', name: 'Marketing Department' },
-            { resourceType: 'sub_account', resourceId: 'sa-002', name: 'Customer Support' },
-            { resourceType: 'campaign', resourceId: 'camp-123', name: 'Spring Sale Campaign' },
-            { resourceType: 'campaign', resourceId: 'camp-456', name: 'Newsletter Q1' },
-            { resourceType: 'invoice', resourceId: 'inv-789', name: 'Invoice #INV-2026-001' },
-            { resourceType: 'purchase', resourceId: 'pur-321', name: 'SMS Credit Purchase' }
-        ];
-
-        var ipAddresses = ['192.168.1.100', '10.0.0.45', '172.16.0.22', '192.168.2.50', '10.1.1.1', '203.45.67.89'];
-
-        var logs = [];
-        var now = new Date();
-
-        for (var i = 0; i < 250; i++) {
-            var action = actions[Math.floor(Math.random() * actions.length)];
-            var actor = actors[Math.floor(Math.random() * actors.length)];
-            var target = Math.random() > 0.3 ? targets[Math.floor(Math.random() * targets.length)] : null;
-            var timestamp = new Date(now.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000);
-
-            var logEntry = {
-                id: 'audit-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-                timestamp: timestamp.toISOString(),
-                action: action.type,
-                actionLabel: EXTENDED_ACTION_TYPES[action.type]?.label || action.type.replace(/_/g, ' '),
-                category: action.category,
-                severity: action.severity,
-                actor: {
-                    userId: actor.userId,
-                    userName: actor.userName,
-                    role: actor.role,
-                    subAccountId: actor.subAccountId
-                },
-                target: target,
-                context: {
-                    ipAddress: ipAddresses[Math.floor(Math.random() * ipAddresses.length)],
-                    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    sessionId: 'sess-' + Math.random().toString(36).substr(2, 12),
-                    requestId: 'req-' + Math.random().toString(36).substr(2, 9)
-                },
-                result: Math.random() > 0.1 ? 'success' : 'failure',
-                details: generateActionDetails(action.type),
-                reason: Math.random() > 0.7 ? 'Requested by user' : null,
-                retentionExpiry: new Date(timestamp.getTime() + 7 * 365 * 24 * 60 * 60 * 1000).toISOString()
-            };
-
-            logEntry.integrityHash = generateHash(logEntry);
-            logs.push(logEntry);
-        }
-
-        logs.sort(function(a, b) {
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        });
-
-        return logs;
-    }
-
-    function generateActionDetails(actionType) {
-        switch(actionType) {
-            case 'CAMPAIGN_SENT':
-                return { recipients: Math.floor(Math.random() * 10000) + 100, channel: Math.random() > 0.5 ? 'SMS' : 'RCS' };
-            case 'PURCHASE_COMPLETED':
-                return { amount: (Math.random() * 500 + 50).toFixed(2), currency: 'GBP', credits: Math.floor(Math.random() * 10000) + 1000 };
-            case 'INVOICE_GENERATED':
-                return { amount: (Math.random() * 1000 + 100).toFixed(2), currency: 'GBP' };
-            default:
-                return {};
-        }
-    }
-
     function init() {
         if (!checkAccessPermissions()) {
             applyAccessRestrictions();
@@ -985,21 +860,11 @@ $(document).ready(function() {
         }
 
         applyAccessRestrictions();
-
-        allLogs = generateMockAuditData();
-
-        if (userScopeCategories) {
-            allLogs = filterLogsByScope(allLogs);
-        }
-
-        applyFilters();
-        updateStats();
-        updateSecurityStats();
-        updateMessagingStats();
-        updateFinancialStats();
-        updateComplianceStats();
-        renderCategoryTables();
         bindEvents();
+
+        // Fetch live data from the API
+        fetchAuditLogs();
+        fetchAuditStats();
 
         AuditLogger.log('DATA_EXPORTED', {
             data: {
@@ -1009,6 +874,182 @@ $(document).ready(function() {
                 scopeCategories: userScopeCategories
             }
         });
+    }
+
+    /**
+     * Server-side pagination state — tracks last known total from API.
+     */
+    var serverMeta = { total: 0, last_page: 1, current_page: 1 };
+
+    function fetchAuditLogs(params) {
+        params = params || {};
+        var query = new URLSearchParams();
+        query.set('per_page', '200');
+        query.set('page', params.page || '1');
+
+        // Wire filter-panel values to server-side params
+        if (params.module) query.set('module', params.module);
+        if (params.category) query.set('category', params.category);
+        if (params.action) query.set('action', params.action);
+        if (params.user_id) query.set('user_id', params.user_id);
+        if (params.from) query.set('from', params.from);
+        if (params.to) query.set('to', params.to);
+        if (params.search) query.set('search', params.search);
+
+        $('#auditLogsTableBody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading audit logs...</td></tr>');
+
+        $.ajax({
+            url: '/api/audit-logs?' + query.toString(),
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                serverMeta = response.meta || serverMeta;
+
+                allLogs = (response.data || []).map(function(row) {
+                    return mapApiRowToLog(row);
+                });
+
+                if (userScopeCategories) {
+                    allLogs = filterLogsByScope(allLogs);
+                }
+
+                applyFilters();
+                renderCategoryTables();
+                updateStats();
+                updateSecurityStats();
+                updateMessagingStats();
+                updateFinancialStats();
+                updateComplianceStats();
+            },
+            error: function(xhr) {
+                console.error('[AuditLogs] Failed to fetch audit logs:', xhr.status, xhr.responseText);
+                allLogs = [];
+                applyFilters();
+            }
+        });
+    }
+
+    /**
+     * Build server-side params from the current filter panel values.
+     */
+    function buildServerParams() {
+        var params = {};
+        var module = $('#moduleFilter').val();
+        var dateFrom = $('#dateFromFilter').val();
+        var dateTo = $('#dateToFilter').val();
+        var search = $('#searchInput').val().trim();
+        var severity = $('#severityFilter').val();
+        var user = $('#userFilter').val();
+        var eventType = $('#eventTypeFilter').val();
+
+        if (module) params.module = mapFilterModuleToApi(module);
+        if (dateFrom) params.from = dateFrom;
+        if (dateTo) params.to = dateTo;
+        if (search) params.search = search;
+        if (eventType) params.action = normalizeActionToSnake(eventType);
+        if (user) params.user_id = user;
+
+        return params;
+    }
+
+    /**
+     * Map frontend module filter values to API module param.
+     */
+    function mapFilterModuleToApi(module) {
+        var mapping = {
+            'users': 'users',
+            'permissions': 'users',
+            'sub_accounts': 'sub_accounts',
+            'account': 'account',
+            'security': 'authentication',
+            'authentication': 'authentication',
+            'messaging': 'campaigns',
+            'financial': 'financial',
+            'api': 'api',
+            'campaigns': 'campaigns',
+            'numbers': 'numbers'
+        };
+        return mapping[module] || module;
+    }
+
+    function fetchAuditStats() {
+        $.ajax({
+            url: '/api/audit-logs/stats?days=30',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                var stats = response.data || {};
+                $('#totalLogsCount').text(stats.total || 0);
+                $('#todayLogsCount').text(stats.today || 0);
+                $('#highSeverityCount').text((stats.modules && stats.modules.authentication) || 0);
+                $('#uniqueActorsCount').text(stats.unique_actors || 0);
+            },
+            error: function() {
+                console.error('[AuditLogs] Failed to fetch stats');
+            }
+        });
+    }
+
+    /**
+     * Normalize a backend snake_case action to UPPER_CASE for EXTENDED_ACTION_TYPES lookup.
+     * e.g. "campaign_created" → "CAMPAIGN_CREATED"
+     */
+    function normalizeActionToUpper(action) {
+        if (!action) return '';
+        return action.toUpperCase();
+    }
+
+    /**
+     * Normalize a frontend UPPER_CASE action to snake_case for the API.
+     * e.g. "CAMPAIGN_CREATED" → "campaign_created"
+     */
+    function normalizeActionToSnake(action) {
+        if (!action) return '';
+        return action.toLowerCase();
+    }
+
+    /**
+     * Map a row from the unified audit API to the log shape expected by the UI.
+     */
+    function mapApiRowToLog(row) {
+        // Fix 5: Backend sends snake_case (campaign_created), frontend map uses UPPER_CASE (CAMPAIGN_CREATED)
+        var upperAction = normalizeActionToUpper(row.action);
+        var actionMeta = EXTENDED_ACTION_TYPES[upperAction] || null;
+
+        var actionLabel = actionMeta
+            ? actionMeta.label
+            : (row.action || '').replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+
+        var severity = actionMeta ? (actionMeta.severity || 'low') : 'low';
+        var category = row.category || (actionMeta ? actionMeta.category : 'account');
+
+        return {
+            id: row.id || '',
+            timestamp: row.created_at || new Date().toISOString(),
+            action: upperAction,
+            actionLabel: actionLabel,
+            category: category,
+            severity: severity,
+            module: row.module || '',
+            actor: {
+                userId: row.user_id || 'system',
+                userName: row.user_name || 'System',
+                role: 'user',
+                subAccountId: null
+            },
+            target: null,
+            context: {
+                ipAddress: row.ip_address || '-',
+                userAgent: '-',
+                sessionId: '-',
+                requestId: '-'
+            },
+            result: 'success',
+            details: row.metadata || {},
+            reason: row.details || null,
+            retentionExpiry: new Date(new Date(row.created_at || Date.now()).getTime() + 7 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+            integrityHash: row.id ? row.id.substring(0, 8) : '00000000'
+        };
     }
 
     function updateStats() {
@@ -1118,13 +1159,13 @@ $(document).ready(function() {
             var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td class="small">' + log.context.ipAddress + '</td>' +
-                '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></td>' +
-                '<td><i class="fas fa-chevron-right"></i></td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td class="small text-muted">' + escapeHtml(log.context.ipAddress) + '</td>' +
+                '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + escapeHtml(capitalizeFirst(log.result)) + '</span></td>' +
+                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1144,18 +1185,18 @@ $(document).ready(function() {
             var timestamp = new Date(log.timestamp);
             var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-            var targetName = log.target ? (log.target.name || log.target.resourceId || '-') : '-';
-            var recipients = log.details && log.details.recipients ? log.details.recipients.toLocaleString() : '-';
-            var channel = log.details && log.details.channel ? log.details.channel : 'SMS';
+            var targetName = log.target ? escapeHtml(log.target.name || log.target.resourceId || '-') : '-';
+            var recipients = log.details && log.details.recipients ? escapeHtml(log.details.recipients.toLocaleString()) : '-';
+            var channel = log.details && log.details.channel ? escapeHtml(log.details.channel) : 'SMS';
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
                 '<td>' + targetName + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
                 '<td>' + recipients + '</td>' +
                 '<td><span class="badge badge-pastel-primary">' + channel + '</span></td>' +
-                '<td><i class="fas fa-chevron-right"></i></td>' +
+                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1175,18 +1216,18 @@ $(document).ready(function() {
             var timestamp = new Date(log.timestamp);
             var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-            var amount = log.details && log.details.amount ? '£' + log.details.amount : '-';
-            var reference = log.target ? (log.target.name || log.target.resourceId || '-') : '-';
-            var subAccount = log.actor.subAccountId || 'Main Account';
+            var amount = log.details && log.details.amount ? escapeHtml('£' + log.details.amount) : '-';
+            var reference = log.target ? escapeHtml(log.target.name || log.target.resourceId || '-') : '-';
+            var subAccount = escapeHtml(log.actor.subAccountId || 'Main Account');
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
                 '<td class="fw-medium">' + amount + '</td>' +
                 '<td class="small">' + reference + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
                 '<td class="small">' + subAccount + '</td>' +
-                '<td><i class="fas fa-chevron-right"></i></td>' +
+                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1209,12 +1250,12 @@ $(document).ready(function() {
             var framework = log.category === 'gdpr' ? 'GDPR' : 'ISO 27001';
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td><span class="badge badge-pastel-primary">' + framework + '</span></td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td class="small">' + (log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
-                '<td><i class="fas fa-chevron-right"></i></td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td><span class="badge badge-pastel-primary">' + escapeHtml(framework) + '</span></td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td class="small text-muted">' + escapeHtml(log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
+                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1430,7 +1471,7 @@ $(document).ready(function() {
         activeQuickFilter = 'all';
         $('.quick-filter-btn').removeClass('active');
         $('.quick-filter-btn[data-filter="all"]').addClass('active');
-        applyFilters();
+        fetchAuditLogs();
     }
 
     function renderTable() {
@@ -1546,20 +1587,20 @@ $(document).ready(function() {
 
         var targetDisplay = '-';
         if (log.target) {
-            if (log.target.userName) targetDisplay = log.target.userName;
-            else if (log.target.name) targetDisplay = log.target.name;
-            else if (log.target.resourceId) targetDisplay = log.target.resourceType + ': ' + log.target.resourceId;
+            if (log.target.userName) targetDisplay = escapeHtml(log.target.userName);
+            else if (log.target.name) targetDisplay = escapeHtml(log.target.name);
+            else if (log.target.resourceId) targetDisplay = escapeHtml(log.target.resourceType) + ': ' + escapeHtml(log.target.resourceId);
         }
 
-        var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
-            '<td class="small">' + formattedDate + '</td>' +
-            '<td class="small" title="' + log.id + '">' + eventId + '</td>' +
-            '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
-            '<td class="small">' + formatCategory(log.category) + '</td>' +
-            '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
-            '<td class="small">' + log.actor.userName + '</td>' +
+        var row = $('<tr class="audit-log-row" data-log-id="' + escapeHtml(log.id) + '">' +
+            '<td class="small text-muted">' + escapeHtml(formattedDate) + '</td>' +
+            '<td class="small text-muted" title="' + escapeHtml(log.id) + '">' + escapeHtml(eventId) + '</td>' +
+            '<td><span class="fw-medium">' + escapeHtml(log.actionLabel) + '</span></td>' +
+            '<td class="small text-muted">' + formatCategory(log.category) + '</td>' +
+            '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
+            '<td class="small">' + escapeHtml(log.actor.userName) + '</td>' +
             '<td class="small">' + targetDisplay + '</td>' +
-            '<td class="small">' + log.context.ipAddress + '</td>' +
+            '<td class="small text-muted">' + escapeHtml(log.context.ipAddress) + '</td>' +
         '</tr>');
 
         row.on('click', function() { showLogDetail(log); });
@@ -1670,57 +1711,57 @@ $(document).ready(function() {
 
         var html = '<div class="log-detail-section">' +
             '<h6><i class="fas fa-shield-alt me-2"></i>Integrity & Compliance</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Integrity Hash</span><span class="log-detail-value"><code>' + log.integrityHash + '</code> <span class="badge badge-pastel-success ms-2">Verified</span></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Retention Until</span><span class="log-detail-value">' + retentionExpiry.toLocaleDateString('en-GB') + ' <span class="retention-indicator retention-active ms-2">7 years</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Integrity Hash</span><span class="log-detail-value"><code>' + escapeHtml(log.integrityHash) + '</code> <span class="badge badge-pastel-success ms-2">Verified</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Retention Until</span><span class="log-detail-value">' + escapeHtml(retentionExpiry.toLocaleDateString('en-GB')) + ' <span class="retention-indicator retention-active ms-2">7 years</span></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Tamper Status</span><span class="log-detail-value"><span class="badge badge-pastel-success">Unmodified</span></span></div>' +
         '</div>';
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-clock me-2"></i>Event Information</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Log ID</span><span class="log-detail-value"><code>' + log.id + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Timestamp</span><span class="log-detail-value">' + timestamp.toISOString() + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Action</span><span class="log-detail-value">' + log.actionLabel + ' <code class="ms-2">(' + log.action + ')</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Log ID</span><span class="log-detail-value"><code>' + escapeHtml(log.id) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Timestamp</span><span class="log-detail-value">' + escapeHtml(timestamp.toISOString()) + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Action</span><span class="log-detail-value">' + escapeHtml(log.actionLabel) + ' <code class="ms-2">(' + escapeHtml(log.action) + ')</code></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Category</span><span class="log-detail-value">' + formatCategory(log.category) + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Severity</span><span class="log-detail-value"><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Result</span><span class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Severity</span><span class="log-detail-value"><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Result</span><span class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + escapeHtml(capitalizeFirst(log.result)) + '</span></span></div>' +
         '</div>';
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-user me-2"></i>Actor</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + log.actor.userId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.actor.userName + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + escapeHtml(log.actor.userId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.actor.userName) + '</span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + formatRole(log.actor.role) + '</span></span></div>' +
-            (log.actor.subAccountId ? '<div class="log-detail-row"><span class="log-detail-label">Sub-Account</span><span class="log-detail-value">' + log.actor.subAccountId + '</span></div>' : '') +
+            (log.actor.subAccountId ? '<div class="log-detail-row"><span class="log-detail-label">Sub-Account</span><span class="log-detail-value">' + escapeHtml(log.actor.subAccountId) + '</span></div>' : '') +
         '</div>';
 
         if (log.target) {
             html += '<div class="log-detail-section">' +
                 '<h6><i class="fas fa-bullseye me-2"></i>Target</h6>';
             if (log.target.userId) {
-                html += '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + log.target.userId + '</code></span></div>' +
-                    '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.target.userName + '</span></div>' +
+                html += '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + escapeHtml(log.target.userId) + '</code></span></div>' +
+                    '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.target.userName) + '</span></div>' +
                     (log.target.role ? '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + formatRole(log.target.role) + '</span></span></div>' : '');
             } else if (log.target.resourceType) {
                 html += '<div class="log-detail-row"><span class="log-detail-label">Resource Type</span><span class="log-detail-value">' + formatCategory(log.target.resourceType) + '</span></div>' +
-                    '<div class="log-detail-row"><span class="log-detail-label">Resource ID</span><span class="log-detail-value"><code>' + log.target.resourceId + '</code></span></div>' +
-                    (log.target.name ? '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.target.name + '</span></div>' : '');
+                    '<div class="log-detail-row"><span class="log-detail-label">Resource ID</span><span class="log-detail-value"><code>' + escapeHtml(log.target.resourceId) + '</code></span></div>' +
+                    (log.target.name ? '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.target.name) + '</span></div>' : '');
             }
             html += '</div>';
         }
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-network-wired me-2"></i>Context</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">IP Address</span><span class="log-detail-value">' + log.context.ipAddress + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Session ID</span><span class="log-detail-value"><code>' + log.context.sessionId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Request ID</span><span class="log-detail-value"><code>' + log.context.requestId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">User Agent</span><span class="log-detail-value small">' + log.context.userAgent + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">IP Address</span><span class="log-detail-value">' + escapeHtml(log.context.ipAddress) + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Session ID</span><span class="log-detail-value"><code>' + escapeHtml(log.context.sessionId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Request ID</span><span class="log-detail-value"><code>' + escapeHtml(log.context.requestId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">User Agent</span><span class="log-detail-value small">' + escapeHtml(log.context.userAgent) + '</span></div>' +
         '</div>';
 
-        if (Object.keys(log.details).length > 0) {
+        if (log.details && Object.keys(log.details).length > 0) {
             html += '<div class="log-detail-section">' +
                 '<h6><i class="fas fa-info-circle me-2"></i>Additional Details</h6>';
             for (var key in log.details) {
-                html += '<div class="log-detail-row"><span class="log-detail-label">' + formatCategory(key) + '</span><span class="log-detail-value">' + log.details[key] + '</span></div>';
+                html += '<div class="log-detail-row"><span class="log-detail-label">' + formatCategory(key) + '</span><span class="log-detail-value">' + escapeHtml(log.details[key]) + '</span></div>';
             }
             html += '</div>';
         }
@@ -1740,12 +1781,12 @@ $(document).ready(function() {
     function bindEvents() {
         $('#searchInput').on('keypress', function(e) {
             if (e.which === 13) {
-                applyFilters();
+                fetchAuditLogs(buildServerParams());
             }
         });
 
         $('#applyFiltersBtn').on('click', function() {
-            applyFilters();
+            fetchAuditLogs(buildServerParams());
         });
 
         $('#clearFilters').on('click', function() {
@@ -2154,9 +2195,19 @@ $(document).ready(function() {
         $('#exportProgressModal').modal('hide');
     }
 
-    function formatCategory(category) { return category.split('_').map(capitalizeFirst).join(' '); }
-    function formatRole(role) { return role.split('_').map(capitalizeFirst).join(' '); }
+    function formatCategory(category) { return escapeHtml(category.split('_').map(capitalizeFirst).join(' ')); }
+    function formatRole(role) { return escapeHtml(role.split('_').map(capitalizeFirst).join(' ')); }
     function capitalizeFirst(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+    /**
+     * Escape HTML special characters to prevent XSS when inserting API data into DOM via string concatenation.
+     */
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        var div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
 
     function showToast(message, type) {
         var bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-primary');
