@@ -103,6 +103,7 @@
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
+    color: #212529;
 }
 .audit-logs-table tbody tr:hover {
     background-color: rgba(111, 66, 193, 0.03);
@@ -114,7 +115,7 @@
     transition: background-color 0.15s ease;
 }
 .audit-log-row:hover { background-color: rgba(111, 66, 193, 0.03); }
-.audit-log-row td { vertical-align: middle; padding: 0.75rem; }
+.audit-log-row td { vertical-align: middle; padding: 0.75rem; color: #212529; }
 
 .table-read-only th { 
     background-color: #fafafa; 
@@ -1121,9 +1122,9 @@ $(document).ready(function() {
                 '<td>' + log.actionLabel + '</td>' +
                 '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
                 '<td>' + log.actor.userName + '</td>' +
-                '<td class="small text-muted">' + log.context.ipAddress + '</td>' +
+                '<td class="small">' + log.context.ipAddress + '</td>' +
                 '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></td>' +
-                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
+                '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1154,7 +1155,7 @@ $(document).ready(function() {
                 '<td>' + log.actor.userName + '</td>' +
                 '<td>' + recipients + '</td>' +
                 '<td><span class="badge badge-pastel-primary">' + channel + '</span></td>' +
-                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
+                '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1185,7 +1186,7 @@ $(document).ready(function() {
                 '<td class="small">' + reference + '</td>' +
                 '<td>' + log.actor.userName + '</td>' +
                 '<td class="small">' + subAccount + '</td>' +
-                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
+                '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1212,8 +1213,8 @@ $(document).ready(function() {
                 '<td><span class="badge badge-pastel-primary">' + framework + '</span></td>' +
                 '<td>' + log.actionLabel + '</td>' +
                 '<td>' + log.actor.userName + '</td>' +
-                '<td class="small text-muted">' + (log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
-                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
+                '<td class="small">' + (log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
+                '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
             row.on('click', function() { showLogDetail(log); });
@@ -1551,14 +1552,14 @@ $(document).ready(function() {
         }
 
         var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
-            '<td class="small text-muted">' + formattedDate + '</td>' +
-            '<td class="small text-muted" title="' + log.id + '">' + eventId + '</td>' +
+            '<td class="small">' + formattedDate + '</td>' +
+            '<td class="small" title="' + log.id + '">' + eventId + '</td>' +
             '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
-            '<td class="small text-muted">' + formatCategory(log.category) + '</td>' +
+            '<td class="small">' + formatCategory(log.category) + '</td>' +
             '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
             '<td class="small">' + log.actor.userName + '</td>' +
             '<td class="small">' + targetDisplay + '</td>' +
-            '<td class="small text-muted">' + log.context.ipAddress + '</td>' +
+            '<td class="small">' + log.context.ipAddress + '</td>' +
         '</tr>');
 
         row.on('click', function() { showLogDetail(log); });
