@@ -104,6 +104,7 @@
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
+    color: #212529;
 }
 .audit-logs-table tbody tr:hover {
     background-color: rgba(111, 66, 193, 0.03);
@@ -115,7 +116,7 @@
     transition: background-color 0.15s ease;
 }
 .audit-log-row:hover { background-color: rgba(111, 66, 193, 0.03); }
-.audit-log-row td { vertical-align: middle; padding: 0.75rem; }
+.audit-log-row td { vertical-align: middle; padding: 0.75rem; color: #212529; }
 
 .table-read-only th { 
     background-color: #fafafa; 
