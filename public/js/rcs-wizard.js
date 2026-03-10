@@ -183,7 +183,8 @@ function initializeRcsCard(cardNum) {
                 cropOffsetY: 0,
                 assetUuid: null,
                 hostedUrl: null,
-                originalUrl: null
+                originalUrl: null,
+                savedDataUrl: null
             },
             description: '',
             textBody: '',
@@ -315,7 +316,8 @@ function loadCardData(cardNum) {
         hideRcsHostedUrl();
     }
     
-    if (card.media.url) {
+    var effectiveMediaUrl = card.media.savedDataUrl || card.media.hostedUrl || card.media.url;
+    if (effectiveMediaUrl) {
         var cardWidth = card.media.cardWidth || 'medium';
         var widthRadio = document.getElementById('rcsCardWidth' + cardWidth.charAt(0).toUpperCase() + cardWidth.slice(1));
         if (widthRadio) widthRadio.checked = true;
@@ -326,7 +328,7 @@ function loadCardData(cardNum) {
         if (orientRadio && !orientRadio.disabled) orientRadio.checked = true;
         updateRcsCropFrame(card.media.orientation);
         
-        showRcsMediaPreview(card.media.hostedUrl || card.media.url);
+        showRcsMediaPreview(effectiveMediaUrl);
         updateRcsImageInfo();
         
         setTimeout(function() {
@@ -442,6 +444,7 @@ function buildRcsPayload() {
             media: {
                 source: card.media.source,
                 url: card.media.url,
+                savedDataUrl: card.media.savedDataUrl || null,
                 hostedUrl: card.media.hostedUrl || null,
                 assetUuid: card.media.assetUuid || null,
                 fileName: card.media.fileName,
@@ -808,39 +811,44 @@ function loadRcsFromStorage() {
         if (typeEl) typeEl.checked = true;
         toggleRcsMessageType();
         
-        rcsCardCount = payload.cardCount;
+        rcsCardCount = payload.cardCount || payload.cards.length;
         payload.cards.forEach(function(cardData) {
             var cardNum = cardData.order;
             rcsCardsData[cardNum] = {
                 media: {
                     source: cardData.media.source,
                     url: cardData.media.url,
+                    savedDataUrl: cardData.media.savedDataUrl || null,
+                    hostedUrl: cardData.media.hostedUrl || null,
+                    assetUuid: cardData.media.assetUuid || null,
                     file: null,
                     fileName: cardData.media.fileName,
                     fileSize: cardData.media.fileSize,
                     dimensions: cardData.media.dimensions,
                     orientation: cardData.media.orientation,
-                    zoom: cardData.media.zoom,
-                    cropOffsetX: cardData.media.cropOffsetX,
-                    cropOffsetY: cardData.media.cropOffsetY
+                    zoom: cardData.media.zoom || 100,
+                    cropOffsetX: cardData.media.cropOffsetX || 0,
+                    cropOffsetY: cardData.media.cropOffsetY || 0
                 },
                 description: cardData.description,
                 textBody: cardData.textBody,
                 buttons: cardData.buttons.map(function(btn) {
                     var buttonObj = { label: btn.label, type: btn.type };
-                    if (btn.type === 'url') buttonObj.url = btn.action.url;
-                    if (btn.type === 'phone') buttonObj.phone = btn.action.phoneNumber;
+                    if (btn.type === 'url') buttonObj.url = btn.action ? btn.action.url : '';
+                    if (btn.type === 'phone') buttonObj.phone = btn.action ? btn.action.phoneNumber : '';
                     if (btn.type === 'calendar') {
-                        buttonObj.eventTitle = btn.action.title;
-                        buttonObj.eventStart = btn.action.startTime;
-                        buttonObj.eventEnd = btn.action.endTime;
-                        buttonObj.eventDesc = btn.action.description;
+                        buttonObj.eventTitle = btn.action ? btn.action.title : '';
+                        buttonObj.eventStart = btn.action ? btn.action.startTime : '';
+                        buttonObj.eventEnd = btn.action ? btn.action.endTime : '';
+                        buttonObj.eventDesc = btn.action ? btn.action.description : '';
                     }
                     return buttonObj;
                 })
             };
         });
         
+        rcsCurrentCard = 1;
+        rebuildCardTabs();
         loadCardData(1);
         rcsPersistentPayload = payload;
         return true;
