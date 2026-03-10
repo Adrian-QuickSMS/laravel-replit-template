@@ -21,6 +21,7 @@
 .category-badge-financial { background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
 .category-badge-gdpr { background-color: rgba(214, 83, 193, 0.15); color: #D653C1; }
 .category-badge-compliance { background-color: rgba(111, 66, 193, 0.15); color: #6f42c1; }
+.category-badge-contact_book { background-color: rgba(255, 152, 0, 0.15); color: #e68a00; }
 
 .audit-log-row { cursor: pointer; }
 .audit-log-row:hover { background-color: rgba(111, 66, 193, 0.03); }
@@ -337,7 +338,7 @@
                                     <option value="authentication">Authentication</option>
                                     <option value="messaging">Messaging</option>
                                     <option value="campaigns">Campaigns</option>
-                                    <option value="contacts">Contacts</option>
+                                    <option value="contact_book">Contacts</option>
                                     <option value="reporting">Reporting</option>
                                     <option value="financial">Financial</option>
                                     <option value="compliance">Compliance</option>
@@ -850,7 +851,26 @@ $(document).ready(function() {
         PROCESSING_RECORD: { category: 'gdpr', severity: 'low', label: 'Processing Activity Recorded' },
         SECURITY_INCIDENT: { category: 'compliance', severity: 'critical', label: 'Security Incident' },
         POLICY_UPDATED: { category: 'compliance', severity: 'high', label: 'Policy Updated' },
-        ACCESS_REVIEW: { category: 'compliance', severity: 'medium', label: 'Access Review Completed' }
+        ACCESS_REVIEW: { category: 'compliance', severity: 'medium', label: 'Access Review Completed' },
+        CONTACT_CREATED: { category: 'contact_book', severity: 'low', label: 'Contact Created' },
+        CONTACT_UPDATED: { category: 'contact_book', severity: 'low', label: 'Contact Updated' },
+        CONTACT_DELETED: { category: 'contact_book', severity: 'medium', label: 'Contact Deleted' },
+        CONTACTS_BULK_DELETED: { category: 'contact_book', severity: 'high', label: 'Contacts Bulk Deleted' },
+        CONTACTS_IMPORTED: { category: 'contact_book', severity: 'low', label: 'Contacts Imported' },
+        CONTACTS_EXPORTED: { category: 'contact_book', severity: 'medium', label: 'Contacts Exported' },
+        TAG_CREATED: { category: 'contact_book', severity: 'low', label: 'Tag Created' },
+        TAG_UPDATED: { category: 'contact_book', severity: 'low', label: 'Tag Updated' },
+        TAG_DELETED: { category: 'contact_book', severity: 'medium', label: 'Tag Deleted' },
+        TAGS_ASSIGNED: { category: 'contact_book', severity: 'low', label: 'Tags Assigned' },
+        TAGS_REMOVED: { category: 'contact_book', severity: 'low', label: 'Tags Removed' },
+        LIST_CREATED: { category: 'contact_book', severity: 'low', label: 'List Created' },
+        LIST_UPDATED: { category: 'contact_book', severity: 'low', label: 'List Updated' },
+        LIST_DELETED: { category: 'contact_book', severity: 'medium', label: 'List Deleted' },
+        LIST_MEMBERS_ADDED: { category: 'contact_book', severity: 'low', label: 'List Members Added' },
+        LIST_MEMBERS_REMOVED: { category: 'contact_book', severity: 'low', label: 'List Members Removed' },
+        OPT_OUT_MANUAL_ADD: { category: 'contact_book', severity: 'medium', label: 'Opt-out Added' },
+        OPT_OUT_MANUAL_REMOVE: { category: 'contact_book', severity: 'medium', label: 'Opt-out Removed' },
+        MSISDN_REVEALED: { category: 'contact_book', severity: 'medium', label: 'Phone Number Revealed' }
     };
 
     function init() {

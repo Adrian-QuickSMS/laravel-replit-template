@@ -29,6 +29,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
 .{{ $prefix }}-category-badge-financial { background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
 .{{ $prefix }}-category-badge-gdpr { background-color: rgba(214, 83, 193, 0.15); color: #D653C1; }
 .{{ $prefix }}-category-badge-compliance { background-color: rgba({{ $themeColorRgb }}, 0.15); color: {{ $themeColor }}; }
+.{{ $prefix }}-category-badge-contact_book { background-color: rgba(255, 152, 0, 0.15); color: #e68a00; }
 
 .{{ $prefix }}-audit-log-row { cursor: pointer; }
 .{{ $prefix }}-audit-log-row:hover { background-color: rgba({{ $themeColorRgb }}, 0.03); }
@@ -381,7 +382,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                             <option value="authentication">Authentication</option>
                             <option value="messaging">Messaging</option>
                             <option value="campaigns">Campaigns</option>
-                            <option value="contacts">Contacts</option>
+                            <option value="contact_book">Contacts</option>
                             <option value="reporting">Reporting</option>
                             <option value="financial">Financial</option>
                             <option value="compliance">Compliance</option>

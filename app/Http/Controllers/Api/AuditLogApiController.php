@@ -92,6 +92,13 @@ class AuditLogApiController extends Controller
             'category' => 'messaging',
             'custom_select' => true,
         ],
+        'contact_book' => [
+            'table' => 'contact_timeline_events',
+            'entity_col' => 'contact_id',
+            'module' => 'contact_book',
+            'category' => 'contact_book',
+            'custom_select' => true,
+        ],
         // NOTE: financial_audit_log intentionally excluded from customer sources.
         // It has no account_id column and would leak cross-tenant data.
         // Financial events visible to customers come from purchase_audit_logs
@@ -238,6 +245,7 @@ class AuditLogApiController extends Controller
             'users' => 'user_audit_log',
             'account' => 'account_audit_log',
             'numbers' => 'number_audit_log',
+            'contact_book' => 'contact_timeline_events',
         ];
 
         foreach ($tables as $label => $table) {
@@ -503,7 +511,7 @@ class AuditLogApiController extends Controller
         }
 
         if ($action) {
-            if ($table === 'auth_audit_log') {
+            if ($table === 'auth_audit_log' || $table === 'contact_timeline_events') {
                 $conditions[] = 'event_type = ?';
             } else {
                 $conditions[] = 'action = ?';
@@ -512,7 +520,7 @@ class AuditLogApiController extends Controller
         }
 
         if ($userId) {
-            if ($table === 'auth_audit_log') {
+            if ($table === 'auth_audit_log' || $table === 'contact_timeline_events') {
                 $conditions[] = 'actor_id = ?';
             } else {
                 $conditions[] = 'user_id = ?';
@@ -534,6 +542,8 @@ class AuditLogApiController extends Controller
             $escapedSearch = str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $search);
             if ($table === 'auth_audit_log') {
                 $conditions[] = "(event_type ILIKE ? ESCAPE '\\' OR actor_email ILIKE ? ESCAPE '\\')";
+            } elseif ($table === 'contact_timeline_events') {
+                $conditions[] = "(event_type ILIKE ? ESCAPE '\\' OR COALESCE(actor_name, '') ILIKE ? ESCAPE '\\')";
             } else {
                 $conditions[] = "(action ILIKE ? ESCAPE '\\' OR COALESCE(details, '') ILIKE ? ESCAPE '\\')";
             }
@@ -559,6 +569,8 @@ class AuditLogApiController extends Controller
             'message_template_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, details, '{}'::TEXT AS metadata, NULL AS ip_address, created_at, template_id AS entity_id FROM message_template_audit_log",
 
             'email_to_sms_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, setup_id AS entity_id FROM email_to_sms_audit_log",
+
+            'contact_timeline_events' => "SELECT event_id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id AS user_id, actor_name AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, NULL AS ip_address, created_at, contact_id AS entity_id FROM contact_timeline_events",
 
             default => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::UUID AS entity_id FROM {$table}",
         };
