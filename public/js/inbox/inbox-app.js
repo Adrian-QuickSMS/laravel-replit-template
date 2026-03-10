@@ -10,19 +10,21 @@ var InboxApp = (function () {
     var activeConversation = null;
     var _selectRequestId = 0;
 
-    // Local storage for contact notes and tags (mock — replace with API)
     var contactData = {};
+    var availableTags = [];
+    var availableLists = [];
 
     /* ── Boot ──────────────────────────────────────────── */
     function init() {
         config = window.__inbox || {};
 
-        // Initialise sub-modules
         ConversationList.init(config.conversations || [], onConversationSelect);
         Composer.init(onSendReply);
 
         bindGlobalEvents();
         bindContactSidebar();
+        fetchAvailableTags();
+        fetchAvailableLists();
     }
 
     /* ── Called when a conversation is selected ─────────── */
@@ -193,7 +195,15 @@ var InboxApp = (function () {
             avatar.style.color = color;
         }
 
-        // Load tags and notes for this contact
+        var viewBtn = document.getElementById('viewInContactsBtn');
+        if (viewBtn) {
+            if (conv.contact_id) {
+                viewBtn.href = '/contacts/all?highlight=' + conv.contact_id;
+            } else {
+                viewBtn.href = '/contacts/all';
+            }
+        }
+
         renderContactTags(conv.id);
         renderContactNotes(conv.id);
         renderContactLists(conv.id);
@@ -201,37 +211,40 @@ var InboxApp = (function () {
 
     /* ── Contact Sidebar: Tags, Notes, Lists ──────────── */
     function bindContactSidebar() {
-        // Tag add form toggle
         bindClick('showAddTagBtn', function () {
             var form = document.getElementById('addTagForm');
             var btn = document.getElementById('showAddTagBtn');
             if (form) form.classList.remove('d-none');
             if (btn) btn.classList.add('d-none');
-            var input = document.getElementById('newTagInput');
-            if (input) input.focus();
+            populateTagDropdown();
         });
 
         bindClick('cancelTagBtn', function () {
-            var form = document.getElementById('addTagForm');
-            var btn = document.getElementById('showAddTagBtn');
-            if (form) form.classList.add('d-none');
-            if (btn) btn.classList.remove('d-none');
-            var input = document.getElementById('newTagInput');
-            if (input) input.value = '';
+            resetTagForm();
         });
 
         bindClick('saveTagBtn', function () {
+            var select = document.getElementById('existingTagSelect');
             var input = document.getElementById('newTagInput');
-            if (!input || !input.value.trim()) return;
-            addTag(input.value.trim());
-            input.value = '';
-            var form = document.getElementById('addTagForm');
-            var btn = document.getElementById('showAddTagBtn');
-            if (form) form.classList.add('d-none');
-            if (btn) btn.classList.remove('d-none');
+            var tagName = '';
+            if (select && select.value) {
+                tagName = select.options[select.selectedIndex].textContent;
+            } else if (input && input.value.trim()) {
+                tagName = input.value.trim();
+            }
+            if (!tagName) return;
+            addTag(tagName);
+            resetTagForm();
         });
 
-        // Enter key on tag input
+        var existingTagSelect = document.getElementById('existingTagSelect');
+        if (existingTagSelect) {
+            existingTagSelect.addEventListener('change', function () {
+                var input = document.getElementById('newTagInput');
+                if (this.value && input) input.value = '';
+            });
+        }
+
         var tagInput = document.getElementById('newTagInput');
         if (tagInput) {
             tagInput.addEventListener('keydown', function (e) {
@@ -240,9 +253,12 @@ var InboxApp = (function () {
                     document.getElementById('saveTagBtn').click();
                 }
             });
+            tagInput.addEventListener('input', function () {
+                var select = document.getElementById('existingTagSelect');
+                if (this.value && select) select.value = '';
+            });
         }
 
-        // Note add form toggle
         bindClick('showAddNoteBtn', function () {
             var form = document.getElementById('addNoteForm');
             var btn = document.getElementById('showAddNoteBtn');
@@ -271,6 +287,45 @@ var InboxApp = (function () {
             if (form) form.classList.add('d-none');
             if (btn) btn.classList.remove('d-none');
         });
+
+        bindClick('showAddToListBtn', function () {
+            var form = document.getElementById('addToListForm');
+            var btn = document.getElementById('showAddToListBtn');
+            if (form) form.classList.remove('d-none');
+            if (btn) btn.classList.add('d-none');
+            populateListDropdown();
+        });
+
+        bindClick('cancelAddToListBtn', function () {
+            resetListForm();
+        });
+
+        bindClick('confirmAddToListBtn', function () {
+            var select = document.getElementById('addToListSelect');
+            if (!select || !select.value) return;
+            addToList(select.value, select.options[select.selectedIndex].textContent);
+            resetListForm();
+        });
+    }
+
+    function resetTagForm() {
+        var form = document.getElementById('addTagForm');
+        var btn = document.getElementById('showAddTagBtn');
+        if (form) form.classList.add('d-none');
+        if (btn) btn.classList.remove('d-none');
+        var input = document.getElementById('newTagInput');
+        if (input) input.value = '';
+        var select = document.getElementById('existingTagSelect');
+        if (select) select.value = '';
+    }
+
+    function resetListForm() {
+        var form = document.getElementById('addToListForm');
+        var btn = document.getElementById('showAddToListBtn');
+        if (form) form.classList.add('d-none');
+        if (btn) btn.classList.remove('d-none');
+        var select = document.getElementById('addToListSelect');
+        if (select) select.value = '';
     }
 
     function getContactData(convId) {
@@ -280,24 +335,92 @@ var InboxApp = (function () {
         return contactData[convId];
     }
 
+    /* ── Fetch available tags & lists ─────────────────── */
+    function fetchAvailableTags() {
+        fetch('/api/tags', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrfToken || '' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+            availableTags = (json.data || []).map(function (t) {
+                return { id: t.id, name: t.name, color: t.color || '#6f42c1' };
+            });
+        })
+        .catch(function () { availableTags = []; });
+    }
+
+    function fetchAvailableLists() {
+        fetch('/api/contact-lists', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': config.csrfToken || '' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+            availableLists = (json.data || []).map(function (l) {
+                return { id: l.id, name: l.name };
+            });
+        })
+        .catch(function () { availableLists = []; });
+    }
+
+    function populateTagDropdown() {
+        var select = document.getElementById('existingTagSelect');
+        if (!select) return;
+        while (select.options.length > 1) select.remove(1);
+
+        var data = activeConversation ? getContactData(activeConversation.id) : { tags: [] };
+        var existingNames = data.tags.map(function (t) { return t.name.toLowerCase(); });
+
+        availableTags.forEach(function (tag) {
+            if (existingNames.indexOf(tag.name.toLowerCase()) === -1) {
+                var opt = document.createElement('option');
+                opt.value = tag.id;
+                opt.textContent = tag.name;
+                select.appendChild(opt);
+            }
+        });
+    }
+
+    function populateListDropdown() {
+        var select = document.getElementById('addToListSelect');
+        if (!select) return;
+        while (select.options.length > 1) select.remove(1);
+
+        var data = activeConversation ? getContactData(activeConversation.id) : { lists: [] };
+        var existingIds = data.lists.map(function (l) { return l.id; });
+
+        availableLists.forEach(function (list) {
+            if (existingIds.indexOf(list.id) === -1) {
+                var opt = document.createElement('option');
+                opt.value = list.id;
+                opt.textContent = list.name;
+                select.appendChild(opt);
+            }
+        });
+    }
+
     /* ── Tags ─────────────────────────────────────────── */
-    var TAG_COLORS = ['#886CC0', '#34C759', '#FF9500', '#FF3B30', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55'];
+    var PASTEL_TAG_CLASSES = [
+        'badge-pastel-primary', 'badge-pastel-success', 'badge-pastel-info',
+        'badge-pastel-warning', 'badge-pastel-pink', 'badge-pastel-green',
+        'badge-pastel-secondary', 'badge-pastel-danger'
+    ];
+
+    function getTagPastelClass(index) {
+        return PASTEL_TAG_CLASSES[index % PASTEL_TAG_CLASSES.length];
+    }
 
     function addTag(name) {
         if (!activeConversation) return;
         var data = getContactData(activeConversation.id);
-        // Prevent duplicate
         if (data.tags.some(function (t) { return t.name.toLowerCase() === name.toLowerCase(); })) return;
-        data.tags.push({
-            name: name,
-            color: TAG_COLORS[data.tags.length % TAG_COLORS.length],
-            created: new Date().toISOString()
-        });
+        data.tags.push({ name: name, created: new Date().toISOString() });
         renderContactTags(activeConversation.id);
 
-        // API call (when backend is ready)
         if (activeConversation.contact_id) {
-            apiPost('/api/contacts/' + activeConversation.contact_id + '/tags', { name: name });
+            apiPost('/api/contacts/bulk/add-tags', {
+                contact_ids: [activeConversation.contact_id],
+                tags: [name]
+            });
         }
     }
 
@@ -305,6 +428,14 @@ var InboxApp = (function () {
         var data = getContactData(convId);
         data.tags = data.tags.filter(function (t) { return t.name !== tagName; });
         renderContactTags(convId);
+
+        var conv = ConversationList.getById ? ConversationList.getById(convId) : activeConversation;
+        if (conv && conv.contact_id) {
+            apiPost('/api/contacts/bulk/remove-tags', {
+                contact_ids: [conv.contact_id],
+                tags: [tagName]
+            });
+        }
     }
 
     function renderContactTags(convId) {
@@ -320,10 +451,11 @@ var InboxApp = (function () {
             return;
         }
 
-        container.innerHTML = data.tags.map(function (tag) {
-            return '<span class="badge me-1 mb-1" style="background-color: ' + tag.color + '; cursor: pointer;" ' +
+        container.innerHTML = data.tags.map(function (tag, i) {
+            var cls = getTagPastelClass(i);
+            return '<span class="badge rounded-pill ' + cls + ' me-1 mb-1" style="cursor: pointer;" ' +
                 'title="Click to remove" onclick="InboxApp.removeTag(\'' + convId + '\', \'' + escapeAttr(tag.name) + '\')">' +
-                escapeHtml(tag.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem;"></i></span>';
+                escapeHtml(tag.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem; opacity: 0.7;"></i></span>';
         }).join('');
     }
 
@@ -369,6 +501,37 @@ var InboxApp = (function () {
     }
 
     /* ── Lists ────────────────────────────────────────── */
+    function addToList(listId, listName) {
+        if (!activeConversation || !activeConversation.contact_id) return;
+        var data = getContactData(activeConversation.id);
+        if (data.lists.some(function (l) { return l.id === listId; })) return;
+        data.lists.push({ id: listId, name: listName });
+        renderContactLists(activeConversation.id);
+
+        apiPost('/api/contact-lists/' + listId + '/members', {
+            contact_ids: [activeConversation.contact_id]
+        });
+    }
+
+    function removeFromList(convId, listId) {
+        var data = getContactData(convId);
+        data.lists = data.lists.filter(function (l) { return l.id !== listId; });
+        renderContactLists(convId);
+
+        var conv = ConversationList.getById ? ConversationList.getById(convId) : activeConversation;
+        if (conv && conv.contact_id) {
+            fetch('/api/contact-lists/' + listId + '/members', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': config.csrfToken || '',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ contact_ids: [conv.contact_id] })
+            }).catch(function (err) { console.warn('[Inbox] Remove from list error:', err); });
+        }
+    }
+
     function renderContactLists(convId) {
         var container = document.getElementById('contactLists');
         if (!container) return;
@@ -380,7 +543,9 @@ var InboxApp = (function () {
         }
 
         container.innerHTML = data.lists.map(function (list) {
-            return '<span class="badge bg-secondary me-1 mb-1">' + escapeHtml(list.name) + '</span>';
+            return '<span class="badge badge-pastel-info rounded-pill me-1 mb-1" style="cursor: pointer;" ' +
+                'title="Click to remove" onclick="InboxApp.removeFromList(\'' + convId + '\', \'' + escapeAttr(list.id) + '\')">' +
+                escapeHtml(list.name) + ' <i class="fas fa-times ms-1" style="font-size: 0.5rem; opacity: 0.7;"></i></span>';
         }).join('');
     }
 
@@ -447,7 +612,8 @@ var InboxApp = (function () {
     return {
         init: init,
         comingSoon: comingSoon,
-        removeTag: removeTag
+        removeTag: removeTag,
+        removeFromList: removeFromList
     };
 })();
 
