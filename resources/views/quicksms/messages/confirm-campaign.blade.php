@@ -180,18 +180,48 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @if(!empty($realEstimate))
-                            {{-- Real estimate from backend billing engine --}}
+                        @if(!empty($is_test_standard))
+                            {{-- Test Standard mode: show test credits, not monetary cost --}}
                             <div class="row mb-2">
-                                <div class="col-6 text-muted">Messages @if(!empty($is_test_standard))<a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a>@endif</div>
-                                <div class="col-6 text-end">{{ number_format($deliverable_count ?? $recipients['valid']) }}</div>
+                                <div class="col-6 text-muted">Deliverable Messages <a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a></div>
+                                <div class="col-6 text-end">{{ number_format($deliverable_count ?? 0) }}</div>
                             </div>
-                            @if(!empty($is_test_standard) && ($test_mode_sms_parts ?? 0) > 0)
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">SMS Parts (inc. test disclaimer)</div>
-                                <div class="col-6 text-end">{{ number_format($test_mode_sms_parts) }}</div>
+                                <div class="col-6 text-end">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Test Credits Required</div>
+                                <div class="col-6 text-end fw-medium" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
+                            </div>
+                            @if(($test_credits_remaining ?? 0) > 0)
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Test Credits Remaining</div>
+                                <div class="col-6 text-end">{{ number_format($test_credits_remaining) }}</div>
+                            </div>
+                                @if(($test_mode_sms_parts ?? 0) > ($test_credits_remaining ?? 0))
+                                <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Insufficient test credits. You need {{ number_format($test_mode_sms_parts ?? 0) }} but only have {{ number_format($test_credits_remaining) }} remaining.
+                                </div>
+                                @endif
+                            @else
+                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                No test credits available.
                             </div>
                             @endif
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 fw-bold">Cost</div>
+                                <div class="col-6 text-end fw-bold h5 mb-0" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }} test {{ ($test_mode_sms_parts ?? 0) === 1 ? 'credit' : 'credits' }}</div>
+                            </div>
+                        @elseif(!empty($realEstimate))
+                            {{-- Real estimate from backend billing engine --}}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Messages</div>
+                                <div class="col-6 text-end">{{ number_format($recipients['valid']) }}</div>
+                            </div>
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">Estimated Cost (ex VAT)</div>
                                 <div class="col-6 text-end">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
@@ -210,9 +240,9 @@
                         @else
                             {{-- Fallback: simple estimate from session data --}}
                             @php
-                                $messageCount = !empty($is_test_standard) ? ($deliverable_count ?? $recipients['valid'] ?? 0) : ($recipients['valid'] ?? 0);
+                                $messageCount = $recipients['valid'] ?? 0;
                                 $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
-                                $resolvedParts = !empty($is_test_standard) ? ($test_mode_sms_parts ?? $total_sms_parts ?? 0) : ($total_sms_parts ?? 0);
+                                $resolvedParts = $total_sms_parts ?? 0;
                                 $subtotal = $resolvedParts * $smsUnitPrice;
                                 $vatRate = (float) ($pricing['vat_rate'] ?? 0);
                                 $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
@@ -220,7 +250,7 @@
                                 $hasBreakdown = !empty($segment_breakdown ?? []);
                             @endphp
                             <div class="row mb-2">
-                                <div class="col-6 text-muted">Recipients @if(!empty($is_test_standard))<a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a>@endif</div>
+                                <div class="col-6 text-muted">Recipients</div>
                                 <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
                             </div>
                             @if($hasBreakdown && count($segment_breakdown) > 1)
