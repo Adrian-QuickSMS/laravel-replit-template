@@ -372,7 +372,9 @@ var Composer = (function () {
                 pendingRcsPayload = rcsData;
                 setRcsPayload(rcsData);
                 sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(rcsData));
-                if (typeof resetRcsWizard === 'function') {
+                if (typeof loadRcsPayloadIntoWizard === 'function') {
+                    loadRcsPayloadIntoWizard(rcsData);
+                } else if (typeof resetRcsWizard === 'function') {
                     resetRcsWizard();
                     loadRcsFromStorage();
                 }
