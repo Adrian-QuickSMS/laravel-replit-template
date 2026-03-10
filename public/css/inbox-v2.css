@@ -160,7 +160,6 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--inbox-primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,7 +169,6 @@
 .conv-item__initials {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--inbox-primary);
 }
 
 .conv-item__body {
@@ -217,54 +215,23 @@
     min-width: 0;
 }
 
-.conv-item__badges {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+.conv-item__unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--inbox-primary);
     flex-shrink: 0;
     margin-left: 0.35rem;
 }
 
-.conv-item__channel {
-    font-size: 0.5625rem;
-    font-weight: 600;
-    padding: 1px 5px;
-    border-radius: 3px;
-    line-height: 1.4;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+.conv-item--awaiting {
+    background: #fff8e1;
+    border-left: 3px solid #f9a825;
 }
 
-.conv-item__channel--sms {
-    background: var(--inbox-sms-bg);
-    color: #2d8a4e;
-}
-
-.conv-item__channel--rcs {
-    background: var(--inbox-rcs-bg);
-    color: #6b4fa0;
-}
-
-[data-theme-version="dark"] .conv-item__channel--sms {
-    color: #5fdb82;
-}
-
-[data-theme-version="dark"] .conv-item__channel--rcs {
-    color: #b49ee0;
-}
-
-.conv-item__unread-badge {
-    background: var(--inbox-primary);
-    color: #fff;
-    font-size: 0.625rem;
-    font-weight: 600;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
+[data-theme-version="dark"] .conv-item--awaiting {
+    background: #3e3520;
+    border-left-color: #f9a825;
 }
 
 /* ─── Chat pane — centre column ────────────────────────── */
@@ -314,13 +281,11 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--inbox-primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--inbox-primary);
     flex-shrink: 0;
 }
 
@@ -436,6 +401,27 @@
     border-radius: 3px;
     margin-left: 4px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
+.msg__channel-pill--sms {
+    background: var(--inbox-sms-bg);
+    color: #2d8a4e;
+}
+
+.msg__channel-pill--rcs {
+    background: var(--inbox-rcs-bg);
+    color: #6b4fa0;
+}
+
+[data-theme-version="dark"] .msg__channel-pill--sms {
+    color: #5fdb82;
+}
+
+[data-theme-version="dark"] .msg__channel-pill--rcs {
+    color: #b49ee0;
 }
 
 /* Date separator */
@@ -579,14 +565,12 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--inbox-primary-light);
     margin: 0 auto 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--inbox-primary);
 }
 
 .contact-panel__name {

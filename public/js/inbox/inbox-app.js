@@ -140,6 +140,20 @@ var InboxApp = (function () {
         bsModal.toggle();
     }
 
+    var AVATAR_COLORS = [
+        '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
+        '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
+    ];
+
+    function getAvatarColor(name) {
+        var hash = 0;
+        var str = name || '?';
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
     function updateContactPanel(conv) {
         setTextContent('contactName', conv.name);
         setTextContent('contactPhone', conv.phone_masked);
@@ -148,7 +162,12 @@ var InboxApp = (function () {
         setTextContent('contactFirstDate', conv.first_contact || '');
 
         var avatar = document.getElementById('contactAvatar');
-        if (avatar) avatar.textContent = conv.initials || '?';
+        if (avatar) {
+            avatar.textContent = conv.initials || '?';
+            var color = getAvatarColor(conv.name);
+            avatar.style.backgroundColor = color + '20';
+            avatar.style.color = color;
+        }
 
         // Load tags and notes for this contact
         renderContactTags(conv.id);

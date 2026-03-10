@@ -23,13 +23,32 @@ var ChatThread = (function () {
         scrollToBottom();
     }
 
+    var AVATAR_COLORS = [
+        '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
+        '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
+    ];
+
+    function getAvatarColor(name) {
+        var hash = 0;
+        var str = name || '?';
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
     /* ── Update chat header ────────────────────────────── */
     function updateHeader(conv) {
         var avatar = document.getElementById('chatHeaderAvatar');
         var name = document.getElementById('chatHeaderName');
         var meta = document.getElementById('chatHeaderMeta');
 
-        if (avatar) avatar.textContent = conv.initials || '?';
+        if (avatar) {
+            avatar.textContent = conv.initials || '?';
+            var color = getAvatarColor(conv.name);
+            avatar.style.backgroundColor = color + '20';
+            avatar.style.color = color;
+        }
         if (name) name.textContent = conv.name || conv.phone_masked || '';
 
         var metaText = conv.phone_masked || '';
@@ -90,7 +109,7 @@ var ChatThread = (function () {
         timeLine.innerHTML = escapeHtml(msg.time || '');
         if (isOut) {
             timeLine.innerHTML += ' <i class="fas fa-check msg__delivery-icon text-muted"></i>';
-            timeLine.innerHTML += ' <span class="msg__channel-pill conv-item__channel conv-item__channel--' +
+            timeLine.innerHTML += ' <span class="msg__channel-pill msg__channel-pill--' +
                 channel + '">' + channel.toUpperCase() + '</span>';
         }
 
@@ -154,7 +173,7 @@ var ChatThread = (function () {
         timeLine.className = 'msg__time';
         timeLine.innerHTML = escapeHtml(msg.time || '') +
             ' <i class="fas fa-check msg__delivery-icon text-muted"></i>' +
-            ' <span class="msg__channel-pill conv-item__channel conv-item__channel--rcs">RCS</span>';
+            ' <span class="msg__channel-pill msg__channel-pill--rcs">RCS</span>';
 
         inner.appendChild(card);
         if (msg.caption) {
