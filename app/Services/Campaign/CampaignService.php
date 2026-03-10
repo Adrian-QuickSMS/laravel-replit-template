@@ -588,7 +588,12 @@ class CampaignService
             return $errors;
         }
 
-        $availableCredits = $account->getAvailableCredits();
+        $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $account->id)
+            ->where('expired', false)
+            ->orderByDesc('created_at')
+            ->first();
+        $availableCredits = $wallet ? $wallet->credits_remaining : 0;
+
         if ($totalFragments > $availableCredits) {
             $errors[] = "Insufficient test credits. This campaign requires {$totalFragments} fragments "
                 . "but you have {$availableCredits} remaining. Reduce recipients or contact support.";
