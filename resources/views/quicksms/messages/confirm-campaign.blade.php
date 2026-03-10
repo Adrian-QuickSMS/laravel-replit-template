@@ -24,7 +24,7 @@
                         <strong>Test Mode{{ !empty($is_test_standard) ? ' — Standard' : ' — Dynamic' }}</strong>
                         @if(!empty($is_test_standard))
                         <div class="mt-1 small">
-                            <div class="mb-1"><i class="fas fa-stamp me-1"></i> The disclaimer <em>"QuickSMS TEST message..."</em> (+68 chars inc. space) will be prepended to each SMS</div>
+                            <div class="mb-1"><i class="fas fa-stamp me-1"></i> The disclaimer <em>"{{ \App\Models\Account::TEST_DISCLAIMER }}"</em> (+{{ \App\Models\Account::TEST_DISCLAIMER_LENGTH + 1 }} chars inc. space) will be prepended to each SMS</div>
                             <div><i class="fas fa-coins me-1"></i> This campaign will use <strong>test credits</strong> ({{ $test_credits_remaining ?? 0 }} remaining)</div>
                         </div>
                         @else
@@ -213,7 +213,43 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @if(!empty($realEstimate))
+                        @if(!empty($is_test_standard))
+                            {{-- Test Standard mode: show test credits, not monetary cost --}}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Deliverable Messages <a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a></div>
+                                <div class="col-6 text-end">{{ number_format($deliverable_count ?? 0) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">SMS Parts (inc. test disclaimer)</div>
+                                <div class="col-6 text-end">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Test Credits Required</div>
+                                <div class="col-6 text-end fw-medium" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }}</div>
+                            </div>
+                            @if(($test_credits_remaining ?? 0) > 0)
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Test Credits Remaining</div>
+                                <div class="col-6 text-end">{{ number_format($test_credits_remaining) }}</div>
+                            </div>
+                                @if(($test_mode_sms_parts ?? 0) > ($test_credits_remaining ?? 0))
+                                <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Insufficient test credits. You need {{ number_format($test_mode_sms_parts ?? 0) }} but only have {{ number_format($test_credits_remaining) }} remaining.
+                                </div>
+                                @endif
+                            @else
+                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                No test credits available.
+                            </div>
+                            @endif
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 fw-bold">Cost</div>
+                                <div class="col-6 text-end fw-bold h5 mb-0" style="color: #886CC0;">{{ number_format($test_mode_sms_parts ?? 0) }} test {{ ($test_mode_sms_parts ?? 0) === 1 ? 'credit' : 'credits' }}</div>
+                            </div>
+                        @elseif(!empty($realEstimate))
                             {{-- Real estimate from backend billing engine --}}
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">Messages</div>
@@ -574,6 +610,30 @@
         </div>
     </div>
 </div>
+
+@if(!empty($is_test_standard))
+<div class="modal fade" id="blockedInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>Test Mode — Deliverable Messages</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>In <strong>Test Standard</strong> mode, messages can only be sent to your <strong>approved test numbers</strong>.</p>
+                <p>Recipients not on your approved list are automatically skipped. The deliverable count shown reflects only the recipients who will actually receive your message.</p>
+                <div class="rounded-3 p-3" style="background-color: #e8f4e8;">
+                    <h6 class="mb-2" style="color: #2d6a2d;"><i class="fas fa-stamp me-2"></i>Test Disclaimer</h6>
+                    <p class="mb-0 small">The text <em>"{{ \App\Models\Account::TEST_DISCLAIMER }}"</em> (+{{ \App\Models\Account::TEST_DISCLAIMER_LENGTH + 1 }} chars inc. space) will be prepended to each SMS sent.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <div class="modal fade" id="sendingModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-sm">

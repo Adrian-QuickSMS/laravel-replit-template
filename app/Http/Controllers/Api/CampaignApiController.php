@@ -206,14 +206,18 @@ class CampaignApiController extends Controller
         }
 
         if (!empty($validated['sender_id_id'])) {
-            $senderId = DB::table('sender_ids')
-                ->where('uuid', $validated['sender_id_id'])
-                ->where('account_id', $this->tenantId())
-                ->value('id');
-            if (!$senderId) {
-                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            if ($validated['sender_id_id'] === \App\Http\Controllers\QuickSMSController::TEST_MODE_SENDER_UUID) {
+                $validated['sender_id_id'] = null;
+            } else {
+                $senderId = DB::table('sender_ids')
+                    ->where('uuid', $validated['sender_id_id'])
+                    ->where('account_id', $this->tenantId())
+                    ->value('id');
+                if (!$senderId) {
+                    return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+                }
+                $validated['sender_id_id'] = $senderId;
             }
-            $validated['sender_id_id'] = $senderId;
         }
         if (!empty($validated['rcs_agent_id'])) {
             $rcsAgentId = DB::table('rcs_agents')
@@ -328,14 +332,18 @@ class CampaignApiController extends Controller
         }
 
         if (!empty($validated['sender_id_id'])) {
-            $senderId = DB::table('sender_ids')
-                ->where('uuid', $validated['sender_id_id'])
-                ->where('account_id', $this->tenantId())
-                ->value('id');
-            if (!$senderId) {
-                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            if ($validated['sender_id_id'] === \App\Http\Controllers\QuickSMSController::TEST_MODE_SENDER_UUID) {
+                $validated['sender_id_id'] = null;
+            } else {
+                $senderId = DB::table('sender_ids')
+                    ->where('uuid', $validated['sender_id_id'])
+                    ->where('account_id', $this->tenantId())
+                    ->value('id');
+                if (!$senderId) {
+                    return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+                }
+                $validated['sender_id_id'] = $senderId;
             }
-            $validated['sender_id_id'] = $senderId;
         }
         if (!empty($validated['rcs_agent_id'])) {
             $rcsAgentId = DB::table('rcs_agents')

@@ -14,11 +14,13 @@ use App\Models\User;
 
 class QuickSMSController extends Controller
 {
+    const TEST_MODE_SENDER_UUID = '00000000-0000-0000-0000-000000000000';
+
     private function getApprovedSenderIds(): array
     {
         $tenantId = session('customer_tenant_id');
         if (!$tenantId) {
-            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
         $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
@@ -32,11 +34,11 @@ class QuickSMSController extends Controller
         $result = [];
 
         if ($account && $account->isTestStandard()) {
-            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
+            $result[] = ['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
         }
 
         if ($senderIds->isEmpty() && empty($result)) {
-            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
         foreach ($senderIds as $s) {
@@ -904,9 +906,36 @@ class QuickSMSController extends Controller
                 ->first();
             $testCreditsRemaining = $wallet ? $wallet->credits_remaining : 0;
         }
+        $blockedCount = 0;
         if ($isTestStandard) {
             $settings = \App\Models\AccountSettings::where('account_id', $accountId)->first();
             $approvedTestNumbers = $settings->approved_test_numbers ?? [];
+
+            if (!empty($campaignId) && !empty($approvedTestNumbers)) {
+                $skippedInDb = \DB::table('campaign_recipients')
+                    ->where('campaign_id', $campaignId)
+                    ->where('status', 'skipped')
+                    ->count();
+                $blockedCount = $skippedInDb;
+            } elseif (!empty($campaignId) && empty($approvedTestNumbers)) {
+                $blockedCount = $validCount;
+            }
+        }
+
+        $deliverableCount = $validCount;
+        $testModeSmsParts = $totalSmsParts;
+        if ($isTestStandard) {
+            $deliverableCount = max(0, $validCount - $blockedCount);
+
+            $testDisclaimer = \App\Models\Account::TEST_DISCLAIMER . ' ';
+            $originalContent = $sessionData['message_content'] ?? '';
+            if (empty($originalContent) && !empty($campaignId)) {
+                $campaignForContent = \DB::table('campaigns')->where('id', $campaignId)->first(['message_content']);
+                $originalContent = $campaignForContent->message_content ?? '';
+            }
+            $msgContent = $testDisclaimer . $originalContent;
+            $testModeSegments = $this->calculateSmsSegments($msgContent);
+            $testModeSmsParts = $deliverableCount * $testModeSegments;
         }
 
         return view('quicksms.messages.confirm-campaign', [
@@ -925,6 +954,9 @@ class QuickSMSController extends Controller
             'is_test_standard' => $isTestStandard,
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
+            'blocked_count' => $blockedCount ?? 0,
+            'deliverable_count' => $deliverableCount,
+            'test_mode_sms_parts' => $testModeSmsParts,
         ]);
     }
 
@@ -1028,7 +1060,7 @@ class QuickSMSController extends Controller
 
             if (!$campaign) {
                 $senderIdValue = $sessionData['sender_id_id'] ?? null;
-                if ($senderIdValue === '0' || $senderIdValue === 0) {
+                if ($senderIdValue === '0' || $senderIdValue === 0 || $senderIdValue === self::TEST_MODE_SENDER_UUID) {
                     $senderIdValue = null;
                 }
                 if ($senderIdValue && !is_numeric($senderIdValue)) {
@@ -2638,9 +2670,9 @@ class QuickSMSController extends Controller
             ->get();
 
         $sender_ids = $approvedIds->isEmpty()
-            ? [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']]
+            ? [['id' => self::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric']]
             : $approvedIds->map(fn($s) => [
-                'id' => $s->id,
+                'id' => $s->uuid,
                 'name' => $s->sender_id_value,
                 'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
             ])->toArray();

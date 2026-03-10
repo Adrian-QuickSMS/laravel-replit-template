@@ -180,8 +180,9 @@ class InboxController extends Controller
     private function getApprovedSenderIds(): array
     {
         $tenantId = session('customer_tenant_id');
+        $testSenderUuid = QuickSMSController::TEST_MODE_SENDER_UUID;
         if (!$tenantId) {
-            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => $testSenderUuid, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
 
         $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
@@ -193,10 +194,10 @@ class InboxController extends Controller
 
         $result = [];
         if ($account && $account->isTestStandard()) {
-            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
+            $result[] = ['id' => $testSenderUuid, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
         }
         if ($senderIds->isEmpty() && empty($result)) {
-            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+            return [['id' => $testSenderUuid, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
         }
         foreach ($senderIds as $s) {
             $result[] = [
@@ -255,7 +256,7 @@ class InboxController extends Controller
 
         $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
         if ($account && $account->isTestStandard() && empty($result)) {
-            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
+            $result[] = ['id' => QuickSMSController::TEST_MODE_SENDER_UUID, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
         }
 
         return $result;
