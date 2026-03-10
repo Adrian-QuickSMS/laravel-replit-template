@@ -85,6 +85,10 @@
                     </button>
                 </div>
             </div>
+
+            <label class="form-label small mb-1">SMS Fallback Content</label>
+            <textarea class="form-control mb-1" id="rcsSmsFallbackText" rows="2" placeholder="Fallback SMS text if RCS delivery fails..."></textarea>
+            <p class="text-muted small mb-0">This text will be sent as a standard SMS if the recipient's device doesn't support RCS.</p>
         </div>
 
         <div class="d-flex justify-content-end">

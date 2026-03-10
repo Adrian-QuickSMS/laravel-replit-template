@@ -598,6 +598,8 @@ var Composer = (function () {
             }
             clearRcsPayload();
             textarea.value = '';
+            var fallbackEl = document.getElementById('rcsSmsFallbackText');
+            if (fallbackEl) fallbackEl.value = '';
             updateCharCount();
             return;
         }
@@ -635,6 +637,10 @@ var Composer = (function () {
     }
 
     function getSmsFallback() {
+        if (currentChannel === 'rcs_rich') {
+            var fallbackText = document.getElementById('rcsSmsFallbackText');
+            return fallbackText ? fallbackText.value.trim() : '';
+        }
         var el = document.getElementById('inboxSmsFallbackSelect');
         return el ? el.value : '';
     }
