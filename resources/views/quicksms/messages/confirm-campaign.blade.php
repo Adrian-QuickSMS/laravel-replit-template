@@ -640,7 +640,7 @@
 
                 <div class="rounded-3 p-3" style="background-color: #e8f4e8;">
                     <h6 class="mb-2" style="color: #2d6a2d;"><i class="fas fa-stamp me-2"></i>Test Disclaimer</h6>
-                    <p class="mb-0 small">The text <em>"QuickSMS TEST message..."</em> (+68 chars inc. space) will be prepended to each SMS sent.</p>
+                    <p class="mb-0 small">The text <em>"{{ \App\Models\Account::TEST_DISCLAIMER }}"</em> (+{{ \App\Models\Account::TEST_DISCLAIMER_LENGTH + 1 }} chars inc. space) will be prepended to each SMS sent.</p>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">

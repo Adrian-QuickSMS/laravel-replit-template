@@ -952,8 +952,13 @@ class QuickSMSController extends Controller
         if ($isTestStandard) {
             $deliverableCount = max(0, $validCount - $blockedCount);
 
-            $testDisclaimer = 'QuickSMS TEST message. Not for production use. ';
-            $msgContent = $testDisclaimer . ($sessionData['message_content'] ?? '');
+            $testDisclaimer = \App\Models\Account::TEST_DISCLAIMER . ' ';
+            $originalContent = $sessionData['message_content'] ?? '';
+            if (empty($originalContent) && !empty($campaignId)) {
+                $campaignForContent = \DB::table('campaigns')->where('id', $campaignId)->first(['message_content']);
+                $originalContent = $campaignForContent->message_content ?? '';
+            }
+            $msgContent = $testDisclaimer . $originalContent;
             $testModeSegments = $this->calculateSmsSegments($msgContent);
             $testModeSmsParts = $deliverableCount * $testModeSegments;
         }
