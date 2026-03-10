@@ -277,7 +277,7 @@
                             <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
                             <span class="text-muted" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
                         </div>
-                        <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                        <span class="badge d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding." style="background:#f0ebf8;color:#5a3d8a;">
                             <i class="fas fa-exclamation-triangle me-1"></i>Unicode
                         </span>
                     </div>
