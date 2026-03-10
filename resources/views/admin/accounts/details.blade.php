@@ -178,9 +178,9 @@
             <div class="account-id">{{ $account->account_number ?? $account_id }}</div>
         </div>
         <div class="account-actions">
-            <button class="btn btn-admin-outline btn-sm" onclick="openAccountStructureModal()">
+            <a href="{{ route('admin.accounts.structure', $account_id) }}" class="btn btn-admin-outline btn-sm">
                 <i class="fas fa-sitemap me-1"></i>View Account Structure
-            </button>
+            </a>
             <a href="{{ route('admin.accounts.overview') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-arrow-left me-1"></i>Back to Accounts
             </a>
@@ -760,7 +760,6 @@
     </div>
 </div>
 
-@include('admin.accounts.partials.account-structure-modal')
 
 <!-- Edit Pricing Modal -->
 <div class="modal fade" id="editPricingModal" tabindex="-1" aria-labelledby="editPricingModalLabel" aria-hidden="true">
@@ -967,109 +966,6 @@ document.addEventListener('DOMContentLoaded', function() {
         AdminControlPlane.logAdminAction('ACCOUNT_DETAILS_VIEWED', accountId, { accountName: data.name });
     }
 });
-
-var accountStructureModal = null;
-var currentHierarchyData = null;
-
-function openAccountStructureModal() {
-    var accountId = @json($account_id);
-    var accountName = document.getElementById('accountName').textContent;
-    
-    if (!accountStructureModal) {
-        accountStructureModal = new bootstrap.Modal(document.getElementById('accountStructureModal'));
-    }
-    
-    document.getElementById('accountStructureModalLabel').textContent = 'Account Structure — ' + accountName;
-    
-    currentHierarchyData = {
-        main: { name: @json($account->company_name ?? 'Unknown'), id: @json($account->account_number ?? $account_id), status: @json(ucfirst($account->status ?? 'active')), type: @json(ucfirst($account->account_type ?? 'standard')) },
-        subAccounts: {!! json_encode(($subAccounts ?? collect())->map(function($sa) use ($allUsers) {
-            return [
-                'id' => $sa->id,
-                'name' => $sa->name,
-                'status' => ucfirst($sa->sub_account_status ?? 'live'),
-                'users' => ($allUsers ?? collect())->where('sub_account_id', $sa->id)->map(function($u) {
-                    return [
-                        'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
-                        'email' => $u->email ?? '',
-                        'role' => ucfirst($u->role ?? 'user'),
-                        'status' => ucfirst($u->status ?? 'active'),
-                    ];
-                })->values()->toArray(),
-            ];
-        })->values()->toArray()) !!},
-        mainUsers: {!! json_encode(($allUsers ?? collect())->filter(function($u) { return empty($u->sub_account_id); })->map(function($u) {
-            return [
-                'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
-                'email' => $u->email ?? '',
-                'role' => ucfirst($u->role ?? 'user'),
-                'status' => ucfirst($u->status ?? 'active'),
-            ];
-        })->values()->toArray()) !!}
-    };
-    
-    renderHierarchyTree();
-    accountStructureModal.show();
-    
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('ACCOUNT_STRUCTURE_VIEWED', 'ACCOUNTS', { accountId: accountId });
-    }
-}
-
-function escHtml(str) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(str || ''));
-    return d.innerHTML;
-}
-
-function renderHierarchyTree() {
-    var data = currentHierarchyData;
-    var html = '<div class="tree-item main-account" onclick="selectNode(\'main\')"><span class="tree-node-name">' + escHtml(data.main.name) + '</span></div>';
-    
-    if (data.mainUsers) {
-        data.mainUsers.forEach(function(u, i) {
-            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'main-user\', ' + i + ')"><span class="tree-node-name">' + escHtml(u.name) + '</span><span class="badge light badge-primary ms-2">' + escHtml(u.role) + '</span></div></div>';
-        });
-    }
-    
-    if (data.subAccounts) {
-        data.subAccounts.forEach(function(s, i) {
-            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub\', ' + i + ')"><span class="tree-node-name">' + escHtml(s.name) + '</span><span class="badge light badge-success ms-2">' + escHtml(s.status) + '</span></div>';
-            if (s.users && s.users.length > 0) {
-                html += '<div class="tree-children">';
-                s.users.forEach(function(u, j) {
-                    html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub-user\', ' + i + ', ' + j + ')"><span class="tree-node-name">' + escHtml(u.name) + '</span><span class="badge light badge-primary ms-2">' + escHtml(u.role) + '</span></div></div>';
-                });
-                html += '</div>';
-            }
-            html += '</div>';
-        });
-    }
-    
-    document.getElementById('hierarchyTree').innerHTML = html;
-}
-
-function selectNode(type, index, subIndex) {
-    var data = currentHierarchyData;
-    var html = '';
-    if (type === 'main') {
-        html = '<h6>Main Account</h6><table class="table table-sm"><tr><th>Status</th><td><span class="badge light badge-success">' + escHtml(data.main.status) + '</span></td></tr><tr><th>Type</th><td>' + escHtml(data.main.type) + '</td></tr></table>';
-    } else if (type === 'main-user') {
-        var u = data.mainUsers[index];
-        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + escHtml(u.name) + '</td></tr><tr><th>Email</th><td>' + escHtml(u.email) + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + escHtml(u.role) + '</span></td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + escHtml(u.status) + '</span></td></tr></table>';
-    } else if (type === 'sub') {
-        var s = data.subAccounts[index];
-        var userCount = s.users ? s.users.length : 0;
-        html = '<h6>Sub-Account</h6><table class="table table-sm"><tr><th>Name</th><td>' + escHtml(s.name) + '</td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + escHtml(s.status) + '</span></td></tr><tr><th>Users</th><td>' + userCount + '</td></tr></table>';
-    } else if (type === 'sub-user') {
-        var su = data.subAccounts[index].users[subIndex];
-        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + escHtml(su.name) + '</td></tr><tr><th>Email</th><td>' + escHtml(su.email) + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + escHtml(su.role) + '</span></td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + escHtml(su.status) + '</span></td></tr></table>';
-    }
-    document.getElementById('nodeDetailsPanel').innerHTML = html;
-}
-
-function addSubAccount() { alert('Add Sub-account'); }
-function inviteUser() { alert('Invite User'); }
 
 var editPricingModalInstance = null;
 var editPricingData = [];

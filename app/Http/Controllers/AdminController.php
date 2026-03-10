@@ -312,6 +312,29 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accountStructure($accountId)
+    {
+        $account = Account::findOrFail($accountId);
+
+        $subAccounts = \App\Models\SubAccount::where('account_id', $accountId)
+            ->select('id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get();
+
+        $allUsers = User::where('tenant_id', $accountId)
+            ->select('id', 'first_name', 'last_name', 'email', 'role', 'status', 'sub_account_id', 'is_account_owner', 'sender_capability')
+            ->orderBy('first_name')
+            ->get();
+
+        return view('admin.accounts.account-structure', [
+            'page_title' => 'Account Structure',
+            'account_id' => $accountId,
+            'account' => $account,
+            'subAccounts' => $subAccounts,
+            'allUsers' => $allUsers,
+        ]);
+    }
+
     public function saveAccountTestNumbers(Request $request, $accountId)
     {
         $account = Account::findOrFail($accountId);
