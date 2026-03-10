@@ -299,13 +299,6 @@ var Composer = (function () {
             });
         }
 
-        var refreshBtn = document.getElementById('btnRefreshTemplates');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', function () {
-                loadTemplates();
-            });
-        }
-
         loadTemplates();
     }
 

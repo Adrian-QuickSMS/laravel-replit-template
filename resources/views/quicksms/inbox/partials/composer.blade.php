@@ -1,55 +1,42 @@
 {{-- Inbox v2: Reply composer — matches v1 card-based layout --}}
 <div class="card border-top mb-0 d-none" id="replyComposer" style="border-radius: 0; flex-shrink: 0;">
     <div class="card-body p-2">
-        <div class="row mb-2">
-            <div class="col-12 mb-1">
-                <label class="form-label small fw-bold mb-1">Channel & Sender</label>
-                <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" name="replyChannel" id="channelSms" value="sms" checked>
-                    <label class="btn btn-outline-primary" for="channelSms"><i class="fas fa-sms me-1"></i>SMS only</label>
-                    <input type="radio" class="btn-check" name="replyChannel" id="channelRcsBasic" value="rcs_basic">
-                    <label class="btn btn-outline-primary" for="channelRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
-                    <input type="radio" class="btn-check" name="replyChannel" id="channelRcsRich" value="rcs_rich">
-                    <label class="btn btn-outline-primary" for="channelRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+        <div class="mb-2">
+            <label class="form-label small fw-bold mb-1">Channel & Sender</label>
+            <div class="btn-group w-100 mb-2" role="group">
+                <input type="radio" class="btn-check" name="replyChannel" id="channelSms" value="sms" checked>
+                <label class="btn btn-outline-primary" for="channelSms"><i class="fas fa-sms me-1"></i>SMS only</label>
+                <input type="radio" class="btn-check" name="replyChannel" id="channelRcsBasic" value="rcs_basic">
+                <label class="btn btn-outline-primary" for="channelRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                <input type="radio" class="btn-check" name="replyChannel" id="channelRcsRich" value="rcs_rich">
+                <label class="btn btn-outline-primary" for="channelRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="flex-fill" id="inboxSenderIdSection">
+                    <select class="form-select form-select-sm" id="inboxSenderSelect">
+                        <option value="">SMS Sender ID *</option>
+                    </select>
                 </div>
-            </div>
-            <div class="col-md-6" id="inboxSenderIdSection">
-                <label class="form-label small mb-1">SMS Sender ID <span class="text-danger">*</span></label>
-                <select class="form-select form-select-sm" id="inboxSenderSelect">
-                    <option value="">Select sender...</option>
-                </select>
-            </div>
-            <div class="col-md-6 d-none" id="inboxRcsAgentSection">
-                <label class="form-label small mb-1">RCS Agent <span class="text-danger">*</span></label>
-                <select class="form-select form-select-sm" id="inboxRcsAgentSelect">
-                    <option value="">Select agent...</option>
-                </select>
-            </div>
-            <div class="col-md-6 d-none" id="inboxSmsFallbackSection">
-                <label class="form-label small mb-1">SMS Fallback Sender <span class="text-danger">*</span></label>
-                <select class="form-select form-select-sm" id="inboxSmsFallbackSelect">
-                    <option value="">Select fallback...</option>
-                </select>
+                <div class="flex-fill d-none" id="inboxRcsAgentSection">
+                    <select class="form-select form-select-sm" id="inboxRcsAgentSelect">
+                        <option value="">RCS Agent *</option>
+                    </select>
+                </div>
+                <div class="flex-fill d-none" id="inboxSmsFallbackSection">
+                    <select class="form-select form-select-sm" id="inboxSmsFallbackSelect">
+                        <option value="">SMS Fallback *</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="row align-items-center mb-2">
-            <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label mb-0 text-nowrap small">Template</label>
-                    <select class="form-select form-select-sm" id="inboxTemplateSelector">
-                        <option value="">-- None --</option>
-                    </select>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRefreshTemplates" title="Refresh templates">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-7 text-md-end">
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnAiAssist">
-                    <i class="fas fa-magic me-1"></i>Improve with AI
-                </button>
-            </div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <select class="form-select form-select-sm flex-fill" id="inboxTemplateSelector">
+                <option value="">Template: None</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" id="btnAiAssist">
+                <i class="fas fa-magic me-1"></i>Improve with AI
+            </button>
         </div>
 
         <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
