@@ -815,4 +815,23 @@
     .inbox-sidebar.sidebar-hidden {
         transform: translateX(-100%);
     }
+
+    .chat-pane-with-composer {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .chat-pane {
+        flex: none;
+        min-height: auto;
+    }
+
+    .chat-pane__messages {
+        max-height: none;
+        overflow: visible;
+    }
+
+    #replyComposer {
+        max-height: none;
+    }
 }
