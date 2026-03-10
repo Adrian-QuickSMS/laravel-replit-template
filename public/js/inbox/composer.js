@@ -321,8 +321,8 @@ var Composer = (function () {
             if (t.rcs_payload) {
                 opt.setAttribute('data-rcs-payload', JSON.stringify(t.rcs_payload));
             }
-            if (t.sender_id) {
-                opt.setAttribute('data-sender-id', t.sender_id);
+            if (t.vmn_id) {
+                opt.setAttribute('data-vmn-id', t.vmn_id);
             }
             if (t.rcs_agent_id) {
                 opt.setAttribute('data-rcs-agent-id', t.rcs_agent_id);
@@ -342,7 +342,7 @@ var Composer = (function () {
         var channel = selected.getAttribute('data-channel') || 'SMS';
         var rcsPayloadStr = selected.getAttribute('data-rcs-payload') || '';
         var content = selected.getAttribute('data-content') || '';
-        var templateSenderId = selected.getAttribute('data-sender-id') || '';
+        var templateVmnId = selected.getAttribute('data-vmn-id') || '';
         var templateRcsAgentId = selected.getAttribute('data-rcs-agent-id') || '';
         var textarea = document.getElementById('replyMessage');
 
@@ -350,14 +350,14 @@ var Composer = (function () {
         var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
         var rcsSelect = document.getElementById('inboxRcsAgentSelect');
 
-        if (senderSelect) {
-            senderSelect.value = templateSenderId || '';
+        if (senderSelect && templateVmnId) {
+            senderSelect.value = templateVmnId;
         }
-        if (fallbackSelect) {
-            fallbackSelect.value = templateSenderId || '';
+        if (fallbackSelect && templateVmnId) {
+            fallbackSelect.value = templateVmnId;
         }
-        if (rcsSelect) {
-            rcsSelect.value = templateRcsAgentId || '';
+        if (rcsSelect && templateRcsAgentId) {
+            rcsSelect.value = templateRcsAgentId;
         }
 
         if (rcsPayloadStr) {

@@ -238,6 +238,8 @@ class InboxController extends Controller
 
     private function getTemplatesForView(): array
     {
+        $tenantId = session('customer_tenant_id');
+
         $typeToChannel = [
             'sms'          => 'SMS',
             'rcs_basic'    => 'Basic RCS + SMS',
@@ -245,22 +247,38 @@ class InboxController extends Controller
             'rcs_carousel' => 'Rich RCS + SMS',
         ];
 
+        $senderToVmn = [];
+        if ($tenantId) {
+            $senderToVmn = \App\Models\PurchasedNumber::where('account_id', $tenantId)
+                ->where('status', \App\Models\PurchasedNumber::STATUS_ACTIVE)
+                ->whereNotNull('sender_id_id')
+                ->pluck('id', 'sender_id_id')
+                ->toArray();
+        }
+
         return \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
             ->where(function ($q) {
                 $q->where('trigger_type', 'portal')->orWhereNull('trigger_type');
             })
             ->orderByDesc('updated_at')
             ->get()
-            ->map(fn ($t) => [
-                'id'           => $t->id,
-                'name'         => $t->name,
-                'content'      => $t->content ?? '',
-                'channel'      => $typeToChannel[$t->type] ?? 'SMS',
-                'status'       => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                'rcs_payload'  => $t->rcs_content,
-                'sender_id'    => $t->sender_id_id,
-                'rcs_agent_id' => $t->rcs_agent_id,
-            ])
+            ->map(function ($t) use ($typeToChannel, $senderToVmn) {
+                $vmnId = null;
+                if ($t->sender_id_id && isset($senderToVmn[$t->sender_id_id])) {
+                    $vmnId = $senderToVmn[$t->sender_id_id];
+                }
+
+                return [
+                    'id'           => $t->id,
+                    'name'         => $t->name,
+                    'content'      => $t->content ?? '',
+                    'channel'      => $typeToChannel[$t->type] ?? 'SMS',
+                    'status'       => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                    'rcs_payload'  => $t->rcs_content,
+                    'vmn_id'       => $vmnId,
+                    'rcs_agent_id' => $t->rcs_agent_id,
+                ];
+            })
             ->toArray();
     }
 
