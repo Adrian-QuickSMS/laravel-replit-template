@@ -466,7 +466,8 @@
                                                 $cName = ($contact['first_name'] ?? '') . ' ' . ($contact['last_name'] ?? '');
                                                 $cHash = 0;
                                                 for ($ci = 0; $ci < strlen($cName); $ci++) { $cHash = ord($cName[$ci]) + (($cHash << 5) - $cHash); }
-                                                $avatarColor = $avatarColors[abs($cHash) % count($avatarColors)];
+                                                $cIdx = (($cHash % count($avatarColors)) + count($avatarColors)) % count($avatarColors);
+                                                $avatarColor = $avatarColors[$cIdx];
                                             @endphp
                                             <div class="contact-avatar me-2" style="background-color: {{ $avatarColor }}20; color: {{ $avatarColor }};">
                                                 {{ $contact['initials'] }}
