@@ -226,6 +226,7 @@ var ConversationList = (function () {
             conv.last_message = text;
             conv.last_message_time = time || 'Just now';
             conv.timestamp = Math.floor(Date.now() / 1000);
+            conv.awaiting_reply_48h = false;
             render();
         }
     }
