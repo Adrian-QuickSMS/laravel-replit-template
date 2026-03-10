@@ -582,9 +582,46 @@ var InboxApp = (function () {
                 'Accept': 'application/json'
             },
             body: body ? JSON.stringify(body) : undefined
+        }).then(function (res) {
+            if (!res.ok) {
+                return res.json().then(function (data) {
+                    var errMsg = data.message || 'Request failed (' + res.status + ')';
+                    console.error('[Inbox] API error ' + res.status + ':', errMsg);
+                    showToast(errMsg, 'error');
+                    return data;
+                }).catch(function () {
+                    console.error('[Inbox] API error ' + res.status);
+                    showToast('Request failed (' + res.status + ')', 'error');
+                });
+            }
+            return res.json();
         }).catch(function (err) {
-            console.warn('[Inbox] API error:', err);
+            console.warn('[Inbox] Network error:', err);
+            showToast('Network error — message not sent', 'error');
         });
+    }
+
+    function showToast(message, type) {
+        var container = document.getElementById('inboxToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'inboxToastContainer';
+            container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;';
+            document.body.appendChild(container);
+        }
+        var toast = document.createElement('div');
+        toast.className = 'alert alert-' + (type === 'error' ? 'danger' : 'success') + ' alert-dismissible fade show';
+        toast.style.cssText = 'min-width:300px;margin-bottom:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        var msgSpan = document.createElement('span');
+        msgSpan.textContent = message;
+        toast.appendChild(msgSpan);
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn-close';
+        closeBtn.setAttribute('data-bs-dismiss', 'alert');
+        toast.appendChild(closeBtn);
+        container.appendChild(toast);
+        setTimeout(function () { if (toast.parentNode) toast.remove(); }, 6000);
     }
 
     function bindClick(id, handler) {

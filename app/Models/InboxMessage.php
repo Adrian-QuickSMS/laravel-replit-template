@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class InboxMessage extends Model
 {
@@ -63,7 +64,12 @@ class InboxMessage extends Model
             }
         });
 
-        // Encrypt content on save
+        static::creating(function (self $msg) {
+            if (empty($msg->id)) {
+                $msg->id = (string) Str::uuid();
+            }
+        });
+
         static::saving(function (self $msg) {
             if ($msg->isDirty('content') && $msg->content !== null) {
                 $msg->content_encrypted = Crypt::encryptString($msg->content);
