@@ -91,7 +91,7 @@
     font-weight: 500;
 }
 
-/* Contact Avatar - Purple pastel */
+/* Contact Avatar - Multi-color pastel */
 .contact-avatar {
     width: 36px;
     height: 36px;
@@ -101,8 +101,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
 }
 
 /* List Icons - Purple pastel (Static & Dynamic) */

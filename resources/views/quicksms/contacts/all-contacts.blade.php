@@ -461,7 +461,14 @@
                                     </td>
                                     <td class="py-2">
                                         <div class="d-flex align-items-center">
-                                            <div class="contact-avatar me-2">
+                                            @php
+                                                $avatarColors = ['#6f42c1','#e83e8c','#20c997','#fd7e14','#0d6efd','#6610f2','#d63384','#198754','#dc3545','#0dcaf0'];
+                                                $cName = ($contact['first_name'] ?? '') . ' ' . ($contact['last_name'] ?? '');
+                                                $cHash = 0;
+                                                for ($ci = 0; $ci < strlen($cName); $ci++) { $cHash = ord($cName[$ci]) + (($cHash << 5) - $cHash); }
+                                                $avatarColor = $avatarColors[abs($cHash) % count($avatarColors)];
+                                            @endphp
+                                            <div class="contact-avatar me-2" style="background-color: {{ $avatarColor }}20; color: {{ $avatarColor }};">
                                                 {{ $contact['initials'] }}
                                             </div>
                                             <div>
@@ -1154,9 +1161,20 @@ function sortContacts(sortKey, direction) {
     renderContactsTable(sortedContacts);
 }
 
+var AVATAR_COLORS = ['#6f42c1','#e83e8c','#20c997','#fd7e14','#0d6efd','#6610f2','#d63384','#198754','#dc3545','#0dcaf0'];
+function getAvatarColor(name) {
+    var hash = 0;
+    var str = name || '?';
+    for (var i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 function renderContactsTable(contacts) {
     const tbody = document.getElementById('contactsTableBody');
-    tbody.innerHTML = contacts.map(contact => `
+    tbody.innerHTML = contacts.map(contact => {
+        var cName = (contact.first_name || '') + ' ' + (contact.last_name || '');
+        var cColor = getAvatarColor(cName);
+        return `
         <tr class="btn-reveal-trigger" data-contact-id="${escapeHtml(contact.id)}" data-first-name="${escapeHtml(contact.firstName || '')}" data-last-name="${escapeHtml(contact.lastName || '')}" data-status="${escapeHtml(contact.status || 'active')}" data-list-scope="${escapeHtml(contact.listScope || '')}">
             <td class="py-2">
                 <div class="form-check custom-checkbox">
@@ -1166,7 +1184,7 @@ function renderContactsTable(contacts) {
             </td>
             <td class="py-2">
                 <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
+                    <div class="contact-avatar me-2" style="background-color: ${cColor}20; color: ${cColor};">
                         ${escapeHtml(contact.initials)}
                     </div>
                     <div>
@@ -1234,7 +1252,7 @@ function renderContactsTable(contacts) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
     
     document.querySelectorAll('.contact-checkbox').forEach(cb => {
         cb.addEventListener('change', function() {
@@ -1269,6 +1287,13 @@ function viewContact(id) {
     
     document.getElementById('viewContactName').textContent = contact.first_name + ' ' + contact.last_name;
     document.getElementById('viewContactInitials').textContent = contact.initials;
+    var vcColor = getAvatarColor((contact.first_name || '') + ' ' + (contact.last_name || ''));
+    var vcAvatar = document.getElementById('viewContactInitials').parentElement;
+    if (vcAvatar) {
+        vcAvatar.style.backgroundColor = vcColor + '20';
+        vcAvatar.style.color = vcColor;
+        vcAvatar.classList.remove('bg-primary', 'text-white');
+    }
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
