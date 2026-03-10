@@ -470,7 +470,9 @@
 
 .msg__rich-card img {
     width: 100%;
+    max-height: 200px;
     object-fit: cover;
+    border-radius: 8px 8px 0 0;
 }
 
 .msg__rich-card-body {
@@ -501,6 +503,66 @@
 
 .msg__rich-card-btn:hover {
     background: var(--inbox-primary-light);
+}
+
+.msg__carousel-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    max-width: 420px;
+}
+
+.msg__carousel-strip::-webkit-scrollbar {
+    height: 4px;
+}
+
+.msg__carousel-strip::-webkit-scrollbar-thumb {
+    background: var(--inbox-border);
+    border-radius: 2px;
+}
+
+.msg__carousel-tile {
+    flex: 0 0 180px;
+    width: 180px;
+    scroll-snap-align: start;
+}
+
+.msg__carousel-tile img {
+    height: 120px;
+}
+
+.msg__carousel-tile .msg__rich-card-body {
+    padding: 0.375rem 0.5rem;
+}
+
+.msg__carousel-tile .msg__rich-card-title {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg__carousel-tile .msg__rich-card-desc {
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg__carousel-tile .msg__rich-card-btn {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.msg__carousel-hint {
+    font-size: 0.6875rem;
+    color: var(--inbox-text-muted);
+    text-align: right;
+    margin-top: 4px;
+    padding-right: 2px;
 }
 
 /* ─── Chat pane + composer wrapper ─────────────────────── */
@@ -707,6 +769,14 @@
 
 [data-theme-version="dark"] .msg__rich-card-btn:hover {
     background: var(--inbox-primary-light);
+}
+
+[data-theme-version="dark"] .msg__carousel-strip::-webkit-scrollbar-thumb {
+    background: var(--inbox-border);
+}
+
+[data-theme-version="dark"] .msg__carousel-hint {
+    color: var(--inbox-text-muted);
 }
 
 [data-theme-version="dark"] .contact-panel__name {

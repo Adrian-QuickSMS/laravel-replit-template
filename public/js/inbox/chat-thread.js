@@ -85,6 +85,11 @@ var ChatThread = (function () {
 
             // Rich card or text bubble
             if (msg.type === 'rich_card' && msg.rich_card) {
+                if (msg.rich_card.type === 'carousel' && Array.isArray(msg.rich_card.cards) && msg.rich_card.cards.length > 1) {
+                    msg.carousel_cards = msg.rich_card.cards;
+                }
+                area.appendChild(createRichCardBubble(msg, channel));
+            } else if (msg.carousel_cards && msg.carousel_cards.length > 1) {
                 area.appendChild(createRichCardBubble(msg, channel));
             } else {
                 area.appendChild(createBubble(msg, channel));
@@ -122,18 +127,10 @@ var ChatThread = (function () {
         return wrapper;
     }
 
-    /* ── Create a rich card bubble ─────────────────────── */
-    function createRichCardBubble(msg, channel) {
-        var wrapper = document.createElement('div');
-        wrapper.className = 'msg msg--out msg--rcs';
-        wrapper.style.justifyContent = 'flex-end';
-
-        var inner = document.createElement('div');
-
+    /* ── Build a single card DOM element ─────────────── */
+    function buildCardElement(rc) {
         var card = document.createElement('div');
         card.className = 'msg__rich-card';
-
-        var rc = msg.rich_card;
 
         var imageUrl = rc.image || (rc.media && (rc.media.savedDataUrl || rc.media.hostedUrl || rc.media.url)) || null;
         var cardTitle = rc.title || rc.description || '';
@@ -149,10 +146,6 @@ var ChatThread = (function () {
             var img = document.createElement('img');
             img.src = imageUrl;
             img.alt = cardTitle || '';
-            img.style.width = '100%';
-            img.style.maxHeight = '200px';
-            img.style.objectFit = 'cover';
-            img.style.borderRadius = '8px 8px 0 0';
             img.onerror = function () { this.style.display = 'none'; };
             card.appendChild(img);
         }
@@ -181,14 +174,49 @@ var ChatThread = (function () {
             card.appendChild(btn);
         });
 
-        // Caption below card
+        return card;
+    }
+
+    /* ── Create a rich card / carousel bubble ──────────── */
+    function createRichCardBubble(msg, channel) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'msg msg--out msg--rcs';
+        wrapper.style.justifyContent = 'flex-end';
+
+        var inner = document.createElement('div');
+
+        var cards = msg.carousel_cards || [];
+        var singleCard = msg.rich_card || null;
+
+        if (cards.length > 1) {
+            var strip = document.createElement('div');
+            strip.className = 'msg__carousel-strip';
+
+            cards.forEach(function (rc) {
+                var tile = buildCardElement(rc);
+                tile.classList.add('msg__carousel-tile');
+                strip.appendChild(tile);
+            });
+
+            inner.appendChild(strip);
+
+            var hint = document.createElement('div');
+            hint.className = 'msg__carousel-hint';
+            hint.innerHTML = '<i class="fas fa-images me-1"></i>Carousel &middot; ' + cards.length + ' cards &middot; swipe to view';
+            inner.appendChild(hint);
+        } else {
+            var rc = cards.length === 1 ? cards[0] : singleCard;
+            if (rc) {
+                inner.appendChild(buildCardElement(rc));
+            }
+        }
+
         var timeLine = document.createElement('div');
         timeLine.className = 'msg__time';
         timeLine.innerHTML = escapeHtml(msg.time || '') +
             ' <i class="fas fa-check msg__delivery-icon text-muted"></i>' +
             ' <span class="msg__channel-pill msg__channel-pill--rcs">RCS</span>';
 
-        inner.appendChild(card);
         if (msg.caption) {
             var cap = document.createElement('div');
             cap.className = 'msg__bubble';
@@ -228,11 +256,14 @@ var ChatThread = (function () {
         var area = document.getElementById('chatArea');
         if (!area) return;
 
+        var isCarousel = payload.type === 'carousel' && payload.cards && payload.cards.length > 1;
+
         var msg = {
             direction: 'outbound',
-            type: 'rich_card',
+            type: isCarousel ? 'carousel' : 'rich_card',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            rich_card: payload.cards ? payload.cards[0] : payload,
+            rich_card: !isCarousel ? (payload.cards ? payload.cards[0] : payload) : null,
+            carousel_cards: isCarousel ? payload.cards : [],
             caption: payload.caption || ''
         };
 
