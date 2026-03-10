@@ -30,37 +30,39 @@
             </div>
         </div>
 
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <select class="form-select form-select-sm flex-fill" id="inboxTemplateSelector">
-                <option value="">Template: None</option>
-            </select>
-            <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" id="btnAiAssist">
-                <i class="fas fa-magic me-1"></i>Improve with AI
-            </button>
-        </div>
-
-        <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
-        <div class="position-relative border rounded mb-2">
-            <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." style="padding-bottom: 40px; resize: none;"></textarea>
-            <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
-                <button type="button" class="btn btn-sm btn-light border" id="btnPersonalisation" title="Insert personalisation">
-                    <i class="fas fa-user-tag"></i>
-                </button>
-                <button type="button" class="btn btn-sm btn-light border" id="btnEmoji" title="Insert emoji">
-                    <i class="fas fa-smile"></i>
+        <div id="inboxTextContentSection">
+            <div class="d-flex align-items-center gap-2 mb-2" id="inboxTemplateRow">
+                <select class="form-select form-select-sm flex-fill" id="inboxTemplateSelector">
+                    <option value="">Template: None</option>
+                </select>
+                <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" id="btnAiAssist">
+                    <i class="fas fa-magic me-1"></i>Improve with AI
                 </button>
             </div>
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-                <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
-                <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
-                <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+            <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
+            <div class="position-relative border rounded mb-2">
+                <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." style="padding-bottom: 40px; resize: none;"></textarea>
+                <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                    <button type="button" class="btn btn-sm btn-light border" id="btnPersonalisation" title="Insert personalisation">
+                        <i class="fas fa-user-tag"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border" id="btnEmoji" title="Insert emoji">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                </div>
             </div>
-            <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
-                <i class="fas fa-exclamation-triangle me-1"></i>Unicode
-            </span>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
+                    <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
+                    <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+                </div>
+                <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                </span>
+            </div>
         </div>
 
         <div class="d-none" id="rcsRichContentSection">

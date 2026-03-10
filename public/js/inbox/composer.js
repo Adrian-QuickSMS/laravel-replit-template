@@ -489,21 +489,13 @@ var Composer = (function () {
         var rcsAgentSection = document.getElementById('inboxRcsAgentSection');
         var smsFallbackSection = document.getElementById('inboxSmsFallbackSection');
         var rcsRichSection = document.getElementById('rcsRichContentSection');
-        var contentLabel = document.getElementById('replyContentLabel');
-        var segmentDisplay = document.getElementById('segmentDisplay');
+        var textContentSection = document.getElementById('inboxTextContentSection');
 
         if (senderSection) senderSection.classList.toggle('d-none', isRcs);
         if (rcsAgentSection) rcsAgentSection.classList.toggle('d-none', !isRcs);
-        if (smsFallbackSection) smsFallbackSection.classList.toggle('d-none', !isRcs);
+        if (smsFallbackSection) smsFallbackSection.classList.toggle('d-none', isRichRcs || !isRcs);
         if (rcsRichSection) rcsRichSection.classList.toggle('d-none', !isRichRcs);
-
-        if (contentLabel) {
-            contentLabel.textContent = isRcs ? 'Message Content' : 'SMS Content';
-        }
-
-        if (segmentDisplay) {
-            segmentDisplay.style.display = isRcs ? 'none' : '';
-        }
+        if (textContentSection) textContentSection.classList.toggle('d-none', isRichRcs);
 
         updateCharCount();
     }
