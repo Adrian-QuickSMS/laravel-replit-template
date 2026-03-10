@@ -16,7 +16,6 @@
                 <ul aria-expanded="false">
                     <li data-subnav="send"><a href="{{ route('messages.send') }}" class="{{ request()->routeIs('messages.send') ? 'mm-active' : '' }}">Send Message</a></li>
                     <li data-subnav="inbox"><a href="{{ route('messages.inbox') }}" class="{{ request()->routeIs('messages.inbox') ? 'mm-active' : '' }}">Inbox</a></li>
-                    <li data-subnav="inbox-v2"><a href="{{ route('messages.inbox-v2') }}" class="{{ request()->routeIs('messages.inbox-v2') ? 'mm-active' : '' }}">Inbox v2 <span class="badge badge-sm bg-info ms-1">POC</span></a></li>
                     <li data-subnav="campaign-history"><a href="{{ route('messages.campaign-history') }}" class="{{ request()->routeIs('messages.campaign-history') ? 'mm-active' : '' }}">Campaign History</a></li>
                     <li data-subnav="campaign-approvals" data-requires-role="campaign-approver,admin,owner"><a href="{{ route('messages.campaign-approvals') }}" class="{{ request()->routeIs('messages.campaign-approvals') ? 'mm-active' : '' }}">Campaign Approvals</a></li>
                 </ul>

@@ -132,8 +132,8 @@ var ChatThread = (function () {
 
         var rc = msg.rich_card;
 
-        // Image
-        if (rc.image) {
+        // Image (reject javascript: and data: URIs for security)
+        if (rc.image && !/^\s*(javascript|data):/i.test(rc.image)) {
             var img = document.createElement('img');
             img.src = rc.image;
             img.alt = rc.title || '';

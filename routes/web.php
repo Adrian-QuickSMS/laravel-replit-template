@@ -37,17 +37,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::post('/messages/store-campaign-config', 'storeCampaignConfig')->name('messages.store-campaign-config');
     Route::get('/messages/confirm', 'confirmCampaign')->name('messages.confirm');
     Route::post('/messages/confirm-send', 'confirmAndSend')->name('messages.confirm-send');
-    Route::get('/messages/inbox', 'inbox')->name('messages.inbox');
-    Route::get('/messages/inbox-v2', [\App\Http\Controllers\InboxController::class, 'index'])->name('messages.inbox-v2');
-
-    Route::prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
-        Route::get('/conversations', 'conversations')->name('inbox.api.conversations');
-        Route::get('/conversations/{id}/messages', 'messages')->name('inbox.api.messages');
-        Route::post('/conversations/{id}/reply', 'reply')->name('inbox.api.reply');
-        Route::post('/conversations/{id}/read', 'markRead')->name('inbox.api.read');
-        Route::post('/conversations/{id}/unread', 'markUnread')->name('inbox.api.unread');
-    });
-
+    Route::get('/messages/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('messages.inbox');
     Route::get('/messages/campaign-history', 'campaignHistory')->name('messages.campaign-history');
     Route::get('/messages/campaign-approvals', 'campaignApprovals')->name('messages.campaign-approvals');
     
@@ -241,6 +231,20 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/opt-out-lists
 });
 
 Route::middleware(['customer.auth', 'throttle:60,1'])->delete('/api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
+
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
+    Route::get('/conversations', 'apiConversations')->name('api.inbox.conversations');
+    Route::get('/conversations/{id}/messages', 'apiMessages')->name('api.inbox.messages');
+    Route::post('/conversations/{id}/reply', 'apiSendReply')->name('api.inbox.reply');
+    Route::post('/conversations/{id}/read', 'apiMarkRead')->name('api.inbox.read');
+    Route::post('/conversations/{id}/unread', 'apiMarkUnread')->name('api.inbox.unread');
+    Route::get('/poll', 'apiPoll')->name('api.inbox.poll');
+    Route::get('/unread-count', 'apiUnreadCount')->name('api.inbox.unread-count');
+});
+
+Route::post('/webhook/inbound/{gateway}', [\App\Http\Controllers\Api\InboundWebhookController::class, 'receive'])
+    ->name('webhook.inbound')
+    ->middleware('throttle:300,1');
 
 Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
     Route::get('/', 'index')->name('api.notifications.index');

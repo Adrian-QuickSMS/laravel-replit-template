@@ -41,9 +41,9 @@ var ConversationList = (function () {
         var sourceEl = document.getElementById('filterSource');
         if (!sourceEl) return;
 
-        var sources = {};
+        var sources = Object.create(null);
         conversations.forEach(function (c) {
-            sources[c.source] = true;
+            if (c.source) sources[c.source] = true;
         });
 
         Object.keys(sources).sort().forEach(function (s) {

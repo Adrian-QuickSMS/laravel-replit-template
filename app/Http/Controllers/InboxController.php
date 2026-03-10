@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\InboxDataService;
+use App\Models\InboxConversation;
+use App\Services\InboxDeliveryService;
+use App\Services\InboxService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class InboxController extends Controller
 {
-    private InboxDataService $data;
+    private InboxService $inbox;
+    private InboxDeliveryService $delivery;
 
-    public function __construct(InboxDataService $data)
+    public function __construct(InboxService $inbox, InboxDeliveryService $delivery)
     {
-        $this->data = $data;
+        $this->inbox = $inbox;
+        $this->delivery = $delivery;
     }
 
     /**
@@ -20,11 +24,11 @@ class InboxController extends Controller
      */
     public function index()
     {
-        $conversations = $this->data->getConversations();
-        $unreadCount   = $this->data->getUnreadCount();
-        $senderIds     = $this->getApprovedSenderIds();
-        $rcsAgents     = $this->getRcsAgentsForView();
-        $templates     = $this->getTemplatesForView();
+        $conversations = $this->inbox->getConversationsArray();
+        $unreadCount = $this->inbox->getUnreadCount();
+        $senderIds = $this->getApprovedSenderIds();
+        $rcsAgents = $this->getRcsAgentsForView();
+        $templates = $this->getTemplatesForView();
 
         return view('quicksms.inbox.index', [
             'page_title'    => 'Inbox',
@@ -38,70 +42,133 @@ class InboxController extends Controller
 
     /* ── JSON API endpoints ─────────────────────────────────── */
 
-    public function apiConversations(): JsonResponse
+    public function apiConversations(Request $request): JsonResponse
     {
+        $filters = $request->only(['channel', 'unread_only', 'awaiting_reply', 'search', 'since']);
+
         return response()->json([
             'success' => true,
-            'data'    => $this->data->getConversations(),
+            'data'    => $this->inbox->getConversationsArray($filters),
         ]);
     }
 
     public function apiMessages(string $conversationId): JsonResponse
     {
-        $conv = $this->data->findConversation($conversationId);
+        $conversation = $this->inbox->findConversation($conversationId);
 
-        if (!$conv) {
+        if (!$conversation) {
             return response()->json(['success' => false, 'message' => 'Conversation not found'], 404);
         }
 
+        $contact = $conversation->contact;
+        $phone = $conversation->phone_number;
+        $masked = preg_replace('/(\+\d{2})\d{4}(\d{3})/', '$1 **** ***$2', $phone);
+        $name = $contact
+            ? trim($contact->first_name . ' ' . $contact->last_name)
+            : $masked;
+        $initials = $contact
+            ? strtoupper(mb_substr($contact->first_name, 0, 1) . mb_substr($contact->last_name, 0, 1))
+            : '??';
+
         return response()->json([
-            'success'  => true,
-            'data'     => $conv['messages'],
-            'contact'  => [
-                'name'     => $conv['name'],
-                'phone'    => $conv['phone_masked'],
-                'channel'  => $conv['channel'],
-                'initials' => $conv['initials'],
+            'success' => true,
+            'data'    => $conversation->messages->map(fn ($m) => $m->toPortalArray())->values(),
+            'contact' => [
+                'name'     => $name,
+                'phone'    => $masked,
+                'channel'  => $conversation->channel,
+                'initials' => $initials,
             ],
         ]);
     }
 
     public function apiSendReply(Request $request, string $conversationId): JsonResponse
     {
+        $user = auth()->user();
+        if (!$user || !$user->canSendMessages()) {
+            return response()->json(['success' => false, 'message' => 'You do not have permission to send messages'], 403);
+        }
+
         $request->validate([
-            'message' => 'required_without:rcs_payload|string|max:1600',
-            'channel' => 'required|in:sms,rcs',
+            'message'     => 'required_without:rcs_payload|string|max:1600',
+            'channel'     => 'required|in:sms,rcs',
             'rcs_payload' => 'nullable|array',
+            'sender_id'   => 'nullable|string|max:50',
         ]);
 
-        $conv = $this->data->findConversation($conversationId);
-        if (!$conv) {
+        $conversation = InboxConversation::find($conversationId);
+        if (!$conversation) {
             return response()->json(['success' => false, 'message' => 'Conversation not found'], 404);
         }
 
-        // TODO: Replace with actual message sending logic via API/queue
+        $result = $this->delivery->sendReply(
+            $conversation,
+            $request->input('message', ''),
+            $request->input('channel', 'sms'),
+            $request->input('rcs_payload'),
+            $request->input('sender_id')
+        );
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'],
+            ], 422);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => [
-                'direction' => 'outbound',
-                'content'   => $request->input('message', ''),
-                'channel'   => $request->input('channel', 'sms'),
-                'time'      => now()->format('g:i A'),
-                'date'      => now()->format('d M Y'),
-            ],
+            'message' => $result['message']->toPortalArray(),
         ]);
     }
 
     public function apiMarkRead(string $conversationId): JsonResponse
     {
-        // TODO: Persist read status in database
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        $this->inbox->markRead($conversationId, $user);
+
         return response()->json(['success' => true]);
     }
 
     public function apiMarkUnread(string $conversationId): JsonResponse
     {
-        // TODO: Persist unread status in database
+        $this->inbox->markUnread($conversationId);
+
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Polling endpoint — returns conversations updated since a timestamp.
+     */
+    public function apiPoll(Request $request): JsonResponse
+    {
+        $request->validate([
+            'since' => 'required|date',
+        ]);
+
+        $conversations = $this->inbox->getUpdatedSince($request->input('since'));
+        $unreadCount = $this->inbox->getUnreadCount();
+
+        return response()->json([
+            'success'      => true,
+            'data'         => $conversations,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    /**
+     * Get total unread count (for dashboard tiles, nav badges).
+     */
+    public function apiUnreadCount(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'count'   => $this->inbox->getUnreadCount(),
+        ]);
     }
 
     /* ── Private helpers (migrated from QuickSMSController) ── */
@@ -168,17 +235,11 @@ class InboxController extends Controller
         $userId = session('customer_user_id');
         $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
         if (!$user) {
-            return [
-                ['id' => 'agent_1', 'name' => 'QuickSMS Brand', 'status' => 'approved'],
-                ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
-            ];
+            return [];
         }
 
         if (!class_exists(\App\Models\RcsAgent::class)) {
-            return [
-                ['id' => 'agent_1', 'name' => 'QuickSMS Brand', 'status' => 'approved'],
-                ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
-            ];
+            return [];
         }
 
         return \App\Models\RcsAgent::usableByUser($user)

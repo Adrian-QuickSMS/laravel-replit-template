@@ -27,7 +27,6 @@ var InboxApp = (function () {
     /* ── Called when a conversation is selected ─────────── */
     function onConversationSelect(conv) {
         activeConversation = conv;
-        ChatThread.load(conv);
         Composer.show();
         Composer.setChannelFromConversation(conv);
         updateContactPanel(conv);
@@ -37,6 +36,28 @@ var InboxApp = (function () {
             ConversationList.markRead(conv.id);
             apiPost(config.routes.messages + '/' + conv.id + '/read');
         }
+
+        // Fetch messages from API then load chat thread
+        fetch(config.routes.messages + '/' + conv.id + '/messages', {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+            if (json.success && json.data) {
+                conv.messages = json.data;
+                if (json.contact) {
+                    conv.name = json.contact.name || conv.name;
+                    conv.initials = json.contact.initials || conv.initials;
+                }
+            } else {
+                conv.messages = [];
+            }
+            ChatThread.load(conv);
+        })
+        .catch(function () {
+            conv.messages = [];
+            ChatThread.load(conv);
+        });
     }
 
     /* ── Called when user sends a reply ─────────────────── */
@@ -415,7 +436,8 @@ var InboxApp = (function () {
     }
 
     function escapeAttr(str) {
-        return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        if (!str) return '';
+        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
     /* ── Public API ────────────────────────────────────── */
