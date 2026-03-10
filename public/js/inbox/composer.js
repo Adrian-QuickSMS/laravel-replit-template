@@ -365,6 +365,11 @@ var Composer = (function () {
                 var rcsData = JSON.parse(rcsPayloadStr);
                 pendingRcsPayload = rcsData;
                 setRcsPayload(rcsData);
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(rcsData));
+                if (typeof resetRcsWizard === 'function') {
+                    resetRcsWizard();
+                    loadRcsFromStorage();
+                }
             } catch (e) {
                 pendingRcsPayload = null;
             }
