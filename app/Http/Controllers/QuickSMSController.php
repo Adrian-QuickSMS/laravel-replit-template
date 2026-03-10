@@ -947,6 +947,17 @@ class QuickSMSController extends Controller
             }
         }
 
+        $deliverableCount = $validCount;
+        $testModeSmsParts = $totalSmsParts;
+        if ($isTestStandard) {
+            $deliverableCount = max(0, $validCount - $blockedCount);
+
+            $testDisclaimer = 'QuickSMS TEST message. Not for production use. ';
+            $msgContent = $testDisclaimer . ($sessionData['message_content'] ?? '');
+            $testModeSegments = $this->calculateSmsSegments($msgContent);
+            $testModeSmsParts = $deliverableCount * $testModeSegments;
+        }
+
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => $isEditingExisting ? 'Update & Send Campaign' : 'Confirm & Send Campaign',
             'campaign' => $campaign,
@@ -964,6 +975,8 @@ class QuickSMSController extends Controller
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
             'blocked_count' => $blockedCount,
+            'deliverable_count' => $deliverableCount,
+            'test_mode_sms_parts' => $testModeSmsParts,
         ]);
     }
 

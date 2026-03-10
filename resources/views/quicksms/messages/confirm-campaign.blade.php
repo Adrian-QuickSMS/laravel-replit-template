@@ -184,8 +184,14 @@
                             {{-- Real estimate from backend billing engine --}}
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">Messages @if(!empty($is_test_standard))<a href="#" data-bs-toggle="modal" data-bs-target="#blockedInfoModal" title="Test Mode info"><i class="fas fa-info-circle" style="color: #886CC0;"></i></a>@endif</div>
-                                <div class="col-6 text-end">{{ number_format($recipients['valid']) }}</div>
+                                <div class="col-6 text-end">{{ number_format($deliverable_count ?? $recipients['valid']) }}</div>
                             </div>
+                            @if(!empty($is_test_standard) && ($test_mode_sms_parts ?? 0) > 0)
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">SMS Parts (inc. test disclaimer)</div>
+                                <div class="col-6 text-end">{{ number_format($test_mode_sms_parts) }}</div>
+                            </div>
+                            @endif
                             <div class="row mb-2">
                                 <div class="col-6 text-muted">Estimated Cost (ex VAT)</div>
                                 <div class="col-6 text-end">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
@@ -204,9 +210,9 @@
                         @else
                             {{-- Fallback: simple estimate from session data --}}
                             @php
-                                $messageCount = $recipients['valid'] ?? 0;
+                                $messageCount = !empty($is_test_standard) ? ($deliverable_count ?? $recipients['valid'] ?? 0) : ($recipients['valid'] ?? 0);
                                 $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
-                                $resolvedParts = $total_sms_parts ?? 0;
+                                $resolvedParts = !empty($is_test_standard) ? ($test_mode_sms_parts ?? $total_sms_parts ?? 0) : ($total_sms_parts ?? 0);
                                 $subtotal = $resolvedParts * $smsUnitPrice;
                                 $vatRate = (float) ($pricing['vat_rate'] ?? 0);
                                 $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
