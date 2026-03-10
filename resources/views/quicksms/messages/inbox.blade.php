@@ -203,8 +203,8 @@ body[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked
     min-height: 40px;
     max-height: 40px;
     border-radius: 50%;
-    background-color: var(--primary) !important;
-    color: white !important;
+    background-color: rgba(111, 66, 193, 0.15);
+    color: #6f42c1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1390,6 +1390,24 @@ span.badge.channel-pill-rcs,
 // INBOX FILTER SYSTEM - Complete Implementation
 // ========================================
 
+var _inboxAvatarPalette = [
+    {bg:'rgba(111,66,193,0.15)',fg:'#6f42c1'},
+    {bg:'rgba(13,110,253,0.15)',fg:'#0d6efd'},
+    {bg:'rgba(32,201,151,0.15)',fg:'#0f7b5f'},
+    {bg:'rgba(214,51,132,0.15)',fg:'#d63384'},
+    {bg:'rgba(253,126,20,0.15)',fg:'#c55a00'},
+    {bg:'rgba(25,135,84,0.15)',fg:'#198754'},
+    {bg:'rgba(220,53,69,0.15)',fg:'#dc3545'},
+    {bg:'rgba(102,16,242,0.15)',fg:'#6610f2'},
+    {bg:'rgba(13,202,240,0.15)',fg:'#087990'},
+    {bg:'rgba(255,193,7,0.15)',fg:'#997404'}
+];
+function _inboxAvatarColor(initials) {
+    var h = 0, s = initials || '';
+    for (var i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
+    return _inboxAvatarPalette[Math.abs(h) % _inboxAvatarPalette.length];
+}
+
 // Calculate if a conversation is awaiting reply for 48+ hours
 function isAwaitingReply48h(conv) {
     // Check if last message was inbound (received) and older than 48 hours
@@ -1475,7 +1493,21 @@ var chatSearchIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
     console.log('[Inbox] Loaded', conversationsData.length, 'conversations');
-    
+
+    // Apply multi-color avatars to server-rendered elements
+    document.querySelectorAll('.chat-img').forEach(function(el) {
+        var initials = el.textContent.trim();
+        var ac = _inboxAvatarColor(initials);
+        el.style.backgroundColor = ac.bg;
+        el.style.color = ac.fg;
+    });
+    var cpAvatar = document.getElementById('contactAvatar');
+    if (cpAvatar) {
+        var cpAc = _inboxAvatarColor(cpAvatar.textContent.trim());
+        cpAvatar.style.backgroundColor = cpAc.bg;
+        cpAvatar.style.color = cpAc.fg;
+    }
+
     // Layout is handled by CSS with absolute positioned composer
     // Chat area uses flex: 1 1 0 with padding-bottom for composer overlay space
     console.log('[Layout] Using CSS flex layout with absolute positioned composer');
@@ -1669,7 +1701,11 @@ function selectConversation(id) {
     }
     
     // Update chat header
-    document.getElementById('chatAvatar').textContent = convData.initials;
+    var _chatAvatarEl = document.getElementById('chatAvatar');
+    _chatAvatarEl.textContent = convData.initials;
+    var _chatAc = _inboxAvatarColor(convData.initials);
+    _chatAvatarEl.style.backgroundColor = _chatAc.bg;
+    _chatAvatarEl.style.color = _chatAc.fg;
     document.getElementById('chatName').textContent = convData.contactName;
     document.getElementById('chatPhone').textContent = convData.phoneMasked;
     
@@ -1702,8 +1738,9 @@ function selectConversation(id) {
     convData.messages.forEach(function(msg) {
         var html = '';
         if (msg.direction === 'inbound') {
+            var _msgAc = _inboxAvatarColor(convData.initials);
             html = '<div class="media my-3 justify-content-start align-items-start">' +
-                '<div class="chat-img chat-img-sm me-3">' + convData.initials + '</div>' +
+                '<div class="chat-img chat-img-sm me-3" style="background-color:' + _msgAc.bg + ';color:' + _msgAc.fg + ';">' + convData.initials + '</div>' +
                 '<div><div class="message-received"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
                 '<small class="text-muted">' + msg.time + '</small></div></div>';
         } else if (msg.type === 'rich_card' && msg.rich_card) {
@@ -1741,7 +1778,11 @@ function selectConversation(id) {
 }
 
 function updateContactPanel(conv) {
-    document.getElementById('contactAvatar').textContent = conv.initials;
+    var _cpAvatar = document.getElementById('contactAvatar');
+    _cpAvatar.textContent = conv.initials;
+    var _cpAc = _inboxAvatarColor(conv.initials);
+    _cpAvatar.style.backgroundColor = _cpAc.bg;
+    _cpAvatar.style.color = _cpAc.fg;
     document.getElementById('contactName').textContent = conv.contactName;
     document.getElementById('contactPhone').textContent = conv.phoneMasked;
     
@@ -1786,7 +1827,11 @@ function openViewContactModal() {
     var conv = conversationsData.find(function(c) { return c.id === currentConversationId; });
     if (!conv) return;
     
-    document.getElementById('viewContactAvatar').textContent = conv.initials;
+    var _vcAvatar = document.getElementById('viewContactAvatar');
+    _vcAvatar.textContent = conv.initials;
+    var _vcAc = _inboxAvatarColor(conv.initials);
+    _vcAvatar.style.backgroundColor = _vcAc.bg;
+    _vcAvatar.style.color = _vcAc.fg;
     document.getElementById('viewContactName').textContent = conv.name;
     document.getElementById('viewContactPhone').textContent = conv.phone_masked;
     

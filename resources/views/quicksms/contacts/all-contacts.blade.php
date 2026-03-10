@@ -461,7 +461,25 @@
                                     </td>
                                     <td class="py-2">
                                         <div class="d-flex align-items-center">
-                                            <div class="contact-avatar me-2">
+                                            @php
+                                                $avatarPalette = [
+                                                    ['bg'=>'rgba(111,66,193,0.15)','fg'=>'#6f42c1'],
+                                                    ['bg'=>'rgba(13,110,253,0.15)','fg'=>'#0d6efd'],
+                                                    ['bg'=>'rgba(32,201,151,0.15)','fg'=>'#0f7b5f'],
+                                                    ['bg'=>'rgba(214,51,132,0.15)','fg'=>'#d63384'],
+                                                    ['bg'=>'rgba(253,126,20,0.15)','fg'=>'#c55a00'],
+                                                    ['bg'=>'rgba(25,135,84,0.15)','fg'=>'#198754'],
+                                                    ['bg'=>'rgba(220,53,69,0.15)','fg'=>'#dc3545'],
+                                                    ['bg'=>'rgba(102,16,242,0.15)','fg'=>'#6610f2'],
+                                                    ['bg'=>'rgba(13,202,240,0.15)','fg'=>'#087990'],
+                                                    ['bg'=>'rgba(255,193,7,0.15)','fg'=>'#997404'],
+                                                ];
+                                                $ini = $contact['initials'] ?? '';
+                                                $h = 0;
+                                                for ($i = 0; $i < strlen($ini); $i++) { $h = ord($ini[$i]) + (($h << 5) - $h); }
+                                                $ac = $avatarPalette[abs($h) % count($avatarPalette)];
+                                            @endphp
+                                            <div class="contact-avatar me-2" style="background-color: {{ $ac['bg'] }}; color: {{ $ac['fg'] }};">
                                                 {{ $contact['initials'] }}
                                             </div>
                                             <div>
@@ -696,6 +714,25 @@ var customFieldDefinitions = [
     { id: 1, name: 'Company', slug: 'company', type: 'text', defaultValue: '' },
     { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
 ];
+
+var _avatarPalette = [
+    {bg:'rgba(111,66,193,0.15)',fg:'#6f42c1'},
+    {bg:'rgba(13,110,253,0.15)',fg:'#0d6efd'},
+    {bg:'rgba(32,201,151,0.15)',fg:'#0f7b5f'},
+    {bg:'rgba(214,51,132,0.15)',fg:'#d63384'},
+    {bg:'rgba(253,126,20,0.15)',fg:'#c55a00'},
+    {bg:'rgba(25,135,84,0.15)',fg:'#198754'},
+    {bg:'rgba(220,53,69,0.15)',fg:'#dc3545'},
+    {bg:'rgba(102,16,242,0.15)',fg:'#6610f2'},
+    {bg:'rgba(13,202,240,0.15)',fg:'#087990'},
+    {bg:'rgba(255,193,7,0.15)',fg:'#997404'}
+];
+function _avatarColor(initials) {
+    var h = 0;
+    var s = initials || '';
+    for (var i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
+    return _avatarPalette[Math.abs(h) % _avatarPalette.length];
+}
 
 var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 function _apiHeaders() {
@@ -1166,7 +1203,7 @@ function renderContactsTable(contacts) {
             </td>
             <td class="py-2">
                 <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
+                    <div class="contact-avatar me-2" style="background-color: ${_avatarColor(contact.initials).bg}; color: ${_avatarColor(contact.initials).fg};">
                         ${escapeHtml(contact.initials)}
                     </div>
                     <div>
@@ -1269,6 +1306,10 @@ function viewContact(id) {
     
     document.getElementById('viewContactName').textContent = contact.first_name + ' ' + contact.last_name;
     document.getElementById('viewContactInitials').textContent = contact.initials;
+    var _ac = _avatarColor(contact.initials);
+    var _avatarEl = document.getElementById('viewContactAvatarCircle');
+    _avatarEl.style.backgroundColor = _ac.bg;
+    _avatarEl.style.color = _ac.fg;
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
@@ -2601,7 +2642,7 @@ function saveCustomField() {
             </div>
             <div class="modal-body">
                 <div class="text-center mb-4">
-                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto" id="viewContactAvatarCircle" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
                         <span id="viewContactInitials"></span>
                     </div>
                     <h4 class="mt-3 mb-1" id="viewContactName"></h4>
