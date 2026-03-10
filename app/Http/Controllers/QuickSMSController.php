@@ -911,13 +911,42 @@ class QuickSMSController extends Controller
             $settings = \App\Models\AccountSettings::where('account_id', $accountId)->first();
             $approvedTestNumbers = $settings->approved_test_numbers ?? [];
 
-            if (!empty($campaignId) && !empty($approvedTestNumbers)) {
-                $skippedInDb = \DB::table('campaign_recipients')
+            $normalizeNumber = function ($num) {
+                $cleaned = preg_replace('/[\s\-\(\)]/', '', $num ?? '');
+                if (str_starts_with($cleaned, '00')) {
+                    $cleaned = substr($cleaned, 2);
+                } elseif (str_starts_with($cleaned, '0')) {
+                    $cleaned = '44' . substr($cleaned, 1);
+                }
+                return ltrim($cleaned, '+');
+            };
+
+            if (!empty($campaignId)) {
+                $pendingCount = \DB::table('campaign_recipients')
                     ->where('campaign_id', $campaignId)
-                    ->where('status', 'skipped')
+                    ->whereIn('status', ['pending', 'queued'])
                     ->count();
-                $blockedCount = $skippedInDb;
-            } elseif (!empty($campaignId) && empty($approvedTestNumbers)) {
+
+                if (empty($approvedTestNumbers)) {
+                    $blockedCount = $pendingCount;
+                } else {
+                    $normalizedApproved = array_map($normalizeNumber, $approvedTestNumbers);
+
+                    $blockedCount = 0;
+                    \DB::table('campaign_recipients')
+                        ->where('campaign_id', $campaignId)
+                        ->whereIn('status', ['pending', 'queued'])
+                        ->orderBy('id')
+                        ->chunk(1000, function ($recipients) use ($normalizedApproved, $normalizeNumber, &$blockedCount) {
+                            foreach ($recipients as $recipient) {
+                                $normalized = $normalizeNumber($recipient->mobile_number);
+                                if (!in_array($normalized, $normalizedApproved)) {
+                                    $blockedCount++;
+                                }
+                            }
+                        });
+                }
+            } elseif (empty($approvedTestNumbers)) {
                 $blockedCount = $validCount;
             }
         }
