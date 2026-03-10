@@ -97,7 +97,7 @@
     font-weight: 600;
     background: #f8f9fa;
     border-bottom: 1px solid #e9ecef;
-    color: #495057;
+    color: #212529;
 }
 .audit-logs-table tbody td {
     padding: 0.5rem 0.35rem;
@@ -1198,7 +1198,7 @@ $(document).ready(function() {
                 '<td>' + escapeHtml(log.actionLabel) + '</td>' +
                 '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
                 '<td>' + escapeHtml(log.actor.userName) + '</td>' +
-                '<td class="small text-muted">' + escapeHtml(log.context.ipAddress) + '</td>' +
+                '<td class="small">' + escapeHtml(log.context.ipAddress) + '</td>' +
                 '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + escapeHtml(capitalizeFirst(log.result)) + '</span></td>' +
                 '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
@@ -1289,7 +1289,7 @@ $(document).ready(function() {
                 '<td><span class="badge badge-pastel-primary">' + escapeHtml(framework) + '</span></td>' +
                 '<td>' + escapeHtml(log.actionLabel) + '</td>' +
                 '<td>' + escapeHtml(log.actor.userName) + '</td>' +
-                '<td class="small text-muted">' + escapeHtml(log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
+                '<td class="small">' + escapeHtml(log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
                 '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
             '</tr>');
 
@@ -1628,14 +1628,14 @@ $(document).ready(function() {
         }
 
         var row = $('<tr class="audit-log-row" data-log-id="' + escapeHtml(log.id) + '">' +
-            '<td class="small text-muted">' + escapeHtml(formattedDate) + '</td>' +
-            '<td class="small text-muted" title="' + escapeHtml(log.id) + '">' + escapeHtml(eventId) + '</td>' +
+            '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+            '<td class="small" title="' + escapeHtml(log.id) + '">' + escapeHtml(eventId) + '</td>' +
             '<td><span class="fw-medium">' + escapeHtml(log.actionLabel) + '</span></td>' +
-            '<td class="small text-muted">' + formatCategory(log.category) + '</td>' +
+            '<td class="small">' + formatCategory(log.category) + '</td>' +
             '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
             '<td class="small">' + escapeHtml(log.actor.userName) + '</td>' +
             '<td class="small">' + targetDisplay + '</td>' +
-            '<td class="small text-muted">' + escapeHtml(log.context.ipAddress) + '</td>' +
+            '<td class="small">' + escapeHtml(log.context.ipAddress) + '</td>' +
         '</tr>');
 
         row.on('click', function() { showLogDetail(log); });
