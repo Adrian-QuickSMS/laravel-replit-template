@@ -7,6 +7,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/inbox-v2.css') }}">
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
+<link rel="stylesheet" href="{{ asset('css/emoji-picker.css') }}?v=20260310">
 @endpush
 
 @section('content')
@@ -47,6 +48,7 @@ window.__inbox = {
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/emoji-picker.js') }}?v=20260310"></script>
 <script src="{{ asset('js/inbox/conversation-list.js') }}"></script>
 <script src="{{ asset('js/inbox/chat-thread.js') }}"></script>
 <script src="{{ asset('js/inbox/composer.js') }}"></script>

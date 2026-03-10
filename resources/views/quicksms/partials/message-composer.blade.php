@@ -388,3 +388,5 @@
         </div>
     </div>
 </div>
+
+@include('quicksms.partials.emoji-picker')

@@ -492,6 +492,14 @@ window.virtual_numbers = @json($virtual_numbers);
 window.optout_domains = @json($optout_domains);
 
 document.addEventListener('DOMContentLoaded', function() {
+    if (typeof QSEmojiPicker !== 'undefined') {
+        window.smsEmojiPicker = new QSEmojiPicker({
+            triggerEl: document.getElementById('emojiPickerBtn'),
+            textareaEl: document.getElementById('smsContent'),
+            onInsert: function() { handleContentChange(); }
+        });
+    }
+
     initChannelSelector();
     loadSavedData();
     

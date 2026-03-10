@@ -125,26 +125,16 @@ var Composer = (function () {
 
     function bindEmojiPicker() {
         var btn = document.getElementById('btnEmoji');
-        if (!btn) return;
+        var ta = document.getElementById('replyMessage');
+        if (!btn || !ta) return;
 
-        btn.addEventListener('click', function () {
-            var modal = document.getElementById('inboxEmojiPickerModal');
-            if (modal && typeof bootstrap !== 'undefined') {
-                bootstrap.Modal.getOrCreateInstance(modal).show();
-            }
-        });
-
-        var modalEl = document.getElementById('inboxEmojiPickerModal');
-        if (modalEl) {
-            modalEl.addEventListener('click', function (e) {
-                var emojiBtn = e.target.closest('.emoji-btn');
-                if (!emojiBtn) return;
-                var emoji = emojiBtn.getAttribute('data-emoji');
-                if (emoji) {
-                    insertText(emoji);
-                    updateCharCount();
-                }
+        if (typeof QSEmojiPicker !== 'undefined') {
+            window.inboxEmojiPicker = new QSEmojiPicker({
+                triggerEl: btn,
+                textareaEl: ta,
+                onInsert: function () { updateCharCount(); }
             });
+            window.smsEmojiPicker = window.inboxEmojiPicker;
         }
     }
 

@@ -2389,8 +2389,10 @@ function openRcsUrlPlaceholderPicker(inputId) {
 
 function openRcsEmojiPicker(field) {
     rcsActiveTextField = field;
-    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
-    modal.show();
+    var el = getRcsTextElement(field);
+    if (window.smsEmojiPicker && el) {
+        window.smsEmojiPicker.openFor(el);
+    }
 }
 
 function getRcsTextElement(field) {
@@ -2411,8 +2413,10 @@ function openRcsButtonFieldPlaceholder(fieldId) {
 
 function openRcsButtonFieldEmoji(fieldId) {
     rcsActiveTextField = fieldId;
-    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
-    modal.show();
+    var el = getRcsTextElement(fieldId);
+    if (window.smsEmojiPicker && el) {
+        window.smsEmojiPicker.openFor(el);
+    }
 }
 
 function validateRcsPhoneNoEmoji() {

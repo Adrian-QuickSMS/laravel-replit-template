@@ -978,55 +978,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="emojiPickerModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header py-3">
-                <h5 class="modal-title"><i class="fas fa-smile me-2"></i>Insert Emoji</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning py-2 mb-3">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    Emojis switch the message to Unicode encoding, reducing characters per segment.
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Commonly Used</h6>
-                    <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('😊')">😊</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👍')">👍</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('✅')">✅</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('⭐')">⭐</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📱')">📱</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📞')">📞</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📧')">📧</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📅')">📅</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('⏰')">⏰</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💊')">💊</button>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Healthcare</h6>
-                    <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🏥')">🏥</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👨‍⚕️')">👨‍⚕️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👩‍⚕️')">👩‍⚕️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💉')">💉</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🩺')">🩺</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🩹')">🩹</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💪')">💪</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🧘')">🧘</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+{{-- Emoji picker handled by shared QSEmojiPicker popover component --}}
 
 <div class="modal fade" id="templateModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -1387,6 +1339,7 @@
 </div>
 
 @include('quicksms.partials.rcs-wizard-modal')
+@include('quicksms.partials.emoji-picker')
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
@@ -1396,8 +1349,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(e) { return new bootstrap.Tooltip(e); });
     
-    document.getElementById('emojiPickerBtn').addEventListener('click', function() {
-        openEmojiPicker();
+    window.smsEmojiPicker = new QSEmojiPicker({
+        triggerEl: document.getElementById('emojiPickerBtn'),
+        textareaEl: document.getElementById('smsContent'),
+        onInsert: function() { handleContentChange(); }
     });
     
     document.querySelectorAll('input[name="channel"]').forEach(function(radio) {
@@ -2507,8 +2462,15 @@ function insertPlaceholder(field) {
 }
 
 function openEmojiPicker() {
-    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
-    modal.show();
+    if (window.smsEmojiPicker) {
+        window.smsEmojiPicker.open();
+    }
+}
+
+function toggleEmojiPicker() {
+    if (window.smsEmojiPicker) {
+        window.smsEmojiPicker.toggle();
+    }
 }
 
 function insertEmoji(emoji) {
@@ -2524,7 +2486,6 @@ function insertEmoji(emoji) {
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
     textarea.focus();
     handleContentChange();
-    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
 }
 
 function toggleTemplateSelection() {
@@ -3351,7 +3312,6 @@ function insertRcsEmoji(emoji) {
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
     if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
     
-    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
     rcsActiveTextField = null;
 }
 
@@ -3367,9 +3327,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('personalisationModal').addEventListener('hidden.bs.modal', function() {
         rcsActiveTextField = null;
     });
-    document.getElementById('emojiPickerModal').addEventListener('hidden.bs.modal', function() {
-        rcsActiveTextField = null;
-    });
+    
     
     document.querySelectorAll('input[name="rcsButtonType"]').forEach(function(radio) {
         radio.addEventListener('change', toggleRcsButtonType);

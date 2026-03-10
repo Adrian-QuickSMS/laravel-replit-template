@@ -99,69 +99,7 @@
     </div>
 </div>
 
-{{-- ═══ Emoji Picker Modal ═══ --}}
-<div class="modal fade" id="inboxEmojiPickerModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header py-3">
-                <h5 class="modal-title"><i class="fas fa-smile me-2"></i>Insert Emoji</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning py-2 mb-3">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    Emojis switch the message to Unicode encoding, reducing characters per segment.
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Commonly Used</h6>
-                    <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="😊">😊</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="👍">👍</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="❤️">❤️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🎉">🎉</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="✅">✅</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="⭐">⭐</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📱">📱</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📞">📞</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📧">📧</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📅">📅</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="⏰">⏰</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="💊">💊</button>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Healthcare</h6>
-                    <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🏥">🏥</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="👨‍⚕️">👨‍⚕️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="👩‍⚕️">👩‍⚕️</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="💉">💉</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🩺">🩺</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🩹">🩹</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="💪">💪</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🧘">🧘</button>
-                    </div>
-                </div>
-                <div class="mb-0">
-                    <h6 class="text-muted mb-2">Business</h6>
-                    <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="💼">💼</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📊">📊</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🔔">🔔</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🎯">🎯</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="💡">💡</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🚀">🚀</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="🔗">🔗</button>
-                        <button type="button" class="btn btn-light btn-sm emoji-btn" data-emoji="📋">📋</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+{{-- Emoji picker handled by shared QSEmojiPicker popover component --}}
 
 {{-- ═══ Personalisation Fields Modal ═══ --}}
 <div class="modal fade" id="inboxPersonalisationModal" tabindex="-1" style="z-index: 1060;">

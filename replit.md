@@ -21,6 +21,7 @@ Preferred communication style: Simple, everyday language.
 - **Templating:** Laravel Blade views, utilizing the **Fillow** design system for consistent UI components. No new layouts, colors, or component variants are to be introduced.
 - **Asset Pipeline:** Vite 4 with `laravel-vite-plugin` for CSS and JavaScript/TypeScript bundling.
 - **Key UI Rules:** The `SendMessageBuilder` is a shared component adaptable via a `mode` flag. Filters follow a consistent left-search, right-filter pattern. All UI elements must match existing styling on Message Logs and API Connections pages. Admin pages use a standardized breadcrumb and page header.
+- **Emoji Picker:** `QSEmojiPicker` — shared floating popover component (`public/js/emoji-picker.js`, `public/css/emoji-picker.css`, `resources/views/quicksms/partials/emoji-picker.blade.php`). Replaces old Bootstrap modal emoji pickers. Uses vanilla JS, no dependencies. Integrated on Send Message, Inbox v2, RCS Wizard, Template Editor, and shared message-builder/composer partials. Global instances: `window.smsEmojiPicker` (Send Message, Templates, Inbox via alias), `window.inboxEmojiPicker` (Inbox). Architecture documented in `EMOJI_PICKER_ARCHITECTURE.md`.
 
 ### Key Modules & Data Models
 - **Auth & Accounts:** `accounts`, `users`, `auth_audit_log`.
