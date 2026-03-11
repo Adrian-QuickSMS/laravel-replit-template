@@ -30,7 +30,8 @@ class AdminAuthenticate
         
         // Dev auto-login disabled — use /admin/login to authenticate
         // To re-enable, set ADMIN_DEV_AUTOLOGIN=true in environment
-        if (env('ADMIN_DEV_AUTOLOGIN', false) && (config('app.env') === 'local' || config('app.debug') === true)) {
+        // SECURITY: Only allow in 'local' environment — never when debug=true alone (which could be enabled in prod by accident)
+        if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
                 $devAdmin = AdminUser::where('role', 'super_admin')
                     ->where('status', 'active')

@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // Reporting Dashboard API (mock data)
-Route::prefix('reporting/dashboard')->group(function () {
+Route::middleware('auth:sanctum')->prefix('reporting/dashboard')->group(function () {
     Route::get('/', [ReportingDashboardApiController::class, 'index']);
     Route::get('/kpis', [ReportingDashboardApiController::class, 'kpis']);
     Route::get('/volume', [ReportingDashboardApiController::class, 'volumeOverTime']);
@@ -39,7 +39,7 @@ Route::prefix('reporting/dashboard')->group(function () {
 });
 
 // Billing API (mock data for Finance Data page)
-Route::prefix('billing')->group(function () {
+Route::middleware('auth:sanctum')->prefix('billing')->group(function () {
     Route::get('/data', [BillingApiController::class, 'getData']);
     Route::get('/export', [BillingApiController::class, 'export']);
     Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
@@ -57,12 +57,12 @@ Route::prefix('webhooks')->group(function () {
 });
 
 // Top-Up API
-Route::prefix('topup')->group(function () {
+Route::middleware('auth:sanctum')->prefix('topup')->group(function () {
     Route::post('/create-checkout-session', [TopUpApiController::class, 'createCheckoutSession']);
 });
 
 // Account API
-Route::prefix('account')->group(function () {
+Route::middleware('auth:sanctum')->prefix('account')->group(function () {
     Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });

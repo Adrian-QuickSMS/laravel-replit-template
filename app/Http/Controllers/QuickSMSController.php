@@ -130,8 +130,9 @@ class QuickSMSController extends Controller
                     'mobile_hint' => $mobileHint,
                 ];
 
+                // Never leak OTP in API responses — log to server only
                 if (config('app.env') === 'local') {
-                    $responseData['otp_debug'] = $otp;
+                    \Log::debug('[DEV ONLY] MFA OTP', ['otp' => $otp, 'email' => $email]);
                 }
 
                 if ($isAjax) {
@@ -229,8 +230,9 @@ class QuickSMSController extends Controller
             'message' => 'New code sent',
         ];
 
+        // Never leak OTP in API responses — log to server only
         if (config('app.env') === 'local') {
-            $responseData['otp_debug'] = $otp;
+            \Log::debug('[DEV ONLY] MFA resend OTP', ['otp' => $otp]);
         }
 
         return response()->json($responseData);

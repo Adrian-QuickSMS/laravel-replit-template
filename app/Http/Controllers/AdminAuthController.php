@@ -260,8 +260,8 @@ class AdminAuthController extends Controller
 
     public function skipMfaSetup(Request $request)
     {
-        if (config('app.env') === 'production') {
-            abort(403, 'MFA skip is not allowed in production');
+        if (config('app.env') !== 'local') {
+            abort(403, 'MFA skip is only allowed in local development');
         }
 
         $adminSession = session('admin_auth');
@@ -377,7 +377,7 @@ class AdminAuthController extends Controller
         $code = $adminUser->generateSmsMfaCode();
 
         // TODO: Send SMS via your SMS gateway
-        if (config('app.env') === 'local' || config('app.debug') === true) {
+        if (config('app.env') === 'local') {
             Log::info('[DEV ONLY] Admin SMS MFA code', ['code' => $code, 'email' => $adminUser->email]);
         }
 

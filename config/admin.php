@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'dev_autologin' => env('ADMIN_DEV_AUTOLOGIN', false),
     'session_timeout' => env('ADMIN_SESSION_TIMEOUT', 3600),
     
     'mfa' => [

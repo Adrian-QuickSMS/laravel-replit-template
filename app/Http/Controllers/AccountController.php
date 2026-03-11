@@ -206,7 +206,7 @@ class AccountController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'An error occurred while updating settings.'
             ], 500);
         }
     }
