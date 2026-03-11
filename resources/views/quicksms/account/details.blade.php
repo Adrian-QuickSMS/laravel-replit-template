@@ -1036,14 +1036,19 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testNumbersSection" aria-expanded="false">
                         <i class="fas fa-flask me-2 text-warning"></i>Test Mode — Approved Test Numbers
-                        <span class="badge ms-2" style="background-color: #fff8e1; color: #b8860b;">{{ count($approved_test_numbers ?? []) }}/10</span>
+                        <span class="badge ms-2" style="background-color: #fff8e1; color: #b8860b;" id="testNumbersBadge">{{ count($approved_test_numbers ?? []) }}/10</span>
                     </button>
                 </h2>
                 <div id="testNumbersSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
                         <div class="alert border-0 mb-3" style="background-color: #f0ebf8; color: #6b5b95;">
                             <i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>
-                            While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. Add up to 10 approved test numbers. You can enter numbers as <strong>07XXX</strong>, <strong>447XXX</strong>, or <strong>+447XXX</strong> — they will be automatically converted to international format.
+                            While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. You have a lifetime limit of <strong>10 unique test numbers</strong>. You can enter numbers as <strong>07XXX</strong>, <strong>447XXX</strong>, or <strong>+447XXX</strong> — they will be automatically converted to international format.
+                        </div>
+                        <div class="small text-muted mb-3" id="testNumbersLifetimeInfo">
+                            <i class="fas fa-history me-1"></i>
+                            <span id="testNumbersEverUsedCount">{{ count($test_numbers_ever_used ?? []) }}</span> of 10 lifetime slots used
+                            — <span id="testNumbersRemainingSlots">{{ 10 - count($test_numbers_ever_used ?? []) }}</span> new number(s) remaining
                         </div>
 
                         <div id="testNumbersList">
@@ -2834,10 +2839,17 @@ $(document).ready(function() {
     updateVatStatusBadge();
 
     @if($account && $account->status === 'test_standard')
+    var testNumbersEverUsedCount = {{ count($test_numbers_ever_used ?? []) }};
+
     $('#addTestNumberBtn').on('click', function() {
-        var count = $('#testNumbersList .test-number-row').length;
-        if (count >= 10) {
-            $('#testNumbersError').text('Maximum 10 test numbers allowed').removeClass('d-none');
+        var currentCount = $('#testNumbersList .test-number-row').length;
+        var remainingSlots = 10 - testNumbersEverUsedCount;
+        var currentActiveCount = 0;
+        $('#testNumbersList .test-number-input').each(function() {
+            if ($.trim($(this).val()) !== '') currentActiveCount++;
+        });
+        if (currentCount >= 10 || currentActiveCount >= remainingSlots + {{ count($approved_test_numbers ?? []) }}) {
+            $('#testNumbersError').text('You have reached your lifetime limit of 10 unique test numbers').removeClass('d-none');
             return;
         }
         $('#testNumbersError').addClass('d-none');
@@ -2918,6 +2930,11 @@ $(document).ready(function() {
             success: function(resp) {
                 $autoSave.html('<span class="text-success"><i class="fas fa-check me-1"></i>Saved</span>').show();
                 setTimeout(function() { $autoSave.fadeOut(); }, 3000);
+                if (resp.ever_used_count !== undefined) {
+                    testNumbersEverUsedCount = resp.ever_used_count;
+                    $('#testNumbersEverUsedCount').text(resp.ever_used_count);
+                    $('#testNumbersRemainingSlots').text(resp.remaining_slots);
+                }
             },
             error: function(xhr) {
                 var msg = 'Failed to save';

@@ -574,13 +574,30 @@ class AdminController extends Controller
             []
         );
 
+        $everUsed = $settings->test_numbers_ever_used ?? [];
+        $newNumbers = array_diff($numbers, $everUsed);
+        $mergedEverUsed = array_values(array_unique(array_merge($everUsed, $newNumbers)));
+
+        if (count($mergedEverUsed) > 10) {
+            $usedCount = count($everUsed);
+            $remaining = max(0, 10 - $usedCount);
+            return response()->json([
+                'message' => "This account has already used {$usedCount} of its 10 lifetime test number slots ({$remaining} remaining). Cannot add " . count($newNumbers) . " new number(s).",
+                'ever_used_count' => $usedCount,
+                'remaining_slots' => $remaining,
+            ], 422);
+        }
+
         $settings->approved_test_numbers = $numbers;
+        $settings->test_numbers_ever_used = $mergedEverUsed;
         $settings->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Approved test numbers saved successfully',
             'numbers' => $numbers,
+            'ever_used_count' => count($mergedEverUsed),
+            'remaining_slots' => 10 - count($mergedEverUsed),
         ]);
     }
 

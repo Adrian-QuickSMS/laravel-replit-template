@@ -46,6 +46,7 @@ class AccountSettings extends Model
         'allow_api_access',
         'api_rate_limit_override',
         'approved_test_numbers',
+        'test_numbers_ever_used',
     ];
 
     protected $casts = [
@@ -59,6 +60,7 @@ class AccountSettings extends Model
         'session_timeout_minutes' => 'integer',
         'api_rate_limit_override' => 'integer',
         'approved_test_numbers' => 'array',
+        'test_numbers_ever_used' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
