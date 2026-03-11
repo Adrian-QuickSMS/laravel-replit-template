@@ -350,41 +350,46 @@
                                 <label class="form-label small fw-bold">Event Type</label>
                                 <select class="form-select form-select-sm" id="eventTypeFilter">
                                     <option value="">All Event Types</option>
+                                    <optgroup label="Account">
+                                        <option value="account_details_updated">Account Details Updated</option>
+                                        <option value="account_settings_changed">Account Settings Changed</option>
+                                        <option value="account_status_transition">Account Status Changed</option>
+                                        <option value="account_created">Account Created</option>
+                                    </optgroup>
                                     <optgroup label="User Management">
-                                        <option value="USER_CREATED">User Created</option>
-                                        <option value="USER_INVITED">User Invited</option>
-                                        <option value="USER_SUSPENDED">User Suspended</option>
-                                        <option value="USER_REACTIVATED">User Reactivated</option>
+                                        <option value="user_invited">User Invited</option>
+                                        <option value="invitation_accepted">Invitation Accepted</option>
+                                        <option value="invitation_revoked">Invitation Revoked</option>
+                                        <option value="user_suspended">User Suspended</option>
+                                        <option value="user_reactivated">User Reactivated</option>
+                                        <option value="ownership_transferred">Ownership Transferred</option>
+                                    </optgroup>
+                                    <optgroup label="Sub-Accounts">
+                                        <option value="sub_account_created">Sub-Account Created</option>
+                                        <option value="sub_account_edited">Sub-Account Edited</option>
+                                        <option value="sub_account_limits_updated">Sub-Account Limits Updated</option>
+                                        <option value="sub_account_suspended">Sub-Account Suspended</option>
+                                        <option value="sub_account_reactivated">Sub-Account Reactivated</option>
                                     </optgroup>
                                     <optgroup label="Access Control">
-                                        <option value="ROLE_CHANGED">Role Changed</option>
-                                        <option value="PERMISSION_GRANTED">Permission Granted</option>
-                                        <option value="PERMISSION_REVOKED">Permission Revoked</option>
-                                    </optgroup>
-                                    <optgroup label="Authentication">
-                                        <option value="LOGIN_SUCCESS">Login Success</option>
-                                        <option value="LOGIN_FAILED">Login Failed</option>
-                                        <option value="LOGIN_BLOCKED">Login Blocked</option>
-                                        <option value="PASSWORD_CHANGED">Password Changed</option>
-                                    </optgroup>
-                                    <optgroup label="Security">
-                                        <option value="MFA_ENABLED">MFA Enabled</option>
-                                        <option value="MFA_DISABLED">MFA Disabled</option>
-                                        <option value="MFA_RESET">MFA Reset</option>
-                                    </optgroup>
-                                    <optgroup label="Data Access">
-                                        <option value="DATA_EXPORTED">Data Exported</option>
-                                        <option value="DATA_UNMASKED">Data Unmasked</option>
+                                        <option value="user_role_changed">Role Changed</option>
+                                        <option value="user_permissions_changed">Permissions Changed</option>
+                                        <option value="user_sender_capability_changed">Sender Capability Changed</option>
                                     </optgroup>
                                     <optgroup label="Messaging">
-                                        <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
-                                        <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
-                                        <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
-                                        <option value="CAMPAIGN_SENT">Campaign Sent</option>
+                                        <option value="campaign_created">Campaign Created</option>
+                                        <option value="campaign_edited">Campaign Edited</option>
+                                        <option value="campaign_prepared">Campaign Prepared</option>
+                                        <option value="inbox_reply_sent">Inbox Reply Sent</option>
+                                        <option value="conversation_marked_read">Conversation Marked Read</option>
+                                        <option value="conversation_marked_unread">Conversation Marked Unread</option>
                                     </optgroup>
-                                    <optgroup label="Financial">
-                                        <option value="PURCHASE_COMPLETED">Purchase Completed</option>
-                                        <option value="INVOICE_GENERATED">Invoice Generated</option>
+                                    <optgroup label="Numbers">
+                                        <option value="vmn_purchased">VMN Purchased</option>
+                                        <option value="vmn_released">VMN Released</option>
+                                        <option value="number_suspended">Number Suspended</option>
+                                        <option value="number_reactivated">Number Reactivated</option>
+                                        <option value="number_configured">Number Configured</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -832,6 +837,35 @@ $(document).ready(function() {
 
     var EXTENDED_ACTION_TYPES = {
         ...AuditLogger.ACTION_TYPES,
+        account_details_updated: { category: 'account', severity: 'medium', label: 'Account Details Updated' },
+        account_settings_changed: { category: 'account', severity: 'medium', label: 'Account Settings Changed' },
+        account_status_transition: { category: 'account', severity: 'high', label: 'Account Status Changed' },
+        account_created: { category: 'account', severity: 'high', label: 'Account Created' },
+        sub_account_created: { category: 'user_management', severity: 'medium', label: 'Sub-Account Created' },
+        sub_account_edited: { category: 'user_management', severity: 'low', label: 'Sub-Account Edited' },
+        sub_account_limits_updated: { category: 'user_management', severity: 'medium', label: 'Sub-Account Limits Updated' },
+        sub_account_suspended: { category: 'user_management', severity: 'high', label: 'Sub-Account Suspended' },
+        sub_account_reactivated: { category: 'user_management', severity: 'medium', label: 'Sub-Account Reactivated' },
+        user_role_changed: { category: 'access_control', severity: 'high', label: 'User Role Changed' },
+        user_permissions_changed: { category: 'access_control', severity: 'medium', label: 'User Permissions Changed' },
+        user_sender_capability_changed: { category: 'access_control', severity: 'medium', label: 'User Sender Capability Changed' },
+        user_suspended: { category: 'user_management', severity: 'high', label: 'User Suspended' },
+        user_reactivated: { category: 'user_management', severity: 'medium', label: 'User Reactivated' },
+        ownership_transferred: { category: 'user_management', severity: 'critical', label: 'Ownership Transferred' },
+        user_invited: { category: 'user_management', severity: 'medium', label: 'User Invited' },
+        invitation_accepted: { category: 'user_management', severity: 'low', label: 'Invitation Accepted' },
+        invitation_revoked: { category: 'user_management', severity: 'medium', label: 'Invitation Revoked' },
+        campaign_created: { category: 'messaging', severity: 'low', label: 'Campaign Created' },
+        campaign_edited: { category: 'messaging', severity: 'low', label: 'Campaign Edited' },
+        campaign_prepared: { category: 'messaging', severity: 'low', label: 'Campaign Prepared' },
+        inbox_reply_sent: { category: 'messaging', severity: 'low', label: 'Inbox Reply Sent' },
+        conversation_marked_read: { category: 'messaging', severity: 'low', label: 'Conversation Marked Read' },
+        conversation_marked_unread: { category: 'messaging', severity: 'low', label: 'Conversation Marked Unread' },
+        vmn_purchased: { category: 'financial', severity: 'medium', label: 'VMN Purchased' },
+        vmn_released: { category: 'financial', severity: 'medium', label: 'VMN Released' },
+        number_suspended: { category: 'financial', severity: 'high', label: 'Number Suspended' },
+        number_reactivated: { category: 'financial', severity: 'medium', label: 'Number Reactivated' },
+        number_configured: { category: 'account', severity: 'low', label: 'Number Configured' },
         CAMPAIGN_SUBMITTED: { category: 'messaging', severity: 'low', label: 'Campaign Submitted' },
         CAMPAIGN_APPROVED: { category: 'messaging', severity: 'medium', label: 'Campaign Approved' },
         CAMPAIGN_REJECTED: { category: 'messaging', severity: 'medium', label: 'Campaign Rejected' },
@@ -986,27 +1020,73 @@ $(document).ready(function() {
 
         applyAccessRestrictions();
 
-        allLogs = generateMockAuditData();
+        fetchAuditLogsFromApi();
 
-        if (userScopeCategories) {
-            allLogs = filterLogsByScope(allLogs);
-        }
-
-        applyFilters();
-        updateStats();
-        updateSecurityStats();
-        updateMessagingStats();
-        updateFinancialStats();
-        updateComplianceStats();
-        renderCategoryTables();
         bindEvents();
+    }
 
-        AuditLogger.log('DATA_EXPORTED', {
-            data: {
-                action: 'AUDIT_LOG_ACCESSED',
-                userRole: currentUserRole,
-                accessLevel: userAccessLevel,
-                scopeCategories: userScopeCategories
+    function fetchAuditLogsFromApi() {
+        $.ajax({
+            url: '/api/audit-logs',
+            method: 'GET',
+            data: { per_page: 500 },
+            success: function(response) {
+                var entries = response.data || [];
+                if (entries.length > 0 || response.meta) {
+                    allLogs = entries.map(function(entry) {
+                        var actionMeta = EXTENDED_ACTION_TYPES[entry.action] || EXTENDED_ACTION_TYPES[entry.action?.toUpperCase()] || {};
+                        return {
+                            id: entry.id,
+                            timestamp: entry.created_at,
+                            action: entry.action,
+                            actionLabel: actionMeta.label || entry.action?.replace(/_/g, ' ') || 'Unknown',
+                            category: actionMeta.category || entry.module || 'account',
+                            severity: actionMeta.severity || 'low',
+                            actor: {
+                                userId: entry.user_id || 'system',
+                                userName: entry.user_name || 'System',
+                                role: entry.role || 'system',
+                                subAccountId: entry.sub_account_id || null
+                            },
+                            target: entry.target_user_id ? { userId: entry.target_user_id, userName: entry.target_user_name || '' } : (entry.target_resource_id ? { resourceId: entry.target_resource_id, resourceType: entry.target_resource_type || '', name: entry.target_resource_name || '' } : null),
+                            context: {
+                                ipAddress: entry.ip_address || '-',
+                                userAgent: entry.user_agent || '-',
+                                sessionId: '-',
+                                requestId: '-'
+                            },
+                            result: 'success',
+                            details: entry.metadata || {},
+                            reason: entry.details || null,
+                            retentionExpiry: null,
+                            integrityHash: entry.integrity_hash || generateHash(entry)
+                        };
+                    });
+                } else if (!response.data) {
+                    allLogs = [];
+                }
+
+                if (userScopeCategories) {
+                    allLogs = filterLogsByScope(allLogs);
+                }
+
+                applyFilters();
+                updateStats();
+                updateSecurityStats();
+                updateMessagingStats();
+                updateFinancialStats();
+                updateComplianceStats();
+                renderCategoryTables();
+            },
+            error: function() {
+                allLogs = [];
+                applyFilters();
+                updateStats();
+                updateSecurityStats();
+                updateMessagingStats();
+                updateFinancialStats();
+                updateComplianceStats();
+                renderCategoryTables();
             }
         });
     }

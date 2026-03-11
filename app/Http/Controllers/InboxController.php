@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccountAuditLog;
 use App\Models\InboxConversation;
+use App\Services\Audit\AuditContext;
 use App\Services\InboxDeliveryService;
 use App\Services\InboxService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InboxController extends Controller
 {
@@ -120,6 +123,13 @@ class InboxController extends Controller
             ], 422);
         }
 
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'inbox_reply_sent', $actor['user_id'], $actor['user_name'], "Reply sent in conversation {$conversationId}", ['conversation_id' => $conversationId, 'channel' => $request->input('channel', 'sms')]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record inbox_reply_sent', ['error' => $e->getMessage()]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => $result['message']->toPortalArray(),
@@ -135,12 +145,26 @@ class InboxController extends Controller
 
         $this->inbox->markRead($conversationId, $user);
 
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'conversation_marked_read', $actor['user_id'], $actor['user_name'], "Conversation {$conversationId} marked as read", ['conversation_id' => $conversationId]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record conversation_marked_read', ['error' => $e->getMessage()]);
+        }
+
         return response()->json(['success' => true]);
     }
 
     public function apiMarkUnread(string $conversationId): JsonResponse
     {
         $this->inbox->markUnread($conversationId);
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'conversation_marked_unread', $actor['user_id'], $actor['user_name'], "Conversation {$conversationId} marked as unread", ['conversation_id' => $conversationId]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record conversation_marked_unread', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true]);
     }

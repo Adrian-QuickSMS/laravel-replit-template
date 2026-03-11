@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Models\UserAuditLog;
+use App\Services\Audit\AuditContext;
 
 /**
  * User Management Controller
@@ -177,6 +179,10 @@ class UserManagementController extends Controller
                 'daily_send_limit', 'permission_toggles', 'sub_account_id',
             ]);
 
+            $beforeRole = $user->getOriginal('role');
+            $beforePerms = $user->getOriginal('permission_toggles');
+            $beforeCapability = $user->getOriginal('sender_capability');
+
             $user->fill($updateData);
 
             // Enforce validation: user caps must not exceed sub-account caps
@@ -189,6 +195,23 @@ class UserManagementController extends Controller
                 'updated_by' => $currentUser->id,
                 'changes' => array_keys($updateData),
             ]);
+
+            try {
+                $actor = AuditContext::actor();
+                $accountId = $actor['account_id'];
+
+                if ($beforeRole !== $user->role) {
+                    UserAuditLog::record($accountId, 'user_role_changed', $user->id, $actor['user_id'], $actor['user_name'], "Role changed for {$user->email}", ['before' => ['role' => $beforeRole], 'after' => ['role' => $user->role]]);
+                }
+                if ($beforePerms !== $user->permission_toggles) {
+                    UserAuditLog::record($accountId, 'user_permissions_changed', $user->id, $actor['user_id'], $actor['user_name'], "Permissions changed for {$user->email}", ['before' => ['permissions' => $beforePerms], 'after' => ['permissions' => $user->permission_toggles]]);
+                }
+                if ($beforeCapability !== $user->sender_capability) {
+                    UserAuditLog::record($accountId, 'user_sender_capability_changed', $user->id, $actor['user_id'], $actor['user_name'], "Sender capability changed for {$user->email}", ['before' => ['sender_capability' => $beforeCapability], 'after' => ['sender_capability' => $user->sender_capability]]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record user update audit', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -232,6 +255,13 @@ class UserManagementController extends Controller
 
             Log::info('User suspended', ['user_id' => $id, 'suspended_by' => $currentUser->id]);
 
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::record($actor['account_id'], 'user_suspended', $user->id, $actor['user_id'], $actor['user_name'], "User {$user->email} suspended", ['reason' => $request->input('reason')]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record user_suspended', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'User suspended',
@@ -261,6 +291,13 @@ class UserManagementController extends Controller
             $user->update(['status' => 'active']);
 
             Log::info('User reactivated', ['user_id' => $id, 'reactivated_by' => $currentUser->id]);
+
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::record($actor['account_id'], 'user_reactivated', $user->id, $actor['user_id'], $actor['user_name'], "User {$user->email} reactivated");
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record user_reactivated', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -299,6 +336,13 @@ class UserManagementController extends Controller
                 'from_user_id' => $currentUser->id,
                 'to_user_id' => $newOwner->id,
             ]);
+
+            try {
+                $actor = AuditContext::actor();
+                UserAuditLog::record($actor['account_id'], 'ownership_transferred', $newOwner->id, $actor['user_id'], $actor['user_name'], "Ownership transferred from {$currentUser->email} to {$newOwner->email}", ['from_user_id' => $currentUser->id, 'from_user_name' => $currentUser->email, 'to_user_id' => $newOwner->id, 'to_user_name' => $newOwner->email]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record ownership_transferred', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',

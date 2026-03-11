@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\AccountCredit;
 use App\Services\SenderIdEnforcementService;
 use Illuminate\Support\Facades\Log;
+use App\Models\AccountAuditLog;
 
 /**
  * Account Observer
@@ -67,6 +68,12 @@ class AccountObserver
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
             ]);
+
+            try {
+                AccountAuditLog::record($account->id, 'account_status_transition', null, null, "Status changed from {$oldStatus} to {$newStatus}", ['old_status' => $oldStatus, 'new_status' => $newStatus]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record account_status_transition', ['error' => $e->getMessage()]);
+            }
 
             // Void remaining test credits when transitioning from test to live mode
             if (in_array($oldStatus, Account::TEST_STATUSES) && in_array($newStatus, Account::LIVE_STATUSES)) {
@@ -158,6 +165,12 @@ class AccountObserver
             'account_type' => $account->account_type,
             'status' => $account->status,
         ]);
+
+        try {
+            AccountAuditLog::record($account->id, 'account_created', null, null, "Account {$account->account_number} created", ['company_name' => $account->company_name, 'account_type' => $account->account_type]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record account_created', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

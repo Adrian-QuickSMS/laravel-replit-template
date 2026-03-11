@@ -5,11 +5,13 @@ namespace App\Services\Campaign;
 use App\Jobs\ResolveRecipientContentJob;
 use App\Models\Account;
 use App\Models\Campaign;
+use App\Models\CampaignAuditLog;
 use App\Models\CampaignRecipient;
 use App\Models\MessageTemplate;
 use App\Models\RcsAgent;
 use App\Models\SenderId;
 use App\Services\Admin\MessageEnforcementService;
+use App\Services\Audit\AuditContext;
 use App\Services\RcsContentValidator;
 use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +109,13 @@ class CampaignService
             'type' => $campaign->type,
         ]);
 
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($accountId, $campaign->id, 'campaign_created', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' created", ['type' => $campaign->type, 'name' => $campaign->name]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_created', ['error' => $e->getMessage()]);
+        }
+
         return $campaign;
     }
 
@@ -159,6 +168,13 @@ class CampaignService
 
         $campaign->updated_by = $data['updated_by'] ?? $campaign->updated_by;
         $campaign->save();
+
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_edited', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' edited", ['changed_fields' => array_keys($campaign->getDirty())]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_edited', ['error' => $e->getMessage()]);
+        }
 
         return $campaign;
     }
@@ -300,6 +316,13 @@ class CampaignService
             'campaign_id' => $campaign->id,
             'recipients_resolved' => $resolverResult->totalCreated,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_prepared', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' prepared", ['recipients_resolved' => $resolverResult->totalCreated]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_prepared', ['error' => $e->getMessage()]);
+        }
 
         return $resolverResult;
     }

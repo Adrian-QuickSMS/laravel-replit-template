@@ -582,21 +582,52 @@ $(document).ready(function() {
         console.log('[Immutability] Append-only:', IMMUTABILITY_CONTROLS.appendOnly, 
                     '| Retention:', IMMUTABILITY_CONTROLS.retentionYears, 'years');
 
-        customerLogs = generateMockCustomerLogs();
-        adminLogs = generateMockAdminLogs();
+        fetchAdminAuditData();
 
-        var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
-        var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
-
-        console.log('[DataSeparation] Customer logs validated:', customerValidation.validLogs.length, '/', customerLogs.length);
-        console.log('[DataSeparation] Admin logs validated:', adminValidation.validLogs.length, '/', adminLogs.length);
-
-        renderCustomerLogs();
-        renderAdminLogs();
-        updateAdminStats();
         bindCustomerSelectorEvents();
         bindAdminFilterEvents();
         bindEvents();
+    }
+
+    function fetchAdminAuditData() {
+        $.ajax({
+            url: '/admin/api/audit-logs',
+            method: 'GET',
+            data: { per_page: 500 },
+            success: function(response) {
+                var entries = response.data || [];
+                if (entries.length > 0 || response.meta) {
+                    adminLogs = entries.map(function(entry) {
+                        return {
+                            id: entry.id,
+                            timestamp: entry.created_at,
+                            event_type: entry.action || entry.event_type,
+                            action_label: entry.action?.replace(/_/g, ' ') || entry.event_type || 'Unknown',
+                            category: entry.module || 'admin',
+                            severity: 'medium',
+                            actor: { user_id: entry.user_id || 'system', user_name: entry.user_name || 'System' },
+                            ip_address: entry.ip_address || '-',
+                            details: entry.details || '',
+                            metadata: entry.metadata || {},
+                            result: 'success'
+                        };
+                    });
+                } else if (!response.data) {
+                    adminLogs = [];
+                }
+                customerLogs = [];
+                renderCustomerLogs();
+                renderAdminLogs();
+                updateAdminStats();
+            },
+            error: function() {
+                adminLogs = [];
+                customerLogs = [];
+                renderCustomerLogs();
+                renderAdminLogs();
+                updateAdminStats();
+            }
+        });
     }
 
     var CUSTOMER_FACING_EVENT_TYPES = [
@@ -1607,14 +1638,17 @@ $(document).ready(function() {
 
         $('#internalSearchInput').on('input', function() {
             var query = $(this).val().toLowerCase();
-            var allLogs = generateMockAdminLogs();
-            var filtered = allLogs.filter(function(log) {
-                return log.eventLabel.toLowerCase().includes(query) ||
-                       log.actor.email.toLowerCase().includes(query) ||
-                       (log.target && log.target.email && log.target.email.toLowerCase().includes(query)) ||
-                       log.id.toLowerCase().includes(query);
+            if (!query) {
+                fetchAdminAuditData();
+                return;
+            }
+            var filtered = adminLogs.filter(function(log) {
+                var label = (log.action_label || log.event_type || '').toLowerCase();
+                var actorName = (log.actor && log.actor.user_name || '').toLowerCase();
+                var logId = (log.id || '').toLowerCase();
+                return label.includes(query) || actorName.includes(query) || logId.includes(query);
             });
-            adminLogs = filtered.length > 0 || query ? filtered : allLogs;
+            adminLogs = filtered;
             adminPage = 1;
             renderAdminLogs();
         });

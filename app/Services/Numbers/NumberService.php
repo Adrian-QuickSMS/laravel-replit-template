@@ -3,6 +3,7 @@
 namespace App\Services\Numbers;
 
 use App\Models\Account;
+use App\Models\NumberAuditLog;
 use App\Models\NumberAssignment;
 use App\Models\NumberAutoReplyRule;
 use App\Models\PurchasedNumber;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\Audit\AuditContext;
 
 /**
  * NumberService — core domain logic for purchasing, managing, and configuring numbers.
@@ -134,6 +136,13 @@ class NumberService
                 'total_setup' => $pricing['total_setup_fee'],
                 'total_monthly' => $pricing['total_monthly_fee'],
             ]);
+
+            try {
+                $actor = AuditContext::actor();
+                NumberAuditLog::record($accountId, 'vmn_purchased', null, $actor['user_id'], $actor['user_name'], count($purchasedNumbers) . " VMN(s) purchased", ['count' => count($purchasedNumbers), 'total_setup' => $pricing['total_setup_fee'], 'total_monthly' => $pricing['total_monthly_fee']]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record vmn_purchased', ['error' => $e->getMessage()]);
+            }
 
             return [
                 'purchased_numbers' => $purchasedNumbers,
@@ -280,6 +289,13 @@ class NumberService
                 'number' => $number->number,
                 'account_id' => $number->account_id,
             ]);
+
+            try {
+                $actor = AuditContext::actor();
+                NumberAuditLog::record($number->account_id, 'vmn_released', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} released", ['number' => $number->number]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record vmn_released', ['error' => $e->getMessage()]);
+            }
         });
     }
 
@@ -328,6 +344,13 @@ class NumberService
             'number_id' => $number->id,
             'reason' => $reason,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            NumberAuditLog::record($number->account_id, 'number_suspended', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} suspended", ['reason' => $reason]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record number_suspended', ['error' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -347,6 +370,13 @@ class NumberService
         Log::info('[NumberService] Number reactivated', [
             'number_id' => $number->id,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            NumberAuditLog::record($number->account_id, 'number_reactivated', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} reactivated");
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record number_reactivated', ['error' => $e->getMessage()]);
+        }
     }
 
     // =====================================================
@@ -378,6 +408,13 @@ class NumberService
             'number_id' => $number->id,
             'keys_updated' => array_keys($sanitized),
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            NumberAuditLog::record($number->account_id, 'number_configured', $number->id, $actor['user_id'], $actor['user_name'], "Number {$number->number} configuration updated", ['keys_updated' => array_keys($sanitized)]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record number_configured', ['error' => $e->getMessage()]);
+        }
 
         return $number->fresh();
     }

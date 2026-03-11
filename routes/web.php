@@ -462,6 +462,13 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms/
     Route::post('/{id}/unarchive', 'unarchive')->name('api.email-to-sms.reporting-groups.unarchive');
 });
 
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
+    ->controller(\App\Http\Controllers\Api\AuditLogApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.audit-logs.index');
+    Route::get('/modules', 'modules')->name('api.audit-logs.modules');
+    Route::get('/stats', 'stats')->name('api.audit-logs.stats');
+});
+
 Route::prefix('admin')->group(function () {
     Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
         Route::get('/login', 'showLogin')->name('admin.login');
@@ -571,6 +578,9 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
+
+            Route::get('/api/audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminIndex'])->name('admin.api.audit-logs.index');
+            Route::get('/api/customer-audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminCustomerIndex'])->name('admin.api.customer-audit-logs');
 
             Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.admin-users.index');
