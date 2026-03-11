@@ -116,6 +116,16 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });
 
+// =====================================================
+// Unified Audit Log API (customer portal)
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
+    ->controller(\App\Http\Controllers\Api\AuditLogApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.audit-logs.index');
+    Route::get('/modules', 'modules')->name('api.audit-logs.modules');
+    Route::get('/stats', 'stats')->name('api.audit-logs.stats');
+});
+
 Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
     Route::get('/approved', 'approved')->name('api.sender-ids.approved');
     Route::post('/validate', 'validateSenderId')->name('api.sender-ids.validate');
@@ -198,6 +208,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->g
     Route::post('/bulk/remove-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveTags'])->name('api.contacts.bulk.remove-tags');
     Route::post('/bulk/delete', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkDelete'])->name('api.contacts.bulk.delete');
     Route::post('/bulk/export', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkExport'])->name('api.contacts.bulk.export');
+    Route::post('/bulk/import', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkImport'])->name('api.contacts.bulk.import');
     Route::post('/bulk/add-to-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddToOptOut'])->name('api.contacts.bulk.add-to-opt-out');
     Route::post('/bulk/remove-from-opt-out', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveFromOptOut'])->name('api.contacts.bulk.remove-from-opt-out');
 
@@ -571,6 +582,10 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
+
+            // Unified admin audit log API
+            Route::get('/api/audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminIndex'])->name('admin.api.audit-logs.index');
+            Route::get('/api/customer-audit-logs', [\App\Http\Controllers\Api\AuditLogApiController::class, 'adminCustomerIndex'])->name('admin.api.customer-audit-logs.index');
 
             Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.admin-users.index');

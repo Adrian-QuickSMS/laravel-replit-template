@@ -355,6 +355,7 @@
                                         <option value="USER_INVITED">User Invited</option>
                                         <option value="USER_SUSPENDED">User Suspended</option>
                                         <option value="USER_REACTIVATED">User Reactivated</option>
+                                        <option value="USER_DELETED">User Deleted</option>
                                     </optgroup>
                                     <optgroup label="Access Control">
                                         <option value="ROLE_CHANGED">Role Changed</option>
@@ -366,6 +367,7 @@
                                         <option value="LOGIN_FAILED">Login Failed</option>
                                         <option value="LOGIN_BLOCKED">Login Blocked</option>
                                         <option value="PASSWORD_CHANGED">Password Changed</option>
+                                        <option value="MFA_SETUP">MFA Setup</option>
                                     </optgroup>
                                     <optgroup label="Security">
                                         <option value="MFA_ENABLED">MFA Enabled</option>
@@ -376,11 +378,54 @@
                                         <option value="DATA_EXPORTED">Data Exported</option>
                                         <option value="DATA_UNMASKED">Data Unmasked</option>
                                     </optgroup>
-                                    <optgroup label="Messaging">
+                                    <optgroup label="Campaigns">
+                                        <option value="CAMPAIGN_CREATED">Campaign Created</option>
                                         <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
                                         <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
                                         <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
                                         <option value="CAMPAIGN_SENT">Campaign Sent</option>
+                                        <option value="CAMPAIGN_CANCELLED">Campaign Cancelled</option>
+                                        <option value="CAMPAIGN_PAUSED">Campaign Paused</option>
+                                        <option value="CAMPAIGN_RESUMED">Campaign Resumed</option>
+                                        <option value="CAMPAIGN_COMPLETED">Campaign Completed</option>
+                                        <option value="CAMPAIGN_FAILED">Campaign Failed</option>
+                                        <option value="CAMPAIGN_SCHEDULED">Campaign Scheduled</option>
+                                        <option value="CAMPAIGN_DRAFT_SAVED">Campaign Draft Saved</option>
+                                    </optgroup>
+                                    <optgroup label="Inbox">
+                                        <option value="INBOX_REPLY_SENT">Inbox Reply Sent</option>
+                                        <option value="CONVERSATION_MARKED_READ">Conversation Marked Read</option>
+                                        <option value="CONVERSATION_MARKED_UNREAD">Conversation Marked Unread</option>
+                                    </optgroup>
+                                    <optgroup label="Contact Book">
+                                        <option value="CONTACTS_IMPORTED">Contacts Imported</option>
+                                        <option value="CONTACT_CREATED">Contact Created</option>
+                                        <option value="CONTACT_UPDATED">Contact Updated</option>
+                                        <option value="CONTACT_DELETED">Contact Deleted</option>
+                                        <option value="CONTACT_LIST_CREATED">Contact List Created</option>
+                                        <option value="CONTACT_LIST_DELETED">Contact List Deleted</option>
+                                        <option value="CONTACT_TAG_CREATED">Contact Tag Created</option>
+                                        <option value="CONTACT_TAG_DELETED">Contact Tag Deleted</option>
+                                        <option value="OPT_OUT_ADDED">Opt-Out Added</option>
+                                        <option value="OPT_OUT_REMOVED">Opt-Out Removed</option>
+                                    </optgroup>
+                                    <optgroup label="Numbers">
+                                        <option value="NUMBER_PURCHASED">Number Purchased</option>
+                                        <option value="NUMBER_RELEASED">Number Released</option>
+                                        <option value="NUMBER_CONFIGURED">Number Configured</option>
+                                        <option value="TEST_NUMBERS_CHANGED">Test Numbers Changed</option>
+                                    </optgroup>
+                                    <optgroup label="Account">
+                                        <option value="ACCOUNT_SETTINGS_UPDATED">Account Settings Updated</option>
+                                        <option value="ACCOUNT_STATUS_CHANGED">Account Status Changed</option>
+                                        <option value="BILLING_CONFIG_CHANGED">Billing Config Changed</option>
+                                        <option value="SUB_ACCOUNT_CREATED">Sub-Account Created</option>
+                                        <option value="SUB_ACCOUNT_SUSPENDED">Sub-Account Suspended</option>
+                                    </optgroup>
+                                    <optgroup label="API">
+                                        <option value="API_KEY_CREATED">API Key Created</option>
+                                        <option value="API_KEY_ROTATED">API Key Rotated</option>
+                                        <option value="API_KEY_REVOKED">API Key Revoked</option>
                                     </optgroup>
                                     <optgroup label="Financial">
                                         <option value="PURCHASE_COMPLETED">Purchase Completed</option>
@@ -832,14 +877,49 @@ $(document).ready(function() {
 
     var EXTENDED_ACTION_TYPES = {
         ...AuditLogger.ACTION_TYPES,
+        CAMPAIGN_CREATED: { category: 'messaging', severity: 'low', label: 'Campaign Created' },
         CAMPAIGN_SUBMITTED: { category: 'messaging', severity: 'low', label: 'Campaign Submitted' },
         CAMPAIGN_APPROVED: { category: 'messaging', severity: 'medium', label: 'Campaign Approved' },
         CAMPAIGN_REJECTED: { category: 'messaging', severity: 'medium', label: 'Campaign Rejected' },
         CAMPAIGN_SENT: { category: 'messaging', severity: 'low', label: 'Campaign Sent' },
+        CAMPAIGN_CANCELLED: { category: 'messaging', severity: 'medium', label: 'Campaign Cancelled' },
+        CAMPAIGN_PAUSED: { category: 'messaging', severity: 'low', label: 'Campaign Paused' },
+        CAMPAIGN_RESUMED: { category: 'messaging', severity: 'low', label: 'Campaign Resumed' },
+        CAMPAIGN_COMPLETED: { category: 'messaging', severity: 'low', label: 'Campaign Completed' },
+        CAMPAIGN_FAILED: { category: 'messaging', severity: 'high', label: 'Campaign Failed' },
+        CAMPAIGN_SCHEDULED: { category: 'messaging', severity: 'low', label: 'Campaign Scheduled' },
+        CAMPAIGN_DRAFT_SAVED: { category: 'messaging', severity: 'low', label: 'Campaign Draft Saved' },
         MESSAGE_DELIVERED: { category: 'messaging', severity: 'low', label: 'Message Delivered' },
         MESSAGE_FAILED: { category: 'messaging', severity: 'medium', label: 'Message Failed' },
         OPT_OUT_RECEIVED: { category: 'messaging', severity: 'medium', label: 'Opt-out Received' },
         OPT_IN_RECEIVED: { category: 'messaging', severity: 'low', label: 'Opt-in Received' },
+        INBOX_REPLY_SENT: { category: 'messaging', severity: 'low', label: 'Inbox Reply Sent' },
+        CONVERSATION_MARKED_READ: { category: 'messaging', severity: 'low', label: 'Conversation Marked Read' },
+        CONVERSATION_MARKED_UNREAD: { category: 'messaging', severity: 'low', label: 'Conversation Marked Unread' },
+        CONTACTS_IMPORTED: { category: 'account', severity: 'medium', label: 'Contacts Imported' },
+        CONTACT_CREATED: { category: 'account', severity: 'low', label: 'Contact Created' },
+        CONTACT_UPDATED: { category: 'account', severity: 'low', label: 'Contact Updated' },
+        CONTACT_DELETED: { category: 'account', severity: 'medium', label: 'Contact Deleted' },
+        CONTACT_LIST_CREATED: { category: 'account', severity: 'low', label: 'Contact List Created' },
+        CONTACT_LIST_DELETED: { category: 'account', severity: 'medium', label: 'Contact List Deleted' },
+        CONTACT_TAG_CREATED: { category: 'account', severity: 'low', label: 'Contact Tag Created' },
+        CONTACT_TAG_DELETED: { category: 'account', severity: 'low', label: 'Contact Tag Deleted' },
+        OPT_OUT_ADDED: { category: 'compliance', severity: 'medium', label: 'Opt-Out Added' },
+        OPT_OUT_REMOVED: { category: 'compliance', severity: 'high', label: 'Opt-Out Removed' },
+        NUMBER_PURCHASED: { category: 'account', severity: 'medium', label: 'Number Purchased' },
+        NUMBER_RELEASED: { category: 'account', severity: 'high', label: 'Number Released' },
+        NUMBER_CONFIGURED: { category: 'account', severity: 'low', label: 'Number Configured' },
+        TEST_NUMBERS_CHANGED: { category: 'account', severity: 'medium', label: 'Test Numbers Changed' },
+        ACCOUNT_SETTINGS_UPDATED: { category: 'account', severity: 'medium', label: 'Account Settings Updated' },
+        ACCOUNT_STATUS_CHANGED: { category: 'account', severity: 'high', label: 'Account Status Changed' },
+        BILLING_CONFIG_CHANGED: { category: 'financial', severity: 'high', label: 'Billing Config Changed' },
+        SUB_ACCOUNT_CREATED: { category: 'account', severity: 'medium', label: 'Sub-Account Created' },
+        SUB_ACCOUNT_SUSPENDED: { category: 'account', severity: 'high', label: 'Sub-Account Suspended' },
+        API_KEY_CREATED: { category: 'security', severity: 'medium', label: 'API Key Created' },
+        API_KEY_ROTATED: { category: 'security', severity: 'medium', label: 'API Key Rotated' },
+        API_KEY_REVOKED: { category: 'security', severity: 'high', label: 'API Key Revoked' },
+        USER_DELETED: { category: 'user_management', severity: 'high', label: 'User Deleted' },
+        MFA_SETUP: { category: 'authentication', severity: 'medium', label: 'MFA Setup' },
         PURCHASE_COMPLETED: { category: 'financial', severity: 'medium', label: 'Purchase Completed' },
         INVOICE_GENERATED: { category: 'financial', severity: 'low', label: 'Invoice Generated' },
         PAYMENT_RECEIVED: { category: 'financial', severity: 'medium', label: 'Payment Received' },
@@ -1001,6 +1081,10 @@ $(document).ready(function() {
         renderCategoryTables();
         bindEvents();
 
+        // Attempt to fetch real data from backend API (will overlay mock data if successful)
+        fetchAuditLogs();
+        fetchAuditStats();
+
         AuditLogger.log('DATA_EXPORTED', {
             data: {
                 action: 'AUDIT_LOG_ACCESSED',
@@ -1118,12 +1202,12 @@ $(document).ready(function() {
             var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td class="small">' + log.context.ipAddress + '</td>' +
-                '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td class="small">' + escapeHtml(log.context.ipAddress) + '</td>' +
+                '<td><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + escapeHtml(capitalizeFirst(log.result)) + '</span></td>' +
                 '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
@@ -1149,12 +1233,12 @@ $(document).ready(function() {
             var channel = log.details && log.details.channel ? log.details.channel : 'SMS';
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td>' + targetName + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td>' + recipients + '</td>' +
-                '<td><span class="badge badge-pastel-primary">' + channel + '</span></td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td>' + escapeHtml(targetName) + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td>' + escapeHtml(recipients) + '</td>' +
+                '<td><span class="badge badge-pastel-primary">' + escapeHtml(channel) + '</span></td>' +
                 '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
@@ -1180,12 +1264,12 @@ $(document).ready(function() {
             var subAccount = log.actor.subAccountId || 'Main Account';
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td class="fw-medium">' + amount + '</td>' +
-                '<td class="small">' + reference + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td class="small">' + subAccount + '</td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td class="fw-medium">' + escapeHtml(amount) + '</td>' +
+                '<td class="small">' + escapeHtml(reference) + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td class="small">' + escapeHtml(subAccount) + '</td>' +
                 '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
@@ -1209,11 +1293,11 @@ $(document).ready(function() {
             var framework = log.category === 'gdpr' ? 'GDPR' : 'ISO 27001';
 
             var row = $('<tr class="audit-log-row">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td><span class="badge badge-pastel-primary">' + framework + '</span></td>' +
-                '<td>' + log.actionLabel + '</td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td class="small">' + (log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
+                '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+                '<td><span class="badge badge-pastel-primary">' + escapeHtml(framework) + '</span></td>' +
+                '<td>' + escapeHtml(log.actionLabel) + '</td>' +
+                '<td>' + escapeHtml(log.actor.userName) + '</td>' +
+                '<td class="small">' + escapeHtml(log.target ? log.target.name || log.target.resourceId : '-') + '</td>' +
                 '<td><i class="fas fa-chevron-right"></i></td>' +
             '</tr>');
 
@@ -1431,6 +1515,7 @@ $(document).ready(function() {
         $('.quick-filter-btn').removeClass('active');
         $('.quick-filter-btn[data-filter="all"]').addClass('active');
         applyFilters();
+        fetchAuditLogs();
     }
 
     function renderTable() {
@@ -1551,15 +1636,15 @@ $(document).ready(function() {
             else if (log.target.resourceId) targetDisplay = log.target.resourceType + ': ' + log.target.resourceId;
         }
 
-        var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
-            '<td class="small">' + formattedDate + '</td>' +
-            '<td class="small" title="' + log.id + '">' + eventId + '</td>' +
-            '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
+        var row = $('<tr class="audit-log-row" data-log-id="' + escapeHtml(log.id) + '">' +
+            '<td class="small">' + escapeHtml(formattedDate) + '</td>' +
+            '<td class="small" title="' + escapeHtml(log.id) + '">' + escapeHtml(eventId) + '</td>' +
+            '<td><span class="fw-medium">' + escapeHtml(log.actionLabel) + '</span></td>' +
             '<td class="small">' + formatCategory(log.category) + '</td>' +
-            '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
-            '<td class="small">' + log.actor.userName + '</td>' +
-            '<td class="small">' + targetDisplay + '</td>' +
-            '<td class="small">' + log.context.ipAddress + '</td>' +
+            '<td><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></td>' +
+            '<td class="small">' + escapeHtml(log.actor.userName) + '</td>' +
+            '<td class="small">' + escapeHtml(targetDisplay) + '</td>' +
+            '<td class="small">' + escapeHtml(log.context.ipAddress) + '</td>' +
         '</tr>');
 
         row.on('click', function() { showLogDetail(log); });
@@ -1670,57 +1755,57 @@ $(document).ready(function() {
 
         var html = '<div class="log-detail-section">' +
             '<h6><i class="fas fa-shield-alt me-2"></i>Integrity & Compliance</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Integrity Hash</span><span class="log-detail-value"><code>' + log.integrityHash + '</code> <span class="badge badge-pastel-success ms-2">Verified</span></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Retention Until</span><span class="log-detail-value">' + retentionExpiry.toLocaleDateString('en-GB') + ' <span class="retention-indicator retention-active ms-2">7 years</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Integrity Hash</span><span class="log-detail-value"><code>' + escapeHtml(log.integrityHash) + '</code> <span class="badge badge-pastel-success ms-2">Verified</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Retention Until</span><span class="log-detail-value">' + escapeHtml(retentionExpiry.toLocaleDateString('en-GB')) + ' <span class="retention-indicator retention-active ms-2">7 years</span></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Tamper Status</span><span class="log-detail-value"><span class="badge badge-pastel-success">Unmodified</span></span></div>' +
         '</div>';
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-clock me-2"></i>Event Information</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Log ID</span><span class="log-detail-value"><code>' + log.id + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Timestamp</span><span class="log-detail-value">' + timestamp.toISOString() + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Action</span><span class="log-detail-value">' + log.actionLabel + ' <code class="ms-2">(' + log.action + ')</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Log ID</span><span class="log-detail-value"><code>' + escapeHtml(log.id) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Timestamp</span><span class="log-detail-value">' + escapeHtml(timestamp.toISOString()) + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Action</span><span class="log-detail-value">' + escapeHtml(log.actionLabel) + ' <code class="ms-2">(' + escapeHtml(log.action) + ')</code></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Category</span><span class="log-detail-value">' + formatCategory(log.category) + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Severity</span><span class="log-detail-value"><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Result</span><span class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Severity</span><span class="log-detail-value"><span class="badge severity-badge-' + escapeHtml(log.severity) + '">' + escapeHtml(capitalizeFirst(log.severity)) + '</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Result</span><span class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + escapeHtml(capitalizeFirst(log.result)) + '</span></span></div>' +
         '</div>';
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-user me-2"></i>Actor</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + log.actor.userId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.actor.userName + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + formatRole(log.actor.role) + '</span></span></div>' +
-            (log.actor.subAccountId ? '<div class="log-detail-row"><span class="log-detail-label">Sub-Account</span><span class="log-detail-value">' + log.actor.subAccountId + '</span></div>' : '') +
+            '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + escapeHtml(log.actor.userId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.actor.userName) + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + escapeHtml(formatRole(log.actor.role)) + '</span></span></div>' +
+            (log.actor.subAccountId ? '<div class="log-detail-row"><span class="log-detail-label">Sub-Account</span><span class="log-detail-value">' + escapeHtml(log.actor.subAccountId) + '</span></div>' : '') +
         '</div>';
 
         if (log.target) {
             html += '<div class="log-detail-section">' +
                 '<h6><i class="fas fa-bullseye me-2"></i>Target</h6>';
             if (log.target.userId) {
-                html += '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + log.target.userId + '</code></span></div>' +
-                    '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.target.userName + '</span></div>' +
-                    (log.target.role ? '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + formatRole(log.target.role) + '</span></span></div>' : '');
+                html += '<div class="log-detail-row"><span class="log-detail-label">User ID</span><span class="log-detail-value"><code>' + escapeHtml(log.target.userId) + '</code></span></div>' +
+                    '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.target.userName) + '</span></div>' +
+                    (log.target.role ? '<div class="log-detail-row"><span class="log-detail-label">Role</span><span class="log-detail-value"><span class="badge badge-pastel-primary">' + escapeHtml(formatRole(log.target.role)) + '</span></span></div>' : '');
             } else if (log.target.resourceType) {
                 html += '<div class="log-detail-row"><span class="log-detail-label">Resource Type</span><span class="log-detail-value">' + formatCategory(log.target.resourceType) + '</span></div>' +
-                    '<div class="log-detail-row"><span class="log-detail-label">Resource ID</span><span class="log-detail-value"><code>' + log.target.resourceId + '</code></span></div>' +
-                    (log.target.name ? '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + log.target.name + '</span></div>' : '');
+                    '<div class="log-detail-row"><span class="log-detail-label">Resource ID</span><span class="log-detail-value"><code>' + escapeHtml(log.target.resourceId) + '</code></span></div>' +
+                    (log.target.name ? '<div class="log-detail-row"><span class="log-detail-label">Name</span><span class="log-detail-value">' + escapeHtml(log.target.name) + '</span></div>' : '');
             }
             html += '</div>';
         }
 
         html += '<div class="log-detail-section">' +
             '<h6><i class="fas fa-network-wired me-2"></i>Context</h6>' +
-            '<div class="log-detail-row"><span class="log-detail-label">IP Address</span><span class="log-detail-value">' + log.context.ipAddress + '</span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Session ID</span><span class="log-detail-value"><code>' + log.context.sessionId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Request ID</span><span class="log-detail-value"><code>' + log.context.requestId + '</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">User Agent</span><span class="log-detail-value small">' + log.context.userAgent + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">IP Address</span><span class="log-detail-value">' + escapeHtml(log.context.ipAddress) + '</span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Session ID</span><span class="log-detail-value"><code>' + escapeHtml(log.context.sessionId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Request ID</span><span class="log-detail-value"><code>' + escapeHtml(log.context.requestId) + '</code></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">User Agent</span><span class="log-detail-value small">' + escapeHtml(log.context.userAgent) + '</span></div>' +
         '</div>';
 
         if (Object.keys(log.details).length > 0) {
             html += '<div class="log-detail-section">' +
                 '<h6><i class="fas fa-info-circle me-2"></i>Additional Details</h6>';
             for (var key in log.details) {
-                html += '<div class="log-detail-row"><span class="log-detail-label">' + formatCategory(key) + '</span><span class="log-detail-value">' + log.details[key] + '</span></div>';
+                html += '<div class="log-detail-row"><span class="log-detail-label">' + formatCategory(key) + '</span><span class="log-detail-value">' + escapeHtml(log.details[key]) + '</span></div>';
             }
             html += '</div>';
         }
@@ -2154,9 +2239,111 @@ $(document).ready(function() {
         $('#exportProgressModal').modal('hide');
     }
 
-    function formatCategory(category) { return category.split('_').map(capitalizeFirst).join(' '); }
+    function formatCategory(category) { return escapeHtml(category.split('_').map(capitalizeFirst).join(' ')); }
     function formatRole(role) { return role.split('_').map(capitalizeFirst).join(' '); }
     function capitalizeFirst(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+    /**
+     * Escape HTML special characters to prevent XSS when inserting API data into DOM.
+     */
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        var div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
+
+    /**
+     * Fetch audit logs from the backend API.
+     */
+    function fetchAuditLogs(params) {
+        params = params || {};
+        var query = new URLSearchParams();
+        query.set('per_page', '200');
+        query.set('page', params.page || '1');
+
+        if (params.module) query.set('module', params.module);
+        if (params.action) query.set('action', params.action);
+        if (params.from) query.set('from', params.from);
+        if (params.to) query.set('to', params.to);
+
+        $.ajax({
+            url: '/api/audit-logs?' + query.toString(),
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                var apiLogs = (response.data || []).map(function(row) {
+                    return mapApiRowToLog(row);
+                });
+
+                // Merge into allAuditLogs for the page
+                if (apiLogs.length > 0) {
+                    allAuditLogs = apiLogs;
+                    currentPage = 1;
+                    renderCurrentView();
+                }
+                console.log('[AuditLog] Fetched', apiLogs.length, 'logs from API');
+            },
+            error: function(xhr) {
+                console.warn('[AuditLog] API fetch failed (status=' + xhr.status + '), using generated data');
+            }
+        });
+    }
+
+    /**
+     * Fetch audit stats from the backend API.
+     */
+    function fetchAuditStats() {
+        $.ajax({
+            url: '/api/audit-logs/stats',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.data) {
+                    // Update dashboard stats with real data
+                    if (response.data.total_events !== undefined) {
+                        $('#totalEventsCount').text(response.data.total_events.toLocaleString());
+                    }
+                    console.log('[AuditLog] Stats loaded from API');
+                }
+            },
+            error: function() {
+                console.warn('[AuditLog] Stats API unavailable, using client-side counts');
+            }
+        });
+    }
+
+    /**
+     * Map an API response row to the log object shape the UI expects.
+     */
+    function mapApiRowToLog(row) {
+        var actionUpper = (row.action || '').toUpperCase().replace(/[- ]/g, '_');
+        var actionType = EXTENDED_ACTION_TYPES[actionUpper] || { category: 'account', severity: 'low', label: actionUpper.replace(/_/g, ' ') };
+        return {
+            id: row.id || '',
+            timestamp: row.created_at || new Date().toISOString(),
+            action: actionUpper,
+            actionLabel: actionType.label || actionUpper.replace(/_/g, ' '),
+            category: row.category || actionType.category || 'account',
+            severity: actionType.severity || 'low',
+            actor: {
+                userId: row.user_id || '',
+                userName: row.user_name || 'System',
+                role: 'user',
+                subAccountId: null
+            },
+            target: row.details || null,
+            context: {
+                ipAddress: row.ip_address || '-',
+                userAgent: row.user_agent || '-',
+                sessionId: '',
+                requestId: row.id || ''
+            },
+            details: row.metadata || {},
+            result: 'success',
+            module: row.module || ''
+        };
+    }
 
     function showToast(message, type) {
         var bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-primary');

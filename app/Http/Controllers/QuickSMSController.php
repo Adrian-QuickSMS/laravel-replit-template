@@ -9,8 +9,10 @@ use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\Tag;
 use App\Models\Account;
+use App\Models\AccountAuditLog;
 use App\Models\SenderId;
 use App\Models\User;
+use App\Services\Audit\AuditContext;
 
 class QuickSMSController extends Controller
 {
@@ -3227,8 +3229,16 @@ class QuickSMSController extends Controller
             []
         );
 
+        $oldNumbers = $settings->approved_test_numbers ?? [];
         $settings->approved_test_numbers = $numbers;
         $settings->save();
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($actor['account_id'], 'test_numbers_changed', $actor['user_id'], $actor['user_name'], "Approved test numbers updated", ['before' => $oldNumbers, 'after' => $numbers]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record test_numbers_changed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
@@ -3236,7 +3246,7 @@ class QuickSMSController extends Controller
             'numbers' => $numbers,
         ]);
     }
-    
+
     public function accountPricingApi(Request $request)
     {
         $tenantId = session('customer_tenant_id');

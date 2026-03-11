@@ -441,6 +441,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                                 <option value="USER_INVITED">User Invited</option>
                                 <option value="USER_SUSPENDED">User Suspended</option>
                                 <option value="USER_REACTIVATED">User Reactivated</option>
+                                <option value="USER_DELETED">User Deleted</option>
                             </optgroup>
                             <optgroup label="Access Control">
                                 <option value="ROLE_CHANGED">Role Changed</option>
@@ -452,6 +453,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                                 <option value="LOGIN_FAILED">Login Failed</option>
                                 <option value="LOGIN_BLOCKED">Login Blocked</option>
                                 <option value="PASSWORD_CHANGED">Password Changed</option>
+                                <option value="MFA_SETUP">MFA Setup</option>
                             </optgroup>
                             <optgroup label="Security">
                                 <option value="MFA_ENABLED">MFA Enabled</option>
@@ -462,11 +464,54 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                                 <option value="DATA_EXPORTED">Data Exported</option>
                                 <option value="DATA_UNMASKED">Data Unmasked</option>
                             </optgroup>
-                            <optgroup label="Messaging">
+                            <optgroup label="Campaigns">
+                                <option value="CAMPAIGN_CREATED">Campaign Created</option>
                                 <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
                                 <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
                                 <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
                                 <option value="CAMPAIGN_SENT">Campaign Sent</option>
+                                <option value="CAMPAIGN_CANCELLED">Campaign Cancelled</option>
+                                <option value="CAMPAIGN_PAUSED">Campaign Paused</option>
+                                <option value="CAMPAIGN_RESUMED">Campaign Resumed</option>
+                                <option value="CAMPAIGN_COMPLETED">Campaign Completed</option>
+                                <option value="CAMPAIGN_FAILED">Campaign Failed</option>
+                                <option value="CAMPAIGN_SCHEDULED">Campaign Scheduled</option>
+                                <option value="CAMPAIGN_DRAFT_SAVED">Campaign Draft Saved</option>
+                            </optgroup>
+                            <optgroup label="Inbox">
+                                <option value="INBOX_REPLY_SENT">Inbox Reply Sent</option>
+                                <option value="CONVERSATION_MARKED_READ">Conversation Marked Read</option>
+                                <option value="CONVERSATION_MARKED_UNREAD">Conversation Marked Unread</option>
+                            </optgroup>
+                            <optgroup label="Contact Book">
+                                <option value="CONTACTS_IMPORTED">Contacts Imported</option>
+                                <option value="CONTACT_CREATED">Contact Created</option>
+                                <option value="CONTACT_UPDATED">Contact Updated</option>
+                                <option value="CONTACT_DELETED">Contact Deleted</option>
+                                <option value="CONTACT_LIST_CREATED">Contact List Created</option>
+                                <option value="CONTACT_LIST_DELETED">Contact List Deleted</option>
+                                <option value="CONTACT_TAG_CREATED">Contact Tag Created</option>
+                                <option value="CONTACT_TAG_DELETED">Contact Tag Deleted</option>
+                                <option value="OPT_OUT_ADDED">Opt-Out Added</option>
+                                <option value="OPT_OUT_REMOVED">Opt-Out Removed</option>
+                            </optgroup>
+                            <optgroup label="Numbers">
+                                <option value="NUMBER_PURCHASED">Number Purchased</option>
+                                <option value="NUMBER_RELEASED">Number Released</option>
+                                <option value="NUMBER_CONFIGURED">Number Configured</option>
+                                <option value="TEST_NUMBERS_CHANGED">Test Numbers Changed</option>
+                            </optgroup>
+                            <optgroup label="Account">
+                                <option value="ACCOUNT_SETTINGS_UPDATED">Account Settings Updated</option>
+                                <option value="ACCOUNT_STATUS_CHANGED">Account Status Changed</option>
+                                <option value="BILLING_CONFIG_CHANGED">Billing Config Changed</option>
+                                <option value="SUB_ACCOUNT_CREATED">Sub-Account Created</option>
+                                <option value="SUB_ACCOUNT_SUSPENDED">Sub-Account Suspended</option>
+                            </optgroup>
+                            <optgroup label="API">
+                                <option value="API_KEY_CREATED">API Key Created</option>
+                                <option value="API_KEY_ROTATED">API Key Rotated</option>
+                                <option value="API_KEY_REVOKED">API Key Revoked</option>
                             </optgroup>
                             <optgroup label="Financial">
                                 <option value="PURCHASE_COMPLETED">Purchase Completed</option>

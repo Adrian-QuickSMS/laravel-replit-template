@@ -17,6 +17,8 @@ use App\Models\RoutingRule;
 use App\Models\RoutingGatewayWeight;
 use App\Models\RoutingCustomerOverride;
 use App\Models\Account;
+use App\Models\AccountAuditLog;
+use App\Models\AdminAuditLog;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -496,8 +498,18 @@ class AdminController extends Controller
             []
         );
 
+        $oldNumbers = $settings->approved_test_numbers ?? [];
         $settings->approved_test_numbers = $numbers;
         $settings->save();
+
+        try {
+            $adminId = session('admin_user_id');
+            $adminName = session('admin_user_name', 'Admin');
+            AccountAuditLog::record($accountId, 'test_numbers_changed', $adminId, $adminName, "Approved test numbers updated by admin", ['before' => $oldNumbers, 'after' => $numbers]);
+            AdminAuditLog::record('test_numbers_changed', 'account_management', 'medium', $adminId, $adminName, 'account', $accountId, $accountId, "Updated approved test numbers for account {$account->account_number}", ['before' => $oldNumbers, 'after' => $numbers]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record test_numbers_changed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,

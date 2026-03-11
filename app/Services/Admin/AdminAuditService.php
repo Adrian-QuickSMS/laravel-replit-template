@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Models\AdminAuditLog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -289,8 +290,24 @@ class AdminAuditService
         ];
         
         Log::channel('single')->info('[AdminAudit] ' . json_encode($logEntry));
-        
-        // TODO: Store in admin_audit_logs database table when backend integration is complete
+
+        // Dual-write: persist to admin_audit_log database table for queryable, durable storage
+        try {
+            AdminAuditLog::record(
+                action: $eventCode,
+                category: $eventDef['category'],
+                severity: $severityOverride ?? $eventDef['severity'],
+                adminUserId: $adminSession['admin_id'] ?? null,
+                adminUserName: $adminSession['name'] ?? ($adminSession['email'] ?? session('admin_email')),
+                targetType: $data['target_type'] ?? $data['target_admin'] ?? null,
+                targetId: $data['target_id'] ?? null,
+                targetAccountId: $data['target_account_id'] ?? null,
+                details: $eventDef['description'],
+                metadata: self::sanitizeData($data),
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AdminAudit] Failed to persist to database', ['error' => $e->getMessage(), 'event' => $eventCode]);
+        }
     }
     
     public static function logAdminUserEvent(

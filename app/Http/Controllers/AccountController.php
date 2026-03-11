@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Models\AccountAuditLog;
+use App\Services\Audit\AuditContext;
 
 /**
  * Account Management Controller
@@ -89,6 +91,8 @@ class AccountController extends Controller
             }
 
             $account = $user->account;
+            $before = $account->only(['company_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
+
             $account->update($request->only([
                 'company_name',
                 'phone',
@@ -102,6 +106,17 @@ class AccountController extends Controller
             ]));
 
             // TODO: Sync to HubSpot
+
+            try {
+                $actor = AuditContext::actor();
+                $after = $account->only(['company_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
+                $changes = AuditContext::diff($before, $after);
+                if (!empty($changes)) {
+                    AccountAuditLog::record($account->id, 'account_details_updated', $actor['user_id'], $actor['user_name'], "Account details updated", ['changes' => $changes]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record account_details_updated', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -172,6 +187,13 @@ class AccountController extends Controller
 
             // Refresh settings
             $settings = $user->account->settings()->first();
+
+            try {
+                $actor = AuditContext::actor();
+                AccountAuditLog::record($actor['account_id'], 'account_settings_changed', $actor['user_id'], $actor['user_name'], "Account settings updated", ['settings_changed' => array_keys($request->except(['_token', '_method']))]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[AuditLog] Failed to record account_settings_changed', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'status' => 'success',
