@@ -1033,17 +1033,6 @@
                     <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page" oninput="this.classList.remove('is-invalid');">
                     <div class="invalid-feedback" id="destinationUrlError">Please enter a destination URL</div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Insert Link As</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAtCursor" value="cursor" checked>
-                        <label class="form-check-label" for="linkAtCursor">Insert at cursor position</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAsPlaceholder" value="placeholder">
-                        <label class="form-check-label" for="linkAsPlaceholder">Use placeholder @{{trackingUrl}}</label>
-                    </div>
-                </div>
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -2545,8 +2534,6 @@ function openTrackableLinkModal() {
 function confirmTrackableLink() {
     var domain = document.getElementById('shortUrlDomain').value;
     var url = document.getElementById('destinationUrl').value.trim();
-    var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
-    
     if (!url) {
         document.getElementById('destinationUrl').classList.add('is-invalid');
         return;
@@ -2556,16 +2543,12 @@ function confirmTrackableLink() {
     document.getElementById('trackableLinkDomain').textContent = domain;
     document.getElementById('trackableLinkSummary').classList.remove('d-none');
     
-    if (method === 'cursor') {
-        var textarea = document.getElementById('smsContent');
-        var start = textarea.selectionStart;
-        var text = textarea.value;
-        var shortUrl = 'https://' + domain + '/abc123';
-        textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
-        handleContentChange();
-    } else {
-        insertPlaceholderDirect('trackingUrl');
-    }
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var text = textarea.value;
+    var shortUrl = 'https://' + domain + '/abc123';
+    textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+    handleContentChange();
     
     bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
 }
