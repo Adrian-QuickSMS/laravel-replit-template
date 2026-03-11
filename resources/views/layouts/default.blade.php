@@ -36,6 +36,8 @@
         @endforeach
     @endif
 
+    <link href="{{ asset('vendor/toastr/css/toastr.min.css') }}" rel="stylesheet" type="text/css"/>
+
     {{-- Page-specific styles --}}
     @stack('styles')
 
@@ -294,6 +296,7 @@
     })();
     </script>
         
+        <script src="{{ asset('vendor/toastr/js/toastr.min.js') }}"></script>
         @stack('scripts')
 
 </body>

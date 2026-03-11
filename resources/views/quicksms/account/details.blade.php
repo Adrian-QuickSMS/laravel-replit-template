@@ -2412,8 +2412,6 @@ $(document).ready(function() {
         var value = $field.val().trim();
         var isRequired = $field.closest('.field-group').find('.required-indicator').length > 0;
         
-        $field.val(value);
-        
         if (isRequired && !value) {
             $field.addClass('is-invalid');
             return false;
