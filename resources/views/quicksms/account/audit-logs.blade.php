@@ -389,6 +389,12 @@
                                         <option value="contact_deleted">Contact Deleted</option>
                                         <option value="contacts_bulk_deleted">Contacts Bulk Deleted</option>
                                     </optgroup>
+                                    <optgroup label="Sender IDs">
+                                        <option value="sender_id_registered">Sender ID Registered</option>
+                                        <option value="sender_id_submitted">Sender ID Submitted</option>
+                                        <option value="sender_id_deleted">Sender ID Deleted</option>
+                                        <option value="sender_id_resubmitted">Sender ID Resubmitted</option>
+                                    </optgroup>
                                     <optgroup label="Numbers">
                                         <option value="vmn_purchased">VMN Purchased</option>
                                         <option value="vmn_released">VMN Released</option>
@@ -880,6 +886,10 @@ $(document).ready(function() {
         contact_created: { category: 'account', severity: 'low', label: 'Contact Created' },
         contact_deleted: { category: 'account', severity: 'medium', label: 'Contact Deleted' },
         contacts_bulk_deleted: { category: 'account', severity: 'high', label: 'Contacts Bulk Deleted' },
+        sender_id_registered: { category: 'account', severity: 'low', label: 'Sender ID Registered' },
+        sender_id_submitted: { category: 'account', severity: 'medium', label: 'Sender ID Submitted' },
+        sender_id_deleted: { category: 'account', severity: 'medium', label: 'Sender ID Deleted' },
+        sender_id_resubmitted: { category: 'account', severity: 'low', label: 'Sender ID Resubmitted' },
         suspended: { category: 'messaging', severity: 'high', label: 'Message Template Suspended' },
         created: { category: 'messaging', severity: 'low', label: 'Message Template Created' },
         edited: { category: 'messaging', severity: 'low', label: 'Message Template Edited' },

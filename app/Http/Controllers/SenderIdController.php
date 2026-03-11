@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccountAuditLog;
 use App\Models\AdminNotification;
 use App\Models\Notification;
 use App\Models\SenderId;
@@ -9,6 +10,7 @@ use App\Models\SenderIdAssignment;
 use App\Models\SenderIdComment;
 use App\Models\SubAccount;
 use App\Models\User;
+use App\Services\Audit\AuditContext;
 use App\Services\SenderIdValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -194,6 +196,14 @@ class SenderIdController extends Controller
             }
 
             DB::commit();
+
+            try {
+                $actor = AuditContext::actor();
+                $action = !empty($validated['submit']) ? 'sender_id_submitted' : 'sender_id_registered';
+                AccountAuditLog::record($accountId, $action, $actor['user_id'], $actor['user_name'], "Sender ID '{$senderId->sender_id_value}' registered ({$senderId->sender_type})", ['sender_id' => $senderId->id, 'value' => $senderId->sender_id_value, 'type' => $senderId->sender_type, 'use_case' => $senderId->use_case]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record sender_id_registered', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -439,6 +449,13 @@ class SenderIdController extends Controller
                 $actingUser
             );
 
+            try {
+                $actor = AuditContext::actor();
+                AccountAuditLog::record(session('customer_tenant_id'), 'sender_id_submitted', $actor['user_id'], $actor['user_name'], "Sender ID '{$senderId->sender_id_value}' submitted for review", ['sender_id' => $senderId->id, 'value' => $senderId->sender_id_value]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record sender_id_submitted', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $senderId->toPortalArray(),
@@ -635,7 +652,16 @@ class SenderIdController extends Controller
             ], 422);
         }
 
+        $senderValue = $senderId->sender_id_value;
+        $senderIdId = $senderId->id;
         $senderId->delete();
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record(session('customer_tenant_id'), 'sender_id_deleted', $actor['user_id'], $actor['user_name'], "Sender ID '{$senderValue}' deleted", ['sender_id' => $senderIdId, 'value' => $senderValue]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record sender_id_deleted', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
@@ -715,6 +741,13 @@ class SenderIdController extends Controller
                 null,
                 $actingUser
             );
+
+            try {
+                $actor = AuditContext::actor();
+                AccountAuditLog::record(session('customer_tenant_id'), 'sender_id_resubmitted', $actor['user_id'], $actor['user_name'], "Sender ID '{$senderId->sender_id_value}' returned to draft for re-editing", ['sender_id' => $senderId->id, 'value' => $senderId->sender_id_value]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record sender_id_resubmitted', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'success' => true,
