@@ -112,7 +112,7 @@ class NumberService
                 // Auto-create SenderId record
                 $senderId = $this->autoCreateSenderId($purchased, $accountId, $purchaser);
                 if ($senderId) {
-                    $purchased->update(['sender_id_id' => $senderId->id]);
+                    $purchased->update(['sender_id_id' => $senderId->uuid]);
                 }
 
                 // Create recurring charge for monthly fee
