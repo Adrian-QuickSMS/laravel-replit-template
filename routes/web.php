@@ -328,6 +328,8 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
     Route::delete('/{id}', 'release')->name('api.numbers.release');
     Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
     Route::post('/{id}/assign', 'assign')->name('api.numbers.assign');
+    Route::post('/{id}/suspend', 'suspend')->name('api.numbers.suspend');
+    Route::post('/{id}/reactivate', 'reactivate')->name('api.numbers.reactivate');
 
     // Number auto-reply rules (nested)
     Route::get('/{id}/auto-reply-rules', 'autoReplyRules')->name('api.numbers.auto-reply-rules.index');

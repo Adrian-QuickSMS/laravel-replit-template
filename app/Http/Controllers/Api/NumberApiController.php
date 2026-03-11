@@ -15,6 +15,8 @@ use App\Services\Numbers\NumberBillingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\NumberAuditLog;
+use App\Services\Audit\AuditContext;
 
 /**
  * NumberApiController — customer portal API for the Numbers module.
@@ -382,6 +384,92 @@ class NumberApiController extends Controller
         } catch (\RuntimeException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
+    }
+
+    // =====================================================
+    // SUSPEND NUMBER
+    // =====================================================
+
+    public function suspend(string $id): JsonResponse
+    {
+        $number = $this->findNumberOrFail($id);
+
+        if (!$number) {
+            return response()->json(['success' => false, 'error' => 'Number not found.'], 404);
+        }
+
+        if ($number->status === 'suspended') {
+            return response()->json(['success' => false, 'error' => 'Number is already suspended.'], 422);
+        }
+
+        if (!$number->isActive()) {
+            return response()->json(['success' => false, 'error' => 'Only active numbers can be suspended.'], 422);
+        }
+
+        $number->status = 'suspended';
+        $number->suspended_at = now();
+        $number->save();
+
+        try {
+            $actor = AuditContext::actor();
+            NumberAuditLog::record(
+                $number->account_id,
+                'number_suspended',
+                $number->id,
+                $actor['user_id'],
+                $actor['user_name'],
+                "Number {$number->number} suspended",
+                ['number' => $number->number, 'number_type' => $number->number_type]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record number_suspended', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Number {$number->number} has been suspended.",
+        ]);
+    }
+
+    // =====================================================
+    // REACTIVATE NUMBER
+    // =====================================================
+
+    public function reactivate(string $id): JsonResponse
+    {
+        $number = $this->findNumberOrFail($id);
+
+        if (!$number) {
+            return response()->json(['success' => false, 'error' => 'Number not found.'], 404);
+        }
+
+        if ($number->status !== 'suspended') {
+            return response()->json(['success' => false, 'error' => 'Only suspended numbers can be reactivated.'], 422);
+        }
+
+        $number->status = 'active';
+        $number->suspended_at = null;
+        $number->save();
+
+        try {
+            $actor = AuditContext::actor();
+            NumberAuditLog::record(
+                $number->account_id,
+                'number_reactivated',
+                $number->id,
+                $actor['user_id'],
+                $actor['user_name'],
+                "Number {$number->number} reactivated",
+                ['number' => $number->number, 'number_type' => $number->number_type]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record number_reactivated', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Number {$number->number} has been reactivated.",
+        ]);
     }
 
     // =====================================================
