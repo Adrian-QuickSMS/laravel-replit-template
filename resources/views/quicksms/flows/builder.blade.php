@@ -258,7 +258,7 @@
 
                 <div class="position-relative border rounded mb-2">
                     <textarea class="form-control border-0" id="flowSmsContent" rows="6"
-                              placeholder="Type your message here... Use {{first_name}} for personalisation."
+                              placeholder="Type your message here... Use @{{first_name}} for personalisation."
                               oninput="flowHandleContentChange()"
                               style="padding-bottom: 40px; font-size: 0.9rem;"></textarea>
                     <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
