@@ -41,9 +41,49 @@ class FlowBuilderController extends Controller
                 ->findOrFail($id);
         }
 
+        // Sender IDs
+        $sender_ids = [];
+        if ($accountId) {
+            $senderIds = \App\Models\SenderId::where('account_id', $accountId)
+                ->where('workflow_status', 'approved')
+                ->orderByDesc('is_default')
+                ->orderBy('sender_id_value')
+                ->get();
+
+            foreach ($senderIds as $s) {
+                $sender_ids[] = [
+                    'id' => $s->uuid,
+                    'name' => $s->sender_id_value,
+                    'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
+                ];
+            }
+        }
+        if (empty($sender_ids)) {
+            $sender_ids = [['id' => '00000000-0000-0000-0000-000000000000', 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+        }
+
+        // RCS Agents
+        $userId = session('customer_user_id');
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        $rcs_agents = $user
+            ? \App\Models\RcsAgent::usableByUser($user)
+                ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
+                ->get()
+                ->map(fn($a) => [
+                    'id'          => $a->uuid,
+                    'name'        => $a->name,
+                    'logo'        => $a->logo_url ?: null,
+                    'tagline'     => $a->description ?? '',
+                    'brand_color' => $a->brand_color ?? '#886CC0',
+                ])
+                ->toArray()
+            : [];
+
         return view('quicksms.flows.builder', [
             'page_title' => $flow ? 'Edit Flow: ' . $flow->name : 'New Flow',
             'flow' => $flow,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents,
         ]);
     }
 
