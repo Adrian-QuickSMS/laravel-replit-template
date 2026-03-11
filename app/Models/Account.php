@@ -72,12 +72,15 @@ class Account extends Model
         self::STATUS_CLOSED => [], // Terminal state
     ];
 
+    /**
+     * Security note: 'status' and 'account_type' excluded from $fillable.
+     * Status is managed via transitionTo() to enforce allowed transitions.
+     * account_type is set during account creation only via forceFill().
+     */
     protected $fillable = [
         'account_number',
         'company_name',
         'trading_name',
-        'status',
-        'account_type',
         'email',
         'phone',
         'address_line1',

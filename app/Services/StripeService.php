@@ -92,7 +92,7 @@ class StripeService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create payment session: ' . $e->getMessage(),
+                'error' => 'Failed to create payment session',
             ];
         }
     }
@@ -190,7 +190,7 @@ class StripeService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create payment session: ' . $e->getMessage(),
+                'error' => 'Failed to create payment session',
             ];
         }
     }

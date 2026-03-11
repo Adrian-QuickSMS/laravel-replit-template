@@ -250,9 +250,8 @@ class AccountController extends Controller
             // Generate temporary password
             $tempPassword = bin2hex(random_bytes(16));
 
-            // Create user
-            $newUser = User::create([
-                'tenant_id' => $user->tenant_id,
+            // Create user — tenant_id set via forceFill (excluded from $fillable for security)
+            $newUser = new User([
                 'user_type' => 'customer',
                 'email' => $request->email,
                 'password' => $tempPassword, // Will be hashed automatically
@@ -261,6 +260,8 @@ class AccountController extends Controller
                 'role' => $request->role,
                 'status' => 'active',
             ]);
+            $newUser->forceFill(['tenant_id' => $user->tenant_id]);
+            $newUser->save();
 
             // TODO: Send invitation email with temp password
 
