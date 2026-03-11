@@ -17,6 +17,7 @@ use App\Services\Audit\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Unified Audit Log API — aggregates events from all audit tables.
@@ -112,12 +113,40 @@ class AuditLogApiController extends Controller
      *   per_page  - Items per page (default 50, max 200)
      *   page      - Page number
      */
+    /**
+     * Allowed table names for raw SQL interpolation.
+     * Only tables listed here may appear in dynamic queries.
+     */
+    private const ALLOWED_TABLES = [
+        'campaign_audit_log',
+        'user_audit_log',
+        'account_audit_log',
+        'number_audit_log',
+        'admin_audit_log',
+        'auth_audit_log',
+        'api_connection_audit_events',
+        'message_template_audit_log',
+        'email_to_sms_audit_log',
+    ];
+
     public function index(Request $request): JsonResponse
     {
         $accountId = AuditContext::accountId();
         if (!$accountId) {
             return response()->json(['error' => 'No tenant context'], 403);
         }
+
+        $request->validate([
+            'module' => 'nullable|string|max:50',
+            'category' => 'nullable|string|max:50',
+            'action' => 'nullable|string|max:50',
+            'user_id' => 'nullable|uuid',
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'search' => 'nullable|string|max:200',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'page' => 'nullable|integer|min:1',
+        ]);
 
         $module = $request->input('module');
         $category = $request->input('category');
@@ -226,6 +255,10 @@ class AuditLogApiController extends Controller
             return response()->json(['error' => 'No tenant context'], 403);
         }
 
+        $request->validate([
+            'days' => 'nullable|integer|min:1|max:365',
+        ]);
+
         $days = min((int) ($request->input('days', 30)), 365);
         $since = now()->subDays($days)->toIso8601String();
         $todayStart = now()->startOfDay()->toIso8601String();
@@ -321,6 +354,17 @@ class AuditLogApiController extends Controller
      */
     public function adminIndex(Request $request): JsonResponse
     {
+        $request->validate([
+            'account_id' => 'nullable|uuid',
+            'category' => 'nullable|string|max:50',
+            'severity' => 'nullable|string|max:20',
+            'action' => 'nullable|string|max:50',
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $perPage = min((int) ($request->input('per_page', 50)), 200);
         $page = max((int) ($request->input('page', 1)), 1);
         $offset = ($page - 1) * $perPage;
@@ -372,10 +416,20 @@ class AuditLogApiController extends Controller
      */
     public function adminCustomerIndex(Request $request): JsonResponse
     {
+        $request->validate([
+            'account_id' => 'required|uuid',
+            'module' => 'nullable|string|max:50',
+            'category' => 'nullable|string|max:50',
+            'action' => 'nullable|string|max:50',
+            'user_id' => 'nullable|uuid',
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'search' => 'nullable|string|max:200',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $accountId = $request->input('account_id');
-        if (!$accountId) {
-            return response()->json(['error' => 'account_id is required'], 422);
-        }
 
         $module = $request->input('module');
         $category = $request->input('category');
@@ -476,9 +530,14 @@ class AuditLogApiController extends Controller
         $module = $src['module'];
         $category = $src['category'];
 
-        // Check if the table exists to avoid errors
+        // Reject any table not in the explicit allowlist
+        if (!in_array($table, self::ALLOWED_TABLES, true)) {
+            return null;
+        }
+
+        // Check if the table exists to avoid errors on fresh installs
         try {
-            DB::selectOne("SELECT 1 FROM {$table} LIMIT 0");
+            DB::selectOne("SELECT 1 FROM \"{$table}\" LIMIT 0");
         } catch (\Throwable $e) {
             return null;
         }

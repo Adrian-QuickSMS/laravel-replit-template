@@ -336,12 +336,17 @@ return new class extends Migration
             DB::unprepared("DROP TRIGGER IF EXISTS trg_{$table}_immutable ON {$table}");
         }
 
-        // Drop RLS policies
-        $tenantTables = ['campaign_audit_log', 'user_audit_log', 'account_audit_log', 'number_audit_log'];
-        foreach ($tenantTables as $table) {
-            DB::unprepared("DROP POLICY IF EXISTS {$table}_tenant_isolation ON {$table}");
-            DB::unprepared("DROP POLICY IF EXISTS {$table}_insert ON {$table}");
-            DB::unprepared("ALTER TABLE {$table} DISABLE ROW LEVEL SECURITY");
+        // Drop RLS policies (names match those created in up(): <prefix>_audit_tenant_isolation / <prefix>_audit_insert)
+        $policyMap = [
+            'campaign_audit_log' => 'campaign_audit',
+            'user_audit_log' => 'user_audit',
+            'account_audit_log' => 'account_audit',
+            'number_audit_log' => 'number_audit',
+        ];
+        foreach ($policyMap as $table => $prefix) {
+            DB::unprepared("DROP POLICY IF EXISTS {$prefix}_tenant_isolation ON {$table}");
+            DB::unprepared("DROP POLICY IF EXISTS {$prefix}_insert ON {$table}");
+            DB::unprepared("ALTER TABLE IF EXISTS {$table} DISABLE ROW LEVEL SECURITY");
         }
 
         // Drop tables

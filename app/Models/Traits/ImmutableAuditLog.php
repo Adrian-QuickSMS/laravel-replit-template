@@ -59,6 +59,9 @@ trait ImmutableAuditLog
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where(static::getTableName() . '.account_id', $tenantId);
+            } else {
+                // No tenant context — deny all access to prevent cross-tenant data leaks
+                $builder->whereRaw('1 = 0');
             }
         });
     }
