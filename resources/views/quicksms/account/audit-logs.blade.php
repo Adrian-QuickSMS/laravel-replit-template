@@ -1047,6 +1047,24 @@ $(document).ready(function() {
         bindEvents();
     }
 
+    var MODULE_LABEL_PREFIXES = {
+        'api': 'API Connection',
+        'messaging': 'Message Template',
+    };
+    var GENERIC_ACTIONS = ['created', 'suspended', 'reactivated', 'edited', 'status-changed', 'archived'];
+
+    function resolveModuleLabel(module, action, actionMeta) {
+        if (GENERIC_ACTIONS.includes(action) && MODULE_LABEL_PREFIXES[module]) {
+            var prefix = MODULE_LABEL_PREFIXES[module];
+            var verb = action.charAt(0).toUpperCase() + action.slice(1).replace(/[-_]/g, ' ');
+            return prefix + ' ' + verb;
+        }
+        if (action === 'key_regenerated' && module === 'api') {
+            return 'API Key Regenerated';
+        }
+        return actionMeta.label || action?.replace(/[_-]/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) || 'Unknown';
+    }
+
     function fetchAuditLogsFromApi() {
         $.ajax({
             url: '/api/audit-logs',
@@ -1057,11 +1075,12 @@ $(document).ready(function() {
                 if (entries.length > 0 || response.meta) {
                     allLogs = entries.map(function(entry) {
                         var actionMeta = EXTENDED_ACTION_TYPES[entry.action] || EXTENDED_ACTION_TYPES[entry.action?.toUpperCase()] || {};
+                        var moduleLabel = resolveModuleLabel(entry.module, entry.action, actionMeta);
                         return {
                             id: entry.id,
                             timestamp: entry.created_at,
                             action: entry.action,
-                            actionLabel: actionMeta.label || entry.action?.replace(/_/g, ' ') || 'Unknown',
+                            actionLabel: moduleLabel,
                             category: actionMeta.category || entry.module || 'account',
                             severity: actionMeta.severity || 'low',
                             actor: {
