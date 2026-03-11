@@ -1,0 +1,41 @@
+The QuickSMS Flow Builder prototype is complete and pushed to branch `claude/quicksms-flow-builder-XtahH`. Here's what was built:
+
+## What's Included
+
+### Backend
+- **3 migrations**: `flows`, `flow_nodes`, `flow_connections` tables with proper indexing and foreign keys
+- **3 Eloquent models**: `Flow` (with soft deletes, versioning), `FlowNode`, `FlowConnection`
+- **FlowBuilderController**: Full CRUD - create, save (full canvas state), load, duplicate, delete, status updates
+- **Routes**: 8 endpoints under `/flows/` with `customer.auth` middleware
+- **Sidebar**: "Flow Builder" added with "My Flows" and "Create New Flow" sub-items
+
+### Frontend - Flow List Page
+- Card-based layout showing all flows with status badges (draft/active/paused/archived)
+- Create modal with template selection (Blank, Welcome Journey, Appointment Reminder, Delivery Updates)
+- Duplicate and delete actions per flow
+
+### Frontend - Visual Canvas Builder
+**Node Palette** (left sidebar) with the recommended V1 node set:
+| Category | Nodes |
+|----------|-------|
+| **Triggers** | API Trigger, SMS Keyword, RCS Button, Schedule |
+| **Actions** | Send SMS, Send RCS, Webhook, Tag/List |
+| **Logic** | Wait/Delay, Decision (if/else with Yes/No branches) |
+| **End** | Inbox Handoff, End Flow |
+
+**Canvas Features:**
+- Drag-and-drop from palette onto canvas with grid snapping
+- SVG bezier curve connections between node ports
+- Decision nodes have Yes/No output ports with colored labels
+- Pan (click+drag background), zoom (scroll wheel + buttons), fit-to-screen
+- Node selection with right-panel properties editor
+- Per-node-type config forms (message text, webhook URLs, wait durations, conditions, etc.)
+- Undo/redo stack (Ctrl+Z / Ctrl+Shift+Z)
+- Keyboard shortcuts: Ctrl+S save, Delete remove node, Escape deselect
+- Visual test simulation that traverses the flow node-by-node
+- Unsaved changes warning on page exit
+
+**3 Pre-built Templates:**
+1. **Welcome Journey** - API trigger -> welcome SMS -> wait 2 days -> tips SMS -> tag onboarded -> end
+2. **Appointment Reminder** - API trigger -> wait 24h -> RCS with confirm/reschedule buttons -> decision -> tag confirmed OR fallback SMS
+3. **Delivery Updates** - API trigger -> RCS with track/support buttons -> decision -> webhook to courier OR inbox handoff
