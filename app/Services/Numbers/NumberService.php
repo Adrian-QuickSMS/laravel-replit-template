@@ -666,7 +666,7 @@ class NumberService
                 'sender_type' => SenderId::TYPE_NUMERIC,
                 'brand_name' => $purchased->friendly_name ?? $purchased->number,
                 'country_code' => $purchased->country_iso,
-                'use_case' => 'Virtual mobile number',
+                'use_case' => 'mixed',
                 'use_case_description' => 'Auto-registered from VMN purchase',
                 'permission_confirmed' => true,
                 'workflow_status' => SenderId::STATUS_APPROVED,
