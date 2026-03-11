@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\NumberAuditLog;
 use App\Models\PurchasedNumber;
 use App\Models\ShortcodeKeyword;
 use Illuminate\Http\JsonResponse;
@@ -215,7 +216,7 @@ class AdminNumbersApiController extends Controller
         }
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_SUSPENDED', $before, ['status' => 'suspended'], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_SUSPENDED', $before, ['status' => 'suspended'], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -249,7 +250,7 @@ class AdminNumbersApiController extends Controller
         }
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_REACTIVATED', $before, ['status' => 'active'], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_REACTIVATED', $before, ['status' => 'active'], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -286,11 +287,20 @@ class AdminNumbersApiController extends Controller
 
         ['type' => $type, 'entity' => $entity] = $found;
 
-        $before = ['accountId' => $entity->account_id];
+        $sourceAccountId = $entity->account_id;
+        $before = ['accountId' => $sourceAccountId];
         $entity->account_id = $targetAccount->id;
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_REASSIGNED', $before, ['accountId' => $targetAccount->id], $request->input('reason'));
+        $displayValue = $this->entityDisplayValue($entity, $type);
+        $this->logAction($id, $type, 'NUMBER_REASSIGNED', $before, ['accountId' => $targetAccount->id], $request->input('reason'), $targetAccount->id, $displayValue);
+        if ($sourceAccountId && $sourceAccountId !== $targetAccount->id) {
+            try {
+                NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record source account reassignment', ['error' => $e->getMessage()]);
+            }
+        }
 
         $entity->load('account:id,company_name,trading_name');
         if ($type === 'purchased_number') {
@@ -338,7 +348,7 @@ class AdminNumbersApiController extends Controller
         $entity->configuration = $config;
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_MODE_CHANGED', $before, ['mode' => $config['mode']], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_MODE_CHANGED', $before, ['mode' => $config['mode']], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -384,7 +394,7 @@ class AdminNumbersApiController extends Controller
         $entity->configuration = $config;
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_CAPABILITY_CHANGED', $before, ['capabilities' => $config['capabilities']], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_CAPABILITY_CHANGED', $before, ['capabilities' => $config['capabilities']], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -425,7 +435,7 @@ class AdminNumbersApiController extends Controller
             return response()->json(['success' => false, 'error' => 'Webhooks are not supported for keywords', 'code' => 'NOT_SUPPORTED'], 422);
         }
 
-        $this->logAction($id, $type, 'NUMBER_WEBHOOK_UPDATED', $before, ['apiWebhookUrl' => $request->input('webhookUrl')], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_WEBHOOK_UPDATED', $before, ['apiWebhookUrl' => $request->input('webhookUrl')], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -467,7 +477,7 @@ class AdminNumbersApiController extends Controller
         $entity->configuration = $config;
         $entity->save();
 
-        $this->logAction($id, $type, 'NUMBER_OPTOUT_ROUTING_UPDATED', $before, ['optoutConfig' => $config['optout_config']], $request->input('reason'));
+        $this->logAction($id, $type, 'NUMBER_OPTOUT_ROUTING_UPDATED', $before, ['optoutConfig' => $config['optout_config']], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $type));
 
         $entity->load('account:id,company_name,trading_name');
         return response()->json([
@@ -497,7 +507,7 @@ class AdminNumbersApiController extends Controller
         $kw->status = 'suspended';
         $kw->save();
 
-        $this->logAction($id, 'keyword', 'KEYWORD_DISABLED', $before, ['status' => 'suspended'], $request->input('reason'));
+        $this->logAction($id, 'keyword', 'KEYWORD_DISABLED', $before, ['status' => 'suspended'], $request->input('reason'), $kw->account_id, $kw->keyword ?? $kw->id);
 
         $kw->load(['account:id,company_name,trading_name', 'purchasedNumber:id,country_iso,number']);
         return response()->json([
@@ -534,7 +544,7 @@ class AdminNumbersApiController extends Controller
         $pn->account_id = null;
         $pn->save();
 
-        $this->logAction($id, 'purchased_number', 'RETURNED_TO_POOL', $before, ['status' => 'released', 'accountId' => null], $request->input('reason'));
+        $this->logAction($id, 'purchased_number', 'RETURNED_TO_POOL', $before, ['status' => 'released', 'accountId' => null], $request->input('reason'), $before['accountId'], $pn->number ?? $pn->id);
 
         return response()->json([
             'success' => true,
@@ -582,8 +592,19 @@ class AdminNumbersApiController extends Controller
         foreach ($ids as $id) {
             $found = $this->resolveEntity($id);
             if (!$found) { $failed[] = $id; continue; }
+            $sourceAccountId = $found['entity']->account_id;
+            $before = ['accountId' => $sourceAccountId];
             $found['entity']->account_id = $targetAccount->id;
             $found['entity']->save();
+            $displayValue = $this->entityDisplayValue($found['entity'], $found['type']);
+            $this->logAction($id, $found['type'], 'NUMBER_REASSIGNED', $before, ['accountId' => $targetAccount->id], $request->input('reason'), $targetAccount->id, $displayValue);
+            if ($sourceAccountId && $sourceAccountId !== $targetAccount->id) {
+                try {
+                    NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+                } catch (\Throwable $e) {
+                    Log::warning('[AuditLog] Failed to record source account reassignment', ['error' => $e->getMessage()]);
+                }
+            }
             $updated++;
         }
 
@@ -612,9 +633,11 @@ class AdminNumbersApiController extends Controller
             if (!$found) { $failed[] = $id; continue; }
             $entity = $found['entity'];
             $config = $entity->configuration ?? [];
+            $before = ['mode' => $config['mode'] ?? 'portal'];
             $config['mode'] = $mode;
             $entity->configuration = $config;
             $entity->save();
+            $this->logAction($id, $found['type'], 'NUMBER_MODE_CHANGED', $before, ['mode' => $mode], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $found['type']));
             $updated++;
         }
 
@@ -644,9 +667,11 @@ class AdminNumbersApiController extends Controller
             if (!$found) { $failed[] = $id; continue; }
             $entity = $found['entity'];
             $config = $entity->configuration ?? [];
+            $before = ['capabilities' => $config['capabilities'] ?? []];
             $config['capabilities'] = $capabilities;
             $entity->configuration = $config;
             $entity->save();
+            $this->logAction($id, $found['type'], 'NUMBER_CAPABILITY_CHANGED', $before, ['capabilities' => $capabilities], $request->input('reason'), $entity->account_id, $this->entityDisplayValue($entity, $found['type']));
             $updated++;
         }
 
@@ -673,10 +698,12 @@ class AdminNumbersApiController extends Controller
                 $failed[] = $id;
                 continue;
             }
+            $before = ['accountId' => $pn->account_id, 'status' => $pn->status];
             $pn->status      = 'released';
             $pn->released_at = now();
             $pn->account_id  = null;
             $pn->save();
+            $this->logAction($id, 'purchased_number', 'RETURNED_TO_POOL', $before, ['status' => 'released', 'accountId' => null], $request->input('reason'), $before['accountId'], $pn->number ?? $pn->id);
             $updated++;
         }
 
@@ -705,7 +732,7 @@ class AdminNumbersApiController extends Controller
                 $found['entity']->suspended_at = now();
             }
             $found['entity']->save();
-            $this->logAction($id, $found['type'], 'NUMBER_SUSPENDED', ['status' => $found['entity']->getOriginal('status')], ['status' => 'suspended'], $request->input('reason'));
+            $this->logAction($id, $found['type'], 'NUMBER_SUSPENDED', ['status' => $found['entity']->getOriginal('status')], ['status' => 'suspended'], $request->input('reason'), $found['entity']->account_id, $this->entityDisplayValue($found['entity'], $found['type']));
             $updated++;
         }
 
@@ -734,7 +761,7 @@ class AdminNumbersApiController extends Controller
                 $found['entity']->suspended_at = null;
             }
             $found['entity']->save();
-            $this->logAction($id, $found['type'], 'NUMBER_REACTIVATED', ['status' => 'suspended'], ['status' => 'active'], $request->input('reason'));
+            $this->logAction($id, $found['type'], 'NUMBER_REACTIVATED', ['status' => 'suspended'], ['status' => 'active'], $request->input('reason'), $found['entity']->account_id, $this->entityDisplayValue($found['entity'], $found['type']));
             $updated++;
         }
 
@@ -872,7 +899,12 @@ class AdminNumbersApiController extends Controller
         ];
     }
 
-    private function logAction(string $entityId, string $entityType, string $event, array $before, array $after, ?string $reason): void
+    private function entityDisplayValue($entity, string $type): string
+    {
+        return $type === 'purchased_number' ? ($entity->number ?? $entity->id) : ($entity->keyword ?? $entity->id);
+    }
+
+    private function logAction(string $entityId, string $entityType, string $event, array $before, array $after, ?string $reason, ?string $accountId = null, ?string $numberValue = null): void
     {
         Log::info('[AdminNumbers] ' . $event, [
             'entityId'   => $entityId,
@@ -881,5 +913,30 @@ class AdminNumbersApiController extends Controller
             'after'      => $after,
             'reason'     => $reason,
         ]);
+
+        if ($accountId) {
+            try {
+                $actionMap = [
+                    'NUMBER_SUSPENDED' => 'number_suspended',
+                    'NUMBER_REACTIVATED' => 'number_reactivated',
+                    'NUMBER_REASSIGNED' => 'number_reassigned',
+                    'NUMBER_MODE_CHANGED' => 'number_configured',
+                    'NUMBER_CAPABILITY_CHANGED' => 'number_configured',
+                    'NUMBER_WEBHOOK_UPDATED' => 'number_configured',
+                    'NUMBER_OPTOUT_ROUTING_UPDATED' => 'number_configured',
+                    'KEYWORD_DISABLED' => 'number_suspended',
+                    'RETURNED_TO_POOL' => 'vmn_released',
+                ];
+                $action = $actionMap[$event] ?? strtolower($event);
+                $detail = ($numberValue ? "Number {$numberValue}: " : '') . str_replace('_', ' ', $event);
+                if ($reason) {
+                    $detail .= " — {$reason}";
+                }
+                $metadata = array_filter(['before' => $before, 'after' => $after, 'reason' => $reason]);
+                NumberAuditLog::record($accountId, $action, $entityId, null, 'Admin', $detail, $metadata);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record admin number action', ['event' => $event, 'error' => $e->getMessage()]);
+            }
+        }
     }
 }

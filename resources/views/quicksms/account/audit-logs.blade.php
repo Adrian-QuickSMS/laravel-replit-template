@@ -401,6 +401,7 @@
                                         <option value="number_suspended">Number Suspended</option>
                                         <option value="number_reactivated">Number Reactivated</option>
                                         <option value="number_configured">Number Configured</option>
+                                        <option value="number_reassigned">Number Reassigned</option>
                                     </optgroup>
                                     <optgroup label="Authentication">
                                         <option value="signup_completed">Signup Completed</option>
@@ -883,6 +884,7 @@ $(document).ready(function() {
         number_suspended: { category: 'financial', severity: 'high', label: 'Number Suspended' },
         number_reactivated: { category: 'financial', severity: 'medium', label: 'Number Reactivated' },
         number_configured: { category: 'account', severity: 'low', label: 'Number Configured' },
+        number_reassigned: { category: 'account', severity: 'high', label: 'Number Reassigned' },
         contact_created: { category: 'account', severity: 'low', label: 'Contact Created' },
         contact_deleted: { category: 'account', severity: 'medium', label: 'Contact Deleted' },
         contacts_bulk_deleted: { category: 'account', severity: 'high', label: 'Contacts Bulk Deleted' },
