@@ -21,6 +21,17 @@
                 </ul>
             </li>
             
+            <li data-nav="flows" class="{{ request()->routeIs('flows.*') ? 'mm-active' : '' }}">
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fas fa-project-diagram"></i>
+                    <span class="nav-text">Flow Builder</span>
+                </a>
+                <ul aria-expanded="false">
+                    <li data-subnav="flows"><a href="{{ route('flows.index') }}" class="{{ request()->routeIs('flows.index') ? 'mm-active' : '' }}">My Flows</a></li>
+                    <li data-subnav="builder"><a href="{{ route('flows.builder') }}" class="{{ request()->routeIs('flows.builder') ? 'mm-active' : '' }}">Create New Flow</a></li>
+                </ul>
+            </li>
+
             <li data-nav="contacts" class="{{ request()->routeIs('contacts') || request()->routeIs('contacts.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-address-book"></i>
