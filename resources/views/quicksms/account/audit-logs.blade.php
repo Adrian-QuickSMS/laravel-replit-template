@@ -380,6 +380,12 @@
                                         <option value="campaign_created">Campaign Created</option>
                                         <option value="campaign_edited">Campaign Edited</option>
                                         <option value="campaign_prepared">Campaign Prepared</option>
+                                        <option value="campaign_sent">Campaign Sent</option>
+                                        <option value="campaign_scheduled">Campaign Scheduled</option>
+                                        <option value="campaign_cancelled">Campaign Cancelled</option>
+                                        <option value="campaign_paused">Campaign Paused</option>
+                                        <option value="campaign_resumed">Campaign Resumed</option>
+                                        <option value="campaign_archived">Campaign Archived</option>
                                         <option value="inbox_reply_sent">Inbox Reply Sent</option>
                                         <option value="conversation_marked_read">Conversation Marked Read</option>
                                         <option value="conversation_marked_unread">Conversation Marked Unread</option>
@@ -875,6 +881,12 @@ $(document).ready(function() {
         invitation_revoked: { category: 'user_management', severity: 'medium', label: 'Invitation Revoked' },
         campaign_created: { category: 'messaging', severity: 'low', label: 'Campaign Created' },
         campaign_edited: { category: 'messaging', severity: 'low', label: 'Campaign Edited' },
+        campaign_sent: { category: 'messaging', severity: 'medium', label: 'Campaign Sent' },
+        campaign_scheduled: { category: 'messaging', severity: 'medium', label: 'Campaign Scheduled' },
+        campaign_cancelled: { category: 'messaging', severity: 'medium', label: 'Campaign Cancelled' },
+        campaign_paused: { category: 'messaging', severity: 'medium', label: 'Campaign Paused' },
+        campaign_resumed: { category: 'messaging', severity: 'low', label: 'Campaign Resumed' },
+        campaign_archived: { category: 'messaging', severity: 'low', label: 'Campaign Archived' },
         campaign_prepared: { category: 'messaging', severity: 'low', label: 'Campaign Prepared' },
         inbox_reply_sent: { category: 'messaging', severity: 'low', label: 'Inbox Reply Sent' },
         conversation_marked_read: { category: 'messaging', severity: 'low', label: 'Conversation Marked Read' },

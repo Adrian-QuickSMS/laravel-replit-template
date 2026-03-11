@@ -778,6 +778,13 @@ class CampaignService
                 'reservation_id' => $preflightResult->reservationId,
             ]);
 
+            try {
+                $actor = AuditContext::actor();
+                CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_sent', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' queued for send", ['estimated_cost' => $preflightResult->estimatedCost]);
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record campaign_sent', ['error' => $e->getMessage()]);
+            }
+
             return $preflightResult;
         });
     }
@@ -811,6 +818,13 @@ class CampaignService
             'scheduled_at' => $scheduledAt,
             'timezone' => $timezone,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_scheduled', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' scheduled for {$scheduledAt}", ['scheduled_at' => $scheduledAt, 'timezone' => $timezone]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_scheduled', ['error' => $e->getMessage()]);
+        }
 
         return $campaign;
     }
@@ -872,6 +886,13 @@ class CampaignService
             'sent_so_far' => $campaign->sent_count,
         ]);
 
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_paused', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' paused", ['sent_count' => $campaign->sent_count]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_paused', ['error' => $e->getMessage()]);
+        }
+
         return $campaign;
     }
 
@@ -885,6 +906,13 @@ class CampaignService
         Log::info('[CampaignService] Campaign resumed', [
             'campaign_id' => $campaign->id,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_resumed', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' resumed");
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_resumed', ['error' => $e->getMessage()]);
+        }
 
         return $campaign;
     }
@@ -904,6 +932,13 @@ class CampaignService
             'campaign_id' => $campaign->id,
         ]);
 
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_cancelled', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' cancelled", ['sent_count' => $campaign->sent_count]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_cancelled', ['error' => $e->getMessage()]);
+        }
+
         return $campaign;
     }
 
@@ -918,6 +953,13 @@ class CampaignService
         Log::info('[CampaignService] Campaign archived', [
             'campaign_id' => $campaign->id,
         ]);
+
+        try {
+            $actor = AuditContext::actor();
+            CampaignAuditLog::record($campaign->account_id, $campaign->id, 'campaign_archived', $actor['user_id'], $actor['user_name'], "Campaign '{$campaign->name}' archived");
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record campaign_archived', ['error' => $e->getMessage()]);
+        }
 
         return $campaign;
     }
