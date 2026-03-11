@@ -109,11 +109,19 @@ class TopUpApiController extends Controller
 
     private function getCurrentUserId(): string
     {
-        return 'user_demo_001';
+        $user = request()->user();
+        return $user ? (string) $user->id : 'anonymous';
     }
 
     private function getCurrentAccountId(): string
     {
-        return 'ACC-001';
+        $user = request()->user();
+        if ($user && $user->tenant_id) {
+            return (string) $user->tenant_id;
+        }
+
+        // Fallback for session-based auth (web routes)
+        $tenantId = session('customer_tenant_id');
+        return $tenantId ? (string) $tenantId : 'unknown';
     }
 }

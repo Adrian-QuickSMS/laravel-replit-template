@@ -20,14 +20,18 @@ class XeroWebhookController extends Controller
         // On first webhook, Xero sends a hash challenge — respond with 200 and empty body
         $webhookKey = config('services.xero.webhook_key');
 
-        if ($webhookKey) {
-            $payload = $request->getContent();
-            $signature = $request->header('x-xero-signature');
-            $expected = base64_encode(hash_hmac('sha256', $payload, $webhookKey, true));
+        if (!$webhookKey) {
+            Log::error('Xero webhook rejected — XERO_WEBHOOK_KEY not configured');
+            return response('', 401);
+        }
 
-            if ($signature !== $expected) {
-                return response('', 401);
-            }
+        $payload = $request->getContent();
+        $signature = $request->header('x-xero-signature');
+        $expected = base64_encode(hash_hmac('sha256', $payload, $webhookKey, true));
+
+        if (!$signature || !hash_equals($expected, $signature)) {
+            Log::warning('Xero webhook signature verification failed', ['ip' => $request->ip()]);
+            return response('', 401);
         }
 
         $data = $request->json()->all();

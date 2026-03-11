@@ -74,17 +74,26 @@ class InboundWebhookController extends Controller
      */
     private function validateGatewaySignature(Request $request, string $gateway): bool
     {
-        // For now, accept all requests during development.
-        // In production, each gateway will have its own validation:
-        //
-        // match ($gateway) {
-        //     'sinch' => $this->validateSinchSignature($request),
-        //     'twilio' => $this->validateTwilioSignature($request),
-        //     'vonage' => $this->validateVonageSignature($request),
-        //     default => false,
-        // };
+        // SECURITY: Fail-closed — reject unknown gateways and missing signatures
+        // Each gateway must have a configured secret to accept webhooks
+        $secret = config("services.gateways.{$gateway}.webhook_secret");
 
-        return true;
+        if (!$secret) {
+            \Illuminate\Support\Facades\Log::warning("Inbound webhook rejected — no webhook_secret configured for gateway", [
+                'gateway' => $gateway,
+                'ip' => $request->ip(),
+            ]);
+            return false;
+        }
+
+        $signature = $request->header('X-Webhook-Signature') ?? $request->header('X-Signature');
+
+        if (!$signature) {
+            return false;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $request->getContent(), $secret);
+        return hash_equals($expectedSignature, $signature);
     }
 
     /**
