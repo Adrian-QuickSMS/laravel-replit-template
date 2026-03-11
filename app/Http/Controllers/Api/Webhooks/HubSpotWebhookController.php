@@ -29,9 +29,10 @@ class HubSpotWebhookController extends Controller
                 return response('Invalid signature', 400);
             }
         } else {
-            Log::warning('HubSpot deal webhook received without signature verification — HUBSPOT_CLIENT_SECRET not configured', [
+            Log::warning('HubSpot deal webhook rejected — HUBSPOT_CLIENT_SECRET not configured', [
                 'ip' => $request->ip(),
             ]);
+            return response('Webhook signature verification not configured', 401);
         }
 
         // HubSpot sends an array of event objects

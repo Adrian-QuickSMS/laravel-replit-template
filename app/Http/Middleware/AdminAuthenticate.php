@@ -196,9 +196,10 @@ class AdminAuthenticate
         $allowedIps = config('admin.ip_allowlist.ips', []);
         $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
         
-        // Fail-closed: if allowlist is enabled but empty, deny all access
+        // Fail-closed: if allowlist is enabled but no IPs configured, deny all.
+        // Fix: set ADMIN_IP_ALLOWLIST_ENABLED=false or populate ADMIN_IP_ALLOWLIST.
         if (empty($allowedIps) && empty($allowedCidrs)) {
-            \Log::error('Admin IP allowlist is enabled but empty — denying all access');
+            \Log::error('Admin IP allowlist is enabled but no IPs/CIDRs configured — all admin access is blocked. Set ADMIN_IP_ALLOWLIST_ENABLED=false or add IPs to ADMIN_IP_ALLOWLIST.');
             return false;
         }
         

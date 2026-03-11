@@ -176,9 +176,10 @@ class WebhookController extends Controller
                 return response()->json(['error' => 'Invalid signature'], 400);
             }
         } else {
-            Log::warning('HubSpot webhook received without signature verification — HUBSPOT_CLIENT_SECRET not configured', [
+            Log::warning('HubSpot webhook rejected — HUBSPOT_CLIENT_SECRET not configured', [
                 'ip' => $request->ip(),
             ]);
+            return response()->json(['error' => 'Webhook signature verification not configured'], 401);
         }
 
         $payload = $request->all();

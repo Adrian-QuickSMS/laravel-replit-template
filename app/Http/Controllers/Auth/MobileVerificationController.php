@@ -111,8 +111,8 @@ class MobileVerificationController extends Controller
                 'expires_in_minutes' => SmsVerificationService::CODE_EXPIRY_MINUTES,
             ];
 
-            // Never leak verification codes in API responses — log to server only
-            if (isset($result['code']) && config('app.debug')) {
+            // Never leak verification codes in API responses — log to server only in local env
+            if (isset($result['code']) && config('app.env') === 'local') {
                 \Log::debug('[DEV ONLY] Mobile verification code', ['code' => $result['code'], 'user_id' => $user->id]);
             }
 

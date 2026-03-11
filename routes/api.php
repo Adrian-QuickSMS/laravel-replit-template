@@ -23,29 +23,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Reporting Dashboard API (mock data)
-Route::middleware('auth:sanctum')->prefix('reporting/dashboard')->group(function () {
-    Route::get('/', [ReportingDashboardApiController::class, 'index']);
-    Route::get('/kpis', [ReportingDashboardApiController::class, 'kpis']);
-    Route::get('/volume', [ReportingDashboardApiController::class, 'volumeOverTime']);
-    Route::get('/inbound-volume', [ReportingDashboardApiController::class, 'inboundVolumeOverTime']);
-    Route::get('/channel-split', [ReportingDashboardApiController::class, 'channelSplit']);
-    Route::get('/delivery-status', [ReportingDashboardApiController::class, 'deliveryStatus']);
-    Route::get('/top-countries', [ReportingDashboardApiController::class, 'topCountries']);
-    Route::get('/top-sender-ids', [ReportingDashboardApiController::class, 'topSenderIds']);
-    Route::get('/peak-time', [ReportingDashboardApiController::class, 'peakSendingTime']);
-    Route::get('/failure-reasons', [ReportingDashboardApiController::class, 'failureReasons']);
-    Route::get('/available-filters', [ReportingDashboardApiController::class, 'availableFilters']);
-});
+// Reporting Dashboard API — moved to web middleware group for session-based auth
+// (see routes/web.php under customer.auth middleware)
 
-// Billing API (mock data for Finance Data page)
-Route::middleware('auth:sanctum')->prefix('billing')->group(function () {
-    Route::get('/data', [BillingApiController::class, 'getData']);
-    Route::get('/export', [BillingApiController::class, 'export']);
-    Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
-    Route::post('/saved-reports', [BillingApiController::class, 'saveReport']);
-    Route::post('/schedule', [BillingApiController::class, 'schedule']);
-});
+// Billing API — moved to web middleware group for session-based auth
+// (see routes/web.php under customer.auth middleware)
 
 // Purchase API routes moved to routes/web.php under customer.auth middleware
 // (api middleware group lacks session cookies, breaking tenant-scoped queries for bespoke pricing)
@@ -56,16 +38,11 @@ Route::prefix('webhooks')->group(function () {
     Route::post('/stripe', [WebhookController::class, 'stripeWebhook']);
 });
 
-// Top-Up API
-Route::middleware('auth:sanctum')->prefix('topup')->group(function () {
-    Route::post('/create-checkout-session', [TopUpApiController::class, 'createCheckoutSession']);
-});
+// Top-Up API — moved to web middleware group for session-based auth
+// (see routes/web.php under customer.auth middleware)
 
-// Account API
-Route::middleware('auth:sanctum')->prefix('account')->group(function () {
-    Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
-    Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
-});
+// Account API — moved to web middleware group for session-based auth
+// (see routes/web.php under customer.auth middleware)
 
 // Invoice API routes moved to routes/web.php under customer.auth middleware
 // (api middleware group lacks session cookies, breaking tenant-scoped queries)

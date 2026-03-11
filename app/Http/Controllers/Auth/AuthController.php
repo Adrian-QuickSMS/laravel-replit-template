@@ -171,6 +171,10 @@ class AuthController extends Controller
                 // Mail::to($user->email)->queue(new VerifyEmailMail($tokenData['plain_token']));
             }
 
+            // Store user_id in session so MobileVerificationController can
+            // verify the caller owns this signup flow (IDOR prevention)
+            $request->session()->put('signup_pending_user_id', $accountData->user_id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Account created successfully. Please verify your email and mobile number.',
@@ -283,6 +287,10 @@ class AuthController extends Controller
             ]);
 
             $account = Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+
+            // Persist signup_pending_user_id so mobile verification can
+            // proceed in the next step (IDOR prevention)
+            $request->session()->put('signup_pending_user_id', $user->id);
 
             return response()->json([
                 'status' => 'success',
