@@ -12,6 +12,8 @@ use App\Models\Account;
 use App\Models\SenderId;
 use App\Models\SubAccount;
 use App\Models\User;
+use App\Models\AccountAuditLog;
+use App\Services\Audit\AuditContext;
 
 class QuickSMSController extends Controller
 {
@@ -3496,6 +3498,14 @@ class QuickSMSController extends Controller
         try {
             \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
+            $oldValues = [
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'job_title' => $user->job_title,
+                'mobile_number' => $user->mobile_number,
+                'business_name' => $account->company_name,
+            ];
+
             $user->update([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -3509,6 +3519,31 @@ class QuickSMSController extends Controller
             ]);
 
             session(['customer_name' => $request->first_name . ' ' . $request->last_name]);
+
+            try {
+                $newValues = [
+                    'first_name' => $request->first_name,
+                    'last_name' => $request->last_name,
+                    'job_title' => $request->job_title,
+                    'mobile_number' => $request->mobile_number,
+                    'business_name' => $request->business_name,
+                ];
+                $changes = AuditContext::diff($oldValues, $newValues);
+                if (!empty($changes)) {
+                    $actor = AuditContext::actor();
+                    $changedFields = implode(', ', array_keys($changes));
+                    AccountAuditLog::record(
+                        $user->tenant_id,
+                        'account_details_updated',
+                        $actor['user_id'],
+                        $actor['user_name'],
+                        "Sign up details updated: {$changedFields}",
+                        ['section' => 'sign_up_details', 'changes' => $changes]
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record signup details change', ['error' => $e->getMessage()]);
+            }
 
             return response()->json(['status' => 'success', 'message' => 'Sign up details saved successfully']);
         } catch (\Exception $e) {
@@ -3581,7 +3616,51 @@ class QuickSMSController extends Controller
             }
 
             $updateData['company_info_complete'] = true;
+
+            $oldCompanyValues = [
+                'company_type' => $account->company_type,
+                'company_name' => $account->company_name,
+                'trading_name' => $account->trading_name,
+                'company_number' => $account->company_number,
+                'business_sector' => $account->business_sector,
+                'website' => $account->website,
+                'address_line1' => $account->address_line1,
+                'city' => $account->city,
+                'postcode' => $account->postcode,
+                'country' => $account->country,
+            ];
+
             $account->update($updateData);
+
+            try {
+                $newCompanyValues = [
+                    'company_type' => $companyType,
+                    'company_name' => $request->company_name,
+                    'trading_name' => $request->trading_name,
+                    'company_number' => $request->company_number,
+                    'business_sector' => $request->sector,
+                    'website' => $request->website,
+                    'address_line1' => $request->address_line1,
+                    'city' => $request->city,
+                    'postcode' => $request->postcode,
+                    'country' => $request->country,
+                ];
+                $changes = AuditContext::diff($oldCompanyValues, $newCompanyValues);
+                if (!empty($changes)) {
+                    $actor = AuditContext::actor();
+                    $changedFields = implode(', ', array_keys($changes));
+                    AccountAuditLog::record(
+                        $user->tenant_id,
+                        'account_details_updated',
+                        $actor['user_id'],
+                        $actor['user_name'],
+                        "Company information updated: {$changedFields}",
+                        ['section' => 'company_information', 'changes' => $changes]
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record company info change', ['error' => $e->getMessage()]);
+            }
 
             return response()->json(['status' => 'success', 'message' => 'Company information saved successfully']);
         } catch (\Exception $e) {
@@ -3610,12 +3689,41 @@ class QuickSMSController extends Controller
         try {
             \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
+            $oldSupportValues = [
+                'billing_email' => $account->accounts_billing_email,
+                'support_email' => $account->support_contact_email,
+                'incident_email' => $account->incident_email,
+            ];
+
             $account->update([
                 'accounts_billing_email' => $request->billing_email,
                 'support_contact_email' => $request->support_email,
                 'incident_email' => $request->incident_email,
                 'support_operations_complete' => true,
             ]);
+
+            try {
+                $newSupportValues = [
+                    'billing_email' => $request->billing_email,
+                    'support_email' => $request->support_email,
+                    'incident_email' => $request->incident_email,
+                ];
+                $changes = AuditContext::diff($oldSupportValues, $newSupportValues);
+                if (!empty($changes)) {
+                    $actor = AuditContext::actor();
+                    $changedFields = implode(', ', array_keys($changes));
+                    AccountAuditLog::record(
+                        $user->tenant_id,
+                        'account_details_updated',
+                        $actor['user_id'],
+                        $actor['user_name'],
+                        "Support & operations updated: {$changedFields}",
+                        ['section' => 'support_operations', 'changes' => $changes]
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record support ops change', ['error' => $e->getMessage()]);
+            }
 
             return response()->json(['status' => 'success', 'message' => 'Support & operations contacts saved successfully']);
         } catch (\Exception $e) {
@@ -3644,12 +3752,41 @@ class QuickSMSController extends Controller
         try {
             \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
+            $oldSignatoryValues = [
+                'signatory_name' => $account->signatory_name,
+                'signatory_title' => $account->signatory_title,
+                'signatory_email' => $account->signatory_email,
+            ];
+
             $account->update([
                 'signatory_name' => $request->signatory_name,
                 'signatory_title' => $request->signatory_title,
                 'signatory_email' => $request->signatory_email,
                 'contract_signatory_complete' => true,
             ]);
+
+            try {
+                $newSignatoryValues = [
+                    'signatory_name' => $request->signatory_name,
+                    'signatory_title' => $request->signatory_title,
+                    'signatory_email' => $request->signatory_email,
+                ];
+                $changes = AuditContext::diff($oldSignatoryValues, $newSignatoryValues);
+                if (!empty($changes)) {
+                    $actor = AuditContext::actor();
+                    $changedFields = implode(', ', array_keys($changes));
+                    AccountAuditLog::record(
+                        $user->tenant_id,
+                        'account_details_updated',
+                        $actor['user_id'],
+                        $actor['user_name'],
+                        "Contract signatory updated: {$changedFields}",
+                        ['section' => 'contract_signatory', 'changes' => $changes]
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record signatory change', ['error' => $e->getMessage()]);
+            }
 
             return response()->json(['status' => 'success', 'message' => 'Contract signatory details saved successfully']);
         } catch (\Exception $e) {
@@ -3680,6 +3817,14 @@ class QuickSMSController extends Controller
         try {
             \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
+            $oldVatValues = [
+                'vat_registered' => $account->vat_registered,
+                'vat_number' => $account->vat_number,
+                'tax_country' => $account->tax_country,
+                'vat_reverse_charges' => $account->vat_reverse_charges,
+                'purchase_order_number' => $account->purchase_order_number,
+            ];
+
             $account->update([
                 'vat_registered' => $request->vat_registered === 'yes',
                 'vat_number' => $request->vat_number,
@@ -3688,6 +3833,31 @@ class QuickSMSController extends Controller
                 'purchase_order_number' => $request->purchase_order_number,
                 'billing_vat_complete' => true,
             ]);
+
+            try {
+                $newVatValues = [
+                    'vat_registered' => $request->vat_registered === 'yes',
+                    'vat_number' => $request->vat_number,
+                    'tax_country' => $request->vat_country,
+                    'vat_reverse_charges' => ($request->reverse_charges ?? 'no') === 'yes',
+                    'purchase_order_number' => $request->purchase_order_number,
+                ];
+                $changes = AuditContext::diff($oldVatValues, $newVatValues);
+                if (!empty($changes)) {
+                    $actor = AuditContext::actor();
+                    $changedFields = implode(', ', array_keys($changes));
+                    AccountAuditLog::record(
+                        $user->tenant_id,
+                        'account_details_updated',
+                        $actor['user_id'],
+                        $actor['user_name'],
+                        "Billing & VAT updated: {$changedFields}",
+                        ['section' => 'billing_vat', 'changes' => $changes]
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[AuditLog] Failed to record VAT info change', ['error' => $e->getMessage()]);
+            }
 
             return response()->json(['status' => 'success', 'message' => 'VAT & tax information saved successfully']);
         } catch (\Exception $e) {
