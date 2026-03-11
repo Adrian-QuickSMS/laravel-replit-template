@@ -52,6 +52,7 @@ class FlowNode extends Model
             'trigger_sms_keyword' => 'trigger',
             'trigger_rcs_button' => 'trigger',
             'trigger_schedule' => 'trigger',
+            'send_message' => 'action',
             'send_sms' => 'action',
             'send_rcs' => 'action',
             'webhook' => 'action',

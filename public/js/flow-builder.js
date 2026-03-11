@@ -55,30 +55,14 @@
                 { key: 'date', type: 'text', label: 'Start Date', placeholder: '2026-03-15' }
             ]
         },
-        send_sms: {
-            label: 'Send SMS',
-            icon: 'fa-sms',
+        send_message: {
+            label: 'Send Message',
+            icon: 'fa-paper-plane',
             category: 'action',
             outputs: ['default'],
             inputs: true,
-            configFields: [
-                { key: 'message', type: 'textarea', label: 'Message', placeholder: 'Hi {{first_name}}, your order has shipped.' },
-                { key: 'sender_id', type: 'text', label: 'Sender ID', placeholder: 'QuickSMS' },
-                { key: 'unicode', type: 'select', label: 'Encoding', options: ['auto', 'gsm', 'unicode'] }
-            ]
-        },
-        send_rcs: {
-            label: 'Send RCS',
-            icon: 'fa-comments',
-            category: 'action',
-            outputs: ['default'],
-            inputs: true,
-            configFields: [
-                { key: 'content_type', type: 'select', label: 'Content Type', options: ['text', 'rich_card', 'carousel'] },
-                { key: 'message', type: 'textarea', label: 'Message', placeholder: 'Your order has shipped!' },
-                { key: 'buttons', type: 'textarea', label: 'Buttons (JSON)', placeholder: '[{"text":"Track Order","postback":"track"}]' },
-                { key: 'fallback_sms', type: 'checkbox', label: 'Fallback to SMS if RCS unavailable' }
-            ]
+            configFields: [],
+            customProperties: true
         },
         webhook: {
             label: 'Webhook',
@@ -162,9 +146,9 @@
         welcome: {
             nodes: [
                 { node_uid: 'n1', type: 'trigger_api', label: 'New Customer Signup', position_x: 400, position_y: 80, config: {} },
-                { node_uid: 'n2', type: 'send_sms', label: 'Welcome Message', position_x: 400, position_y: 220, config: { message: 'Welcome to {{company}}, {{first_name}}! We\'re glad to have you.' } },
+                { node_uid: 'n2', type: 'send_message', label: 'Welcome Message', position_x: 400, position_y: 220, config: { channel: 'sms', sms_content: 'Welcome to {{company}}, {{first_name}}! We\'re glad to have you.' } },
                 { node_uid: 'n3', type: 'wait', label: 'Wait 2 Days', position_x: 400, position_y: 380, config: { wait_type: 'duration', duration_value: '2', duration_unit: 'days' } },
-                { node_uid: 'n4', type: 'send_sms', label: 'Tips & Getting Started', position_x: 400, position_y: 540, config: { message: 'Hi {{first_name}}, here are some tips to get started...' } },
+                { node_uid: 'n4', type: 'send_message', label: 'Tips & Getting Started', position_x: 400, position_y: 540, config: { channel: 'sms', sms_content: 'Hi {{first_name}}, here are some tips to get started...' } },
                 { node_uid: 'n5', type: 'tag', label: 'Tag: Onboarded', position_x: 400, position_y: 680, config: { action: 'add_tag', value: 'onboarded' } },
                 { node_uid: 'n6', type: 'end', label: 'End', position_x: 400, position_y: 820, config: {} }
             ],
@@ -180,10 +164,10 @@
             nodes: [
                 { node_uid: 'n1', type: 'trigger_api', label: 'Appointment Created', position_x: 400, position_y: 80, config: {} },
                 { node_uid: 'n2', type: 'wait', label: 'Wait Until 24h Before', position_x: 400, position_y: 220, config: { wait_type: 'duration', duration_value: '24', duration_unit: 'hours' } },
-                { node_uid: 'n3', type: 'send_rcs', label: 'Reminder with Buttons', position_x: 400, position_y: 380, config: { message: 'Reminder: Your appointment is tomorrow at {{time}}.', buttons: '[{"text":"Confirm","postback":"confirm"},{"text":"Reschedule","postback":"reschedule"}]' } },
+                { node_uid: 'n3', type: 'send_message', label: 'Reminder with Buttons', position_x: 400, position_y: 380, config: { channel: 'rich_rcs', sms_content: 'Reminder: Your appointment is tomorrow at {{time}}. Reply CONFIRM or RESCHEDULE.', rcs_payload: { type: 'standalone', card: { title: 'Appointment Reminder', description: 'Your appointment is tomorrow at {{time}}.', suggestions: [{ type: 'reply', text: 'Confirm', postbackData: 'confirm' }, { type: 'reply', text: 'Reschedule', postbackData: 'reschedule' }] } } } },
                 { node_uid: 'n4', type: 'decision', label: 'Confirmed?', position_x: 400, position_y: 540, config: { condition_type: 'reply_received', timeout: '4' } },
                 { node_uid: 'n5', type: 'tag', label: 'Tag: Confirmed', position_x: 250, position_y: 700, config: { action: 'add_tag', value: 'appointment_confirmed' } },
-                { node_uid: 'n6', type: 'send_sms', label: 'Fallback SMS Reminder', position_x: 550, position_y: 700, config: { message: 'Reminder: You have an appointment tomorrow. Reply CONFIRM or call us.' } },
+                { node_uid: 'n6', type: 'send_message', label: 'Fallback SMS Reminder', position_x: 550, position_y: 700, config: { channel: 'sms', sms_content: 'Reminder: You have an appointment tomorrow. Reply CONFIRM or call us.' } },
                 { node_uid: 'n7', type: 'end', label: 'End', position_x: 400, position_y: 860, config: {} }
             ],
             connections: [
@@ -199,11 +183,11 @@
         delivery: {
             nodes: [
                 { node_uid: 'n1', type: 'trigger_api', label: 'Order Shipped', position_x: 400, position_y: 80, config: {} },
-                { node_uid: 'n2', type: 'send_rcs', label: 'Shipping Notification', position_x: 400, position_y: 220, config: { message: 'Your order #{{order_id}} has shipped!', buttons: '[{"text":"Track","postback":"track"},{"text":"Support","postback":"support"}]', fallback_sms: true } },
+                { node_uid: 'n2', type: 'send_message', label: 'Shipping Notification', position_x: 400, position_y: 220, config: { channel: 'rich_rcs', sms_content: 'Your order #{{order_id}} has shipped! Track at {{tracking_url}}', rcs_payload: { type: 'standalone', card: { title: 'Order Shipped!', description: 'Your order #{{order_id}} is on its way.', suggestions: [{ type: 'reply', text: 'Track', postbackData: 'track' }, { type: 'reply', text: 'Support', postbackData: 'support' }] } } } },
                 { node_uid: 'n3', type: 'decision', label: 'Button Clicked?', position_x: 400, position_y: 400, config: { condition_type: 'reply_received', timeout: '24' } },
                 { node_uid: 'n4', type: 'webhook', label: 'Get Tracking Info', position_x: 250, position_y: 580, config: { url: 'https://api.courier.com/track', method: 'GET' } },
                 { node_uid: 'n5', type: 'inbox_handoff', label: 'Support Handoff', position_x: 550, position_y: 580, config: { assign_to: 'support_team' } },
-                { node_uid: 'n6', type: 'send_sms', label: 'SMS Reminder', position_x: 400, position_y: 580, config: { message: 'Your order #{{order_id}} is on its way. Track at {{tracking_url}}' } },
+                { node_uid: 'n6', type: 'send_message', label: 'SMS Reminder', position_x: 400, position_y: 580, config: { channel: 'sms', sms_content: 'Your order #{{order_id}} is on its way. Track at {{tracking_url}}' } },
                 { node_uid: 'n7', type: 'end', label: 'End', position_x: 350, position_y: 740, config: {} }
             ],
             connections: [
@@ -301,7 +285,17 @@
 
         if (data.nodes) {
             data.nodes.forEach(function(n) {
-                self.addNode(n.type, n.position_x, n.position_y, n.config || {}, n.label, n.node_uid);
+                var type = n.type;
+                var config = n.config || {};
+                if (type === 'send_sms') {
+                    type = 'send_message';
+                    config = { channel: 'sms', sms_content: config.message || '', sender_id: config.sender_id || '' };
+                } else if (type === 'send_rcs') {
+                    type = 'send_message';
+                    config = { channel: config.buttons ? 'rich_rcs' : 'basic_rcs', sms_content: config.fallback_sms ? (config.message || '') : '', rcs_payload: config.buttons ? { type: 'standalone', card: { title: '', description: config.message || '', suggestions: [] } } : null };
+                    if (!config.rcs_payload) config.sms_content = (n.config || {}).message || '';
+                }
+                self.addNode(type, n.position_x, n.position_y, config, n.label, n.node_uid);
             });
         }
         if (data.connections) {
@@ -417,9 +411,19 @@
         var c = node.config;
         if (!c) return '';
         switch (node.type) {
-            case 'send_sms':
-            case 'send_rcs':
-                return c.message ? (c.message.length > 60 ? c.message.substr(0, 60) + '...' : c.message) : '';
+            case 'send_message':
+                var ch = (c.channel || 'sms').toUpperCase();
+                if (ch === 'RICH_RCS' && c.rcs_payload) {
+                    var card = c.rcs_payload.card;
+                    var label = 'RCS';
+                    if (card && card.title) label += ': ' + card.title;
+                    if (c.rcs_payload.type === 'carousel') label = 'RCS Carousel';
+                    return label.length > 60 ? label.substr(0, 57) + '...' : label;
+                }
+                var txt = c.sms_content || '';
+                if (!txt) return ch + ': (no content)';
+                var preview = ch + ': ' + txt;
+                return preview.length > 60 ? preview.substr(0, 57) + '...' : preview;
             case 'trigger_sms_keyword':
                 return c.keywords ? 'Keywords: ' + c.keywords : '';
             case 'webhook':
@@ -575,36 +579,43 @@
         html += '<input type="text" class="form-control" id="prop-label" value="' + escapeHtml(node.label) + '">';
         html += '</div>';
 
-        // Config fields
-        typeDef.configFields.forEach(function(field) {
-            html += '<div class="mb-3">';
-            if (field.type === 'info') {
-                html += '<div class="alert alert-light p-2" style="font-size:0.78rem; border:1px solid #e0e0e0;">' + escapeHtml(field.text) + '</div>';
-            } else if (field.type === 'text') {
-                html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
-                html += '<input type="text" class="form-control" data-config="' + field.key + '" value="' + escapeHtml(node.config[field.key] || '') + '" placeholder="' + escapeHtml(field.placeholder || '') + '">';
-            } else if (field.type === 'textarea') {
-                html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
-                html += '<textarea class="form-control" data-config="' + field.key + '" rows="3" placeholder="' + escapeHtml(field.placeholder || '') + '">' + escapeHtml(node.config[field.key] || '') + '</textarea>';
-            } else if (field.type === 'select') {
-                html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
-                html += '<select class="form-select" data-config="' + field.key + '">';
-                field.options.forEach(function(opt) {
-                    var selected = (node.config[field.key] === opt) ? ' selected' : '';
-                    html += '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt.replace(/_/g, ' ')) + '</option>';
-                });
-                html += '</select>';
-            } else if (field.type === 'checkbox') {
-                html += '<div class="form-check">';
-                var checked = node.config[field.key] ? ' checked' : '';
-                html += '<input type="checkbox" class="form-check-input" data-config="' + field.key + '"' + checked + '>';
-                html += '<label class="form-check-label" style="font-size:0.82rem;">' + escapeHtml(field.label) + '</label>';
+        // Custom properties for send_message
+        if (typeDef.customProperties && node.type === 'send_message') {
+            html += this._renderSendMessageProperties(node);
+            body.innerHTML = html;
+            this._bindSendMessageEvents(node, nodeId);
+        } else {
+            // Config fields
+            typeDef.configFields.forEach(function(field) {
+                html += '<div class="mb-3">';
+                if (field.type === 'info') {
+                    html += '<div class="alert alert-light p-2" style="font-size:0.78rem; border:1px solid #e0e0e0;">' + escapeHtml(field.text) + '</div>';
+                } else if (field.type === 'text') {
+                    html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
+                    html += '<input type="text" class="form-control" data-config="' + field.key + '" value="' + escapeHtml(node.config[field.key] || '') + '" placeholder="' + escapeHtml(field.placeholder || '') + '">';
+                } else if (field.type === 'textarea') {
+                    html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
+                    html += '<textarea class="form-control" data-config="' + field.key + '" rows="3" placeholder="' + escapeHtml(field.placeholder || '') + '">' + escapeHtml(node.config[field.key] || '') + '</textarea>';
+                } else if (field.type === 'select') {
+                    html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
+                    html += '<select class="form-select" data-config="' + field.key + '">';
+                    field.options.forEach(function(opt) {
+                        var selected = (node.config[field.key] === opt) ? ' selected' : '';
+                        html += '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt.replace(/_/g, ' ')) + '</option>';
+                    });
+                    html += '</select>';
+                } else if (field.type === 'checkbox') {
+                    html += '<div class="form-check">';
+                    var checked = node.config[field.key] ? ' checked' : '';
+                    html += '<input type="checkbox" class="form-check-input" data-config="' + field.key + '"' + checked + '>';
+                    html += '<label class="form-check-label" style="font-size:0.82rem;">' + escapeHtml(field.label) + '</label>';
+                    html += '</div>';
+                }
                 html += '</div>';
-            }
-            html += '</div>';
-        });
+            });
 
-        body.innerHTML = html;
+            body.innerHTML = html;
+        }
 
         // Bind change events
         var self = this;
@@ -1292,6 +1303,417 @@
             e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
         }
     });
+
+    // ========================================
+    // GSM-7 Character Detection
+    // ========================================
+    var GSM_CHARS = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà';
+    var GSM_EXTENDED = '^{}\\[~]|€';
+
+    function isGSM7(text) {
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charAt(i);
+            if (GSM_CHARS.indexOf(ch) === -1 && GSM_EXTENDED.indexOf(ch) === -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function countGSM7Chars(text) {
+        var count = 0;
+        for (var i = 0; i < text.length; i++) {
+            count += (GSM_EXTENDED.indexOf(text.charAt(i)) >= 0) ? 2 : 1;
+        }
+        return count;
+    }
+
+    function calculateSegments(text) {
+        if (!text || text.length === 0) return { chars: 0, encoding: 'GSM-7', segments: 0 };
+        var gsm = isGSM7(text);
+        var encoding = gsm ? 'GSM-7' : 'Unicode';
+        var charCount = gsm ? countGSM7Chars(text) : text.length;
+        var segments;
+        if (gsm) {
+            segments = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
+        } else {
+            segments = charCount <= 70 ? 1 : Math.ceil(charCount / 67);
+        }
+        return { chars: charCount, encoding: encoding, segments: segments };
+    }
+
+    // ========================================
+    // Send Message - Custom Properties
+    // ========================================
+    FlowBuilder.prototype._renderSendMessageProperties = function(node) {
+        var c = node.config || {};
+        var channel = c.channel || 'sms';
+        var senderIds = this.options.senderIds || [];
+        var rcsAgents = this.options.rcsAgents || [];
+
+        var html = '';
+
+        // Channel toggle
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Channel</label>';
+        html += '<div class="channel-toggle-group">';
+        html += '<button type="button" class="channel-toggle-btn' + (channel === 'sms' ? ' active' : '') + '" data-channel="sms"><i class="fas fa-sms me-1"></i>SMS</button>';
+        html += '<button type="button" class="channel-toggle-btn' + (channel === 'basic_rcs' ? ' active' : '') + '" data-channel="basic_rcs"><i class="fas fa-comment me-1"></i>Basic RCS</button>';
+        html += '<button type="button" class="channel-toggle-btn' + (channel === 'rich_rcs' ? ' active' : '') + '" data-channel="rich_rcs"><i class="fas fa-palette me-1"></i>Rich RCS</button>';
+        html += '</div>';
+        html += '</div>';
+
+        // Sender ID
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Sender ID</label>';
+        html += '<select class="form-select" id="prop-sender-id">';
+        senderIds.forEach(function(s) {
+            var selected = (c.sender_id === s.id) ? ' selected' : '';
+            html += '<option value="' + escapeHtml(s.id) + '"' + selected + '>' + escapeHtml(s.name) + ' (' + escapeHtml(s.type) + ')</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        // RCS Agent (shown for RCS channels)
+        if (channel === 'basic_rcs' || channel === 'rich_rcs') {
+            html += '<div class="mb-3" id="rcs-agent-section">';
+            html += '<label class="form-label">RCS Agent</label>';
+            if (rcsAgents.length > 0) {
+                html += '<select class="form-select" id="prop-rcs-agent">';
+                html += '<option value="">Select an agent...</option>';
+                rcsAgents.forEach(function(a) {
+                    var selected = (c.rcs_agent_id === a.id) ? ' selected' : '';
+                    html += '<option value="' + escapeHtml(a.id) + '"' + selected + '>' + escapeHtml(a.name) + '</option>';
+                });
+                html += '</select>';
+            } else {
+                html += '<div class="alert alert-light p-2" style="font-size:0.78rem;">No RCS agents available. Set up an RCS agent first.</div>';
+            }
+            html += '</div>';
+        }
+
+        // Content summary
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Message Content</label>';
+        html += '<div class="send-msg-summary">';
+        if (channel === 'rich_rcs' && c.rcs_payload) {
+            var payload = c.rcs_payload;
+            html += '<div class="summary-badge rcs"><i class="fas fa-palette me-1"></i>Rich RCS</div>';
+            if (payload.card && payload.card.title) {
+                html += '<div class="summary-text">' + escapeHtml(payload.card.title) + '</div>';
+            }
+            if (payload.card && payload.card.suggestions) {
+                html += '<div class="summary-meta">' + payload.card.suggestions.length + ' button(s)</div>';
+            }
+            if (payload.type === 'carousel') {
+                html += '<div class="summary-meta">Carousel</div>';
+            }
+        } else if (c.sms_content) {
+            var info = calculateSegments(c.sms_content);
+            var chLabel = channel === 'basic_rcs' ? 'Basic RCS' : 'SMS';
+            html += '<div class="summary-badge sms"><i class="fas fa-sms me-1"></i>' + chLabel + '</div>';
+            var preview = c.sms_content.length > 80 ? c.sms_content.substr(0, 77) + '...' : c.sms_content;
+            html += '<div class="summary-text">' + escapeHtml(preview) + '</div>';
+            html += '<div class="summary-meta">' + info.chars + ' chars · ' + info.encoding + ' · ' + info.segments + ' segment(s)</div>';
+        } else {
+            html += '<div class="summary-empty"><i class="fas fa-file-alt me-2"></i>No content configured</div>';
+        }
+        html += '</div>';
+        html += '</div>';
+
+        // Edit Content button
+        html += '<button type="button" class="btn btn-primary btn-sm w-100 mb-3" id="btn-edit-content" style="background: #886CC0; border-color: #886CC0;">';
+        html += '<i class="fas fa-edit me-1"></i> Edit Content';
+        html += '</button>';
+
+        // SMS fallback for Rich RCS
+        if (channel === 'rich_rcs') {
+            html += '<div class="mb-3">';
+            html += '<label class="form-label d-flex align-items-center gap-1">SMS Fallback <span class="text-muted" style="font-weight:400;font-size:0.72rem;">(when RCS unavailable)</span></label>';
+            var fallbackPreview = c.sms_content ? (c.sms_content.length > 50 ? c.sms_content.substr(0, 47) + '...' : c.sms_content) : 'Not set';
+            html += '<div class="p-2 rounded" style="background:#f8f8f8;font-size:0.78rem;color:#666;">' + escapeHtml(fallbackPreview) + '</div>';
+            html += '<button type="button" class="btn btn-outline-secondary btn-sm mt-1" id="btn-edit-fallback"><i class="fas fa-edit me-1"></i>Edit Fallback SMS</button>';
+            html += '</div>';
+        }
+
+        return html;
+    };
+
+    FlowBuilder.prototype._bindSendMessageEvents = function(node, nodeId) {
+        var self = this;
+        var body = document.getElementById('properties-body');
+
+        // Label input
+        var labelInput = document.getElementById('prop-label');
+        if (labelInput) {
+            labelInput.addEventListener('change', function() {
+                node.label = this.value;
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        // Channel toggle
+        body.querySelectorAll('.channel-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                node.config.channel = btn.getAttribute('data-channel');
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+                // Re-render properties to show/hide RCS agent section
+                self._showProperties(nodeId);
+            });
+        });
+
+        // Sender ID
+        var senderSelect = document.getElementById('prop-sender-id');
+        if (senderSelect) {
+            senderSelect.addEventListener('change', function() {
+                node.config.sender_id = this.value;
+                self.isDirty = true;
+            });
+        }
+
+        // RCS Agent
+        var rcsAgentSelect = document.getElementById('prop-rcs-agent');
+        if (rcsAgentSelect) {
+            rcsAgentSelect.addEventListener('change', function() {
+                node.config.rcs_agent_id = this.value;
+                self.isDirty = true;
+            });
+        }
+
+        // Edit Content button
+        var editBtn = document.getElementById('btn-edit-content');
+        if (editBtn) {
+            editBtn.addEventListener('click', function() {
+                var channel = node.config.channel || 'sms';
+                if (channel === 'rich_rcs') {
+                    self._openRcsWizard(nodeId);
+                } else {
+                    self._openSmsComposerModal(nodeId, false);
+                }
+            });
+        }
+
+        // Edit Fallback button
+        var fallbackBtn = document.getElementById('btn-edit-fallback');
+        if (fallbackBtn) {
+            fallbackBtn.addEventListener('click', function() {
+                self._openSmsComposerModal(nodeId, true);
+            });
+        }
+
+        // Delete button
+        var deleteBtn = document.getElementById('btn-delete-node');
+        if (deleteBtn) {
+            deleteBtn.onclick = function() {
+                if (confirm('Delete this node?')) {
+                    self.deleteNode(nodeId);
+                }
+            };
+        }
+
+        // Close button
+        var closeBtn = document.getElementById('btn-close-properties');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                self._deselectAll();
+            };
+        }
+    };
+
+    // ========================================
+    // SMS Composer Modal
+    // ========================================
+    FlowBuilder.prototype._openSmsComposerModal = function(nodeId, isFallback) {
+        var node = this.nodes[nodeId];
+        if (!node) return;
+
+        var textarea = document.getElementById('flowSmsContent');
+        var fallbackNote = document.getElementById('smsFallbackNote');
+        var label = document.getElementById('smsComposerLabel');
+
+        // Store context for apply
+        this._smsComposerNodeId = nodeId;
+        this._smsComposerIsFallback = isFallback;
+
+        // Pre-fill
+        textarea.value = node.config.sms_content || '';
+
+        // Update label/note
+        if (isFallback) {
+            fallbackNote.classList.remove('d-none');
+            label.textContent = 'SMS Fallback Content';
+        } else {
+            fallbackNote.classList.add('d-none');
+            var ch = node.config.channel || 'sms';
+            label.textContent = ch === 'basic_rcs' ? 'Basic RCS Content' : 'SMS Content';
+        }
+
+        // Update counts
+        flowHandleContentChange();
+
+        // Show modal
+        var modal = new bootstrap.Modal(document.getElementById('smsComposerModal'));
+        modal.show();
+
+        // Focus textarea after modal is shown
+        document.getElementById('smsComposerModal').addEventListener('shown.bs.modal', function handler() {
+            textarea.focus();
+            document.getElementById('smsComposerModal').removeEventListener('shown.bs.modal', handler);
+        });
+    };
+
+    FlowBuilder.prototype._applySmsContent = function() {
+        var nodeId = this._smsComposerNodeId;
+        if (!nodeId) return;
+
+        var node = this.nodes[nodeId];
+        if (!node) return;
+
+        var textarea = document.getElementById('flowSmsContent');
+        node.config.sms_content = textarea.value;
+        this._refreshNode(nodeId);
+        this._showProperties(nodeId);
+        this.isDirty = true;
+
+        // Close modal
+        var modalEl = document.getElementById('smsComposerModal');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    };
+
+    // ========================================
+    // RCS Wizard Integration
+    // ========================================
+    FlowBuilder.prototype._openRcsWizard = function(nodeId) {
+        var node = this.nodes[nodeId];
+        if (!node) return;
+
+        this._rcsWizardNodeId = nodeId;
+
+        // Open the existing RCS wizard modal
+        if (typeof openRcsWizard === 'function') {
+            openRcsWizard();
+        } else {
+            // Fallback: open modal directly
+            var modalEl = document.getElementById('rcsWizardModal');
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+
+        // If existing payload, try to pre-populate (best effort)
+        if (node.config.rcs_payload && typeof setRcsWizardPayload === 'function') {
+            setRcsWizardPayload(node.config.rcs_payload);
+        }
+    };
+
+    FlowBuilder.prototype._handleRcsContentApplied = function(e) {
+        var nodeId = this._rcsWizardNodeId;
+        if (!nodeId) return;
+
+        var node = this.nodes[nodeId];
+        if (!node) return;
+
+        // The RCS wizard fires rcsContentApplied with detail containing the payload
+        if (e.detail) {
+            node.config.rcs_payload = e.detail;
+        }
+
+        this._refreshNode(nodeId);
+        this._showProperties(nodeId);
+        this.isDirty = true;
+    };
+
+    // ========================================
+    // Initialize modal handlers
+    // ========================================
+    var _origInit = FlowBuilder.prototype._init;
+    FlowBuilder.prototype._init = function() {
+        _origInit.call(this);
+        var self = this;
+
+        // Apply SMS Content button
+        var applyBtn = document.getElementById('btnApplySmsContent');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function() {
+                self._applySmsContent();
+            });
+        }
+
+        // Listen for RCS content applied event
+        document.addEventListener('rcsContentApplied', function(e) {
+            self._handleRcsContentApplied(e);
+        });
+
+        // Initialize emoji picker for the flow SMS composer
+        var emojiBtn = document.getElementById('flowEmojiPickerBtn');
+        if (emojiBtn && typeof QSEmojiPicker !== 'undefined') {
+            new QSEmojiPicker(emojiBtn, function(emoji) {
+                var textarea = document.getElementById('flowSmsContent');
+                if (textarea) {
+                    var start = textarea.selectionStart;
+                    var end = textarea.selectionEnd;
+                    textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
+                    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+                    textarea.focus();
+                    flowHandleContentChange();
+                }
+            });
+        }
+    };
+
+    // ========================================
+    // Global functions for SMS composer
+    // ========================================
+    window.flowHandleContentChange = function() {
+        var textarea = document.getElementById('flowSmsContent');
+        if (!textarea) return;
+
+        var text = textarea.value;
+        var info = calculateSegments(text);
+
+        var charCountEl = document.getElementById('flowCharCount');
+        var encodingEl = document.getElementById('flowEncodingType');
+        var segmentEl = document.getElementById('flowSmsPartCount');
+        var unicodeWarning = document.getElementById('flowUnicodeWarning');
+
+        if (charCountEl) charCountEl.textContent = info.chars;
+        if (encodingEl) encodingEl.textContent = info.encoding;
+        if (segmentEl) segmentEl.textContent = info.segments;
+        if (unicodeWarning) {
+            if (info.encoding === 'Unicode') {
+                unicodeWarning.classList.remove('d-none');
+            } else {
+                unicodeWarning.classList.add('d-none');
+            }
+        }
+    };
+
+    window.flowInsertPlaceholder = function(name) {
+        var textarea = document.getElementById('flowSmsContent');
+        if (!textarea) return;
+
+        var placeholder = '{{' + name + '}}';
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + placeholder + textarea.value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+        textarea.focus();
+        flowHandleContentChange();
+
+        // Close personalisation modal
+        var modalEl = document.getElementById('flowPersonalisationModal');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    };
+
+    window.flowOpenPersonalisationModal = function() {
+        var modal = new bootstrap.Modal(document.getElementById('flowPersonalisationModal'));
+        modal.show();
+    };
 
     // Export
     window.FlowBuilder = FlowBuilder;
