@@ -2923,7 +2923,7 @@ class QuickSMSController extends Controller
         $selectedIds = $request->query('ids', '');
         $tenantId = session('customer_tenant_id');
         $subAccounts = $tenantId
-            ? SubAccount::where('account_id', $tenantId)->where('status', 'active')->get(['id', 'name'])
+            ? SubAccount::where('account_id', $tenantId)->where('is_active', true)->get(['id', 'name'])
             : collect();
 
         return view('quicksms.management.numbers-configure', [
