@@ -148,7 +148,7 @@ class RateCardController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error processing upload: ' . $e->getMessage(),
+                'message' => 'Error processing upload. Please check the file format and try again.',
             ], 500);
         }
     }

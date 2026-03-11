@@ -58,9 +58,18 @@ class BalanceAlertController extends Controller
             ->where('account_id', $request->user()->account_id)
             ->firstOrFail();
 
-        $alert->update($request->only([
-            'threshold_percentage', 'notify_customer', 'notify_admin', 'cooldown_hours',
-        ]));
+        $validator = Validator::make($request->all(), [
+            'threshold_percentage' => 'sometimes|integer|min:1|max:99',
+            'notify_customer' => 'sometimes|boolean',
+            'notify_admin' => 'sometimes|boolean',
+            'cooldown_hours' => 'sometimes|integer|min:1|max:168',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $alert->update($validator->validated());
 
         return response()->json(['success' => true, 'data' => $alert]);
     }

@@ -328,8 +328,8 @@ class AccountController extends Controller
                 ], 400);
             }
 
-            // Find user (tenant scoping automatically applied)
-            $teamMember = User::find($userId);
+            // Explicitly scope to the current user's tenant to prevent cross-tenant access
+            $teamMember = User::where('tenant_id', $user->tenant_id)->find($userId);
 
             if (!$teamMember) {
                 return response()->json([
