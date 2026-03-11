@@ -2256,6 +2256,16 @@ $(document).ready(function() {
     /**
      * Fetch audit logs from the backend API.
      */
+    function showMockDataBanner() {
+        var container = document.getElementById('auditLogContent') || document.querySelector('.audit-log-container') || document.querySelector('.container-fluid');
+        if (!container || container.querySelector('.mock-data-banner')) return;
+        var banner = document.createElement('div');
+        banner.className = 'mock-data-banner';
+        banner.style.cssText = 'background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:13px;';
+        banner.innerHTML = '<strong>\u26A0 Sample Data</strong> \u2014 Live audit API is unavailable. Showing sample data for layout preview only. This data is not real and should not be used for auditing purposes.';
+        container.insertBefore(banner, container.firstChild);
+    }
+
     function fetchAuditLogs(params) {
         params = params || {};
         var query = new URLSearchParams();
@@ -2286,6 +2296,7 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 console.warn('[AuditLog] API fetch failed (status=' + xhr.status + '), using generated data');
+                showMockDataBanner();
             }
         });
     }

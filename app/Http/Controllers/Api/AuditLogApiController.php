@@ -388,6 +388,10 @@ class AuditLogApiController extends Controller
         $page = max((int) ($request->input('page', 1)), 1);
         $offset = ($page - 1) * $perPage;
 
+        // Set tenant context for RLS — raw SQL queries against tenant-scoped tables
+        // require this session variable for PostgreSQL RLS policies to filter correctly.
+        DB::statement("SELECT set_config('app.current_tenant_id', ?, true)", [$accountId]);
+
         $sources = self::CUSTOMER_SOURCES;
         if ($module) {
             $sources = array_filter($sources, fn($s) => $s['module'] === $module);

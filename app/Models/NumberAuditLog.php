@@ -97,7 +97,7 @@ class NumberAuditLog extends Model
             'user_id' => $userId,
             'user_name' => $userName,
             'details' => $details,
-            'metadata' => $metadata,
+            'metadata' => \App\Services\Audit\AuditContext::sanitize($metadata),
             'ip_address' => $ipAddress ?? request()?->ip(),
             'user_agent' => $userAgent ?? request()?->userAgent(),
         ]);

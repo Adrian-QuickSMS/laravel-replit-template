@@ -91,7 +91,7 @@ class AccountController extends Controller
             }
 
             $account = $user->account;
-            $before = $account->only(['company_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
+            $before = $account->only(['company_name', 'phone', 'address_line1', 'address_line2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
 
             $account->update($request->only([
                 'company_name',
@@ -109,7 +109,7 @@ class AccountController extends Controller
 
             try {
                 $actor = AuditContext::actor();
-                $after = $account->only(['company_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
+                $after = $account->only(['company_name', 'phone', 'address_line1', 'address_line2', 'city', 'postcode', 'country', 'vat_number', 'billing_email']);
                 $changes = AuditContext::diff($before, $after);
                 if (!empty($changes)) {
                     AccountAuditLog::record($account->id, 'account_details_updated', $actor['user_id'], $actor['user_name'], "Account details updated", ['changes' => $changes]);

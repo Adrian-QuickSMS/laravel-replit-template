@@ -153,7 +153,7 @@ class AdminAuditLog extends Model
             'target_id' => $targetId,
             'target_account_id' => $targetAccountId,
             'details' => $details,
-            'metadata' => $metadata,
+            'metadata' => \App\Services\Audit\AuditContext::sanitize($metadata),
             'ip_address' => $ipAddress ?? request()?->ip(),
             'user_agent' => $userAgent ?? request()?->userAgent(),
         ]);

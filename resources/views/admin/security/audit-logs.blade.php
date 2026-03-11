@@ -593,6 +593,16 @@ $(document).ready(function() {
         fetchCustomerAuditLogs();
     }
 
+    function showMockDataBanner(section) {
+        var targetId = section === 'admin' ? '#adminAuditContent' : '#customerAuditContent';
+        var existing = $(targetId).find('.mock-data-banner');
+        if (existing.length > 0) return;
+        var banner = $('<div class="mock-data-banner" style="background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:13px;">' +
+            '<strong>⚠ Sample Data</strong> — Live audit API is unavailable. Showing sample data for layout preview only. ' +
+            'This data is not real and should not be used for auditing purposes.</div>');
+        $(targetId).prepend(banner);
+    }
+
     function fetchAdminAuditLogs(params) {
         params = params || {};
         var query = new URLSearchParams();
@@ -629,6 +639,7 @@ $(document).ready(function() {
                 adminLogs = generateMockAdminLogs();
                 var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
                 console.log('[DataSeparation] Using mock admin logs, validated:', adminValidation.validLogs.length, '/', adminLogs.length);
+                showMockDataBanner('admin');
                 renderAdminLogs();
                 updateAdminStats();
             }
@@ -709,6 +720,7 @@ $(document).ready(function() {
                 customerLogs = generateMockCustomerLogs();
                 var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
                 console.log('[DataSeparation] Using mock customer logs, validated:', customerValidation.validLogs.length, '/', customerLogs.length);
+                showMockDataBanner('customer');
                 renderCustomerLogs();
             }
         });
