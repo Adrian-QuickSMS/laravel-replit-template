@@ -296,7 +296,10 @@ class AdminNumbersApiController extends Controller
         $this->logAction($id, $type, 'NUMBER_REASSIGNED', $before, ['accountId' => $targetAccount->id], $request->input('reason'), $targetAccount->id, $displayValue);
         if ($sourceAccountId && $sourceAccountId !== $targetAccount->id) {
             try {
-                NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+                DB::transaction(function () use ($sourceAccountId, $id, $displayValue, $request) {
+                    DB::statement("SET LOCAL app.current_tenant_id = '" . addslashes($sourceAccountId) . "'");
+                    NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+                });
             } catch (\Throwable $e) {
                 Log::warning('[AuditLog] Failed to record source account reassignment', ['error' => $e->getMessage()]);
             }
@@ -600,7 +603,10 @@ class AdminNumbersApiController extends Controller
             $this->logAction($id, $found['type'], 'NUMBER_REASSIGNED', $before, ['accountId' => $targetAccount->id], $request->input('reason'), $targetAccount->id, $displayValue);
             if ($sourceAccountId && $sourceAccountId !== $targetAccount->id) {
                 try {
-                    NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+                    DB::transaction(function () use ($sourceAccountId, $id, $displayValue, $request) {
+                        DB::statement("SET LOCAL app.current_tenant_id = '" . addslashes($sourceAccountId) . "'");
+                        NumberAuditLog::record($sourceAccountId, 'number_reassigned', $id, null, 'Admin', "Number {$displayValue}: reassigned to another account", array_filter(['reason' => $request->input('reason')]));
+                    });
                 } catch (\Throwable $e) {
                     Log::warning('[AuditLog] Failed to record source account reassignment', ['error' => $e->getMessage()]);
                 }
@@ -933,7 +939,10 @@ class AdminNumbersApiController extends Controller
                     $detail .= " — {$reason}";
                 }
                 $metadata = array_filter(['before' => $before, 'after' => $after, 'reason' => $reason]);
-                NumberAuditLog::record($accountId, $action, $entityId, null, 'Admin', $detail, $metadata);
+                DB::transaction(function () use ($accountId, $action, $entityId, $detail, $metadata) {
+                    DB::statement("SET LOCAL app.current_tenant_id = '" . addslashes($accountId) . "'");
+                    NumberAuditLog::record($accountId, $action, $entityId, null, 'Admin', $detail, $metadata);
+                });
             } catch (\Throwable $e) {
                 Log::warning('[AuditLog] Failed to record admin number action', ['event' => $event, 'error' => $e->getMessage()]);
             }

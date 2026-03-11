@@ -10,6 +10,7 @@ use App\Models\OptOutRecord;
 use App\Models\Tag;
 use App\Models\Account;
 use App\Models\SenderId;
+use App\Models\SubAccount;
 use App\Models\User;
 
 class QuickSMSController extends Controller
@@ -2919,12 +2920,16 @@ class QuickSMSController extends Controller
 
     public function numbersConfigure(Request $request)
     {
-        // Get selected number IDs from query string
         $selectedIds = $request->query('ids', '');
-        
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = $tenantId
+            ? SubAccount::where('account_id', $tenantId)->where('status', 'active')->get(['id', 'name'])
+            : collect();
+
         return view('quicksms.management.numbers-configure', [
             'page_title' => 'Configure Numbers',
-            'selectedIds' => $selectedIds
+            'selectedIds' => $selectedIds,
+            'subAccounts' => $subAccounts
         ]);
     }
 
