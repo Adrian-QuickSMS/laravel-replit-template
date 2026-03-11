@@ -542,16 +542,23 @@ class AdminNumbersApiController extends Controller
         }
 
         $before = ['accountId' => $pn->account_id, 'status' => $pn->status];
+        $accountId = $pn->account_id;
         $pn->status     = 'released';
         $pn->released_at = now();
-        $pn->account_id = null;
         $pn->save();
 
-        $this->logAction($id, 'purchased_number', 'RETURNED_TO_POOL', $before, ['status' => 'released', 'accountId' => null], $request->input('reason'), $before['accountId'], $pn->number ?? $pn->id);
+        if ($pn->vmn_pool_id) {
+            $poolNumber = \App\Models\VmnPoolNumber::find($pn->vmn_pool_id);
+            if ($poolNumber) {
+                $poolNumber->markAvailable();
+            }
+        }
+
+        $this->logAction($id, 'purchased_number', 'RETURNED_TO_POOL', $before, ['status' => 'released'], $request->input('reason'), $accountId, $pn->number ?? $pn->id);
 
         return response()->json([
             'success' => true,
-            'changes' => ['before' => $before, 'after' => ['status' => 'released', 'accountId' => null]],
+            'changes' => ['before' => $before, 'after' => ['status' => 'released']],
         ]);
     }
 
