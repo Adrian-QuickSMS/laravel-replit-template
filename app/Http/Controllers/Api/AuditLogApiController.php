@@ -373,9 +373,6 @@ class AuditLogApiController extends Controller
     public function adminCustomerIndex(Request $request): JsonResponse
     {
         $accountId = $request->input('account_id');
-        if (!$accountId) {
-            return response()->json(['error' => 'account_id is required'], 422);
-        }
 
         $module = $request->input('module');
         $category = $request->input('category');
@@ -406,10 +403,19 @@ class AuditLogApiController extends Controller
         $unionParts = [];
         $bindings = [];
 
-        foreach ($sources as $key => $src) {
-            $sql = $this->buildSourceQuery($src, $accountId, $action, $userId, $from, $to, $search, $bindings);
-            if ($sql) {
-                $unionParts[] = $sql;
+        if ($accountId) {
+            foreach ($sources as $key => $src) {
+                $sql = $this->buildSourceQuery($src, $accountId, $action, $userId, $from, $to, $search, $bindings);
+                if ($sql) {
+                    $unionParts[] = $sql;
+                }
+            }
+        } else {
+            foreach ($sources as $key => $src) {
+                $sql = $this->buildAdminCrossAccountQuery($src, $action, $userId, $from, $to, $search, $bindings);
+                if ($sql) {
+                    $unionParts[] = $sql;
+                }
             }
         }
 
@@ -429,7 +435,23 @@ class AuditLogApiController extends Controller
         $dataBindings = array_merge($bindings, [$perPage, $offset]);
         $rows = DB::select($dataSql, $dataBindings);
 
-        $data = array_map(function ($row) {
+        if ($accountId) {
+            $accountRow = DB::selectOne("SELECT company_name FROM accounts WHERE id = ?", [$accountId]);
+            $accountNames = [$accountId => $accountRow ? $accountRow->company_name : null];
+        } else {
+            $accountIds = array_unique(array_filter(array_map(fn($r) => $r->account_id ?? null, $rows)));
+            $accountNames = [];
+            if (!empty($accountIds)) {
+                $placeholders = implode(',', array_fill(0, count($accountIds), '?'));
+                $accounts = DB::select("SELECT id::TEXT, company_name FROM accounts WHERE id IN ({$placeholders})", array_values($accountIds));
+                foreach ($accounts as $acc) {
+                    $accountNames[$acc->id] = $acc->company_name;
+                }
+            }
+        }
+
+        $data = array_map(function ($row) use ($accountId, $accountNames) {
+            $rowAccountId = $row->account_id ?? $accountId;
             return [
                 'id' => $row->id,
                 'module' => $row->module,
@@ -441,6 +463,8 @@ class AuditLogApiController extends Controller
                 'metadata' => json_decode($row->metadata ?? '{}', true),
                 'ip_address' => $row->ip_address,
                 'created_at' => $row->created_at,
+                'account_id' => $rowAccountId,
+                'account_name' => $accountNames[$rowAccountId] ?? null,
             ];
         }, $rows);
 
@@ -546,6 +570,82 @@ class AuditLogApiController extends Controller
         return "({$select}{$where})";
     }
 
+    private function buildAdminCrossAccountQuery(
+        array $src,
+        ?string $action,
+        ?string $userId,
+        ?string $from,
+        ?string $to,
+        ?string $search,
+        array &$bindings
+    ): ?string {
+        $table = $src['table'];
+        $module = $src['module'];
+        $category = $src['category'];
+
+        try {
+            DB::selectOne("SELECT 1 FROM {$table} LIMIT 0");
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (!empty($src['custom_select'])) {
+            $select = $this->buildCustomSelectWithAccountId($table, $module, $category);
+        } else {
+            $entityCol = $src['entity_col'] ? ", {$src['entity_col']}::TEXT AS entity_id" : ", NULL::TEXT AS entity_id";
+            $accountCol = $table === 'auth_audit_log' ? 'tenant_id' : 'account_id';
+            $select = "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at{$entityCol}, {$accountCol}::TEXT AS account_id FROM {$table}";
+        }
+
+        $conditions = [];
+
+        if (!empty($src['extra_where'])) {
+            $conditions[] = $src['extra_where'];
+        }
+
+        if ($action) {
+            if ($table === 'auth_audit_log') {
+                $conditions[] = 'event_type = ?';
+            } else {
+                $conditions[] = 'action = ?';
+            }
+            $bindings[] = $action;
+        }
+
+        if ($userId) {
+            if ($table === 'auth_audit_log') {
+                $conditions[] = 'actor_id = ?';
+            } else {
+                $conditions[] = 'user_id = ?';
+            }
+            $bindings[] = $userId;
+        }
+
+        if ($from) {
+            $conditions[] = 'created_at >= ?';
+            $bindings[] = $from;
+        }
+        if ($to) {
+            $conditions[] = 'created_at <= ?';
+            $bindings[] = $to;
+        }
+
+        if ($search) {
+            $escapedSearch = str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $search);
+            if ($table === 'auth_audit_log') {
+                $conditions[] = "(event_type ILIKE ? ESCAPE '\\' OR actor_email ILIKE ? ESCAPE '\\')";
+            } else {
+                $conditions[] = "(action ILIKE ? ESCAPE '\\' OR COALESCE(details, '') ILIKE ? ESCAPE '\\')";
+            }
+            $bindings[] = "%{$escapedSearch}%";
+            $bindings[] = "%{$escapedSearch}%";
+        }
+
+        $where = !empty($conditions) ? ' WHERE ' . implode(' AND ', $conditions) : '';
+
+        return "({$select}{$where})";
+    }
+
     /**
      * Build custom SELECT for tables with non-standard column names.
      */
@@ -561,6 +661,21 @@ class AuditLogApiController extends Controller
             'email_to_sms_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, setup_id::TEXT AS entity_id FROM email_to_sms_audit_log",
 
             default => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id FROM {$table}",
+        };
+    }
+
+    private function buildCustomSelectWithAccountId(string $table, string $module, string $category): string
+    {
+        return match ($table) {
+            'auth_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type::TEXT AS action, actor_id::TEXT AS user_id, actor_email AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id, tenant_id::TEXT AS account_id FROM auth_audit_log",
+
+            'api_connection_audit_events' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id::TEXT AS user_id, actor_name AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, api_connection_id::TEXT AS entity_id, account_id::TEXT AS account_id FROM api_connection_audit_events",
+
+            'message_template_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, '{}'::TEXT AS metadata, NULL::TEXT AS ip_address, created_at, template_id::TEXT AS entity_id, account_id::TEXT AS account_id FROM message_template_audit_log",
+
+            'email_to_sms_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, setup_id::TEXT AS entity_id, account_id::TEXT AS account_id FROM email_to_sms_audit_log",
+
+            default => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, action, user_id::TEXT AS user_id, user_name, details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id, account_id::TEXT AS account_id FROM {$table}",
         };
     }
 }

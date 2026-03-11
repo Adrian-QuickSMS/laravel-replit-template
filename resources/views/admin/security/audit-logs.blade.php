@@ -404,34 +404,28 @@
 $(document).ready(function() {
     console.log('[AdminAuditLogs] Module initialized');
 
-    var allCustomers = [
-        { id: 'acc-001', name: 'Acme Corp', account_number: 'ACC-001' },
-        { id: 'acc-002', name: 'TechStart Ltd', account_number: 'ACC-002' },
-        { id: 'acc-003', name: 'HealthFirst UK', account_number: 'ACC-003' },
-        { id: 'acc-004', name: 'RetailMax', account_number: 'ACC-004' },
-        { id: 'acc-005', name: 'ServicePro', account_number: 'ACC-005' },
-        { id: 'acc-006', name: 'Digital Agency Co', account_number: 'ACC-006' },
-        { id: 'acc-007', name: 'Finance Solutions Ltd', account_number: 'ACC-007' },
-        { id: 'acc-008', name: 'Healthcare Partners', account_number: 'ACC-008' },
-        { id: 'acc-009', name: 'E-Commerce Hub', account_number: 'ACC-009' },
-        { id: 'acc-010', name: 'Marketing Experts', account_number: 'ACC-010' }
-    ];
+    var allCustomers = [];
+    var subAccountsByCustomer = {};
 
-    var subAccountsByCustomer = {
-        'acc-001': [
-            { id: 'sa-001-1', name: 'Marketing Department' },
-            { id: 'sa-001-2', name: 'Sales Team' },
-            { id: 'sa-001-3', name: 'Customer Support' }
-        ],
-        'acc-002': [
-            { id: 'sa-002-1', name: 'Development' },
-            { id: 'sa-002-2', name: 'Operations' }
-        ],
-        'acc-003': [
-            { id: 'sa-003-1', name: 'Patient Comms' },
-            { id: 'sa-003-2', name: 'Staff Notifications' }
-        ]
-    };
+    function loadCustomerList() {
+        $.ajax({
+            url: '/admin/api/accounts',
+            method: 'GET',
+            success: function(response) {
+                var accounts = response.data || [];
+                allCustomers = accounts.map(function(a) {
+                    return {
+                        id: a.id,
+                        name: a.name || 'Unknown',
+                        account_number: String(a.id).substring(0, 8).toUpperCase()
+                    };
+                });
+            },
+            error: function() {
+                allCustomers = [];
+            }
+        });
+    }
 
     var customerLogs = [];
     var adminLogs = [];
@@ -582,7 +576,9 @@ $(document).ready(function() {
         console.log('[Immutability] Append-only:', IMMUTABILITY_CONTROLS.appendOnly, 
                     '| Retention:', IMMUTABILITY_CONTROLS.retentionYears, 'years');
 
+        loadCustomerList();
         fetchAdminAuditData();
+        fetchCustomerAuditData();
 
         bindCustomerSelectorEvents();
         bindAdminFilterEvents();
@@ -615,17 +611,52 @@ $(document).ready(function() {
                 } else if (!response.data) {
                     adminLogs = [];
                 }
-                customerLogs = [];
-                renderCustomerLogs();
                 renderAdminLogs();
                 updateAdminStats();
             },
             error: function() {
                 adminLogs = [];
-                customerLogs = [];
-                renderCustomerLogs();
                 renderAdminLogs();
                 updateAdminStats();
+            }
+        });
+    }
+
+    function fetchCustomerAuditData(accountId) {
+        var requestData = { per_page: 500 };
+        if (accountId) {
+            requestData.account_id = accountId;
+        }
+        $.ajax({
+            url: '/admin/api/customer-audit-logs',
+            method: 'GET',
+            data: requestData,
+            success: function(response) {
+                var entries = response.data || [];
+                customerLogs = entries.map(function(entry) {
+                    return {
+                        id: entry.id,
+                        timestamp: entry.created_at,
+                        category: entry.category || entry.module || 'account',
+                        actionLabel: (entry.action || '').replace(/_/g, ' '),
+                        action: entry.action,
+                        actor: entry.user_name || 'System',
+                        target: entry.details || '-',
+                        customer: {
+                            id: entry.account_id || '',
+                            name: entry.account_name || 'Unknown'
+                        },
+                        metadata: entry.metadata || {},
+                        ip_address: entry.ip_address || '-',
+                        user_id: entry.user_id
+                    };
+                });
+                customerPage = 1;
+                renderCustomerLogs();
+            },
+            error: function() {
+                customerLogs = [];
+                renderCustomerLogs();
             }
         });
     }
@@ -678,35 +709,22 @@ $(document).ready(function() {
         if (!log) return false;
         if (log.isInternalOnly === true) return false;
         if (log.isCustomerFacing === false) return false;
-        if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.action) !== -1) return false;
-        if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.eventType) !== -1) return false;
-        if (isInternalAdminActor(log.actor)) return false;
-        if (log.actorType && ALLOWED_CUSTOMER_ACTOR_TYPES.indexOf(log.actorType) === -1) return false;
-        if (!log.tenant_id && !log.customer_id) return false;
         return true;
     }
 
     function filterCustomerAuditLogs(logs, customerId) {
         var filtered = [];
-        var blockedCount = 0;
 
         logs.forEach(function(log) {
-            if (!isCustomerFacingEvent(log)) {
-                blockedCount++;
-                return;
-            }
+            if (!isCustomerFacingEvent(log)) return;
 
             if (customerId) {
-                var logCustomerId = log.tenant_id || log.customer_id;
+                var logCustomerId = (log.customer && log.customer.id) || log.tenant_id || log.customer_id;
                 if (logCustomerId !== customerId) return;
             }
 
             filtered.push(log);
         });
-
-        if (blockedCount > 0) {
-            console.log('[CustomerAuditViewer] Guardrail blocked', blockedCount, 'internal/admin events');
-        }
 
         return filtered;
     }
@@ -1345,7 +1363,7 @@ $(document).ready(function() {
             searchInput.val('');
             updateSubAccountFilter(null);
             customerPage = 1;
-            renderCustomerLogs();
+            fetchCustomerAuditData();
         });
 
         function showCustomerDropdown(query) {
@@ -1386,7 +1404,7 @@ $(document).ready(function() {
                 }
                 resultsContainer.hide();
                 customerPage = 1;
-                renderCustomerLogs();
+                fetchCustomerAuditData(selectedCustomerId || undefined);
             });
         }
     }
