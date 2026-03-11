@@ -18,6 +18,8 @@ use App\Models\RoutingGatewayWeight;
 use App\Models\RoutingCustomerOverride;
 use App\Models\Account;
 use App\Models\User;
+use App\Models\AccountAuditLog;
+use App\Services\Audit\AuditContext;
 
 class AdminController extends Controller
 {
@@ -317,6 +319,8 @@ class AdminController extends Controller
         $account = Account::findOrFail($accountId);
         DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
         $section = $request->input('section');
+        $oldValues = [];
+        $newValues = [];
 
         switch ($section) {
             case 'Sign Up Details':
@@ -329,8 +333,25 @@ class AdminController extends Controller
                     'mobile_number' => 'required|string|max:20',
                 ]);
 
-                DB::transaction(function () use ($account, $request) {
-                    $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+                $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+                $oldValues = [
+                    'first_name' => $owner?->first_name,
+                    'last_name' => $owner?->last_name,
+                    'job_title' => $owner?->job_title,
+                    'email' => $owner?->email,
+                    'mobile_number' => $owner?->mobile_number,
+                    'business_name' => $account->company_name,
+                ];
+                $newValues = [
+                    'first_name' => $request->input('first_name'),
+                    'last_name' => $request->input('last_name'),
+                    'job_title' => $request->input('job_title'),
+                    'email' => $request->input('email'),
+                    'mobile_number' => $request->input('mobile_number'),
+                    'business_name' => $request->input('business_name'),
+                ];
+
+                DB::transaction(function () use ($account, $request, $owner) {
                     if ($owner) {
                         $owner->update([
                             'first_name' => $request->input('first_name'),
@@ -362,6 +383,21 @@ class AdminController extends Controller
                     'country' => 'nullable|string|max:5',
                 ]);
 
+                $oldValues = $account->only(['company_name', 'trading_name', 'company_type', 'company_number', 'business_sector', 'website', 'address_line1', 'address_line2', 'city', 'postcode', 'country']);
+                $newValues = [
+                    'company_name' => $request->input('company_name'),
+                    'trading_name' => $request->input('trading_name'),
+                    'company_type' => $request->input('company_type'),
+                    'company_number' => $request->input('company_number'),
+                    'business_sector' => $request->input('business_sector'),
+                    'website' => $request->input('website'),
+                    'address_line1' => $request->input('address_line1'),
+                    'address_line2' => $request->input('address_line2'),
+                    'city' => $request->input('city'),
+                    'postcode' => $request->input('postcode'),
+                    'country' => $request->input('country'),
+                ];
+
                 $account->update([
                     'company_name' => $request->input('company_name'),
                     'trading_name' => $request->input('trading_name'),
@@ -384,6 +420,13 @@ class AdminController extends Controller
                     'incident_email' => 'nullable|email|max:255',
                 ]);
 
+                $oldValues = $account->only(['accounts_billing_email', 'support_contact_email', 'incident_email']);
+                $newValues = [
+                    'accounts_billing_email' => $request->input('accounts_billing_email'),
+                    'support_contact_email' => $request->input('support_contact_email'),
+                    'incident_email' => $request->input('incident_email'),
+                ];
+
                 $account->update([
                     'accounts_billing_email' => $request->input('accounts_billing_email'),
                     'support_contact_email' => $request->input('support_contact_email'),
@@ -397,6 +440,13 @@ class AdminController extends Controller
                     'signatory_title' => 'nullable|string|max:255',
                     'signatory_email' => 'nullable|email|max:255',
                 ]);
+
+                $oldValues = $account->only(['signatory_name', 'signatory_title', 'signatory_email']);
+                $newValues = [
+                    'signatory_name' => $request->input('signatory_name'),
+                    'signatory_title' => $request->input('signatory_title'),
+                    'signatory_email' => $request->input('signatory_email'),
+                ];
 
                 $account->update([
                     'signatory_name' => $request->input('signatory_name'),
@@ -414,6 +464,15 @@ class AdminController extends Controller
                     'reverse_charge' => 'nullable|string|in:yes,no',
                 ]);
 
+                $oldValues = $account->only(['purchase_order_number', 'vat_registered', 'vat_number', 'tax_country', 'vat_reverse_charges']);
+                $newValues = [
+                    'purchase_order_number' => $request->input('purchase_order_number'),
+                    'vat_registered' => $request->input('vat_registered') === 'yes',
+                    'vat_number' => $request->input('vat_number'),
+                    'tax_country' => $request->input('vat_country'),
+                    'vat_reverse_charges' => $request->input('reverse_charge') === 'yes',
+                ];
+
                 $account->update([
                     'purchase_order_number' => $request->input('purchase_order_number'),
                     'vat_registered' => $request->input('vat_registered') === 'yes',
@@ -425,6 +484,25 @@ class AdminController extends Controller
 
             default:
                 return response()->json(['message' => 'Unknown section: ' . $section], 400);
+        }
+
+        try {
+            $changes = AuditContext::diff($oldValues, $newValues);
+            if (!empty($changes)) {
+                $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+                $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+                $changedFields = implode(', ', array_keys($changes));
+                AccountAuditLog::record(
+                    $accountId,
+                    'account_details_updated',
+                    $adminId,
+                    $adminUser,
+                    "{$section} updated by admin: {$changedFields}",
+                    ['section' => $section, 'changes' => $changes, 'source' => 'admin_console']
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record admin account details change', ['error' => $e->getMessage()]);
         }
 
         return response()->json([
