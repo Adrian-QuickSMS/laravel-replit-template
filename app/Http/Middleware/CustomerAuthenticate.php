@@ -24,9 +24,15 @@ class CustomerAuthenticate
         // Bind the authenticated user to Laravel's auth guard so that
         // $request->user(), auth()->user(), and model global scopes work correctly
         $user = \App\Models\User::withoutGlobalScope('tenant')->find(session('customer_user_id'));
-        if ($user) {
-            Auth::setUser($user);
+        if (!$user || $user->status !== 'active') {
+            session()->flush();
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('auth.login')->with('error', 'Your account is no longer active.');
         }
+
+        Auth::setUser($user);
 
         return $next($request);
     }

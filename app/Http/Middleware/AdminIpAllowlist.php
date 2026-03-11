@@ -19,8 +19,10 @@ class AdminIpAllowlist
         $allowedIps = config('admin.ip_allowlist.ips', []);
         $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
         
+        // Fail-closed: if allowlist is enabled but empty, deny all access
         if (empty($allowedIps) && empty($allowedCidrs)) {
-            return $next($request);
+            \Illuminate\Support\Facades\Log::error('Admin IP allowlist is enabled but empty — denying all access');
+            abort(403, 'Access denied: IP allowlist is misconfigured');
         }
         
         if (in_array($clientIp, $allowedIps)) {

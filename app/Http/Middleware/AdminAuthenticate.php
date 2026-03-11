@@ -196,8 +196,10 @@ class AdminAuthenticate
         $allowedIps = config('admin.ip_allowlist.ips', []);
         $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
         
+        // Fail-closed: if allowlist is enabled but empty, deny all access
         if (empty($allowedIps) && empty($allowedCidrs)) {
-            return true;
+            \Log::error('Admin IP allowlist is enabled but empty — denying all access');
+            return false;
         }
         
         if (in_array($ip, $allowedIps)) {

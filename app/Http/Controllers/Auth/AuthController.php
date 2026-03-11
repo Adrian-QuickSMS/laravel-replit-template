@@ -256,7 +256,7 @@ class AuthController extends Controller
 
             $user->password = Hash::make($request->password);
             $user->mobile_number = $normalizedMobile;
-            $user->mobile_verified_at = now();
+            // mobile_verified_at is NOT set here — mobile must be verified via SMS code
             $user->email_verified_at = now();
             $user->save();
 
@@ -404,6 +404,9 @@ class AuthController extends Controller
                     'mobile_number_hint' => substr($user->mobile_number, -4)
                 ], 200);
             }
+
+            // Regenerate session to prevent session fixation attacks
+            $request->session()->regenerate();
 
             // Create session token
             $token = $user->createToken('web-session', ['*'])->plainTextToken;
