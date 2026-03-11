@@ -314,7 +314,7 @@ var MessageEnforcementService = (function() {
             preloaded.normalisationChars || [],
             preloaded.domainAgeSettings || []
         );
-        console.log('[MessageEnforcementService] Rules loaded from server-injected @json:', {
+        console.log('[MessageEnforcementService] Rules loaded from server-injected data:', {
             normalisation: activeRules.normalisation.length,
             senderid: activeRules.senderid.length,
             content: activeRules.content.length,
