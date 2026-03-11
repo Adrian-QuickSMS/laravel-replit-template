@@ -160,7 +160,6 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
-        'tenant_id',
         'sub_account_id',
         'user_type',
         'email',
@@ -169,17 +168,12 @@ class User extends Authenticatable
         'job_title',
         'role',
         'status',
-        'mfa_enabled',
-        'mfa_secret',
         'mobile_number',
         'mobile_verified_at',
         'mobile_verification_code',
         'mobile_verification_expires_at',
-        'email_verified_at',
         'last_login_at',
         'last_login_ip',
-        'failed_login_attempts',
-        'account_locked_until',
         'hubspot_contact_id',
         // Caps & limits
         'monthly_spending_cap',
@@ -187,9 +181,14 @@ class User extends Authenticatable
         'daily_send_limit',
         'sender_capability',
         'permission_toggles',
-        'is_account_owner',
-        'owner_since',
     ];
+
+    /**
+     * Security-sensitive fields excluded from $fillable — set only via forceFill()
+     * in controlled code paths:
+     *   tenant_id, mfa_enabled, mfa_secret, email_verified_at,
+     *   failed_login_attempts, account_locked_until, is_account_owner, owner_since
+     */
 
     protected $hidden = [
         'password',

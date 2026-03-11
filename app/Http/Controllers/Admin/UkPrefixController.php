@@ -144,7 +144,7 @@ class UkPrefixController extends Controller
     public function parseFile(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:10240',
+            'file' => 'required|file|max:10240|mimes:csv,xlsx,xls,txt',
         ]);
 
         $file = $request->file('file');

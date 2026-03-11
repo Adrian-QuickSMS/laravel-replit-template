@@ -54,10 +54,18 @@ class MobileVerificationController extends Controller
         }
 
         try {
-            // Get user (either from auth or user_id param)
+            // Get user — authenticated users can only act on themselves;
+            // unauthenticated callers must match the user_id stored in the signup session
             if ($request->user()) {
                 $user = $request->user();
             } else {
+                $sessionUserId = session('signup_pending_user_id');
+                if (!$sessionUserId || $sessionUserId !== $request->user_id) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Unauthorized. Please start the signup process again.'
+                    ], 403);
+                }
                 $user = User::withoutGlobalScope('tenant')->find($request->user_id);
             }
 
@@ -97,15 +105,21 @@ class MobileVerificationController extends Controller
             // Get remaining attempts
             $remainingAttempts = $this->smsService->getRemainingAttempts($user->mobile_number);
 
+            $responseData = [
+                'mobile_number_hint' => $user->getFormattedMobileNumber(),
+                'remaining_attempts' => $remainingAttempts,
+                'expires_in_minutes' => SmsVerificationService::CODE_EXPIRY_MINUTES,
+            ];
+
+            // Never leak verification codes in API responses — log to server only in local env
+            if (isset($result['code']) && config('app.env') === 'local') {
+                \Log::debug('[DEV ONLY] Mobile verification code', ['code' => $result['code'], 'user_id' => $user->id]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => $result['message'],
-                'data' => [
-                    'mobile_number_hint' => $user->getFormattedMobileNumber(),
-                    'remaining_attempts' => $remainingAttempts,
-                    'expires_in_minutes' => SmsVerificationService::CODE_EXPIRY_MINUTES,
-                    'code' => $result['code'], // Only present in debug mode
-                ]
+                'data' => $responseData,
             ], 200);
 
         } catch (\Exception $e) {
@@ -142,10 +156,18 @@ class MobileVerificationController extends Controller
         }
 
         try {
-            // Get user (either from auth or user_id param)
+            // Get user — authenticated users can only act on themselves;
+            // unauthenticated callers must match the user_id stored in the signup session
             if ($request->user()) {
                 $user = $request->user();
             } else {
+                $sessionUserId = session('signup_pending_user_id');
+                if (!$sessionUserId || $sessionUserId !== $request->user_id) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Unauthorized. Please start the signup process again.'
+                    ], 403);
+                }
                 $user = User::withoutGlobalScope('tenant')->find($request->user_id);
             }
 
@@ -278,10 +300,18 @@ class MobileVerificationController extends Controller
         }
 
         try {
-            // Get user (either from auth or user_id param)
+            // Get user — authenticated users can only act on themselves;
+            // unauthenticated callers must match the user_id stored in the signup session
             if ($request->user()) {
                 $user = $request->user();
             } else {
+                $sessionUserId = session('signup_pending_user_id');
+                if (!$sessionUserId || $sessionUserId !== $request->user_id) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Unauthorized. Please start the signup process again.'
+                    ], 403);
+                }
                 $user = User::withoutGlobalScope('tenant')->find($request->user_id);
             }
 

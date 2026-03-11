@@ -16,6 +16,7 @@ Preferred communication style: Simple, everyday language.
 - **Database Roles:** Four distinct roles (`portal_ro`, `portal_rw`, `svc_red`, `ops_admin`) manage database access and RLS bypass for different application contexts.
 - **Audit Trail:** Sensitive actions are logged to an insert-only `auth_audit_log` table.
 - **RED / GREEN Trust Boundary:** Customer-facing (GREEN) operations use `portal_rw` role with RLS, `toPortalArray()` for responses, and Sanctum authentication. Internal/Admin (RED) operations use `svc_red` role, bypassing RLS, and allow full model data. `tenant_id` is always derived server-side.
+- **Security Hardening (applied):** Webhook endpoints fail-closed (HMAC verification required), session regeneration on login, OTP/MFA codes never in API responses (server-side logging gated on `app.env === 'local'` only), mass assignment protection on sensitive fields (`tenant_id`, `mfa_enabled`, `is_account_owner`, `status`), IDOR prevention on mobile verification via `signup_pending_user_id` session key, admin dev autologin restricted to `config('app.env') === 'local'`, secure session cookies in all non-local environments. Portal API routes (reporting, billing, top-up, account balance) use session-based `customer.auth` middleware in `routes/web.php` (not Sanctum bearer tokens).
 
 ### Frontend
 - **Templating:** Laravel Blade views, utilizing the **Fillow** design system for consistent UI components. No new layouts, colors, or component variants are to be introduced.

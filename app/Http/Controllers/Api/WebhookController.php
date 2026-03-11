@@ -162,8 +162,28 @@ class WebhookController extends Controller
 
     public function hubspotPayment(Request $request): JsonResponse
     {
+        // Verify HubSpot webhook signature (v2)
+        $clientSecret = config('services.hubspot.client_secret');
+        if ($clientSecret) {
+            $signature = $request->header('X-HubSpot-Signature');
+            $requestBody = $request->getContent();
+            $expectedHash = hash('sha256', $clientSecret . $requestBody);
+
+            if (!$signature || !hash_equals($expectedHash, $signature)) {
+                Log::warning('HubSpot webhook signature verification failed', [
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['error' => 'Invalid signature'], 400);
+            }
+        } else {
+            Log::warning('HubSpot webhook rejected — HUBSPOT_CLIENT_SECRET not configured', [
+                'ip' => $request->ip(),
+            ]);
+            return response()->json(['error' => 'Webhook signature verification not configured'], 401);
+        }
+
         $payload = $request->all();
-        
+
         // Comprehensive audit log for all webhook events
         Log::info('HubSpot payment webhook received', [
             'action' => 'webhook_received',
@@ -173,9 +193,6 @@ class WebhookController extends Controller
             'timestamp' => now()->toIso8601String(),
         ]);
 
-        // TODO: Verify webhook signature from HubSpot
-        // $signature = $request->header('X-HubSpot-Signature');
-        
         $eventType = $payload['eventType'] ?? $payload['subscriptionType'] ?? null;
         
         if ($eventType === 'invoice.paid' || $eventType === 'deal.propertyChange') {

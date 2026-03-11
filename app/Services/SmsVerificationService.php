@@ -91,7 +91,7 @@ class SmsVerificationService
             return [
                 'success' => true,
                 'message' => 'Verification code sent successfully',
-                'code' => config('app.debug') ? $code : null, // Only return code in debug mode
+                'code' => config('app.env') === 'local' ? $code : null,
             ];
         }
 
@@ -231,12 +231,12 @@ class SmsVerificationService
         //     'type' => 'verification',
         // ]);
 
-        // For now, log the code (in production, this would actually send SMS)
-        Log::info('SMS Verification Code (DEMO MODE)', [
-            'mobile_number' => $mobileNumber,
-            'code' => $code,
-            'message' => $message,
-        ]);
+        if (config('app.env') === 'local') {
+            Log::debug('[DEV ONLY] SMS Verification Code', [
+                'mobile_number' => $mobileNumber,
+                'code' => $code,
+            ]);
+        }
 
         // In demo mode, always return true
         // In production, return actual SMS gateway result

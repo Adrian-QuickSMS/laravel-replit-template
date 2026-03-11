@@ -171,6 +171,10 @@ class AuthController extends Controller
                 // Mail::to($user->email)->queue(new VerifyEmailMail($tokenData['plain_token']));
             }
 
+            // Store user_id in session so MobileVerificationController can
+            // verify the caller owns this signup flow (IDOR prevention)
+            $request->session()->put('signup_pending_user_id', $accountData->user_id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Account created successfully. Please verify your email and mobile number.',
@@ -256,7 +260,7 @@ class AuthController extends Controller
 
             $user->password = Hash::make($request->password);
             $user->mobile_number = $normalizedMobile;
-            $user->mobile_verified_at = now();
+            // mobile_verified_at is NOT set here — mobile must be verified via SMS code
             $user->email_verified_at = now();
             $user->save();
 
@@ -283,6 +287,10 @@ class AuthController extends Controller
             ]);
 
             $account = Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+
+            // Persist signup_pending_user_id so mobile verification can
+            // proceed in the next step (IDOR prevention)
+            $request->session()->put('signup_pending_user_id', $user->id);
 
             return response()->json([
                 'status' => 'success',
@@ -404,6 +412,9 @@ class AuthController extends Controller
                     'mobile_number_hint' => substr($user->mobile_number, -4)
                 ], 200);
             }
+
+            // Regenerate session to prevent session fixation attacks
+            $request->session()->regenerate();
 
             // Create session token
             $token = $user->createToken('web-session', ['*'])->plainTextToken;
@@ -656,7 +667,16 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'token' => 'required|string',
-            'password' => ['required', 'confirmed', Password::min(12)],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)
+                    ->max(128)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
         ]);
 
         if ($validator->fails()) {

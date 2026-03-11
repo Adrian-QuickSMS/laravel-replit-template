@@ -206,7 +206,7 @@ class AccountController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'An error occurred while updating settings.'
             ], 500);
         }
     }
@@ -272,9 +272,8 @@ class AccountController extends Controller
             // Generate temporary password
             $tempPassword = bin2hex(random_bytes(16));
 
-            // Create user
-            $newUser = User::create([
-                'tenant_id' => $user->tenant_id,
+            // Create user — tenant_id set via forceFill (excluded from $fillable for security)
+            $newUser = new User([
                 'user_type' => 'customer',
                 'email' => $request->email,
                 'password' => $tempPassword, // Will be hashed automatically
@@ -283,6 +282,8 @@ class AccountController extends Controller
                 'role' => $request->role,
                 'status' => 'active',
             ]);
+            $newUser->forceFill(['tenant_id' => $user->tenant_id]);
+            $newUser->save();
 
             // TODO: Send invitation email with temp password
 
@@ -328,8 +329,8 @@ class AccountController extends Controller
                 ], 400);
             }
 
-            // Find user (tenant scoping automatically applied)
-            $teamMember = User::find($userId);
+            // Explicitly scope to the current user's tenant to prevent cross-tenant access
+            $teamMember = User::where('tenant_id', $user->tenant_id)->find($userId);
 
             if (!$teamMember) {
                 return response()->json([

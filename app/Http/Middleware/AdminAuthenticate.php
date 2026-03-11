@@ -30,7 +30,8 @@ class AdminAuthenticate
         
         // Dev auto-login disabled — use /admin/login to authenticate
         // To re-enable, set ADMIN_DEV_AUTOLOGIN=true in environment
-        if (env('ADMIN_DEV_AUTOLOGIN', false) && (config('app.env') === 'local' || config('app.debug') === true)) {
+        // SECURITY: Only allow in 'local' environment — never when debug=true alone (which could be enabled in prod by accident)
+        if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
                 $devAdmin = AdminUser::where('role', 'super_admin')
                     ->where('status', 'active')
@@ -195,8 +196,11 @@ class AdminAuthenticate
         $allowedIps = config('admin.ip_allowlist.ips', []);
         $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
         
+        // Fail-closed: if allowlist is enabled but no IPs configured, deny all.
+        // Fix: set ADMIN_IP_ALLOWLIST_ENABLED=false or populate ADMIN_IP_ALLOWLIST.
         if (empty($allowedIps) && empty($allowedCidrs)) {
-            return true;
+            \Log::error('Admin IP allowlist is enabled but no IPs/CIDRs configured — all admin access is blocked. Set ADMIN_IP_ALLOWLIST_ENABLED=false or add IPs to ADMIN_IP_ALLOWLIST.');
+            return false;
         }
         
         if (in_array($ip, $allowedIps)) {

@@ -66,25 +66,51 @@ class InboundWebhookController extends Controller
      * Validate the gateway's request signature.
      *
      * Each gateway uses a different authentication mechanism:
-     * - HMAC signature in header
-     * - Bearer token
-     * - IP allowlist
+     * - Twilio: HMAC-SHA1 with URL-based payload
+     * - Vonage: JWT signature verification
+     * - Sinch: HMAC-SHA256 with specific headers
      *
-     * TODO: Implement per-gateway signature validation when gateways are built.
+     * IMPORTANT: Each real gateway integration MUST implement its own
+     * signature verification method below. The generic fallback uses
+     * HMAC-SHA256 which only works for custom/development gateways.
      */
     private function validateGatewaySignature(Request $request, string $gateway): bool
     {
-        // For now, accept all requests during development.
-        // In production, each gateway will have its own validation:
-        //
-        // match ($gateway) {
-        //     'sinch' => $this->validateSinchSignature($request),
-        //     'twilio' => $this->validateTwilioSignature($request),
-        //     'vonage' => $this->validateVonageSignature($request),
-        //     default => false,
-        // };
+        // SECURITY: Fail-closed — reject unknown gateways and missing secrets
+        $secret = config("services.gateways.{$gateway}.webhook_secret");
 
-        return true;
+        if (!$secret) {
+            Log::warning("Inbound webhook rejected — no webhook_secret configured for gateway", [
+                'gateway' => $gateway,
+                'ip' => $request->ip(),
+            ]);
+            return false;
+        }
+
+        // Dispatch to per-gateway verification
+        return match ($gateway) {
+            // TODO: Implement real gateway signature verification:
+            // 'twilio' => $this->verifyTwilioSignature($request, $secret),
+            // 'vonage' => $this->verifyVonageSignature($request, $secret),
+            // 'sinch'  => $this->verifySinchSignature($request, $secret),
+            'generic' => $this->verifyGenericHmac($request, $secret),
+            default   => $this->verifyGenericHmac($request, $secret),
+        };
+    }
+
+    /**
+     * Generic HMAC-SHA256 verification — for custom/development gateways only.
+     */
+    private function verifyGenericHmac(Request $request, string $secret): bool
+    {
+        $signature = $request->header('X-Webhook-Signature') ?? $request->header('X-Signature');
+
+        if (!$signature) {
+            return false;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $request->getContent(), $secret);
+        return hash_equals($expectedSignature, $signature);
     }
 
     /**

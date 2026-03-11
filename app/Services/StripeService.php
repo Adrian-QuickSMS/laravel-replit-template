@@ -12,8 +12,8 @@ class StripeService
 
     public function __construct()
     {
-        $this->secretKey = config('services.stripe.secret') ?: env('STRIPE_SECRET_KEY');
-        $this->webhookSecret = env('STRIPE_WEBHOOK_SECRET');
+        $this->secretKey = config('services.stripe.secret');
+        $this->webhookSecret = config('services.stripe.webhook_secret');
         $this->isConfigured = !empty($this->secretKey);
     }
 
@@ -92,7 +92,7 @@ class StripeService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create payment session: ' . $e->getMessage(),
+                'error' => 'Failed to create payment session',
             ];
         }
     }
@@ -190,7 +190,7 @@ class StripeService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create payment session: ' . $e->getMessage(),
+                'error' => 'Failed to create payment session',
             ];
         }
     }
@@ -198,8 +198,8 @@ class StripeService
     public function verifyWebhookSignature(string $payload, string $signature): bool
     {
         if (!$this->webhookSecret) {
-            Log::warning('Stripe webhook secret not configured - skipping signature verification');
-            return true;
+            Log::error('Stripe webhook secret not configured — rejecting webhook for security');
+            return false;
         }
 
         try {

@@ -19,8 +19,12 @@ class AdminIpAllowlist
         $allowedIps = config('admin.ip_allowlist.ips', []);
         $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
         
+        // Fail-closed: if allowlist is enabled but empty, deny all access.
+        // To fix: either set ADMIN_IP_ALLOWLIST_ENABLED=false or populate
+        // ADMIN_IP_ALLOWLIST and/or ADMIN_IP_ALLOWLIST_CIDRS in your .env
         if (empty($allowedIps) && empty($allowedCidrs)) {
-            return $next($request);
+            \Illuminate\Support\Facades\Log::error('Admin IP allowlist is enabled but no IPs/CIDRs configured — all admin access is blocked. Set ADMIN_IP_ALLOWLIST_ENABLED=false or add IPs to ADMIN_IP_ALLOWLIST.');
+            abort(403, 'Access denied: IP allowlist is enabled but no IPs are configured. Contact your administrator.');
         }
         
         if (in_array($clientIp, $allowedIps)) {

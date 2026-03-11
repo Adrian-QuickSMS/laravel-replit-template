@@ -13,7 +13,7 @@ class HubSpotInvoiceService
 
     public function __construct()
     {
-        $this->accessToken = env('HUBSPOT_ACCESS_TOKEN');
+        $this->accessToken = config('services.hubspot.access_token');
     }
 
     public function isConfigured(): bool

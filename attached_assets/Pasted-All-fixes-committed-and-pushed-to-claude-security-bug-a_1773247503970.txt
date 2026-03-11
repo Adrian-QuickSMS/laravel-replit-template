@@ -1,0 +1,20 @@
+All fixes committed and pushed to `claude/security-bug-audit-f3qAT`. Here's a summary:
+
+## Fixes Applied
+
+| # | Issue | Fix |
+|---|-------|-----|
+| **8** | Portal API routes return 401 (auth:sanctum + no bearer token) | Moved reporting, billing, topup, account routes from `routes/api.php` to `routes/web.php` under `customer.auth` middleware — same pattern as all other portal API routes |
+| **9** | `signup_pending_user_id` never set in session | Added `session()->put('signup_pending_user_id', ...)` in both `signup()` and `completeSecuritySetup()` so mobile verification IDOR check works |
+| **11** | HubSpot webhooks fail-open when unconfigured | Both `hubspotPayment()` and `handleDeal()` now return 401 when `HUBSPOT_CLIENT_SECRET` is missing, matching Xero's behavior |
+| **12** | Generic inbound gateway verification won't work with real gateways | Restructured with `match()` dispatch for per-gateway verification. Generic HMAC-SHA256 extracted to separate method. Clear TODOs for Twilio/Vonage/Sinch |
+| **15** | Secure cookie default breaks local dev | Changed to `env('APP_ENV') !== 'local'` — secure in all environments except local |
+| **10** | Admin IP allowlist locks out with empty list | Improved error messages with actionable fix guidance (set `ADMIN_IP_ALLOWLIST_ENABLED=false` or populate IPs) |
+| **bonus** | OTP debug logging gated on `app.debug` | Changed to `app.env === 'local'` to prevent leaking codes when debug is accidentally enabled in production |
+
+## No Fix Needed
+
+| # | Issue | Reason |
+|---|-------|--------|
+| **13** | `mobile_verified_at` removed from `completeSecuritySetup()` | Already correctly handled by `User::verifyMobileCode()` which is called via `SmsVerificationService::verifyCode()` during the separate mobile verification step |
+| **14** | Inconsistent password policies | All three paths (`signup`, `completeSecuritySetup`, `resetPassword`) already use identical `Password::min(12)->max(128)->mixedCase()->numbers()->symbols()->uncompromised()` |

@@ -7,6 +7,10 @@ use App\Http\Controllers\Api\RcsAssetController;
 use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\RcsAgentController;
 use App\Http\Controllers\Api\PurchaseApiController;
+use App\Http\Controllers\Api\ReportingDashboardApiController;
+use App\Http\Controllers\Api\BillingApiController;
+use App\Http\Controllers\Api\TopUpApiController;
+use App\Http\Controllers\Api\WebhookController;
 
 // =====================================================
 // Public opt-out landing page (no authentication required)
@@ -481,6 +485,41 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
     Route::get('/', 'index')->name('api.audit-logs.index');
     Route::get('/modules', 'modules')->name('api.audit-logs.modules');
     Route::get('/stats', 'stats')->name('api.audit-logs.stats');
+});
+
+// Reporting Dashboard API (session-based auth, moved from routes/api.php)
+Route::middleware('customer.auth')->prefix('api/reporting/dashboard')->group(function () {
+    Route::get('/', [ReportingDashboardApiController::class, 'index']);
+    Route::get('/kpis', [ReportingDashboardApiController::class, 'kpis']);
+    Route::get('/volume', [ReportingDashboardApiController::class, 'volumeOverTime']);
+    Route::get('/inbound-volume', [ReportingDashboardApiController::class, 'inboundVolumeOverTime']);
+    Route::get('/channel-split', [ReportingDashboardApiController::class, 'channelSplit']);
+    Route::get('/delivery-status', [ReportingDashboardApiController::class, 'deliveryStatus']);
+    Route::get('/top-countries', [ReportingDashboardApiController::class, 'topCountries']);
+    Route::get('/top-sender-ids', [ReportingDashboardApiController::class, 'topSenderIds']);
+    Route::get('/peak-time', [ReportingDashboardApiController::class, 'peakSendingTime']);
+    Route::get('/failure-reasons', [ReportingDashboardApiController::class, 'failureReasons']);
+    Route::get('/available-filters', [ReportingDashboardApiController::class, 'availableFilters']);
+});
+
+// Billing API (session-based auth, moved from routes/api.php)
+Route::middleware('customer.auth')->prefix('api/billing')->group(function () {
+    Route::get('/data', [BillingApiController::class, 'getData']);
+    Route::get('/export', [BillingApiController::class, 'export']);
+    Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
+    Route::post('/saved-reports', [BillingApiController::class, 'saveReport']);
+    Route::post('/schedule', [BillingApiController::class, 'schedule']);
+});
+
+// Top-Up API (session-based auth, moved from routes/api.php)
+Route::middleware('customer.auth')->prefix('api/topup')->group(function () {
+    Route::post('/create-checkout-session', [TopUpApiController::class, 'createCheckoutSession']);
+});
+
+// Account API (session-based auth, moved from routes/api.php)
+Route::middleware('customer.auth')->prefix('api/account')->group(function () {
+    Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
+    Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
 Route::prefix('admin')->group(function () {

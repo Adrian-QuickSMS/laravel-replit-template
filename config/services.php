@@ -34,6 +34,7 @@ return [
     'hubspot' => [
         'access_token' => env('HUBSPOT_ACCESS_TOKEN'),
         'api_key' => env('HUBSPOT_API_KEY'),
+        'client_secret' => env('HUBSPOT_CLIENT_SECRET'),
         'webhook_secret' => env('HUBSPOT_WEBHOOK_SECRET'),
     ],
 
