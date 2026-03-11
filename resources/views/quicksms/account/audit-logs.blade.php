@@ -384,12 +384,23 @@
                                         <option value="conversation_marked_read">Conversation Marked Read</option>
                                         <option value="conversation_marked_unread">Conversation Marked Unread</option>
                                     </optgroup>
+                                    <optgroup label="Contacts">
+                                        <option value="contact_created">Contact Created</option>
+                                        <option value="contact_deleted">Contact Deleted</option>
+                                        <option value="contacts_bulk_deleted">Contacts Bulk Deleted</option>
+                                    </optgroup>
                                     <optgroup label="Numbers">
                                         <option value="vmn_purchased">VMN Purchased</option>
                                         <option value="vmn_released">VMN Released</option>
                                         <option value="number_suspended">Number Suspended</option>
                                         <option value="number_reactivated">Number Reactivated</option>
                                         <option value="number_configured">Number Configured</option>
+                                    </optgroup>
+                                    <optgroup label="Authentication">
+                                        <option value="signup_completed">Signup Completed</option>
+                                        <option value="login_success">Login Success</option>
+                                        <option value="login_failed">Login Failed</option>
+                                        <option value="account_unlocked">Account Unlocked</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -866,6 +877,13 @@ $(document).ready(function() {
         number_suspended: { category: 'financial', severity: 'high', label: 'Number Suspended' },
         number_reactivated: { category: 'financial', severity: 'medium', label: 'Number Reactivated' },
         number_configured: { category: 'account', severity: 'low', label: 'Number Configured' },
+        contact_created: { category: 'account', severity: 'low', label: 'Contact Created' },
+        contact_deleted: { category: 'account', severity: 'medium', label: 'Contact Deleted' },
+        contacts_bulk_deleted: { category: 'account', severity: 'high', label: 'Contacts Bulk Deleted' },
+        signup_completed: { category: 'authentication', severity: 'low', label: 'Signup Completed' },
+        login_success: { category: 'authentication', severity: 'low', label: 'Login Success' },
+        login_failed: { category: 'authentication', severity: 'medium', label: 'Login Failed' },
+        account_unlocked: { category: 'authentication', severity: 'medium', label: 'Account Unlocked' },
         CAMPAIGN_SUBMITTED: { category: 'messaging', severity: 'low', label: 'Campaign Submitted' },
         CAMPAIGN_APPROVED: { category: 'messaging', severity: 'medium', label: 'Campaign Approved' },
         CAMPAIGN_REJECTED: { category: 'messaging', severity: 'medium', label: 'Campaign Rejected' },

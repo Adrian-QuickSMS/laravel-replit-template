@@ -552,7 +552,7 @@ class AuditLogApiController extends Controller
     private function buildCustomSelect(string $table, string $module, string $category): string
     {
         return match ($table) {
-            'auth_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id::TEXT AS user_id, actor_email AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id FROM auth_audit_log",
+            'auth_audit_log' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type::TEXT AS action, actor_id::TEXT AS user_id, actor_email AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, NULL::TEXT AS entity_id FROM auth_audit_log",
 
             'api_connection_audit_events' => "SELECT id::TEXT AS id, '{$module}' AS module, '{$category}' AS category, event_type AS action, actor_id::TEXT AS user_id, actor_name AS user_name, NULL AS details, COALESCE(metadata, '{}')::TEXT AS metadata, ip_address::TEXT AS ip_address, created_at, api_connection_id::TEXT AS entity_id FROM api_connection_audit_events",
 

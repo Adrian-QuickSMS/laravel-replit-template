@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccountAuditLog;
 use App\Models\Contact;
 use App\Models\ContactList;
 use App\Models\ContactTimelineEvent;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\Tag;
+use App\Services\Audit\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -140,6 +142,13 @@ class ContactBookApiController extends Controller
         $contact = Contact::create($validated);
         $contact->load(['tags', 'lists']);
 
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($this->tenantId(), 'contact_created', $actor['user_id'], $actor['user_name'], "Contact '{$contact->mobile_number}' created", ['contact_id' => $contact->id, 'mobile_number' => $contact->mobile_number]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record contact_created', ['error' => $e->getMessage()]);
+        }
+
         return response()->json(['data' => $contact->toPortalArray()], 201);
     }
 
@@ -181,8 +190,18 @@ class ContactBookApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
         }
 
+        $mobileNumber = $contact->mobile_number;
+        $contactId = $contact->id;
+
         // Soft-delete via Eloquent (preserves record with deleted_at timestamp)
         $contact->delete();
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($this->tenantId(), 'contact_deleted', $actor['user_id'], $actor['user_name'], "Contact '{$mobileNumber}' deleted", ['contact_id' => $contactId, 'mobile_number' => $mobileNumber]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record contact_deleted', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true, 'message' => 'Contact deleted']);
     }
@@ -424,7 +443,15 @@ class ContactBookApiController extends Controller
             'contact_ids.*' => 'uuid',
         ]);
 
-        $deleted = Contact::whereIn('id', $request->input('contact_ids'))->delete();
+        $contactIds = $request->input('contact_ids');
+        $deleted = Contact::whereIn('id', $contactIds)->delete();
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record($this->tenantId(), 'contacts_bulk_deleted', $actor['user_id'], $actor['user_name'], "Bulk deleted {$deleted} contact(s)", ['contact_ids' => $contactIds, 'deleted_count' => $deleted]);
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record contacts_bulk_deleted', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
