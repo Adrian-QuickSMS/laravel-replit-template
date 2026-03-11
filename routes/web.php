@@ -116,6 +116,18 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });
 
+// Flow Builder routes
+Route::middleware('customer.auth')->prefix('flows')->controller(\App\Http\Controllers\FlowBuilderController::class)->group(function () {
+    Route::get('/', 'index')->name('flows.index');
+    Route::get('/builder/{id?}', 'builder')->name('flows.builder');
+    Route::post('/', 'store')->name('flows.store');
+    Route::put('/{id}/save', 'save')->name('flows.save');
+    Route::get('/{id}/load', 'load')->name('flows.load');
+    Route::put('/{id}/status', 'updateStatus')->name('flows.update-status');
+    Route::post('/{id}/duplicate', 'duplicate')->name('flows.duplicate');
+    Route::delete('/{id}', 'destroy')->name('flows.destroy');
+});
+
 Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
     Route::get('/approved', 'approved')->name('api.sender-ids.approved');
     Route::post('/validate', 'validateSenderId')->name('api.sender-ids.validate');
