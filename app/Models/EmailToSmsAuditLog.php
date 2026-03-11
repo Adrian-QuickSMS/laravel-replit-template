@@ -69,13 +69,22 @@ class EmailToSmsAuditLog extends Model
         ?string $details = null,
         ?array $metadata = null
     ): self {
+        $user = auth()->user();
+        $userName = session('customer_user_name');
+        if (!$userName && $user) {
+            $userName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            if (empty($userName)) {
+                $userName = $user->email ?? 'Unknown';
+            }
+        }
+
         return static::withoutGlobalScopes()->create([
             'account_id' => $accountId,
             'setup_id' => $setupId,
             'reporting_group_id' => $reportingGroupId,
             'action' => $action,
-            'user_id' => session('customer_user_id'),
-            'user_name' => session('customer_user_name'),
+            'user_id' => session('customer_user_id') ?? $user?->id,
+            'user_name' => $userName,
             'details' => $details,
             'metadata' => $metadata,
             'ip_address' => request()->ip(),

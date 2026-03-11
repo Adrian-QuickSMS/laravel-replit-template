@@ -88,7 +88,7 @@ class AuditLogApiController extends Controller
         'email_to_sms' => [
             'table' => 'email_to_sms_audit_log',
             'entity_col' => 'setup_id',
-            'module' => 'messaging',
+            'module' => 'email_to_sms',
             'category' => 'messaging',
             'custom_select' => true,
         ],

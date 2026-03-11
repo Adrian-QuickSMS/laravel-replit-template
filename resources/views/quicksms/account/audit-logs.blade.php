@@ -1049,7 +1049,7 @@ $(document).ready(function() {
 
     var MODULE_LABEL_PREFIXES = {
         'api': 'API Connection',
-        'messaging': 'Message Template',
+        'email_to_sms': 'Email-to-SMS',
     };
     var GENERIC_ACTIONS = ['created', 'suspended', 'reactivated', 'edited', 'status-changed', 'archived'];
 
