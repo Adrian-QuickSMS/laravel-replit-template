@@ -557,6 +557,24 @@ class NumberApiController extends Controller
                 $user
             );
 
+            try {
+                $assignableName = $request->input('assignable_type') === 'sub_account'
+                    ? (SubAccount::find($request->input('assignable_id'))?->name ?? $request->input('assignable_id'))
+                    : (User::find($request->input('assignable_id'))?->email ?? $request->input('assignable_id'));
+                $actor = AuditContext::actor();
+                NumberAuditLog::record(
+                    $number->account_id,
+                    'number_assigned',
+                    $number->id,
+                    $actor['user_id'],
+                    $actor['user_name'],
+                    "Number {$number->number} assigned to {$request->input('assignable_type')}: {$assignableName}",
+                    ['number' => $number->number, 'assignable_type' => $request->input('assignable_type'), 'assignable_id' => $request->input('assignable_id'), 'assignable_name' => $assignableName]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record number_assigned', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -595,7 +613,27 @@ class NumberApiController extends Controller
         }
 
         try {
+            $number = $assignment->purchasedNumber;
+            $assignableType = class_basename($assignment->assignable_type);
+            $assignableId = $assignment->assignable_id;
+
             $this->numberService->unassignNumber($assignmentId);
+
+            try {
+                $actor = AuditContext::actor();
+                NumberAuditLog::record(
+                    $number->account_id,
+                    'number_unassigned',
+                    $number->id,
+                    $actor['user_id'],
+                    $actor['user_name'],
+                    "Number {$number->number} unassigned from {$assignableType}",
+                    ['number' => $number->number, 'assignable_type' => $assignableType, 'assignable_id' => $assignableId]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record number_unassigned', ['error' => $e->getMessage()]);
+            }
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Assignment not found.'], 404);
@@ -732,6 +770,27 @@ class NumberApiController extends Controller
             $request->input('assignable_id'),
             $user
         );
+
+        if ($created > 0) {
+            try {
+                $assignableName = $request->input('assignable_type') === 'sub_account'
+                    ? (SubAccount::find($request->input('assignable_id'))?->name ?? $request->input('assignable_id'))
+                    : (User::find($request->input('assignable_id'))?->email ?? $request->input('assignable_id'));
+                $actor = AuditContext::actor();
+                $tenantId = $this->tenantId();
+                NumberAuditLog::record(
+                    $tenantId,
+                    'number_assigned',
+                    null,
+                    $actor['user_id'],
+                    $actor['user_name'],
+                    "{$created} number(s) bulk assigned to {$request->input('assignable_type')}: {$assignableName}",
+                    ['count' => $created, 'assignable_type' => $request->input('assignable_type'), 'assignable_id' => $request->input('assignable_id'), 'assignable_name' => $assignableName]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('[AuditLog] Failed to record bulk number_assigned', ['error' => $e->getMessage()]);
+            }
+        }
 
         return response()->json([
             'success' => true,
