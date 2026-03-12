@@ -2764,7 +2764,7 @@ function resetTemplateDrivenState() {
     if (keywordInput) keywordInput.value = '';
     var replyText = document.getElementById('replyOptoutText');
     if (replyText) replyText.value = '';
-    setUrlOptoutText('OptOut, {{unique_url}}');
+    setUrlOptoutText('OptOut, @{{unique_url}}');
     var numberSelect = document.getElementById('optOutNumberId');
     if (numberSelect) numberSelect.selectedIndex = 0;
     var replyListSelect = document.getElementById('replyOptOutListId');
