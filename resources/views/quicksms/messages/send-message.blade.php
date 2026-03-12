@@ -113,6 +113,25 @@ body {
 @endpush
 
 @section('content')
+@if(!empty($flow_context))
+<style>
+    .nav-header, .chatbox, .header, .deznav, .footer, .page-titles,
+    #test-mode-activation-banner, #test-mode-collapsed-tab,
+    #senderid-returned-banner { display: none !important; }
+    body { background: #fff !important; }
+    .content-body { margin-left: 0 !important; min-height: auto !important; }
+    #main-wrapper { margin-left: 0 !important; padding-left: 0 !important; }
+    #main-wrapper.show { margin-left: 0 !important; }
+    .container-fluid { padding: 1rem 1.5rem !important; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('flow-embed-mode');
+    var el = document.getElementById('main-wrapper');
+    if (el) el.style.marginLeft = '0';
+});
+</script>
+@endif
 <div class="container-fluid">
     <div class="send-message-layout-wrap">
         <div class="row page-titles">
