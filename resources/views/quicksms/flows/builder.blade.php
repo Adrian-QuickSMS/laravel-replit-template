@@ -269,7 +269,7 @@
             </div>
             <div class="modal-body p-3" style="background: #f5f5f5; max-height: 70vh; overflow-y: auto;">
                 {{-- Channel toggle --}}
-                <div class="text-center mb-3" id="flowPreviewToggle" style="display: none;">
+                <div class="text-center mb-3 d-none" id="flowPreviewToggle">
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-primary active" data-preview-channel="sms">SMS</button>
                         <button class="btn btn-outline-primary" data-preview-channel="rcs">RCS</button>

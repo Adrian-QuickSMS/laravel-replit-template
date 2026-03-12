@@ -1812,18 +1812,17 @@
 
         container.innerHTML = '';
         toggleContainer.innerHTML = '';
+        toggleContainer.classList.add('d-none');
 
         var channel = c.channel || 'sms';
         var isRichRcs = (channel === 'rcs_rich' || channel === 'rich_rcs');
         var isAnyRcs = isRichRcs || channel === 'rcs_basic' || channel === 'basic_rcs';
 
-        // Build agent info for RCS
         var agent = null;
         if (isAnyRcs && c.rcs_agent_name) {
             agent = { name: c.rcs_agent_name, logo: '', verified: true, tagline: 'Business messaging' };
         }
 
-        // Render function for a given preview channel
         var renderForChannel = function(previewChannel) {
             if (typeof RcsPreviewRenderer === 'undefined') {
                 container.innerHTML = '<p class="text-muted text-center p-4">Preview renderer not available.</p>';
@@ -1841,26 +1840,26 @@
                 container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(c.rcs_payload, agent);
                 RcsPreviewRenderer.initCarouselBehavior('#flowPreviewContainer');
             } else {
+                var fallbackCh = isAnyRcs ? 'basic_rcs' : 'sms';
                 container.innerHTML = RcsPreviewRenderer.renderPreview({
-                    channel: 'sms',
+                    channel: fallbackCh,
                     message: { type: 'text', body: c.sms_content || '(no content)' },
-                    senderId: c.sender_id_text || 'Sender'
+                    senderId: c.sender_id_text || 'Sender',
+                    agent: agent
                 });
             }
         };
 
-        // Show toggle if RCS (can preview both RCS and SMS fallback)
         if (isAnyRcs) {
             toggleContainer.innerHTML =
                 '<div class="btn-group btn-group-sm" role="group">' +
                     '<button type="button" class="btn btn-sm active" id="previewToggleRcs" style="background:#886CC0;color:#fff;border:1px solid #886CC0;">RCS</button>' +
                     '<button type="button" class="btn btn-sm" id="previewToggleSms" style="background:#fff;color:#886CC0;border:1px solid #886CC0;">SMS</button>' +
                 '</div>';
+            toggleContainer.classList.remove('d-none');
 
-            // Default to RCS view
             renderForChannel(isRichRcs ? 'rcs_rich' : 'basic_rcs');
 
-            // Bind toggle after inserting HTML
             setTimeout(function() {
                 var rcsBtn = document.getElementById('previewToggleRcs');
                 var smsBtn = document.getElementById('previewToggleSms');
