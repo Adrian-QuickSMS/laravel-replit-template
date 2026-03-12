@@ -98,6 +98,18 @@
                 </ul>
             </li>
             
+            <li data-nav="hr" class="{{ request()->routeIs('hr.*') ? 'mm-active' : '' }}">
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fas fa-users"></i>
+                    <span class="nav-text">HR</span>
+                </a>
+                <ul aria-expanded="false">
+                    <li data-subnav="hr-dashboard"><a href="{{ route('hr.dashboard') }}" class="{{ request()->routeIs('hr.dashboard') ? 'mm-active' : '' }}">Dashboard</a></li>
+                    <li data-subnav="my-leave"><a href="{{ route('hr.my-leave') }}" class="{{ request()->routeIs('hr.my-leave') ? 'mm-active' : '' }}">My Leave</a></li>
+                    <li data-subnav="hr-admin" data-requires-role="admin,owner"><a href="{{ route('hr.admin') }}" class="{{ request()->routeIs('hr.admin') ? 'mm-active' : '' }}">Admin</a></li>
+                </ul>
+            </li>
+
             <li data-nav="support" class="{{ request()->routeIs('support') || request()->routeIs('support.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-headset"></i>

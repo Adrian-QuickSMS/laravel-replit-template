@@ -10,6 +10,53 @@
         </ol>
     </div>
     
+    <!-- Console Hub - Module Tiles -->
+    <section class="mb-4" id="consoleHub">
+        <div class="d-flex align-items-center mb-3">
+            <h4 class="mb-0"><i class="fas fa-th-large me-2 text-primary"></i>Admin Console</h4>
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('dashboard') }}" class="text-decoration-none">
+                    <div class="card overflow-hidden" style="border-left: 4px solid #886CC0;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 60px; height: 60px; background: rgba(136,108,192,0.12);">
+                                        <i class="fas fa-envelope fa-lg" style="color: #886CC0;"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 text-dark fw-bold">Messaging</h5>
+                                    <p class="mb-0 text-muted small">SMS, RCS & Campaign Management</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('hr.dashboard') }}" class="text-decoration-none">
+                    <div class="card overflow-hidden" style="border-left: 4px solid #2BC155;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 60px; height: 60px; background: rgba(43,193,85,0.12);">
+                                        <i class="fas fa-users fa-lg" style="color: #2BC155;"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 text-dark fw-bold">HR</h5>
+                                    <p class="mb-0 text-muted small">Leave Management & Staff</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <section class="mb-4" id="operationalOverview">
         <div class="d-flex align-items-center mb-3">
             <h4 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Operational Overview</h4>

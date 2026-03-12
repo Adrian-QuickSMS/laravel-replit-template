@@ -835,3 +835,29 @@ Route::prefix('admin')->group(function () {
 });
 
 require __DIR__ . '/../package/routes/supplier-management.php';
+
+// =====================================================
+// HR Module Routes
+// =====================================================
+Route::middleware(['customer.auth'])->prefix('hr')->group(function () {
+    // HR Dashboard
+    Route::get('/', [\App\Http\Controllers\Hr\HrDashboardController::class, 'index'])->name('hr.dashboard');
+
+    // My Leave (employee self-service)
+    Route::get('/my-leave', [\App\Http\Controllers\Hr\MyLeaveController::class, 'index'])->name('hr.my-leave');
+    Route::post('/my-leave/request', [\App\Http\Controllers\Hr\MyLeaveController::class, 'store'])->name('hr.my-leave.store');
+    Route::post('/my-leave/{id}/cancel', [\App\Http\Controllers\Hr\MyLeaveController::class, 'cancel'])->name('hr.my-leave.cancel');
+
+    // Admin/Manager routes
+    Route::prefix('admin')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Hr\HrAdminController::class, 'index'])->name('hr.admin');
+        Route::get('/employees', [\App\Http\Controllers\Hr\HrAdminController::class, 'employees'])->name('hr.admin.employees');
+        Route::post('/employees', [\App\Http\Controllers\Hr\HrAdminController::class, 'storeEmployee'])->name('hr.admin.employees.store');
+        Route::put('/employees/{employeeId}/entitlement', [\App\Http\Controllers\Hr\HrAdminController::class, 'updateEntitlement'])->name('hr.admin.entitlement.update');
+        Route::post('/requests/{requestId}/approve', [\App\Http\Controllers\Hr\HrAdminController::class, 'approveRequest'])->name('hr.admin.requests.approve');
+        Route::post('/requests/{requestId}/reject', [\App\Http\Controllers\Hr\HrAdminController::class, 'rejectRequest'])->name('hr.admin.requests.reject');
+        Route::get('/requests/{requestId}/ics', [\App\Http\Controllers\Hr\HrAdminController::class, 'downloadIcs'])->name('hr.admin.requests.ics');
+        Route::get('/audit-log', [\App\Http\Controllers\Hr\HrAdminController::class, 'auditLog'])->name('hr.admin.audit-log');
+        Route::put('/settings', [\App\Http\Controllers\Hr\HrAdminController::class, 'updateSettings'])->name('hr.admin.settings.update');
+    });
+});
