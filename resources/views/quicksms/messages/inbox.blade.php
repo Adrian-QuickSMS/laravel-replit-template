@@ -1604,6 +1604,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (replyMsg) {
         replyMsg.addEventListener('input', updateCharCount);
     }
+
+    if (typeof BadgeChipEditor !== 'undefined') {
+        window.inboxChipEditor = BadgeChipEditor.initFromTextarea('#replyMessage', {
+            onChange: function() { updateCharCount(); }
+        });
+    }
     
     // ========================================
     // FILTER EVENT LISTENERS
@@ -2005,8 +2011,15 @@ function countGSM7Length(text) {
     return len;
 }
 
+function setInboxContent(text) {
+    document.getElementById('replyMessage').value = text;
+    if (window.inboxChipEditor) {
+        window.inboxChipEditor.setValue(text);
+    }
+}
+
 function updateCharCount() {
-    var text = document.getElementById('replyMessage').value;
+    var text = window.inboxChipEditor ? window.inboxChipEditor.getValue() : document.getElementById('replyMessage').value;
     var charCount = text.length;
     var isGsm = isGSM7(text);
     var encoding = isGsm ? 'GSM-7' : 'Unicode';
@@ -2066,13 +2079,17 @@ function addToRecentEmojis(emoji) {
 }
 
 function insertEmojiFromModal(emoji) {
-    var textarea = document.getElementById('replyMessage');
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
-    var text = textarea.value;
-    textarea.value = text.substring(0, start) + emoji + text.substring(end);
-    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-    textarea.focus();
+    if (window.inboxChipEditor) {
+        window.inboxChipEditor.insertAtCursor(emoji);
+    } else {
+        var textarea = document.getElementById('replyMessage');
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + emoji + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        textarea.focus();
+    }
     updateCharCount();
     addToRecentEmojis(emoji);
     bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
@@ -2165,7 +2182,7 @@ function applyInboxTemplate() {
     var selectedOption = selector.options[selector.selectedIndex];
     
     if (!selectedOption.value) {
-        document.getElementById('replyMessage').value = '';
+        setInboxContent('');
         updateCharCount();
         return;
     }
@@ -2196,10 +2213,10 @@ function applyInboxTemplate() {
         }
     } else if (channel === 'Basic RCS + SMS') {
         document.querySelector('#replyRcsBasic').click();
-        document.getElementById('replyMessage').value = content;
+        setInboxContent(content);
         updateCharCount();
     } else {
-        document.getElementById('replyMessage').value = content;
+        setInboxContent(content);
         updateCharCount();
     }
 }
@@ -2256,7 +2273,7 @@ function aiImprove(action) {
 
 function useAiSuggestion() {
     if (window.aiSuggestedText) {
-        document.getElementById('replyMessage').value = window.aiSuggestedText;
+        setInboxContent(window.aiSuggestedText);
         updateCharCount();
     }
     bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal')).hide();
@@ -2273,15 +2290,19 @@ function openPersonalisationModal() {
 }
 
 function insertPlaceholder(field) {
-    var textarea = document.getElementById('replyMessage');
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
-    var text = textarea.value;
     var placeholder = '{' + '{' + field + '}' + '}';
-    textarea.value = text.substring(0, start) + placeholder + text.substring(end);
-    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-    textarea.focus();
-    updateCharCount();
+    if (window.inboxChipEditor) {
+        window.inboxChipEditor.insertAtCursor(placeholder);
+    } else {
+        var textarea = document.getElementById('replyMessage');
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+        textarea.focus();
+        updateCharCount();
+    }
     bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
 }
 
@@ -2637,7 +2658,7 @@ function sendReply() {
     chatArea.innerHTML += html;
     chatArea.scrollTop = chatArea.scrollHeight;
     
-    document.getElementById('replyMessage').value = '';
+    setInboxContent('');
     updateCharCount();
     
     console.log('TODO: POST /api/messages/send', { conversationId: currentConversationId, message: message, channel: channel });
@@ -2648,7 +2669,7 @@ function showTemplateModal() {
 }
 
 function insertTemplate(content) {
-    document.getElementById('replyMessage').value = content;
+    setInboxContent(content);
     updateCharCount();
     templateModal.hide();
 }

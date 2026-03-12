@@ -1338,10 +1338,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(e) { return new bootstrap.Tooltip(e); });
     
+    window.smsChipEditor = BadgeChipEditor.initFromTextarea('#smsContent', {
+        onChange: function() { handleContentChange(); }
+    });
+
     window.smsEmojiPicker = new QSEmojiPicker({
         triggerEl: document.getElementById('emojiPickerBtn'),
         textareaEl: document.getElementById('smsContent'),
-        onInsert: function() { handleContentChange(); }
+        onInsert: function() {
+            if (window.smsChipEditor) {
+                var ta = document.getElementById('smsContent');
+                window.smsChipEditor.setValue(ta.value);
+            }
+            handleContentChange();
+        }
     });
     
     document.querySelectorAll('input[name="channel"]').forEach(function(radio) {
@@ -1781,12 +1791,9 @@ function loadDraftForEditing(draftId) {
     
     // Set message content
     if (draft.config && draft.config.message_content) {
-        var smsContent = document.getElementById('smsContent');
-        if (smsContent) {
-            smsContent.value = draft.config.message_content;
-            if (typeof updateCharCount === 'function') updateCharCount();
-            if (typeof updatePreview === 'function') updatePreview();
-        }
+        setSmsContent(draft.config.message_content);
+        if (typeof updateCharCount === 'function') updateCharCount();
+        if (typeof updatePreview === 'function') updatePreview();
     }
     
     // Set recipients — restore manual numbers
@@ -1942,11 +1949,8 @@ function loadDbCampaignForEditing(campaignId) {
         }
 
         if (c.message_content) {
-            var smsContent = document.getElementById('smsContent');
-            if (smsContent) {
-                smsContent.value = c.message_content;
-                if (typeof updateCharCount === 'function') updateCharCount();
-            }
+            setSmsContent(c.message_content);
+            if (typeof updateCharCount === 'function') updateCharCount();
         }
 
         if (c.rcs_content && c.rcs_content.cards) {
@@ -2369,6 +2373,13 @@ function isGSM7(text) {
     return true;
 }
 
+function setSmsContent(text) {
+    document.getElementById('smsContent').value = text;
+    if (window.smsChipEditor) {
+        window.smsChipEditor.setValue(text);
+    }
+}
+
 function handleContentChange() {
     var rawContent = document.getElementById('smsContent').value;
     var content = rawContent.replace(/\{\{\s*unique_url\s*\}\}/g, 'qout.uk/XXXXX');
@@ -2423,7 +2434,7 @@ function applyTemplate() {
     var select = document.getElementById('templateSelect');
     var option = select.selectedOptions[0];
     if (option && option.dataset.content) {
-        document.getElementById('smsContent').value = option.dataset.content;
+        setSmsContent(option.dataset.content);
         handleContentChange();
     }
 }
@@ -2438,15 +2449,19 @@ function insertPlaceholder(field) {
         insertRcsPlaceholder(field);
         return;
     }
-    var textarea = document.getElementById('smsContent');
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
-    var text = textarea.value;
     var placeholder = '{' + '{' + field + '}' + '}';
-    textarea.value = text.substring(0, start) + placeholder + text.substring(end);
-    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-    textarea.focus();
-    handleContentChange();
+    if (window.smsChipEditor) {
+        window.smsChipEditor.insertAtCursor(placeholder);
+    } else {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+        textarea.focus();
+        handleContentChange();
+    }
     bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
 }
 
@@ -2467,14 +2482,18 @@ function insertEmoji(emoji) {
         insertRcsEmoji(emoji);
         return;
     }
-    var textarea = document.getElementById('smsContent');
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
-    var text = textarea.value;
-    textarea.value = text.substring(0, start) + emoji + text.substring(end);
-    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-    textarea.focus();
-    handleContentChange();
+    if (window.smsChipEditor) {
+        window.smsChipEditor.insertAtCursor(emoji);
+    } else {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + emoji + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        textarea.focus();
+        handleContentChange();
+    }
 }
 
 function toggleTemplateSelection() {
@@ -2486,7 +2505,7 @@ function toggleTemplateSelection() {
 }
 
 function selectTemplate(id, content) {
-    document.getElementById('smsContent').value = content;
+    setSmsContent(content);
     handleContentChange();
     bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
 }
@@ -2543,23 +2562,31 @@ function confirmTrackableLink() {
     document.getElementById('trackableLinkDomain').textContent = domain;
     document.getElementById('trackableLinkSummary').classList.remove('d-none');
     
-    var textarea = document.getElementById('smsContent');
-    var start = textarea.selectionStart;
-    var text = textarea.value;
     var shortUrl = 'https://' + domain + '/abc123';
-    textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
-    handleContentChange();
+    if (window.smsChipEditor) {
+        window.smsChipEditor.insertAtCursor(shortUrl);
+    } else {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+        handleContentChange();
+    }
     
     bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
 }
 
 function insertPlaceholderDirect(field) {
-    var textarea = document.getElementById('smsContent');
-    var start = textarea.selectionStart;
-    var text = textarea.value;
     var placeholder = '{' + '{' + field + '}' + '}';
-    textarea.value = text.substring(0, start) + placeholder + text.substring(start);
-    handleContentChange();
+    if (window.smsChipEditor) {
+        window.smsChipEditor.insertAtCursor(placeholder);
+    } else {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + placeholder + text.substring(start);
+        handleContentChange();
+    }
 }
 
 function toggleScheduleRulesModal() {
@@ -2781,7 +2808,7 @@ function applySelectedTemplate() {
 
     if (!selectedOption.value) {
         resetTemplateDrivenState();
-        document.getElementById('smsContent').value = '';
+        setSmsContent('');
         handleContentChange();
         return;
     }
@@ -2842,15 +2869,15 @@ function applySelectedTemplate() {
         } catch (e) {
             console.warn('Failed to parse RCS payload:', e);
         }
-        document.getElementById('smsContent').value = content;
+        setSmsContent(content);
         handleContentChange();
     } else if (channel === 'Basic RCS + SMS') {
         document.querySelector('#channelRCSBasic').click();
-        document.getElementById('smsContent').value = content;
+        setSmsContent(content);
         handleContentChange();
         setTimeout(function() { setTemplateSenderAndAgent(tpl, channel); }, 100);
     } else {
-        document.getElementById('smsContent').value = content;
+        setSmsContent(content);
         handleContentChange();
         setTemplateSenderAndAgent(tpl, channel);
     }
@@ -3114,7 +3141,7 @@ function aiImprove(action) {
 }
 
 function useAiSuggestion() {
-    document.getElementById('smsContent').value = aiSuggestedText;
+    setSmsContent(aiSuggestedText);
     handleContentChange();
     bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal')).hide();
 }
@@ -3261,16 +3288,23 @@ function setRcsCropPosition(position) {
 // Text count and picker functions loaded from shared rcs-wizard.js
 
 function insertRcsPlaceholder(field) {
-    var el = getRcsTextElement(rcsActiveTextField);
-    if (!el) return;
-    
-    var start = el.selectionStart;
-    var end = el.selectionEnd;
-    var text = el.value;
     var placeholder = '{{' + field + '}}';
-    el.value = text.substring(0, start) + placeholder + text.substring(end);
-    el.selectionStart = el.selectionEnd = start + placeholder.length;
-    el.focus();
+    var chipEditor = null;
+    if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+    if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+
+    if (chipEditor) {
+        chipEditor.insertAtCursor(placeholder);
+    } else {
+        var el = getRcsTextElement(rcsActiveTextField);
+        if (!el) return;
+        var start = el.selectionStart;
+        var end = el.selectionEnd;
+        var text = el.value;
+        el.value = text.substring(0, start) + placeholder + text.substring(end);
+        el.selectionStart = el.selectionEnd = start + placeholder.length;
+        el.focus();
+    }
     
     if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
@@ -3281,15 +3315,22 @@ function insertRcsPlaceholder(field) {
 }
 
 function insertRcsEmoji(emoji) {
-    var el = getRcsTextElement(rcsActiveTextField);
-    if (!el) return;
-    
-    var start = el.selectionStart;
-    var end = el.selectionEnd;
-    var text = el.value;
-    el.value = text.substring(0, start) + emoji + text.substring(end);
-    el.selectionStart = el.selectionEnd = start + emoji.length;
-    el.focus();
+    var chipEditor = null;
+    if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+    if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+
+    if (chipEditor) {
+        chipEditor.insertAtCursor(emoji);
+    } else {
+        var el = getRcsTextElement(rcsActiveTextField);
+        if (!el) return;
+        var start = el.selectionStart;
+        var end = el.selectionEnd;
+        var text = el.value;
+        el.value = text.substring(0, start) + emoji + text.substring(end);
+        el.selectionStart = el.selectionEnd = start + emoji.length;
+        el.focus();
+    }
     
     if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();

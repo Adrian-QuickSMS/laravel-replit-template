@@ -160,6 +160,38 @@ var rcsImageDirtyState = {
 var rcsButtons = [];
 var rcsEditingButtonIndex = -1;
 var rcsActiveTextField = null;
+var rcsChipEditors = {};
+
+function initRcsChipEditors() {
+    if (typeof BadgeChipEditor === 'undefined') return;
+    var descWrapper = document.getElementById('rcsDescription');
+    if (descWrapper && descWrapper.parentElement && !rcsChipEditors.description) {
+        rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descWrapper, {
+            singleLine: true,
+            onChange: function() { updateRcsDescriptionCount(); }
+        });
+    }
+    var bodyWrapper = document.getElementById('rcsTextBody');
+    if (bodyWrapper && bodyWrapper.parentElement && !rcsChipEditors.textBody) {
+        rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyWrapper, {
+            onChange: function() { updateRcsTextBodyCount(); }
+        });
+    }
+}
+
+function getRcsFieldValue(fieldId) {
+    if (fieldId === 'rcsDescription' && rcsChipEditors.description) return rcsChipEditors.description.getValue();
+    if (fieldId === 'rcsTextBody' && rcsChipEditors.textBody) return rcsChipEditors.textBody.getValue();
+    var el = document.getElementById(fieldId);
+    return el ? el.value : '';
+}
+
+function setRcsFieldValue(fieldId, val) {
+    var el = document.getElementById(fieldId);
+    if (el) el.value = val;
+    if (fieldId === 'rcsDescription' && rcsChipEditors.description) rcsChipEditors.description.setValue(val);
+    if (fieldId === 'rcsTextBody' && rcsChipEditors.textBody) rcsChipEditors.textBody.setValue(val);
+}
 var rcsCrosshairHideTimer = null;
 
 function generateDraftSession() {
@@ -290,10 +322,8 @@ function saveCurrentCardData() {
     card.media.cropOffsetX = rcsCropState.offsetX;
     card.media.cropOffsetY = rcsCropState.offsetY;
     
-    var descEl = document.getElementById('rcsDescription');
-    var bodyEl = document.getElementById('rcsTextBody');
-    card.description = descEl ? descEl.value : '';
-    card.textBody = bodyEl ? bodyEl.value : '';
+    card.description = getRcsFieldValue('rcsDescription');
+    card.textBody = getRcsFieldValue('rcsTextBody');
     card.buttons = JSON.parse(JSON.stringify(rcsButtons));
 }
 
@@ -356,10 +386,8 @@ function loadCardData(cardNum) {
         }
     }
     
-    var descEl = document.getElementById('rcsDescription');
-    var bodyEl = document.getElementById('rcsTextBody');
-    if (descEl) descEl.value = card.description;
-    if (bodyEl) bodyEl.value = card.textBody;
+    setRcsFieldValue('rcsDescription', card.description);
+    setRcsFieldValue('rcsTextBody', card.textBody);
     updateRcsDescriptionCount();
     updateRcsTextBodyCount();
     
@@ -657,10 +685,8 @@ function getWizardCardSchema(cardNum) {
     var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
     var heightClass = heights[orientation] || 'medium';
     
-    var descEl = document.getElementById('rcsDescription');
-    var bodyEl = document.getElementById('rcsTextBody');
-    var description = descEl ? descEl.value : (card.description || '');
-    var textBody = bodyEl ? bodyEl.value : (card.textBody || '');
+    var description = getRcsFieldValue('rcsDescription') || (card.description || '');
+    var textBody = getRcsFieldValue('rcsTextBody') || (card.textBody || '');
     
     var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
     
@@ -788,10 +814,8 @@ function resetRcsWizard() {
     if (typeSingle) typeSingle.checked = true;
     toggleRcsMessageType();
     removeRcsMedia();
-    var descEl = document.getElementById('rcsDescription');
-    var bodyEl = document.getElementById('rcsTextBody');
-    if (descEl) descEl.value = '';
-    if (bodyEl) bodyEl.value = '';
+    setRcsFieldValue('rcsDescription', '');
+    setRcsFieldValue('rcsTextBody', '');
     updateRcsDescriptionCount();
     updateRcsTextBodyCount();
     renderRcsButtons();
@@ -2352,11 +2376,10 @@ function updateCarouselOrientationWarning() {
 }
 
 function updateRcsDescriptionCount() {
-    var input = document.getElementById('rcsDescription');
     var countEl = document.getElementById('rcsDescriptionCount');
     var warning = document.getElementById('rcsDescriptionWarning');
-    if (input && countEl) {
-        var count = input.value.length;
+    if (countEl) {
+        var count = getRcsFieldValue('rcsDescription').length;
         countEl.textContent = count;
         if (warning) warning.classList.toggle('d-none', count <= 120);
         updateRcsWizardPreview();
@@ -2364,11 +2387,10 @@ function updateRcsDescriptionCount() {
 }
 
 function updateRcsTextBodyCount() {
-    var textarea = document.getElementById('rcsTextBody');
     var countEl = document.getElementById('rcsTextBodyCount');
     var warning = document.getElementById('rcsTextBodyWarning');
-    if (textarea && countEl) {
-        var count = textarea.value.length;
+    if (countEl) {
+        var count = getRcsFieldValue('rcsTextBody').length;
         countEl.textContent = count;
         if (warning) warning.classList.toggle('d-none', count <= 2000);
         updateRcsWizardPreview();
@@ -3347,6 +3369,8 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('[RCS Wizard] Apply button not found');
     }
+    
+    initRcsChipEditors();
     
     console.log('[RCS Wizard] DOMContentLoaded complete');
 });

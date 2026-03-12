@@ -40,6 +40,7 @@
     <link href="{{ asset('css/admin-control-plane.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-modal-design-system.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-breadcrumb-system.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('css/badge-chip-editor.css') }}" rel="stylesheet" type="text/css"/>
     
     @stack('styles')
 
@@ -113,6 +114,7 @@
     @endif
     
     <script src="{{ asset('vendor/apexchart/apexchart.js') }}"></script>
+    <script src="{{ asset('js/badge-chip-editor.js') }}"></script>
     <script src="{{ asset('js/admin-control-plane.js') }}"></script>
     <script src="{{ asset('js/quicksms-audit-logger.js') }}"></script>
     

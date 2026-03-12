@@ -1533,14 +1533,15 @@
         var fallbackNote = document.getElementById('smsFallbackNote');
         var label = document.getElementById('smsComposerLabel');
 
-        // Store context for apply
         this._smsComposerNodeId = nodeId;
         this._smsComposerIsFallback = isFallback;
 
-        // Pre-fill
-        textarea.value = node.config.sms_content || '';
+        var content = node.config.sms_content || '';
+        textarea.value = content;
+        if (window.flowChipEditor) {
+            window.flowChipEditor.setValue(content);
+        }
 
-        // Update label/note
         if (isFallback) {
             fallbackNote.classList.remove('d-none');
             label.textContent = 'SMS Fallback Content';
@@ -1550,16 +1551,17 @@
             label.textContent = ch === 'basic_rcs' ? 'Basic RCS Content' : 'SMS Content';
         }
 
-        // Update counts
         flowHandleContentChange();
 
-        // Show modal
         var modal = new bootstrap.Modal(document.getElementById('smsComposerModal'));
         modal.show();
 
-        // Focus textarea after modal is shown
         document.getElementById('smsComposerModal').addEventListener('shown.bs.modal', function handler() {
-            textarea.focus();
+            if (window.flowChipEditor) {
+                window.flowChipEditor.focus();
+            } else {
+                textarea.focus();
+            }
             document.getElementById('smsComposerModal').removeEventListener('shown.bs.modal', handler);
         });
     };
@@ -1571,8 +1573,7 @@
         var node = this.nodes[nodeId];
         if (!node) return;
 
-        var textarea = document.getElementById('flowSmsContent');
-        node.config.sms_content = textarea.value;
+        node.config.sms_content = window.flowChipEditor ? window.flowChipEditor.getValue() : document.getElementById('flowSmsContent').value;
         this._refreshNode(nodeId);
         this._showProperties(nodeId);
         this.isDirty = true;
@@ -1648,17 +1649,28 @@
             self._handleRcsContentApplied(e);
         });
 
-        // Initialize emoji picker for the flow SMS composer
+        window.flowChipEditor = BadgeChipEditor.initFromTextarea('#flowSmsContent', {
+            onChange: function() { flowHandleContentChange(); }
+        });
+
         var emojiBtn = document.getElementById('flowEmojiPickerBtn');
         if (emojiBtn && typeof QSEmojiPicker !== 'undefined') {
-            new QSEmojiPicker(emojiBtn, function(emoji) {
-                var textarea = document.getElementById('flowSmsContent');
-                if (textarea) {
-                    var start = textarea.selectionStart;
-                    var end = textarea.selectionEnd;
-                    textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
-                    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-                    textarea.focus();
+            new QSEmojiPicker({
+                triggerEl: emojiBtn,
+                textareaEl: document.getElementById('flowSmsContent'),
+                onInsert: function(emoji) {
+                    if (window.flowChipEditor) {
+                        window.flowChipEditor.insertAtCursor(emoji);
+                    } else {
+                        var textarea = document.getElementById('flowSmsContent');
+                        if (textarea) {
+                            var start = textarea.selectionStart;
+                            var end = textarea.selectionEnd;
+                            textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
+                            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+                            textarea.focus();
+                        }
+                    }
                     flowHandleContentChange();
                 }
             });
@@ -1669,10 +1681,8 @@
     // Global functions for SMS composer
     // ========================================
     window.flowHandleContentChange = function() {
-        var textarea = document.getElementById('flowSmsContent');
-        if (!textarea) return;
-
-        var text = textarea.value;
+        var text = window.flowChipEditor ? window.flowChipEditor.getValue() : (document.getElementById('flowSmsContent') || {}).value || '';
+        if (!text && text !== '') return;
         var info = calculateSegments(text);
 
         var charCountEl = document.getElementById('flowCharCount');
@@ -1693,18 +1703,20 @@
     };
 
     window.flowInsertPlaceholder = function(name) {
-        var textarea = document.getElementById('flowSmsContent');
-        if (!textarea) return;
-
         var placeholder = '{{' + name + '}}';
-        var start = textarea.selectionStart;
-        var end = textarea.selectionEnd;
-        textarea.value = textarea.value.substring(0, start) + placeholder + textarea.value.substring(end);
-        textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-        textarea.focus();
-        flowHandleContentChange();
+        if (window.flowChipEditor) {
+            window.flowChipEditor.insertAtCursor(placeholder);
+        } else {
+            var textarea = document.getElementById('flowSmsContent');
+            if (!textarea) return;
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + placeholder + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+            textarea.focus();
+            flowHandleContentChange();
+        }
 
-        // Close personalisation modal
         var modalEl = document.getElementById('flowPersonalisationModal');
         var modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
