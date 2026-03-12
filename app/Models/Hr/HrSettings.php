@@ -35,7 +35,7 @@ class HrSettings extends Model
     public static function instance(): self
     {
         return self::first() ?? self::create([
-            'default_annual_entitlement_units' => 116,
+            'default_annual_entitlement_units' => 120,
         ]);
     }
 

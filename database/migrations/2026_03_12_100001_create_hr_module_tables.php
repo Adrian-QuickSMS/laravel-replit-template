@@ -37,7 +37,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('employee_id');
             $table->integer('year');
-            $table->integer('total_entitlement_units')->default(116);
+            $table->integer('total_entitlement_units')->default(120);
             $table->integer('carried_over_units')->default(0);
             $table->integer('adjustment_units')->default(0);
             $table->integer('purchased_units')->default(0);
