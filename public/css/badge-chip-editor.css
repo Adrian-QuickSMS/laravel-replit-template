@@ -80,3 +80,14 @@
 .bce-chip .bce-chip-x:hover {
     opacity: 1;
 }
+
+.bce-editor--single-line {
+    min-height: auto !important;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.82rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}

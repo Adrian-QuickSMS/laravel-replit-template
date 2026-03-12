@@ -451,9 +451,11 @@
                                 <p class="text-muted mb-2 small">A unique 5-character link per recipient (e.g. qout.uk/Ab3K9) is inserted via &#123;&#123;unique_url&#125;&#125;.</p>
                                 <div class="mb-2">
                                     <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" id="urlOptoutText" value="OptOut, &#123;&#123;unique_url&#125;&#125;">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                                    <div class="d-flex gap-2 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <textarea class="form-control form-control-sm" id="urlOptoutText" rows="1" style="display:none;">OptOut, &#123;&#123;unique_url&#125;&#125;</textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
                                     </div>
                                 </div>
                                 {{-- URL storage list --}}
@@ -1342,6 +1344,10 @@ document.addEventListener('DOMContentLoaded', function() {
         onChange: function() { handleContentChange(); }
     });
 
+    window.urlOptoutChipEditor = BadgeChipEditor.initFromTextarea('#urlOptoutText', {
+        singleLine: true
+    });
+
     window.smsEmojiPicker = new QSEmojiPicker({
         triggerEl: document.getElementById('emojiPickerBtn'),
         textareaEl: document.getElementById('smsContent'),
@@ -1696,8 +1702,7 @@ function restoreCampaignFromConfirm() {
                     if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
                 }
                 if (config.optout_config.opt_out_text) {
-                    var urlText = document.getElementById('urlOptoutText');
-                    if (urlText) urlText.value = config.optout_config.opt_out_text;
+                    setUrlOptoutText(config.optout_config.opt_out_text);
                 }
                 if (config.optout_config.opt_out_list_id) {
                     var urlExistingRadio = document.querySelector('input[name="urlListTarget"][value="existing"]');
@@ -2147,8 +2152,7 @@ function loadDbCampaignForEditing(campaignId) {
                         if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
                     }
                     if (c.opt_out_text && (c.opt_out_method === 'url')) {
-                        var urlText = document.getElementById('urlOptoutText');
-                        if (urlText) urlText.value = c.opt_out_text;
+                        setUrlOptoutText(c.opt_out_text);
                     }
                     if (c.opt_out_list_id && (c.opt_out_method === 'url')) {
                         var urlListSelect = document.getElementById('urlOptOutListId');
@@ -2378,6 +2382,17 @@ function setSmsContent(text) {
     if (window.smsChipEditor) {
         window.smsChipEditor.setValue(text);
     }
+}
+
+function setUrlOptoutText(text) {
+    document.getElementById('urlOptoutText').value = text;
+    if (window.urlOptoutChipEditor) {
+        window.urlOptoutChipEditor.setValue(text);
+    }
+}
+
+function getUrlOptoutText() {
+    return window.urlOptoutChipEditor ? window.urlOptoutChipEditor.getValue() : document.getElementById('urlOptoutText').value;
 }
 
 function handleContentChange() {
@@ -2749,8 +2764,7 @@ function resetTemplateDrivenState() {
     if (keywordInput) keywordInput.value = '';
     var replyText = document.getElementById('replyOptoutText');
     if (replyText) replyText.value = '';
-    var urlText = document.getElementById('urlOptoutText');
-    if (urlText) urlText.value = '';
+    setUrlOptoutText('OptOut, {{unique_url}}');
     var numberSelect = document.getElementById('optOutNumberId');
     if (numberSelect) numberSelect.selectedIndex = 0;
     var replyListSelect = document.getElementById('replyOptOutListId');
@@ -2987,8 +3001,7 @@ function applySelectedTemplate() {
                     if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
                 }
                 if (tpl.opt_out_text && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
-                    var urlText = document.getElementById('urlOptoutText');
-                    if (urlText) urlText.value = tpl.opt_out_text;
+                    setUrlOptoutText(tpl.opt_out_text);
                 }
                 if (tpl.opt_out_list_id && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
                     var urlListSelect = document.getElementById('urlOptOutListId');
@@ -3759,21 +3772,32 @@ function refreshOptOutText() {
 }
 
 function insertOptOutTextToMessage(fieldId) {
-    var textField = document.getElementById(fieldId);
-    var messageArea = document.getElementById('smsContent');
-    if (!textField || !messageArea) return;
+    var text = '';
+    if (fieldId === 'urlOptoutText') {
+        text = getUrlOptoutText().trim();
+    } else {
+        var textField = document.getElementById(fieldId);
+        if (!textField) return;
+        text = textField.value.trim();
+    }
 
-    var text = textField.value.trim();
     if (!text) {
         alert('Opt-out text is empty. Please configure opt-out settings first.');
         return;
     }
 
-    var current = messageArea.value;
-    var separator = current.trim() ? '\n\n' : '';
-    messageArea.value = current + separator + text;
-    updateCharCount();
-    updatePreview();
+    if (window.smsChipEditor) {
+        var current = window.smsChipEditor.getValue();
+        var separator = current.trim() ? '\n\n' : '';
+        setSmsContent(current + separator + text);
+    } else {
+        var messageArea = document.getElementById('smsContent');
+        if (!messageArea) return;
+        var current = messageArea.value;
+        var separator = current.trim() ? '\n\n' : '';
+        messageArea.value = current + separator + text;
+    }
+    handleContentChange();
 }
 
 function validateOptoutConfig() {
@@ -3827,7 +3851,7 @@ function validateOptoutConfig() {
     }
 
     if (urlEnabled) {
-        var urlText = document.getElementById('urlOptoutText').value.trim();
+        var urlText = getUrlOptoutText().trim();
         var urlPlaceholder = '{' + '{unique_url}' + '}';
         if (!urlText.includes(urlPlaceholder)) {
             errorMsg.textContent = 'URL opt-out text must include ' + urlPlaceholder + '.';
@@ -3868,7 +3892,7 @@ function getOptoutConfiguration() {
     var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
     var keyword = replyEnabled ? document.getElementById('optOutKeywordInput').value.trim().toUpperCase() : null;
     var replyText = replyEnabled ? document.getElementById('replyOptoutText').value : null;
-    var urlText = urlEnabled ? document.getElementById('urlOptoutText').value : null;
+    var urlText = urlEnabled ? getUrlOptoutText() : null;
 
     var storageListId = null;
     var newListName = null;

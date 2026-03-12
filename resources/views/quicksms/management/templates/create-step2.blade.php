@@ -503,6 +503,9 @@ document.addEventListener('DOMContentLoaded', function() {
         window.templateChipEditor = BadgeChipEditor.initFromTextarea('#smsContent', {
             onChange: function() { handleContentChange(); }
         });
+        window.templateUrlOptoutChipEditor = BadgeChipEditor.initFromTextarea('#urlOptoutText', {
+            singleLine: true
+        });
     }
 
     if (typeof QSEmojiPicker !== 'undefined') {
@@ -1147,10 +1150,15 @@ function refreshOptOutText() {
 }
 
 function insertOptOutTextToMessage(fieldId) {
-    var textField = document.getElementById(fieldId);
-    if (!textField) return;
+    var text = '';
+    if (fieldId === 'urlOptoutText' && window.templateUrlOptoutChipEditor) {
+        text = window.templateUrlOptoutChipEditor.getValue().trim();
+    } else {
+        var textField = document.getElementById(fieldId);
+        if (!textField) return;
+        text = textField.value.trim();
+    }
 
-    var text = textField.value.trim();
     if (!text) {
         alert('Opt-out text is empty. Please configure opt-out settings first.');
         return;
@@ -1562,7 +1570,7 @@ function collectOptOutData() {
     var urlEnabled = document.getElementById('enableUrlOptout') && document.getElementById('enableUrlOptout').checked;
     data.urlEnabled = urlEnabled;
     if (urlEnabled) {
-        data.urlOptoutText = (document.getElementById('urlOptoutText') || {}).value || '';
+        data.urlOptoutText = window.templateUrlOptoutChipEditor ? window.templateUrlOptoutChipEditor.getValue() : ((document.getElementById('urlOptoutText') || {}).value || '');
         var urlTarget = document.querySelector('input[name="urlListTarget"]:checked');
         data.urlListTarget = urlTarget ? urlTarget.value : 'existing';
         data.urlOptOutListId = (document.getElementById('urlOptOutListId') || {}).value || '';
@@ -1640,6 +1648,9 @@ function restoreOptOutData(data) {
             document.getElementById('urlOptoutConfig').classList.remove('d-none');
         }
         if (data.urlOptoutText) {
+            if (window.templateUrlOptoutChipEditor) {
+                window.templateUrlOptoutChipEditor.setValue(data.urlOptoutText);
+            }
             var tf = document.getElementById('urlOptoutText');
             if (tf) tf.value = data.urlOptoutText;
         }

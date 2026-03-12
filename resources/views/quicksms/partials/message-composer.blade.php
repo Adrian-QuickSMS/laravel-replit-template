@@ -345,9 +345,11 @@
                     <p class="text-muted mb-2 small">A unique 5-character link per recipient (e.g. qout.uk/Ab3K9) is inserted via &#123;&#123;unique_url&#125;&#125;.</p>
                     <div class="mb-2">
                         <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control" id="urlOptoutText" value="OptOut, &#123;&#123;unique_url&#125;&#125;">
-                            <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <textarea class="form-control form-control-sm" id="urlOptoutText" rows="1" style="display:none;">OptOut, &#123;&#123;unique_url&#125;&#125;</textarea>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
                         </div>
                     </div>
                     <div class="pt-2 border-top">

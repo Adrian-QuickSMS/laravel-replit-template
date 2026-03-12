@@ -23,7 +23,7 @@
 
     BadgeChipEditor.prototype._build = function() {
         this.el = document.createElement('div');
-        this.el.className = 'bce-editor';
+        this.el.className = 'bce-editor' + (this.singleLine ? ' bce-editor--single-line' : '');
         this.el.setAttribute('contenteditable', 'true');
         this.el.setAttribute('data-placeholder', this.placeholder);
         this.el.setAttribute('spellcheck', 'true');
