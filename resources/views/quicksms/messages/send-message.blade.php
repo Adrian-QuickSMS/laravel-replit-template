@@ -86,6 +86,29 @@
         margin-bottom: -120px;
     }
 }
+
+@if(!empty($flow_context))
+body {
+    background: #fff !important;
+    overflow-y: auto !important;
+}
+.nav-header,
+.chatbox,
+.header,
+.deznav,
+.footer,
+.page-titles,
+#test-mode-activation-banner,
+#test-mode-collapsed-tab,
+#senderid-returned-banner { display: none !important; }
+.content-body {
+    margin-left: 0 !important;
+    min-height: auto !important;
+}
+.container-fluid {
+    padding: 1rem 1.5rem !important;
+}
+@endif
 </style>
 @endpush
 

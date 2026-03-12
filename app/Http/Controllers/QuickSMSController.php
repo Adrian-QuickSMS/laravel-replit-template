@@ -449,7 +449,7 @@ class QuickSMSController extends Controller
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
             'flow_context' => $flowContext,
-            'layout' => $flowContext ? 'layouts.flow-embed' : 'layouts.quicksms',
+            'layout' => 'layouts.quicksms',
         ]);
     }
 
