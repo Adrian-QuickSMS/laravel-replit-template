@@ -1453,13 +1453,13 @@
         var loadTimeout = null;
         var cleaned = false;
 
-        loading.style.display = 'flex';
-        iframe.style.display = 'none';
+        loading.classList.remove('d-none');
+        iframe.classList.add('d-none');
 
         iframe.onload = function() {
             clearTimeout(loadTimeout);
-            loading.style.display = 'none';
-            iframe.style.display = 'block';
+            loading.classList.add('d-none');
+            iframe.classList.remove('d-none');
 
             setTimeout(function() {
                 var existingConfig = node.config || {};
@@ -1491,8 +1491,8 @@
 
             if (e.data.type === 'flowEmbedReady') {
                 clearTimeout(loadTimeout);
-                loading.style.display = 'none';
-                iframe.style.display = 'block';
+                loading.classList.add('d-none');
+                iframe.classList.remove('d-none');
 
                 var existingConfig = node.config || {};
                 if (existingConfig.channel || existingConfig.sms_content || existingConfig.sender_id || existingConfig.rcs_payload) {
@@ -1527,7 +1527,7 @@
             if (modal) modal.hide();
 
             iframe.src = 'about:blank';
-            iframe.style.display = 'none';
+            iframe.classList.add('d-none');
             self._iframeComposerNodeId = null;
         }
 
