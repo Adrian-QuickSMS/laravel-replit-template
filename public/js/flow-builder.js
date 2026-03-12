@@ -612,9 +612,9 @@
                 var chDisplay = chLabels[rawCh] || rawCh.toUpperCase();
                 var isRichRcs = (rawCh === 'rcs_rich' || rawCh === 'rich_rcs');
                 if (isRichRcs && c.rcs_payload) {
-                    var card = c.rcs_payload.card;
+                    var card = c.rcs_payload.card || (c.rcs_payload.cards && c.rcs_payload.cards.length > 0 ? c.rcs_payload.cards[0] : null);
                     var label = 'RCS';
-                    if (card && card.title) label += ': ' + card.title;
+                    if (card && (card.title || card.description)) label += ': ' + (card.title || card.description);
                     if (c.rcs_payload.type === 'carousel') label = 'RCS Carousel';
                     return label.length > 60 ? label.substr(0, 57) + '...' : label;
                 }
@@ -1615,14 +1615,20 @@
             }
 
             if (isRichRcs && c.rcs_payload) {
+                var rcsCards = [];
                 if (c.rcs_payload.cards && c.rcs_payload.cards.length > 0) {
-                    var firstCard = c.rcs_payload.cards[0];
+                    rcsCards = c.rcs_payload.cards;
+                } else if (c.rcs_payload.card) {
+                    rcsCards = [c.rcs_payload.card];
+                }
+                if (rcsCards.length > 0) {
+                    var firstCard = rcsCards[0];
                     if (firstCard.description) html += '<div class="summary-text">' + escapeHtml(firstCard.description) + '</div>';
-                    var totalBtns = c.rcs_payload.cards.reduce(function(acc, card) { return acc + (card.buttons ? card.buttons.length : 0); }, 0);
+                    var totalBtns = rcsCards.reduce(function(acc, card) { return acc + (card.buttons ? card.buttons.length : card.suggestions ? card.suggestions.length : 0); }, 0);
                     if (totalBtns > 0) html += '<div class="summary-meta">' + totalBtns + ' button(s)</div>';
                 }
-                if (c.rcs_payload.type === 'carousel') {
-                    html += '<div class="summary-meta">Carousel · ' + c.rcs_payload.cards.length + ' cards</div>';
+                if (c.rcs_payload.type === 'carousel' && rcsCards.length > 1) {
+                    html += '<div class="summary-meta">Carousel · ' + rcsCards.length + ' cards</div>';
                 }
             } else if (c.sms_content) {
                 var info = calculateSegments(c.sms_content);

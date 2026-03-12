@@ -6359,10 +6359,12 @@ function flowApplyConfig() {
     }
 
     var rcsPayload = null;
-    if ((channelVal === 'rcs_rich') && typeof getRcsWizardPayload === 'function') {
-        rcsPayload = getRcsWizardPayload();
-    } else if ((channelVal === 'rcs_rich' || channelVal === 'rich_rcs') && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
-        rcsPayload = rcsPersistentPayload;
+    if ((channelVal === 'rcs_rich' || channelVal === 'rich_rcs')) {
+        if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+            rcsPayload = rcsPersistentPayload;
+        } else if (typeof buildRcsPayload === 'function') {
+            rcsPayload = buildRcsPayload();
+        }
     }
 
     var isTrackable = (typeof trackableLinkConfirmed !== 'undefined' && trackableLinkConfirmed) ? true : false;

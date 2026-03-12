@@ -333,44 +333,47 @@ var RcsPreviewRenderer = (function() {
     function renderRichRcsPreview(payload, agent) {
         agent = agent || { name: 'QuickSMS Brand', logo: '', verified: true, tagline: 'Business messaging' };
         
-        if (!payload || !payload.cards || payload.cards.length === 0) {
+        if (!payload) {
+            return renderRichRcsPlaceholder(agent);
+        }
+        if (payload.card && (!payload.cards || payload.cards.length === 0)) {
+            payload = Object.assign({}, payload, { cards: [payload.card] });
+        }
+        if (!payload.cards || payload.cards.length === 0) {
             return renderRichRcsPlaceholder(agent);
         }
         
         var messageHtml = '';
         
-        // Map payload orientation to height class
         function getHeightClass(orientation) {
             var map = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
             return map[orientation] || 'medium';
+        }
+
+        function normalizeRcsCard(card, heightClass) {
+            var mediaUrl = card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url || null;
+            if (typeof card.media === 'string') mediaUrl = card.media;
+            var rawBtns = card.buttons || card.suggestions || [];
+            return {
+                title: card.title || card.description || '',
+                description: card.textBody || (card.title ? card.description : '') || '',
+                media: mediaUrl ? { url: mediaUrl, height: heightClass } : null,
+                buttons: rawBtns.map(function(btn) {
+                    return { label: btn.label || btn.text || 'Button', type: btn.type || 'reply', action: btn.action || btn.postbackData || '' };
+                })
+            };
         }
         
         if (payload.cards.length === 1 || payload.type === 'single') {
             var card = payload.cards[0];
             var heightClass = getHeightClass(card.media?.orientation);
-            var singleMediaUrl = card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url || null;
-            var cardSchema = {
-                title: card.description || '',
-                description: card.textBody || '',
-                media: singleMediaUrl ? { url: singleMediaUrl, height: heightClass } : null,
-                buttons: (card.buttons || []).map(function(btn) {
-                    return { label: btn.label, type: btn.type, action: btn.action };
-                })
-            };
+            var cardSchema = normalizeRcsCard(card, heightClass);
             messageHtml = '<div class="rcs-message">' + renderRichCard(cardSchema, { heightOverride: heightClass }) + '</div>';
         } else {
             var firstCard = payload.cards[0];
             var mediaHeight = getHeightClass(firstCard.media?.orientation);
             var carouselCards = payload.cards.map(function(card) {
-                var carouselMediaUrl = card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url || null;
-                return {
-                    title: card.description || '',
-                    description: card.textBody || '',
-                    media: carouselMediaUrl ? { url: carouselMediaUrl, height: mediaHeight } : null,
-                    buttons: (card.buttons || []).map(function(btn) {
-                        return { label: btn.label, type: btn.type, action: btn.action };
-                    })
-                };
+                return normalizeRcsCard(card, mediaHeight);
             });
             messageHtml = renderCarousel({
                 cards: carouselCards,
