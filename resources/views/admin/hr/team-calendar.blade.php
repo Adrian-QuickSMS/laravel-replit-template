@@ -81,14 +81,9 @@
                                             </div>
                                             @foreach(array_slice($cellAbsences, 0, 3) as $abs)
                                                 @php
-                                                    $color = match($abs->leave_type) {
-                                                        'sickness' => '#dc3545',
-                                                        'medical' => '#17a2b8',
-                                                        'birthday' => '#6f42c1',
-                                                        default => $abs->status === 'pending' ? '#ffc107' : '#28a745',
-                                                    };
+                                                    $color = $abs->status === 'pending' ? '#ffc107' : '#28a745';
                                                 @endphp
-                                                <div style="font-size: 0.6rem; background: {{ $color }}20; color: {{ $color }}; border-left: 2px solid {{ $color }}; padding: 1px 4px; margin-bottom: 1px; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $abs->employee?->full_name }} - {{ $abs->leave_type_label }}{{ $abs->status === 'pending' ? ' (pending)' : '' }}">
+                                                <div style="font-size: 0.6rem; background: {{ $color }}20; color: {{ $color }}; border-left: 2px solid {{ $color }}; padding: 1px 4px; margin-bottom: 1px; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $abs->employee?->full_name }} - Leave{{ $abs->status === 'pending' ? ' (pending)' : '' }}">
                                                     {{ Str::limit($abs->employee?->adminUser?->first_name ?? '?', 8) }}
                                                     @if($abs->status === 'pending') <i class="fas fa-clock" style="font-size: 0.5rem;"></i> @endif
                                                 </div>
@@ -109,11 +104,8 @@
             </div>
 
             <div class="mt-3 d-flex gap-3 flex-wrap">
-                <span><span style="display: inline-block; width: 12px; height: 12px; background: #28a745; border-radius: 2px;"></span> Annual Leave</span>
+                <span><span style="display: inline-block; width: 12px; height: 12px; background: #28a745; border-radius: 2px;"></span> Leave</span>
                 <span><span style="display: inline-block; width: 12px; height: 12px; background: #ffc107; border-radius: 2px;"></span> Pending</span>
-                <span><span style="display: inline-block; width: 12px; height: 12px; background: #dc3545; border-radius: 2px;"></span> Sickness</span>
-                <span><span style="display: inline-block; width: 12px; height: 12px; background: #17a2b8; border-radius: 2px;"></span> Medical</span>
-                <span><span style="display: inline-block; width: 12px; height: 12px; background: #6f42c1; border-radius: 2px;"></span> Birthday</span>
                 <span><span class="badge bg-info badge-xs" style="font-size: 0.55rem;">BH</span> Bank Holiday</span>
             </div>
         </div>

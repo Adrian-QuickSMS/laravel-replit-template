@@ -231,8 +231,8 @@ class HrController extends Controller
             ->map(fn($r) => [
                 'id' => $r->id,
                 'employee_name' => $r->employee?->full_name ?? 'Unknown',
-                'leave_type' => $r->leave_type,
-                'leave_type_label' => $r->leave_type_label,
+                'leave_type' => 'leave',
+                'leave_type_label' => 'Leave',
                 'status' => $r->status,
                 'start_date' => $r->start_date->format('Y-m-d'),
                 'end_date' => $r->end_date->format('Y-m-d'),
