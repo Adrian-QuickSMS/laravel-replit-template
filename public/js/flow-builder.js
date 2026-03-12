@@ -412,8 +412,11 @@
         if (!c) return '';
         switch (node.type) {
             case 'send_message':
-                var ch = (c.channel || 'sms').toUpperCase();
-                if (ch === 'RICH_RCS' && c.rcs_payload) {
+                var rawCh = c.channel || 'sms';
+                var chLabels = { 'sms': 'SMS', 'rcs_basic': 'Basic RCS', 'rcs_rich': 'Rich RCS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' };
+                var chDisplay = chLabels[rawCh] || rawCh.toUpperCase();
+                var isRichRcs = (rawCh === 'rcs_rich' || rawCh === 'rich_rcs');
+                if (isRichRcs && c.rcs_payload) {
                     var card = c.rcs_payload.card;
                     var label = 'RCS';
                     if (card && card.title) label += ': ' + card.title;
@@ -421,8 +424,8 @@
                     return label.length > 60 ? label.substr(0, 57) + '...' : label;
                 }
                 var txt = c.sms_content || '';
-                if (!txt) return ch + ': (no content)';
-                var preview = ch + ': ' + txt;
+                if (!txt) return chDisplay + ': (no content)';
+                var preview = chDisplay + ': ' + txt;
                 return preview.length > 60 ? preview.substr(0, 57) + '...' : preview;
             case 'trigger_sms_keyword':
                 return c.keywords ? 'Keywords: ' + c.keywords : '';
@@ -1343,107 +1346,64 @@
     }
 
     // ========================================
-    // Send Message - Custom Properties
+    // Send Message - Custom Properties Panel
+    // Shows summary of configured message + "Configure Message" button
+    // that opens the full send-message page in an iframe modal
     // ========================================
     FlowBuilder.prototype._renderSendMessageProperties = function(node) {
         var c = node.config || {};
-        var channel = c.channel || 'sms';
-        var senderIds = this.options.senderIds || [];
-        var rcsAgents = this.options.rcsAgents || [];
-
         var html = '';
 
-        // Channel toggle
         html += '<div class="mb-3">';
-        html += '<label class="form-label">Channel</label>';
-        html += '<div class="channel-toggle-group">';
-        html += '<button type="button" class="channel-toggle-btn' + (channel === 'sms' ? ' active' : '') + '" data-channel="sms"><i class="fas fa-sms me-1"></i>SMS</button>';
-        html += '<button type="button" class="channel-toggle-btn' + (channel === 'basic_rcs' ? ' active' : '') + '" data-channel="basic_rcs"><i class="fas fa-comment me-1"></i>Basic RCS</button>';
-        html += '<button type="button" class="channel-toggle-btn' + (channel === 'rich_rcs' ? ' active' : '') + '" data-channel="rich_rcs"><i class="fas fa-palette me-1"></i>Rich RCS</button>';
-        html += '</div>';
-        html += '</div>';
-
-        // Sender ID
-        html += '<div class="mb-3">';
-        html += '<label class="form-label">Sender ID</label>';
-        html += '<select class="form-select" id="prop-sender-id">';
-        senderIds.forEach(function(s) {
-            var selected = (c.sender_id === s.id) ? ' selected' : '';
-            html += '<option value="' + escapeHtml(s.id) + '"' + selected + '>' + escapeHtml(s.name) + ' (' + escapeHtml(s.type) + ')</option>';
-        });
-        html += '</select>';
-        html += '</div>';
-
-        // RCS Agent (shown for RCS channels)
-        if (channel === 'basic_rcs' || channel === 'rich_rcs') {
-            html += '<div class="mb-3" id="rcs-agent-section">';
-            html += '<label class="form-label">RCS Agent</label>';
-            if (rcsAgents.length > 0) {
-                html += '<select class="form-select" id="prop-rcs-agent">';
-                html += '<option value="">Select an agent...</option>';
-                rcsAgents.forEach(function(a) {
-                    var selected = (c.rcs_agent_id === a.id) ? ' selected' : '';
-                    html += '<option value="' + escapeHtml(a.id) + '"' + selected + '>' + escapeHtml(a.name) + '</option>';
-                });
-                html += '</select>';
-            } else {
-                html += '<div class="alert alert-light p-2" style="font-size:0.78rem;">No RCS agents available. Set up an RCS agent first.</div>';
-            }
-            html += '</div>';
-        }
-
-        // Content summary
-        html += '<div class="mb-3">';
-        html += '<label class="form-label">Message Content</label>';
+        html += '<label class="form-label">Message Configuration</label>';
         html += '<div class="send-msg-summary">';
-        if (channel === 'rich_rcs' && c.rcs_payload) {
-            var payload = c.rcs_payload;
-            html += '<div class="summary-badge rcs"><i class="fas fa-palette me-1"></i>Rich RCS</div>';
-            if (payload.card && payload.card.title) {
-                html += '<div class="summary-text">' + escapeHtml(payload.card.title) + '</div>';
+
+        if (c.channel) {
+            var chLabels = { 'sms': 'SMS', 'rcs_basic': 'Basic RCS', 'rcs_rich': 'Rich RCS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' };
+            var chDisplay = chLabels[c.channel] || c.channel.toUpperCase();
+            var isRichRcs = (c.channel === 'rcs_rich' || c.channel === 'rich_rcs');
+
+            if (isRichRcs && c.rcs_payload) {
+                html += '<div class="summary-badge rcs"><i class="fas fa-palette me-1"></i>Rich RCS</div>';
+                if (c.rcs_payload.card && c.rcs_payload.card.title) {
+                    html += '<div class="summary-text">' + escapeHtml(c.rcs_payload.card.title) + '</div>';
+                }
+                if (c.rcs_payload.type === 'carousel') {
+                    html += '<div class="summary-meta">Carousel</div>';
+                }
+            } else if (c.sms_content) {
+                var info = calculateSegments(c.sms_content);
+                html += '<div class="summary-badge sms"><i class="fas fa-sms me-1"></i>' + chDisplay + '</div>';
+                var preview = c.sms_content.length > 80 ? c.sms_content.substr(0, 77) + '...' : c.sms_content;
+                html += '<div class="summary-text">' + escapeHtml(preview) + '</div>';
+                html += '<div class="summary-meta">' + info.chars + ' chars · ' + info.encoding + ' · ' + info.segments + ' segment(s)</div>';
+            } else {
+                html += '<div class="summary-badge sms"><i class="fas fa-sms me-1"></i>' + chDisplay + '</div>';
+                html += '<div class="summary-empty"><i class="fas fa-file-alt me-2"></i>No content yet</div>';
             }
-            if (payload.card && payload.card.suggestions) {
-                html += '<div class="summary-meta">' + payload.card.suggestions.length + ' button(s)</div>';
+
+            if (c.sender_name) {
+                html += '<div class="summary-meta">Sender: ' + escapeHtml(c.sender_name) + '</div>';
             }
-            if (payload.type === 'carousel') {
-                html += '<div class="summary-meta">Carousel</div>';
+            if (c.optout_config && c.optout_config.enabled) {
+                html += '<div class="summary-meta"><i class="fas fa-ban me-1"></i>Opt-out enabled</div>';
             }
-        } else if (c.sms_content) {
-            var info = calculateSegments(c.sms_content);
-            var chLabel = channel === 'basic_rcs' ? 'Basic RCS' : 'SMS';
-            html += '<div class="summary-badge sms"><i class="fas fa-sms me-1"></i>' + chLabel + '</div>';
-            var preview = c.sms_content.length > 80 ? c.sms_content.substr(0, 77) + '...' : c.sms_content;
-            html += '<div class="summary-text">' + escapeHtml(preview) + '</div>';
-            html += '<div class="summary-meta">' + info.chars + ' chars · ' + info.encoding + ' · ' + info.segments + ' segment(s)</div>';
         } else {
-            html += '<div class="summary-empty"><i class="fas fa-file-alt me-2"></i>No content configured</div>';
+            html += '<div class="summary-empty"><i class="fas fa-file-alt me-2"></i>No message configured yet</div>';
         }
         html += '</div>';
         html += '</div>';
 
-        // Edit Content button
-        html += '<button type="button" class="btn btn-primary btn-sm w-100 mb-3" id="btn-edit-content" style="background: #886CC0; border-color: #886CC0;">';
-        html += '<i class="fas fa-edit me-1"></i> Edit Content';
+        html += '<button type="button" class="btn btn-primary w-100 mb-3" id="btn-configure-message" style="background: #886CC0; border-color: #886CC0;">';
+        html += '<i class="fas fa-edit me-1"></i> Configure Message';
         html += '</button>';
-
-        // SMS fallback for Rich RCS
-        if (channel === 'rich_rcs') {
-            html += '<div class="mb-3">';
-            html += '<label class="form-label d-flex align-items-center gap-1">SMS Fallback <span class="text-muted" style="font-weight:400;font-size:0.72rem;">(when RCS unavailable)</span></label>';
-            var fallbackPreview = c.sms_content ? (c.sms_content.length > 50 ? c.sms_content.substr(0, 47) + '...' : c.sms_content) : 'Not set';
-            html += '<div class="p-2 rounded" style="background:#f8f8f8;font-size:0.78rem;color:#666;">' + escapeHtml(fallbackPreview) + '</div>';
-            html += '<button type="button" class="btn btn-outline-secondary btn-sm mt-1" id="btn-edit-fallback"><i class="fas fa-edit me-1"></i>Edit Fallback SMS</button>';
-            html += '</div>';
-        }
 
         return html;
     };
 
     FlowBuilder.prototype._bindSendMessageEvents = function(node, nodeId) {
         var self = this;
-        var body = document.getElementById('properties-body');
 
-        // Label input
         var labelInput = document.getElementById('prop-label');
         if (labelInput) {
             labelInput.addEventListener('change', function() {
@@ -1453,57 +1413,13 @@
             });
         }
 
-        // Channel toggle
-        body.querySelectorAll('.channel-toggle-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                node.config.channel = btn.getAttribute('data-channel');
-                self._refreshNode(nodeId);
-                self.isDirty = true;
-                // Re-render properties to show/hide RCS agent section
-                self._showProperties(nodeId);
-            });
-        });
-
-        // Sender ID
-        var senderSelect = document.getElementById('prop-sender-id');
-        if (senderSelect) {
-            senderSelect.addEventListener('change', function() {
-                node.config.sender_id = this.value;
-                self.isDirty = true;
+        var configBtn = document.getElementById('btn-configure-message');
+        if (configBtn) {
+            configBtn.addEventListener('click', function() {
+                self._openMessageComposerIframe(nodeId);
             });
         }
 
-        // RCS Agent
-        var rcsAgentSelect = document.getElementById('prop-rcs-agent');
-        if (rcsAgentSelect) {
-            rcsAgentSelect.addEventListener('change', function() {
-                node.config.rcs_agent_id = this.value;
-                self.isDirty = true;
-            });
-        }
-
-        // Edit Content button
-        var editBtn = document.getElementById('btn-edit-content');
-        if (editBtn) {
-            editBtn.addEventListener('click', function() {
-                var channel = node.config.channel || 'sms';
-                if (channel === 'rich_rcs') {
-                    self._openRcsWizard(nodeId);
-                } else {
-                    self._openSmsComposerModal(nodeId, false);
-                }
-            });
-        }
-
-        // Edit Fallback button
-        var fallbackBtn = document.getElementById('btn-edit-fallback');
-        if (fallbackBtn) {
-            fallbackBtn.addEventListener('click', function() {
-                self._openSmsComposerModal(nodeId, true);
-            });
-        }
-
-        // Delete button
         var deleteBtn = document.getElementById('btn-delete-node');
         if (deleteBtn) {
             deleteBtn.onclick = function() {
@@ -1513,7 +1429,6 @@
             };
         }
 
-        // Close button
         var closeBtn = document.getElementById('btn-close-properties');
         if (closeBtn) {
             closeBtn.onclick = function() {
@@ -1523,208 +1438,101 @@
     };
 
     // ========================================
-    // SMS Composer Modal
+    // Full-Screen Message Composer (iframe embed)
     // ========================================
-    FlowBuilder.prototype._openSmsComposerModal = function(nodeId, isFallback) {
+    FlowBuilder.prototype._openMessageComposerIframe = function(nodeId) {
+        var self = this;
         var node = this.nodes[nodeId];
         if (!node) return;
 
-        var textarea = document.getElementById('flowSmsContent');
-        var fallbackNote = document.getElementById('smsFallbackNote');
-        var label = document.getElementById('smsComposerLabel');
+        this._iframeComposerNodeId = nodeId;
 
-        this._smsComposerNodeId = nodeId;
-        this._smsComposerIsFallback = isFallback;
+        var modalEl = document.getElementById('flowMessageComposerModal');
+        var iframe = document.getElementById('flowMessageComposerIframe');
+        var loading = document.getElementById('flowMessageComposerLoading');
+        var expectedOrigin = window.location.origin;
+        var loadTimeout = null;
+        var cleaned = false;
 
-        var content = node.config.sms_content || '';
-        textarea.value = content;
-        if (window.flowChipEditor) {
-            window.flowChipEditor.setValue(content);
-        }
+        loading.style.display = 'flex';
+        iframe.style.display = 'none';
+        iframe.src = '/messages/send?context=flow';
 
-        if (isFallback) {
-            fallbackNote.classList.remove('d-none');
-            label.textContent = 'SMS Fallback Content';
-        } else {
-            fallbackNote.classList.add('d-none');
-            var ch = node.config.channel || 'sms';
-            label.textContent = ch === 'basic_rcs' ? 'Basic RCS Content' : 'SMS Content';
-        }
-
-        flowHandleContentChange();
-
-        var modal = new bootstrap.Modal(document.getElementById('smsComposerModal'));
-        modal.show();
-
-        document.getElementById('smsComposerModal').addEventListener('shown.bs.modal', function handler() {
-            if (window.flowChipEditor) {
-                window.flowChipEditor.focus();
-            } else {
-                textarea.focus();
+        loadTimeout = setTimeout(function() {
+            if (!cleaned) {
+                loading.innerHTML = '<div class="text-center"><i class="fas fa-exclamation-triangle mb-2 text-warning" style="font-size:2rem;"></i><p class="text-muted mb-2">Failed to load message composer.</p><button class="btn btn-sm btn-outline-secondary" onclick="bootstrap.Modal.getInstance(document.getElementById(\'flowMessageComposerModal\')).hide()">Close</button></div>';
             }
-            document.getElementById('smsComposerModal').removeEventListener('shown.bs.modal', handler);
+        }, 15000);
+
+        function onMessage(e) {
+            if (e.origin !== expectedOrigin) return;
+            if (e.source !== iframe.contentWindow) return;
+            if (!e.data || !e.data.type) return;
+
+            if (e.data.type === 'flowEmbedReady') {
+                clearTimeout(loadTimeout);
+                loading.style.display = 'none';
+                iframe.style.display = 'block';
+
+                var existingConfig = node.config || {};
+                if (existingConfig.channel || existingConfig.sms_content || existingConfig.sender_id || existingConfig.rcs_payload) {
+                    iframe.contentWindow.postMessage({
+                        type: 'flowRestoreConfig',
+                        config: existingConfig
+                    }, expectedOrigin);
+                }
+            }
+
+            if (e.data.type === 'flowConfigApplied') {
+                var config = e.data.config || {};
+                node.config = config;
+                self._refreshNode(nodeId);
+                self._showProperties(nodeId);
+                self.isDirty = true;
+
+                closeModal();
+            }
+
+            if (e.data.type === 'flowConfigCancelled') {
+                closeModal();
+            }
+        }
+
+        function closeModal() {
+            if (cleaned) return;
+            cleaned = true;
+            clearTimeout(loadTimeout);
+            window.removeEventListener('message', onMessage);
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            iframe.src = 'about:blank';
+            iframe.style.display = 'none';
+            self._iframeComposerNodeId = null;
+        }
+
+        window.addEventListener('message', onMessage);
+
+        var closeBtn = document.getElementById('flowMessageComposerClose');
+        if (closeBtn) {
+            closeBtn.onclick = function() { closeModal(); };
+        }
+
+        modalEl.addEventListener('hidden.bs.modal', function handler() {
+            closeModal();
+            modalEl.removeEventListener('hidden.bs.modal', handler);
         });
-    };
 
-    FlowBuilder.prototype._applySmsContent = function() {
-        var nodeId = this._smsComposerNodeId;
-        if (!nodeId) return;
-
-        var node = this.nodes[nodeId];
-        if (!node) return;
-
-        node.config.sms_content = window.flowChipEditor ? window.flowChipEditor.getValue() : document.getElementById('flowSmsContent').value;
-        this._refreshNode(nodeId);
-        this._showProperties(nodeId);
-        this.isDirty = true;
-
-        // Close modal
-        var modalEl = document.getElementById('smsComposerModal');
-        var modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
     };
 
     // ========================================
-    // RCS Wizard Integration
-    // ========================================
-    FlowBuilder.prototype._openRcsWizard = function(nodeId) {
-        var node = this.nodes[nodeId];
-        if (!node) return;
-
-        this._rcsWizardNodeId = nodeId;
-
-        // Open the existing RCS wizard modal
-        if (typeof openRcsWizard === 'function') {
-            openRcsWizard();
-        } else {
-            // Fallback: open modal directly
-            var modalEl = document.getElementById('rcsWizardModal');
-            if (modalEl) {
-                var modal = new bootstrap.Modal(modalEl);
-                modal.show();
-            }
-        }
-
-        // If existing payload, try to pre-populate (best effort)
-        if (node.config.rcs_payload && typeof setRcsWizardPayload === 'function') {
-            setRcsWizardPayload(node.config.rcs_payload);
-        }
-    };
-
-    FlowBuilder.prototype._handleRcsContentApplied = function(e) {
-        var nodeId = this._rcsWizardNodeId;
-        if (!nodeId) return;
-
-        var node = this.nodes[nodeId];
-        if (!node) return;
-
-        // The RCS wizard fires rcsContentApplied with detail containing the payload
-        if (e.detail) {
-            node.config.rcs_payload = e.detail;
-        }
-
-        this._refreshNode(nodeId);
-        this._showProperties(nodeId);
-        this.isDirty = true;
-    };
-
-    // ========================================
-    // Initialize modal handlers
+    // Initialize (no modal handlers needed — iframe handles everything)
     // ========================================
     var _origInit = FlowBuilder.prototype._init;
     FlowBuilder.prototype._init = function() {
         _origInit.call(this);
-        var self = this;
-
-        // Apply SMS Content button
-        var applyBtn = document.getElementById('btnApplySmsContent');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', function() {
-                self._applySmsContent();
-            });
-        }
-
-        // Listen for RCS content applied event
-        document.addEventListener('rcsContentApplied', function(e) {
-            self._handleRcsContentApplied(e);
-        });
-
-        window.flowChipEditor = BadgeChipEditor.initFromTextarea('#flowSmsContent', {
-            onChange: function() { flowHandleContentChange(); }
-        });
-
-        var emojiBtn = document.getElementById('flowEmojiPickerBtn');
-        if (emojiBtn && typeof QSEmojiPicker !== 'undefined') {
-            new QSEmojiPicker({
-                triggerEl: emojiBtn,
-                textareaEl: document.getElementById('flowSmsContent'),
-                onInsert: function(emoji) {
-                    if (window.flowChipEditor) {
-                        window.flowChipEditor.insertAtCursor(emoji);
-                    } else {
-                        var textarea = document.getElementById('flowSmsContent');
-                        if (textarea) {
-                            var start = textarea.selectionStart;
-                            var end = textarea.selectionEnd;
-                            textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
-                            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-                            textarea.focus();
-                        }
-                    }
-                    flowHandleContentChange();
-                }
-            });
-        }
-    };
-
-    // ========================================
-    // Global functions for SMS composer
-    // ========================================
-    window.flowHandleContentChange = function() {
-        var text = window.flowChipEditor ? window.flowChipEditor.getValue() : (document.getElementById('flowSmsContent') || {}).value || '';
-        if (!text && text !== '') return;
-        var info = calculateSegments(text);
-
-        var charCountEl = document.getElementById('flowCharCount');
-        var encodingEl = document.getElementById('flowEncodingType');
-        var segmentEl = document.getElementById('flowSmsPartCount');
-        var unicodeWarning = document.getElementById('flowUnicodeWarning');
-
-        if (charCountEl) charCountEl.textContent = info.chars;
-        if (encodingEl) encodingEl.textContent = info.encoding;
-        if (segmentEl) segmentEl.textContent = info.segments;
-        if (unicodeWarning) {
-            if (info.encoding === 'Unicode') {
-                unicodeWarning.classList.remove('d-none');
-            } else {
-                unicodeWarning.classList.add('d-none');
-            }
-        }
-    };
-
-    window.flowInsertPlaceholder = function(name) {
-        var placeholder = '{{' + name + '}}';
-        if (window.flowChipEditor) {
-            window.flowChipEditor.insertAtCursor(placeholder);
-        } else {
-            var textarea = document.getElementById('flowSmsContent');
-            if (!textarea) return;
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, start) + placeholder + textarea.value.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-            textarea.focus();
-            flowHandleContentChange();
-        }
-
-        var modalEl = document.getElementById('flowPersonalisationModal');
-        var modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-    };
-
-    window.flowOpenPersonalisationModal = function() {
-        var modal = new bootstrap.Modal(document.getElementById('flowPersonalisationModal'));
-        modal.show();
     };
 
     // Export

@@ -1,4 +1,4 @@
-@extends('layouts.quicksms')
+@extends($layout ?? 'layouts.quicksms')
 
 @section('title', 'Send Message')
 
@@ -102,12 +102,16 @@
         
         <div class="send-message-layout">
         <div class="send-message-left">
+            @if(empty($flow_context))
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <h6 class="mb-3">Campaign Details</h6>
                     <input type="text" class="form-control" id="campaignName" placeholder="Campaign name (auto-generated if blank)" maxlength="100">
                 </div>
             </div>
+            @else
+            <input type="hidden" id="campaignName" value="">
+            @endif
             
             <div class="card mb-3">
                 <div class="card-body p-4">
@@ -180,6 +184,7 @@
                 </div>
             </div>
             
+            @if(empty($flow_context))
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -233,6 +238,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             
             <div class="card mb-3">
                 <div class="card-body p-4">
@@ -498,6 +504,18 @@
                 </div>
             </div>
             
+            @if(!empty($flow_context))
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-light" id="flowCancelBtn" onclick="flowCancelEmbed()">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="flowApplyBtn" onclick="flowApplyConfig()" style="background: #886CC0; border-color: #886CC0;">
+                            <i class="fas fa-check me-1"></i>Apply to Flow
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @else
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
@@ -509,6 +527,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
         
         <div class="send-message-right">
@@ -533,9 +552,11 @@
                     
                     <div class="mt-3 border-top pt-2">
                         <div class="row text-center">
-                            <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
+                            <div class="{{ !empty($flow_context) ? 'col-12' : 'col-4' }}"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
+                            @if(empty($flow_context))
                             <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients" class="small">0</strong></div>
                             <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">&pound;0.00</strong></div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -972,6 +993,15 @@
                     <h6 class="text-muted mb-2">Custom Fields</h6>
                     <p class="text-muted small mb-0">Upload a CSV/Excel file with extra columns to see custom field placeholders here.</p>
                 </div>
+                @if(!empty($flow_context))
+                <div class="mb-3 mt-3" id="flowVariablesSection">
+                    <h6 class="text-muted mb-2">Flow Variables</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('trigger_data')">@{{trigger_data}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('webhook_response')">@{{webhook_response}}</button>
+                    </div>
+                </div>
+                @endif
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -6256,5 +6286,149 @@ function showTestSentConfirmation(phoneNumber) {
         </div>
     </div>
 </div>
+@endif
+
+@if(!empty($flow_context))
+<script>
+var isFlowContext = true;
+var flowParentOrigin = window.location.origin;
+
+function flowApplyConfig() {
+    var channel = document.querySelector('input[name="channel"]:checked');
+    var channelVal = channel ? channel.value : 'sms';
+
+    var smsContent = window.smsChipEditor ? window.smsChipEditor.getValue() : document.getElementById('smsContent').value;
+
+    var senderSelect = document.getElementById('senderId');
+    var senderId = senderSelect ? senderSelect.value : '';
+    var senderName = senderSelect && senderSelect.selectedOptions[0] ? senderSelect.selectedOptions[0].textContent.trim() : '';
+
+    var rcsAgentSelect = document.getElementById('rcsAgent');
+    var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : '';
+
+    var optoutEnabled = document.getElementById('enableOptoutManagement') ? document.getElementById('enableOptoutManagement').checked : false;
+    var optoutConfig = null;
+    if (optoutEnabled) {
+        var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
+        var urlEnabled = document.getElementById('enableUrlOptout') ? document.getElementById('enableUrlOptout').checked : false;
+        optoutConfig = {
+            enabled: true,
+            reply_optout: replyEnabled,
+            url_optout: urlEnabled,
+            opt_out_text: (typeof getUrlOptoutText === 'function') ? getUrlOptoutText() : ''
+        };
+        var replyListSelect = document.getElementById('replyOptOutListId');
+        if (replyListSelect) optoutConfig.reply_opt_out_list_id = replyListSelect.value;
+    }
+
+    var rcsPayload = null;
+    if ((channelVal === 'rcs_rich') && typeof getRcsWizardPayload === 'function') {
+        rcsPayload = getRcsWizardPayload();
+    }
+
+    var config = {
+        channel: channelVal,
+        sender_id: senderId,
+        sender_name: senderName,
+        sms_content: smsContent,
+        rcs_agent_id: rcsAgentId,
+        rcs_payload: rcsPayload,
+        optout_config: optoutConfig
+    };
+
+    window.parent.postMessage({ type: 'flowConfigApplied', config: config }, flowParentOrigin);
+}
+
+function flowCancelEmbed() {
+    window.parent.postMessage({ type: 'flowConfigCancelled' }, flowParentOrigin);
+}
+
+function flowRestoreConfig(config) {
+    if (!config) return;
+
+    if (config.channel) {
+        var channelMap = {
+            'sms': 'channelSMS',
+            'rcs_basic': 'channelRCSBasic',
+            'basic_rcs': 'channelRCSBasic',
+            'rcs_rich': 'channelRCSRich',
+            'rich_rcs': 'channelRCSRich'
+        };
+        var radioId = channelMap[config.channel] || 'channelSMS';
+        var channelRadio = document.getElementById(radioId);
+        if (channelRadio) {
+            channelRadio.checked = true;
+            channelRadio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    if (config.sender_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) senderSelect.value = config.sender_id;
+    }
+
+    if (config.rcs_agent_id) {
+        var rcsSelect = document.getElementById('rcsAgent');
+        if (rcsSelect) rcsSelect.value = config.rcs_agent_id;
+    }
+
+    if (config.sms_content) {
+        if (typeof setSmsContent === 'function') {
+            setSmsContent(config.sms_content);
+        } else {
+            document.getElementById('smsContent').value = config.sms_content;
+            if (window.smsChipEditor) window.smsChipEditor.setValue(config.sms_content);
+        }
+    }
+
+    if (config.optout_config && config.optout_config.enabled) {
+        var toggle = document.getElementById('enableOptoutManagement');
+        if (toggle && !toggle.checked) {
+            toggle.checked = true;
+            if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
+        }
+        if (config.optout_config.reply_optout) {
+            var replyToggle = document.getElementById('enableReplyOptout');
+            if (replyToggle && !replyToggle.checked) {
+                replyToggle.checked = true;
+                if (typeof toggleReplyOptout === 'function') toggleReplyOptout();
+            }
+        }
+        if (config.optout_config.url_optout) {
+            var urlToggle = document.getElementById('enableUrlOptout');
+            if (urlToggle && !urlToggle.checked) {
+                urlToggle.checked = true;
+                if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+            }
+        }
+        if (config.optout_config.opt_out_text && typeof setUrlOptoutText === 'function') {
+            setUrlOptoutText(config.optout_config.opt_out_text);
+        }
+        if (config.optout_config.reply_opt_out_list_id) {
+            var listSelect = document.getElementById('replyOptOutListId');
+            if (listSelect) listSelect.value = config.optout_config.reply_opt_out_list_id;
+        }
+    }
+
+    if (config.rcs_payload && typeof setRcsWizardPayload === 'function') {
+        setRcsWizardPayload(config.rcs_payload);
+    }
+
+    if (typeof handleContentChange === 'function') handleContentChange();
+
+    window.parent.postMessage({ type: 'flowRestoreComplete' }, flowParentOrigin);
+}
+
+window.addEventListener('message', function(e) {
+    if (e.origin !== flowParentOrigin) return;
+    if (e.data && e.data.type === 'flowRestoreConfig') {
+        flowRestoreConfig(e.data.config);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    window.parent.postMessage({ type: 'flowEmbedReady' }, flowParentOrigin);
+});
+</script>
 @endif
 @endsection
