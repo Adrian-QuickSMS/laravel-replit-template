@@ -954,7 +954,7 @@
             </div>
             <div class="modal-body">
                 <p class="text-muted mb-3">Click a placeholder to insert it at the cursor position in your message.</p>
-                <div class="mb-3">
+                <div class="mb-3" id="contactBookFieldsSection">
                     <h6 class="text-muted mb-2">Contact Book Fields</h6>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('first_name')">@{{first_name}}</button>
@@ -2454,7 +2454,41 @@ function applyTemplate() {
     }
 }
 
+function hasContactBookRecipients() {
+    if (!recipientState || !recipientState.contactBook) return false;
+    var cb = recipientState.contactBook;
+    var hasContacts = cb.contacts && cb.contacts.length > 0;
+    var hasLists = cb.lists && cb.lists.length > 0;
+    var hasDynamicLists = cb.dynamicLists && cb.dynamicLists.length > 0;
+    var hasTags = cb.tags && cb.tags.length > 0;
+    return hasContacts || hasLists || hasDynamicLists || hasTags;
+}
+
+function hasFileUploadRecipients() {
+    return recipientState && recipientState.files && recipientState.files.length > 0;
+}
+
+function hasManualRecipients() {
+    return recipientState && recipientState.manual && recipientState.manual.valid && recipientState.manual.valid.length > 0;
+}
+
 function openPersonalisationModal() {
+    var cbSection = document.getElementById('contactBookFieldsSection');
+    var csvSection = document.getElementById('csvFieldsSection');
+    var hintSection = document.getElementById('noCustomFieldsHint');
+
+    var hasCb = hasContactBookRecipients();
+    var hasCsv = hasFileUploadRecipients();
+    var hasManual = hasManualRecipients();
+
+    if (cbSection) {
+        cbSection.style.display = (hasCb || hasManual || (!hasCb && !hasCsv)) ? '' : 'none';
+    }
+
+    if (hintSection) {
+        hintSection.style.display = hasCsv ? 'none' : '';
+    }
+
     var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
     modal.show();
 }
