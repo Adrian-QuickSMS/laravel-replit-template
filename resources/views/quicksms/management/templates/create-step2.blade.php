@@ -1248,7 +1248,10 @@ function confirmTrackableLink() {
     document.getElementById('trackableLinkSummary').classList.remove('d-none');
 
     if (method === 'cursor') {
-        var shortUrl = 'https://' + domain + '/abc123';
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var code = '';
+        for (var i = 0; i < 5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+        var shortUrl = domain + '/' + code;
         if (window.templateChipEditor) {
             window.templateChipEditor.insertAtCursor(shortUrl);
         } else {

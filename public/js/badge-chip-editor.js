@@ -2,7 +2,7 @@
     'use strict';
 
     var PLACEHOLDER_REGEX = /\{\{([^}]+)\}\}/g;
-    var URL_REGEX = /(https?:\/\/(?:qsms\.uk|qout\.uk|custom1\.co\.uk|custom2\.com)\/[a-zA-Z0-9]+)/g;
+    var URL_REGEX = /((?:https?:\/\/)?(?:qsms\.uk|qout\.uk|custom1\.co\.uk|custom2\.com)\/[a-zA-Z0-9]{3,})/g;
 
     function BadgeChipEditor(container, options) {
         options = options || {};
@@ -271,7 +271,7 @@
 
         var text = rawText;
         var lastIndex = 0;
-        var regex = /(\{\{[^}]+\}\})|(https?:\/\/(?:qsms\.uk|qout\.uk|custom1\.co\.uk|custom2\.com)\/[a-zA-Z0-9]+)/g;
+        var regex = /(\{\{[^}]+\}\})|((?:https?:\/\/)?(?:qsms\.uk|qout\.uk|custom1\.co\.uk|custom2\.com)\/[a-zA-Z0-9]{3,})/g;
         var match;
 
         while ((match = regex.exec(text)) !== null) {
@@ -363,21 +363,32 @@
     };
 
     BadgeChipEditor.prototype.insertAtCursor = function(text) {
+        var savedRange = this._savedRange;
         this.el.focus();
-
-        if (this._savedRange) {
-            this._restoreSelection();
-        }
 
         var sel = window.getSelection();
         var range;
 
-        if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
-            range = sel.getRangeAt(0);
-        } else {
-            range = document.createRange();
-            range.selectNodeContents(this.el);
-            range.collapse(false);
+        if (savedRange) {
+            try {
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+                range = savedRange;
+            } catch (e) {
+                range = null;
+            }
+        }
+
+        if (!range || !sel.rangeCount || !this.el.contains(sel.anchorNode)) {
+            if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
+                range = sel.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.selectNodeContents(this.el);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
         }
 
         range.deleteContents();
