@@ -251,7 +251,7 @@
                         <p class="text-muted mb-0">Loading message composer...</p>
                     </div>
                 </div>
-                <iframe id="flowMessageComposerIframe" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
+                <iframe id="flowMessageComposerIframe" class="d-none" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
         </div>
     </div>

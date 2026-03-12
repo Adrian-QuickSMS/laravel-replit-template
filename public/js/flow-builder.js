@@ -2009,8 +2009,8 @@
         var loading = document.getElementById('flowMessageComposerLoading');
 
         // Reset state
-        iframe.style.display = 'none';
-        loading.style.display = 'flex';
+        iframe.classList.add('d-none');
+        loading.classList.remove('d-none');
         iframe.src = '';
 
         // Show the modal
@@ -2026,8 +2026,8 @@
 
             if (e.data.type === 'flowEmbedReady') {
                 // Iframe is loaded — hide loading, show iframe
-                loading.style.display = 'none';
-                iframe.style.display = 'block';
+                loading.classList.add('d-none');
+                iframe.classList.remove('d-none');
 
                 // Send existing config to the iframe for restoration
                 var config = node.config || {};
@@ -2081,6 +2081,7 @@
             window.removeEventListener('message', onMessage);
             // Unload iframe to free memory
             iframe.src = 'about:blank';
+            iframe.classList.add('d-none');
             modalEl.removeEventListener('hidden.bs.modal', handler);
         });
     };
