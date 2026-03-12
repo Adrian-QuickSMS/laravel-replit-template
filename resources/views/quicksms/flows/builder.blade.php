@@ -257,9 +257,91 @@
     </div>
 </div>
 
+{{-- ==========================================
+     Preview Modal - Phone preview of SMS/RCS
+     ========================================== --}}
+<div class="modal fade" id="flowPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header py-2 px-3" style="background: #f8f6fc; border-bottom: 1px solid #e8e0f0;">
+                <h6 class="modal-title mb-0"><i class="fas fa-mobile-alt me-2" style="color: #886CC0;"></i>Message Preview</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3" style="background: #f5f5f5; max-height: 70vh; overflow-y: auto;">
+                {{-- Channel toggle --}}
+                <div class="text-center mb-3" id="flowPreviewToggle" style="display: none;">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" data-preview-channel="sms">SMS</button>
+                        <button class="btn btn-outline-primary" data-preview-channel="rcs">RCS</button>
+                    </div>
+                </div>
+                {{-- Preview render target --}}
+                <div id="flowPreviewContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ==========================================
+     Keyword Modal - Manage interaction keywords
+     ========================================== --}}
+<div class="modal fade" id="flowKeywordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header py-2 px-3" style="background: #f8f6fc; border-bottom: 1px solid #e8e0f0;">
+                <h6 class="modal-title mb-0"><i class="fas fa-reply me-2" style="color: #886CC0;"></i>Manage Keywords</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="text-muted mb-3" style="font-size: 0.82rem;">
+                    Define keywords that recipients can reply with. Each keyword creates a separate output branch on the node.
+                </p>
+
+                {{-- Warning about sender ID --}}
+                <div class="alert alert-warning py-2 px-3 mb-3" id="flowKeywordWarning" style="font-size: 0.78rem; display: none;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Keyword replies require a sender ID that supports two-way messaging.
+                </div>
+
+                {{-- Keyword list --}}
+                <div id="flowKeywordList" class="mb-3">
+                    {{-- Keywords rendered dynamically --}}
+                </div>
+
+                {{-- Add keyword input --}}
+                <div class="input-group input-group-sm mb-3">
+                    <input type="text" class="form-control" id="flowKeywordInput" placeholder="Enter keyword..." maxlength="50">
+                    <button class="btn btn-outline-primary" type="button" id="flowKeywordAddBtn">
+                        <i class="fas fa-plus me-1"></i> Add
+                    </button>
+                </div>
+
+                {{-- Catch-all checkbox --}}
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="flowKeywordCatchAll">
+                    <label class="form-check-label" for="flowKeywordCatchAll" style="font-size: 0.82rem;">
+                        Enable catch-all branch <span class="text-muted">(any reply that doesn't match a keyword)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer py-2 px-3">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary" id="flowKeywordApplyBtn" style="background: #886CC0; border-color: #886CC0;">
+                    <i class="fas fa-check me-1"></i> Apply Keywords
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
+@push('styles')
+<link href="{{ asset('css/rcs-preview.css') }}" rel="stylesheet" type="text/css"/>
+@endpush
+
 @push('scripts')
+<script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
 <script src="{{ asset('js/flow-builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

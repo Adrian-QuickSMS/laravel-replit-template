@@ -582,6 +582,244 @@
     padding: 10px 0;
 }
 
+/* ---- Node Action Buttons (View / Interaction) ---- */
+.node-action-btns {
+    display: flex;
+    gap: 4px;
+    padding: 6px 12px;
+    border-top: 1px solid #f0f0f0;
+}
+.node-action-btn {
+    flex: 1;
+    padding: 4px 6px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fafafa;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+.node-action-btn:hover {
+    background: #f0ecf8;
+    color: #886CC0;
+    border-color: #c4b5dc;
+}
+.node-action-btn.active {
+    background: #886CC0;
+    color: #fff;
+    border-color: #886CC0;
+}
+.node-action-btn i {
+    margin-right: 3px;
+}
+
+/* ---- Dynamic Interaction Ports ---- */
+.interaction-ports-container {
+    padding: 4px 12px 8px 12px;
+    border-top: 1px dashed #e0e0e0;
+}
+.interaction-group-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #aaa;
+    padding: 4px 0 2px 0;
+    margin-top: 4px;
+}
+.interaction-group-label:first-child {
+    margin-top: 0;
+}
+.interaction-port-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 0;
+    position: relative;
+}
+.interaction-port-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #555;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 8px;
+}
+/* Dynamic port circle — positioned at right edge of node */
+.port-output-dynamic {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: -19px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+/* Colour variants for dynamic ports */
+.port-rcs {
+    border-color: #9c27b0 !important;
+}
+.port-rcs:hover {
+    background: #9c27b0 !important;
+    border-color: #9c27b0 !important;
+}
+.port-sms {
+    border-color: #1976d2 !important;
+}
+.port-sms:hover {
+    background: #1976d2 !important;
+    border-color: #1976d2 !important;
+}
+.port-timeout {
+    border-color: #ef6c00 !important;
+}
+.port-timeout:hover {
+    background: #ef6c00 !important;
+    border-color: #ef6c00 !important;
+}
+/* Coloured port labels */
+.interaction-port-label.port-label-rcs {
+    color: #9c27b0;
+}
+.interaction-port-label.port-label-sms {
+    color: #1976d2;
+}
+.interaction-port-label.port-label-timeout {
+    color: #ef6c00;
+}
+
+/* ---- Interaction Summary (Properties Panel) ---- */
+.interaction-summary {
+    background: #f8f6fc;
+    border: 1px solid #e8e0f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+.interaction-summary-group {
+    margin-bottom: 8px;
+}
+.interaction-summary-group:last-child {
+    margin-bottom: 0;
+}
+.interaction-summary-group-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #886CC0;
+    margin-bottom: 4px;
+}
+.interaction-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    font-size: 0.76rem;
+    color: #555;
+}
+.interaction-summary-item i {
+    width: 14px;
+    text-align: center;
+    font-size: 0.68rem;
+}
+.interaction-summary-item .rcs-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9c27b0;
+    flex-shrink: 0;
+}
+.interaction-summary-item .sms-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1976d2;
+    flex-shrink: 0;
+}
+.interaction-summary-item .timeout-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef6c00;
+    flex-shrink: 0;
+}
+
+/* ---- Keyword list in modal ---- */
+.keyword-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+.keyword-item .keyword-text {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #333;
+}
+.keyword-item .keyword-remove {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    transition: color 0.15s;
+}
+.keyword-item .keyword-remove:hover {
+    color: #c62828;
+}
+
+/* ---- Flow preview phone frame ---- */
+.flow-preview-phone {
+    background: #fff;
+    border-radius: 24px;
+    border: 3px solid #333;
+    padding: 40px 16px 30px 16px;
+    max-width: 320px;
+    margin: 0 auto;
+    min-height: 400px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.flow-preview-phone::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+}
+.flow-preview-phone .preview-bubble {
+    background: #e8e8e8;
+    border-radius: 12px 12px 12px 4px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #333;
+    line-height: 1.5;
+    word-break: break-word;
+    margin-bottom: 8px;
+}
+.flow-preview-phone .preview-sender {
+    font-size: 0.7rem;
+    color: #999;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
     .flow-palette {
