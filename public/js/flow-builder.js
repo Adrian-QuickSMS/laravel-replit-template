@@ -1450,7 +1450,6 @@
         var modalEl = document.getElementById('flowMessageComposerModal');
         var iframe = document.getElementById('flowMessageComposerIframe');
         var loading = document.getElementById('flowMessageComposerLoading');
-        var expectedOrigin = window.location.origin;
         var loadTimeout = null;
         var cleaned = false;
 
@@ -1465,7 +1464,6 @@
         }, 15000);
 
         function onMessage(e) {
-            if (e.origin !== expectedOrigin) return;
             if (e.source !== iframe.contentWindow) return;
             if (!e.data || !e.data.type) return;
 
@@ -1479,7 +1477,7 @@
                     iframe.contentWindow.postMessage({
                         type: 'flowRestoreConfig',
                         config: existingConfig
-                    }, expectedOrigin);
+                    }, '*');
                 }
             }
 

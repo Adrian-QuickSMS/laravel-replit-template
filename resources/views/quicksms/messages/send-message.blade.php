@@ -6291,7 +6291,7 @@ function showTestSentConfirmation(phoneNumber) {
 @if(!empty($flow_context))
 <script>
 var isFlowContext = true;
-var flowParentOrigin = window.location.origin;
+var flowEmbedToken = '{{ csrf_token() }}';
 
 function flowApplyConfig() {
     var channel = document.querySelector('input[name="channel"]:checked');
@@ -6336,11 +6336,11 @@ function flowApplyConfig() {
         optout_config: optoutConfig
     };
 
-    window.parent.postMessage({ type: 'flowConfigApplied', config: config }, flowParentOrigin);
+    window.parent.postMessage({ type: 'flowConfigApplied', config: config, token: flowEmbedToken }, '*');
 }
 
 function flowCancelEmbed() {
-    window.parent.postMessage({ type: 'flowConfigCancelled' }, flowParentOrigin);
+    window.parent.postMessage({ type: 'flowConfigCancelled', token: flowEmbedToken }, '*');
 }
 
 function flowRestoreConfig(config) {
@@ -6416,18 +6416,18 @@ function flowRestoreConfig(config) {
 
     if (typeof handleContentChange === 'function') handleContentChange();
 
-    window.parent.postMessage({ type: 'flowRestoreComplete' }, flowParentOrigin);
+    window.parent.postMessage({ type: 'flowRestoreComplete', token: flowEmbedToken }, '*');
 }
 
 window.addEventListener('message', function(e) {
-    if (e.origin !== flowParentOrigin) return;
-    if (e.data && e.data.type === 'flowRestoreConfig') {
+    if (!e.data || !e.data.type) return;
+    if (e.data.type === 'flowRestoreConfig') {
         flowRestoreConfig(e.data.config);
     }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    window.parent.postMessage({ type: 'flowEmbedReady' }, flowParentOrigin);
+    window.parent.postMessage({ type: 'flowEmbedReady', token: flowEmbedToken }, '*');
 });
 </script>
 @endif

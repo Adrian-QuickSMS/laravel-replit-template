@@ -244,7 +244,7 @@
                 <h6 class="modal-title mb-0"><i class="fas fa-paper-plane me-2" style="color: #886CC0;"></i>Configure Message</h6>
                 <button type="button" class="btn-close" id="flowMessageComposerClose"></button>
             </div>
-            <div class="modal-body p-0" style="overflow: hidden;">
+            <div class="modal-body p-0" style="overflow: hidden; height: calc(100vh - 50px);">
                 <div class="d-flex align-items-center justify-content-center h-100" id="flowMessageComposerLoading">
                     <div class="text-center">
                         <div class="spinner-border mb-2" style="color: #886CC0;" role="status"></div>

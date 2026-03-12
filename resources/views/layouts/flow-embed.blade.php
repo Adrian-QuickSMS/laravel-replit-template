@@ -57,13 +57,25 @@
         </div>
     </div>
 
-    @if(!empty(config('dz.public.global.js')))
-        @foreach(config('dz.public.global.js') as $script)
+    @if(!empty(config('dz.public.global.js.top')))
+        @foreach(config('dz.public.global.js.top') as $script)
             <script src="{{ asset($script) }}" type="text/javascript"></script>
         @endforeach
     @endif
 
+    @if(!empty(config('dz.public.global.js.bottom')))
+        @foreach(config('dz.public.global.js.bottom') as $script)
+            <script src="{{ asset($script) }}" type="text/javascript"></script>
+        @endforeach
+    @endif
+
+    <script src="{{ asset('vendor/toastr/js/toastr.min.js') }}"></script>
     <script src="{{ asset('js/badge-chip-editor.js') }}"></script>
+    <script src="{{ asset('js/security-helpers.js') }}"></script>
+    <script src="{{ asset('js/account-policy-service.js') }}"></script>
+    <script src="{{ asset('js/quicksms-account-lifecycle.js') }}"></script>
+    <script src="{{ asset('js/quicksms-test-mode.js') }}"></script>
+    <script src="{{ asset('js/quicksms-enforcement-rules.js') }}"></script>
 
     @stack('scripts')
 </body>
