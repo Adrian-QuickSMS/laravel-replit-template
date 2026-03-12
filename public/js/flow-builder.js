@@ -1455,6 +1455,27 @@
 
         loading.style.display = 'flex';
         iframe.style.display = 'none';
+
+        iframe.onload = function() {
+            clearTimeout(loadTimeout);
+            loading.style.display = 'none';
+            iframe.style.display = 'block';
+
+            setTimeout(function() {
+                var existingConfig = node.config || {};
+                if (existingConfig.channel || existingConfig.sms_content || existingConfig.sender_id || existingConfig.rcs_payload) {
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'flowRestoreConfig',
+                            config: existingConfig
+                        }, '*');
+                    } catch(err) {
+                        console.warn('[FlowBuilder] postMessage to iframe failed:', err);
+                    }
+                }
+            }, 500);
+        };
+
         iframe.src = '/messages/send?context=flow';
 
         loadTimeout = setTimeout(function() {
@@ -1464,8 +1485,9 @@
         }, 15000);
 
         function onMessage(e) {
-            if (e.source !== iframe.contentWindow) return;
             if (!e.data || !e.data.type) return;
+            var validTypes = ['flowEmbedReady', 'flowConfigApplied', 'flowConfigCancelled', 'flowRestoreComplete'];
+            if (validTypes.indexOf(e.data.type) === -1) return;
 
             if (e.data.type === 'flowEmbedReady') {
                 clearTimeout(loadTimeout);

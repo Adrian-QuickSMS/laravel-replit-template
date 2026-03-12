@@ -6450,7 +6450,9 @@ window.addEventListener('message', function(e) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    window.parent.postMessage({ type: 'flowEmbedReady', token: flowEmbedToken }, '*');
+    try {
+        window.parent.postMessage({ type: 'flowEmbedReady', token: flowEmbedToken }, '*');
+    } catch(err) { }
 });
 </script>
 @endif
