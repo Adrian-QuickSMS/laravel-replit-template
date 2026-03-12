@@ -6334,15 +6334,24 @@ function flowApplyConfig() {
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : '';
 
+    var rcsAgentName = '';
+    if (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) {
+        rcsAgentName = rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text.trim();
+    }
+
     var optoutEnabled = document.getElementById('enableOptoutManagement') ? document.getElementById('enableOptoutManagement').checked : false;
     var optoutConfig = null;
     if (optoutEnabled) {
         var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
         var urlEnabled = document.getElementById('enableUrlOptout') ? document.getElementById('enableUrlOptout').checked : false;
+        var keywordInput = document.getElementById('optOutKeywordInput');
+        var keywordText = keywordInput ? keywordInput.value.trim() : '';
         optoutConfig = {
             enabled: true,
             reply_optout: replyEnabled,
             url_optout: urlEnabled,
+            opt_out_url_enabled: urlEnabled,
+            opt_out_keyword: replyEnabled ? keywordText : '',
             opt_out_text: (typeof getUrlOptoutText === 'function') ? getUrlOptoutText() : ''
         };
         var replyListSelect = document.getElementById('replyOptOutListId');
@@ -6352,16 +6361,30 @@ function flowApplyConfig() {
     var rcsPayload = null;
     if ((channelVal === 'rcs_rich') && typeof getRcsWizardPayload === 'function') {
         rcsPayload = getRcsWizardPayload();
+    } else if ((channelVal === 'rcs_rich' || channelVal === 'rich_rcs') && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsPayload = rcsPersistentPayload;
     }
+
+    var isTrackable = (typeof trackableLinkConfirmed !== 'undefined' && trackableLinkConfirmed) ? true : false;
+
+    var charCountEl = document.getElementById('charCount');
+    var encodingEl = document.getElementById('encodingType');
+    var segmentEl = document.getElementById('smsPartCount');
 
     var config = {
         channel: channelVal,
         sender_id: senderId,
+        sender_id_text: senderName,
         sender_name: senderName,
         sms_content: smsContent,
         rcs_agent_id: rcsAgentId,
+        rcs_agent_name: rcsAgentName,
         rcs_payload: rcsPayload,
-        optout_config: optoutConfig
+        optout_config: optoutConfig,
+        trackable_link: isTrackable,
+        char_count: charCountEl ? parseInt(charCountEl.textContent, 10) || 0 : 0,
+        encoding: encodingEl ? encodingEl.textContent.trim() : 'GSM-7',
+        segments: segmentEl ? parseInt(segmentEl.textContent, 10) || 0 : 0
     };
 
     window.parent.postMessage({ type: 'flowConfigApplied', config: config, token: flowEmbedToken }, '*');

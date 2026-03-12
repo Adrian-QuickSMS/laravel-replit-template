@@ -338,20 +338,26 @@
         var isAnyRcs = isRichRcs || channel === 'rcs_basic' || channel === 'basic_rcs';
 
         // RCS button interactions (from rcs_payload)
-        if (isRichRcs && c.rcs_payload && c.rcs_payload.cards) {
+        if (isRichRcs && c.rcs_payload) {
+            var rcsCards = [];
+            if (c.rcs_payload.cards && c.rcs_payload.cards.length > 0) {
+                rcsCards = c.rcs_payload.cards;
+            } else if (c.rcs_payload.card) {
+                rcsCards = [c.rcs_payload.card];
+            }
             var btnIndex = 0;
-            c.rcs_payload.cards.forEach(function(card) {
-                if (card.buttons) {
-                    card.buttons.forEach(function(btn) {
-                        outputs.push({
-                            handle: 'rcs_btn_' + btnIndex,
-                            label: btn.label || 'Button ' + (btnIndex + 1),
-                            group: 'rcs',
-                            type: 'rcs_button'
-                        });
-                        btnIndex++;
+            rcsCards.forEach(function(card) {
+                var buttons = card.buttons || card.suggestions || [];
+                buttons.forEach(function(btn) {
+                    var btnLabel = btn.label || btn.text || 'Button ' + (btnIndex + 1);
+                    outputs.push({
+                        handle: 'rcs_btn_' + btnIndex,
+                        label: btnLabel,
+                        group: 'rcs',
+                        type: 'rcs_button'
                     });
-                }
+                    btnIndex++;
+                });
             });
         }
 
@@ -367,7 +373,8 @@
         }
 
         // Opt-out URL click
-        if (c.optout_config && c.optout_config.opt_out_url_enabled) {
+        var oc = c.optout_config;
+        if (oc && (oc.opt_out_url_enabled || oc.url_optout)) {
             outputs.push({
                 handle: 'sms_optout_url',
                 label: 'Opt-out Link',
@@ -377,10 +384,11 @@
         }
 
         // Opt-out keyword reply
-        if (c.optout_config && c.optout_config.opt_out_keyword) {
+        if (oc && (oc.opt_out_keyword || oc.reply_optout)) {
+            var kwLabel = oc.opt_out_keyword || 'STOP';
             outputs.push({
                 handle: 'sms_optout_reply',
-                label: 'Opt-out: ' + c.optout_config.opt_out_keyword,
+                label: 'Opt-out: ' + kwLabel,
                 group: 'sms',
                 type: 'optout_reply'
             });
