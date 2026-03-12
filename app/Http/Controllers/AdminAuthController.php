@@ -103,6 +103,7 @@ class AdminAuthController extends Controller
             'email' => $adminUser->email,
             'name' => $adminUser->full_name,
             'role' => $adminUser->role,
+            'hr_role' => $adminUser->hr_role ?? 'none',
             'authenticated' => true,
             'mfa_verified' => false,
             'mfa_setup_required' => $mfaRequired && !$mfaEnabled,

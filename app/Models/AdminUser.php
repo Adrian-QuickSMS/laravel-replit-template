@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * RED SIDE: Admin Users (Platform Administrators)
@@ -63,6 +64,8 @@ class AdminUser extends Authenticatable
         'phone',
         'created_by',
         'updated_by',
+        'hr_role',
+        'birthday',
     ];
 
     protected $hidden = [
@@ -89,6 +92,7 @@ class AdminUser extends Authenticatable
         'invite_expires_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'birthday' => 'date',
     ];
 
     /**
@@ -125,6 +129,26 @@ class AdminUser extends Authenticatable
     {
         return $this->hasMany(AuthAuditLog::class, 'actor_id')
             ->where('actor_type', 'admin_user');
+    }
+
+    public function hrProfile(): HasOne
+    {
+        return $this->hasOne(\App\Models\Hr\EmployeeHrProfile::class, 'admin_user_id');
+    }
+
+    public function hasHrAccess(): bool
+    {
+        return in_array($this->hr_role, ['employee', 'manager', 'hr_admin']);
+    }
+
+    public function isHrAdmin(): bool
+    {
+        return $this->hr_role === 'hr_admin';
+    }
+
+    public function isHrManager(): bool
+    {
+        return in_array($this->hr_role, ['manager', 'hr_admin']);
     }
 
     // =====================================================

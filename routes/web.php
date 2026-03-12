@@ -817,6 +817,22 @@ Route::prefix('admin')->group(function () {
             Route::post('/system/routing/create-override', 'routingCreateOverride')->name('admin.routing.create-override');
             Route::post('/system/routing/cancel-override', 'routingCancelOverride')->name('admin.routing.cancel-override');
 
+            Route::prefix('hr')->controller(\App\Http\Controllers\Admin\HrController::class)->group(function () {
+                Route::get('/', 'dashboard')->name('admin.hr.dashboard');
+                Route::get('/my-leave', 'myLeave')->name('admin.hr.my-leave');
+                Route::post('/leave-request', 'storeLeaveRequest')->name('admin.hr.leave-request.store');
+                Route::post('/leave-request/{id}/cancel', 'cancelLeaveRequest')->name('admin.hr.leave-request.cancel');
+                Route::get('/team-calendar', 'teamCalendar')->name('admin.hr.team-calendar');
+                Route::get('/api/team-calendar', 'teamCalendarApi')->name('admin.hr.api.team-calendar');
+                Route::post('/request/{id}/approve', 'approveRequest')->name('admin.hr.request.approve');
+                Route::post('/request/{id}/reject', 'rejectRequest')->name('admin.hr.request.reject');
+                Route::get('/settings', 'settings')->name('admin.hr.settings');
+                Route::post('/settings', 'updateSettings')->name('admin.hr.settings.update');
+                Route::post('/employee', 'storeEmployee')->name('admin.hr.employee.store');
+                Route::put('/employee/{id}', 'updateEmployee')->name('admin.hr.employee.update');
+                Route::post('/entitlement/{employeeId}', 'updateEntitlement')->name('admin.hr.entitlement.update');
+            });
+
             // API Connections — admin cross-tenant management
             Route::prefix('api/api-connections')->controller(\App\Http\Controllers\Admin\AdminApiConnectionController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.api-connections.index');

@@ -92,6 +92,28 @@
                 </ul>
             </li>
 
+            @if(in_array(session('admin_auth.hr_role', 'none'), ['employee', 'manager', 'hr_admin']) || session('admin_auth.role') === 'super_admin')
+            <li class="{{ request()->routeIs('admin.hr.*') ? 'mm-active' : '' }}">
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fas fa-users"></i>
+                    <span class="nav-text">HR</span>
+                </a>
+                <ul aria-expanded="false">
+                    <li><a href="{{ route('admin.hr.dashboard') }}" class="{{ request()->routeIs('admin.hr.dashboard') ? 'mm-active' : '' }}">Dashboard
+                        @php
+                            $hrPendingCount = \App\Models\Hr\LeaveRequest::where('status', 'pending')->count();
+                        @endphp
+                        @if($hrPendingCount > 0)<span class="badge bg-warning" style="font-size: 0.6rem; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0.25rem; padding: 0;">{{ $hrPendingCount }}</span>@endif
+                    </a></li>
+                    <li><a href="{{ route('admin.hr.my-leave') }}" class="{{ request()->routeIs('admin.hr.my-leave') ? 'mm-active' : '' }}">My Leave</a></li>
+                    <li><a href="{{ route('admin.hr.team-calendar') }}" class="{{ request()->routeIs('admin.hr.team-calendar') ? 'mm-active' : '' }}">Team Calendar</a></li>
+                    @if(in_array(session('admin_auth.hr_role', 'none'), ['hr_admin']) || session('admin_auth.role') === 'super_admin')
+                    <li><a href="{{ route('admin.hr.settings') }}" class="{{ request()->routeIs('admin.hr.settings') ? 'mm-active' : '' }}">Settings</a></li>
+                    @endif
+                </ul>
+            </li>
+            @endif
+
             <li class="{{ (request()->routeIs('admin.security.*') && !request()->routeIs('admin.security.country-controls')) ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-shield-alt"></i>

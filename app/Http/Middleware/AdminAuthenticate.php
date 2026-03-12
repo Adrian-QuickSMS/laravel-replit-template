@@ -44,6 +44,7 @@ class AdminAuthenticate
                         'email' => $devAdmin->email,
                         'name' => $devAdmin->full_name,
                         'role' => $devAdmin->role,
+                        'hr_role' => $devAdmin->hr_role ?? 'none',
                         'last_activity' => now()->timestamp,
                         'ip_address' => $request->ip(),
                     ]);
