@@ -47,6 +47,7 @@
 
     BadgeChipEditor.prototype._bindEvents = function() {
         var self = this;
+        this._savedRange = null;
 
         this.el.addEventListener('input', function() {
             self._syncToHidden();
@@ -59,6 +60,18 @@
                 return;
             }
             self._handleKeydown(e);
+        });
+
+        this.el.addEventListener('keyup', function() {
+            self._saveSelection();
+        });
+
+        this.el.addEventListener('mouseup', function() {
+            self._saveSelection();
+        });
+
+        this.el.addEventListener('blur', function() {
+            self._saveSelection();
         });
 
         this.el.addEventListener('paste', function(e) {
@@ -332,12 +345,34 @@
         }
     };
 
+    BadgeChipEditor.prototype._saveSelection = function() {
+        var sel = window.getSelection();
+        if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
+            this._savedRange = sel.getRangeAt(0).cloneRange();
+        }
+    };
+
+    BadgeChipEditor.prototype._restoreSelection = function() {
+        if (this._savedRange) {
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(this._savedRange);
+            return true;
+        }
+        return false;
+    };
+
     BadgeChipEditor.prototype.insertAtCursor = function(text) {
         this.el.focus();
+
+        if (this._savedRange) {
+            this._restoreSelection();
+        }
+
         var sel = window.getSelection();
         var range;
 
-        if (sel.rangeCount) {
+        if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
             range = sel.getRangeAt(0);
         } else {
             range = document.createRange();
@@ -359,6 +394,7 @@
             sel.addRange(newRange);
         }
 
+        this._savedRange = null;
         this._syncToHidden();
         this._fireChange();
     };
