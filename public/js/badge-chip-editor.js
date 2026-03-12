@@ -198,18 +198,38 @@
         return null;
     };
 
+    BadgeChipEditor.BUILTIN_FIELDS = [
+        'first_name', 'last_name', 'full_name', 'mobile_number', 'email',
+        'unique_url', 'company', 'title', 'address', 'city', 'postcode',
+        'country', 'date_of_birth', 'notes', 'opt_out_url', 'trackingUrl'
+    ];
+
+    BadgeChipEditor.prototype._classifyPlaceholder = function(rawValue) {
+        var label = rawValue.replace(/^\{\{|\}\}$/g, '').trim();
+        if (BadgeChipEditor.BUILTIN_FIELDS.indexOf(label) !== -1) {
+            return 'placeholder';
+        }
+        return 'custom';
+    };
+
     BadgeChipEditor.prototype._createChip = function(rawValue, type) {
         var chip = document.createElement('span');
-        chip.className = 'bce-chip';
         chip.setAttribute('contenteditable', 'false');
         chip.setAttribute('data-raw', rawValue);
-        chip.setAttribute('data-type', type || 'placeholder');
+
+        var chipType = type || 'placeholder';
+        if (chipType === 'placeholder') {
+            chipType = this._classifyPlaceholder(rawValue);
+        }
+        chip.className = 'bce-chip' + (chipType === 'custom' ? ' bce-chip--custom' : '');
+        chip.setAttribute('data-type', chipType);
 
         if (type === 'link') {
             chip.innerHTML = '<span class="bce-chip-icon">&#128279;</span>' + this._escapeHtml(rawValue);
         } else {
             var label = rawValue.replace(/^\{\{|\}\}$/g, '').trim();
-            chip.innerHTML = '<span class="bce-chip-icon">&#128100;</span>' + this._escapeHtml(label);
+            var icon = chipType === 'custom' ? '&#128196;' : '&#128100;';
+            chip.innerHTML = '<span class="bce-chip-icon">' + icon + '</span>' + this._escapeHtml(label);
         }
 
         var x = document.createElement('span');

@@ -52,6 +52,19 @@
     border-color: #93bce0;
 }
 
+.bce-chip--custom,
+.bce-chip[data-type="custom"] {
+    background: #f0ebf8;
+    color: #5a3d8a;
+    border-color: #e0d4f0;
+}
+
+.bce-chip--custom:hover,
+.bce-chip[data-type="custom"]:hover {
+    background: #e4dcf2;
+    border-color: #c9b8e4;
+}
+
 .bce-chip[data-type="link"] {
     background: #d4edda;
     color: #155724;
