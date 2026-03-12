@@ -1,4 +1,4 @@
-@extends('layouts.quicksms')
+@extends($layout ?? 'layouts.quicksms')
 
 @section('title', 'Send Message')
 
@@ -102,12 +102,16 @@
         
         <div class="send-message-layout">
         <div class="send-message-left">
+            @if(empty($flow_context))
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <h6 class="mb-3">Campaign Details</h6>
                     <input type="text" class="form-control" id="campaignName" placeholder="Campaign name (auto-generated if blank)" maxlength="100">
                 </div>
             </div>
+            @else
+            <input type="hidden" id="campaignName" value="Flow Message">
+            @endif
             
             <div class="card mb-3">
                 <div class="card-body p-4">
@@ -180,6 +184,7 @@
                 </div>
             </div>
             
+            @if(empty($flow_context))
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -192,7 +197,7 @@
                             <label class="form-check-label" for="ukNumbersOnly">UK only</label>
                         </div>
                     </div>
-                    
+
                     <div id="recipientSummaryText" class="alert mb-3" style="display: none; background-color: #f0ebf8; color: #6b5b95; border: 1px solid #d4c8e8;"></div>
                     <label class="form-label mb-2">Enter mobile numbers
                         @if(!empty($is_test_standard))
@@ -200,13 +205,13 @@
                         @endif
                     </label>
                     <textarea class="form-control mb-3" id="manualNumbers" rows="4" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
-                    
+
                     <div class="d-none mb-3" id="manualValidation">
                         <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="manualValid">0</span> valid</span>
                         <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="manualInvalid">0</span> invalid</span>
                         <a href="#" class="ms-2 d-none" id="manualInvalidLink" onclick="showInvalidNumbers('manual')">View</a>
                     </div>
-                    
+
                     <div class="d-flex gap-2 mb-4">
                         <button type="button" class="btn btn-outline-primary" id="uploadCsvBtn" onclick="triggerFileUpload()">
                             <i class="fas fa-upload me-1"></i>Upload File
@@ -214,25 +219,26 @@
                         <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
                         </button>
-                        
+
                     </div>
-                    
+
                     <div id="uploadedFilesContainer" class="mb-3"></div>
                     <div class="d-none mb-3" id="fileProcessingIndicator">
                         <div class="progress mb-2" style="height: 6px;"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%; background-color: #886CC0;"></div></div>
                         <span class="text-muted">Processing file...</span>
                     </div>
-                    
+
                     <div class="d-none mb-3" id="contactBookSelection">
                         <div id="contactBookChips"></div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                         <span class="fw-medium">Total Recipients</span>
                         <span class="badge" id="recipientCount" style="background-color: #f0ebf8; color: #6b5b95;">0</span>
                     </div>
                 </div>
             </div>
+            @endif
             
             <div class="card mb-3">
                 <div class="card-body p-4">
@@ -496,6 +502,18 @@
                 </div>
             </div>
             
+            @if(!empty($flow_context))
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-secondary" onclick="flowEmbedCancel()"><i class="fas fa-times me-1"></i>Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="flowEmbedApply()" style="background: #886CC0; border-color: #886CC0;">
+                            <i class="fas fa-check me-1"></i>Apply to Flow
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @else
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
@@ -507,6 +525,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
         
         <div class="send-message-right">
@@ -531,9 +550,13 @@
                     
                     <div class="mt-3 border-top pt-2">
                         <div class="row text-center">
+                            @if(!empty($flow_context))
+                            <div class="col-12"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
+                            @else
                             <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
                             <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients" class="small">0</strong></div>
                             <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">&pound;0.00</strong></div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -6154,5 +6177,222 @@ function showTestSentConfirmation(phoneNumber) {
         </div>
     </div>
 </div>
+@endif
+
+@if(!empty($flow_context))
+{{-- ==========================================
+     Flow Embed: postMessage integration
+     ========================================== --}}
+<script>
+(function() {
+    var isFlowEmbed = true;
+
+    /**
+     * Gather the current message configuration from the page state.
+     * This extracts channel, sender, content, RCS payload, and opt-out settings.
+     */
+    function gatherFlowConfig() {
+        var channelEl = document.querySelector('input[name="channel"]:checked');
+        var channel = channelEl ? channelEl.value : 'sms';
+
+        var senderIdEl = document.getElementById('senderId');
+        var senderId = senderIdEl ? senderIdEl.value : '';
+        var senderIdText = '';
+        if (senderIdEl) {
+            if (senderIdEl.tagName === 'SELECT' && senderIdEl.selectedIndex > 0) {
+                senderIdText = senderIdEl.options[senderIdEl.selectedIndex].text;
+            } else if (senderIdEl.tagName === 'INPUT') {
+                senderIdText = senderIdEl.value;
+            }
+        }
+
+        var rcsAgentEl = document.getElementById('rcsAgent');
+        var rcsAgentId = rcsAgentEl ? rcsAgentEl.value : '';
+        var rcsAgentName = '';
+        if (rcsAgentEl && rcsAgentEl.selectedIndex > 0) {
+            rcsAgentName = rcsAgentEl.options[rcsAgentEl.selectedIndex].text;
+        }
+
+        var smsContent = (document.getElementById('smsContent') || {}).value || '';
+
+        // RCS payload from the RCS wizard
+        var rcsPayload = null;
+        if ((channel === 'rcs_rich') && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+            rcsPayload = rcsPersistentPayload;
+        }
+
+        // RCS cards data for re-editing (if available)
+        var rcsCardsSnapshot = null;
+        if (typeof rcsCardsData !== 'undefined' && rcsCardsData) {
+            try { rcsCardsSnapshot = JSON.parse(JSON.stringify(rcsCardsData)); } catch(e) {}
+        }
+
+        // Character/segment info
+        var charCount = parseInt((document.getElementById('charCount') || {}).textContent || '0', 10);
+        var encoding = (document.getElementById('encodingType') || {}).textContent || 'GSM-7';
+        var segments = parseInt((document.getElementById('smsPartCount') || {}).textContent || '1', 10);
+
+        // Opt-out configuration
+        var optoutConfig = null;
+        if (typeof getOptoutConfiguration === 'function') {
+            optoutConfig = getOptoutConfiguration();
+        }
+
+        // Trackable link
+        var trackableLink = false;
+        var trackableLinkEl = document.getElementById('includeTrackableLink');
+        if (trackableLinkEl) trackableLink = trackableLinkEl.checked;
+
+        // Message expiry
+        var messageExpiry = null;
+        var messageExpiryEl = document.getElementById('messageExpiry');
+        if (messageExpiryEl && messageExpiryEl.checked) {
+            var expiryVal = document.getElementById('messageExpiryValue');
+            if (expiryVal) messageExpiry = expiryVal.textContent;
+        }
+
+        return {
+            channel: channel,
+            sender_id: senderId,
+            sender_id_text: senderIdText,
+            rcs_agent_id: rcsAgentId,
+            rcs_agent_name: rcsAgentName,
+            sms_content: smsContent,
+            rcs_payload: rcsPayload,
+            rcs_cards_data: rcsCardsSnapshot,
+            char_count: charCount,
+            encoding: encoding,
+            segments: segments,
+            optout_config: optoutConfig,
+            trackable_link: trackableLink,
+            message_expiry: messageExpiry
+        };
+    }
+
+    /**
+     * Restore configuration from parent window (for re-editing).
+     */
+    function restoreFlowConfig(config) {
+        if (!config) return;
+
+        // Channel
+        if (config.channel) {
+            var radio = document.querySelector('input[name="channel"][value="' + config.channel + '"]');
+            if (radio) {
+                radio.checked = true;
+                if (typeof selectChannel === 'function') selectChannel(config.channel);
+            }
+        }
+
+        // Sender ID
+        if (config.sender_id) {
+            var senderEl = document.getElementById('senderId');
+            if (senderEl) {
+                if (senderEl.tagName === 'SELECT') {
+                    for (var i = 0; i < senderEl.options.length; i++) {
+                        if (senderEl.options[i].value === config.sender_id) {
+                            senderEl.selectedIndex = i;
+                            break;
+                        }
+                    }
+                } else {
+                    senderEl.value = config.sender_id_text || config.sender_id;
+                }
+            }
+        }
+
+        // RCS Agent
+        if (config.rcs_agent_id) {
+            var rcsEl = document.getElementById('rcsAgent');
+            if (rcsEl) {
+                for (var j = 0; j < rcsEl.options.length; j++) {
+                    if (rcsEl.options[j].value === config.rcs_agent_id) {
+                        rcsEl.selectedIndex = j;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // SMS Content
+        if (config.sms_content) {
+            var contentEl = document.getElementById('smsContent');
+            if (contentEl) {
+                contentEl.value = config.sms_content;
+                if (typeof handleContentChange === 'function') handleContentChange();
+            }
+        }
+
+        // RCS payload and cards data (for re-editing in wizard)
+        if (config.rcs_payload && typeof rcsPersistentPayload !== 'undefined') {
+            window.rcsPersistentPayload = config.rcs_payload;
+        }
+        if (config.rcs_cards_data && typeof rcsCardsData !== 'undefined') {
+            window.rcsCardsData = config.rcs_cards_data;
+        }
+
+        // Show RCS configured summary if we have payload
+        if (config.rcs_payload && config.channel === 'rcs_rich') {
+            var configuredSummary = document.getElementById('rcsConfiguredSummary');
+            if (configuredSummary) configuredSummary.classList.remove('d-none');
+        }
+
+        // Update preview
+        if (typeof updatePreview === 'function') updatePreview();
+    }
+
+    // "Apply to Flow" button handler
+    window.flowEmbedApply = function() {
+        // Basic validation: require sender ID and content (unless rich RCS)
+        var senderEl = document.getElementById('senderId');
+        if (senderEl && !senderEl.value) {
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('Please select a Sender ID.');
+            }
+            return;
+        }
+
+        var channelEl = document.querySelector('input[name="channel"]:checked');
+        var channel = channelEl ? channelEl.value : 'sms';
+
+        if (channel !== 'rcs_rich') {
+            var content = (document.getElementById('smsContent') || {}).value || '';
+            if (!content.trim()) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('Please enter message content.');
+                }
+                return;
+            }
+        } else {
+            if (typeof rcsPersistentPayload === 'undefined' || !rcsPersistentPayload) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('Please configure your RCS message content.');
+                }
+                return;
+            }
+        }
+
+        var config = gatherFlowConfig();
+        window.parent.postMessage({ type: 'flowConfigApplied', config: config }, '*');
+    };
+
+    // "Cancel" button handler
+    window.flowEmbedCancel = function() {
+        window.parent.postMessage({ type: 'flowConfigCancelled' }, '*');
+    };
+
+    // Listen for config restoration from parent
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'flowRestoreConfig') {
+            restoreFlowConfig(e.data.config);
+        }
+    });
+
+    // Notify parent that iframe is ready
+    window.addEventListener('load', function() {
+        window.parent.postMessage({ type: 'flowEmbedReady' }, '*');
+    });
+})();
+</script>
 @endif
 @endsection

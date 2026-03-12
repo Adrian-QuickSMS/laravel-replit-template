@@ -3,7 +3,6 @@
 @push('styles')
 <link href="{{ asset('css/quicksms-global-layout.css') }}" rel="stylesheet" type="text/css"/>
 <link href="{{ asset('css/flow-builder.css') }}" rel="stylesheet" type="text/css"/>
-<link href="{{ asset('css/rcs-preview.css') }}" rel="stylesheet" type="text/css"/>
 @endpush
 
 @section('sidebar')
@@ -235,116 +234,32 @@
 </script>
 
 {{-- ==========================================
-     SMS Composer Modal
-     Mirrors the real Send Message content editor
+     Full-Screen Send Message Embed Modal
+     Opens the real send-message page in an iframe
      ========================================== --}}
-<div class="modal fade" id="smsComposerModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="border-bottom: 1px solid #eee;">
-                <h5 class="modal-title"><i class="fas fa-paper-plane me-2" style="color: #886CC0;"></i>Message Content</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="flowMessageComposerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content" style="border: none; border-radius: 0;">
+            <div class="modal-header py-2 px-3" style="background: #f8f6fc; border-bottom: 1px solid #e8e0f0;">
+                <h6 class="modal-title mb-0"><i class="fas fa-paper-plane me-2" style="color: #886CC0;"></i>Configure Message</h6>
+                <button type="button" class="btn-close" id="flowMessageComposerClose"></button>
             </div>
-            <div class="modal-body">
-                {{-- SMS Fallback label for Rich RCS --}}
-                <div class="d-none mb-2" id="smsFallbackNote">
-                    <div class="alert py-2 mb-0" style="background-color: #f0ebf8; color: #6b5b95; border: none;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        This text is used as the SMS fallback when the recipient's device doesn't support RCS.
+            <div class="modal-body p-0" style="overflow: hidden;">
+                <div class="d-flex align-items-center justify-content-center h-100" id="flowMessageComposerLoading">
+                    <div class="text-center">
+                        <div class="spinner-border mb-2" style="color: #886CC0;" role="status"></div>
+                        <p class="text-muted mb-0">Loading message composer...</p>
                     </div>
                 </div>
-
-                <label class="form-label fw-bold mb-2" id="smsComposerLabel">SMS Content</label>
-
-                <div class="position-relative border rounded mb-2">
-                    <textarea class="form-control border-0" id="flowSmsContent" rows="6"
-                              placeholder="Type your message here... Use {{first_name}} for personalisation."
-                              oninput="flowHandleContentChange()"
-                              style="padding-bottom: 40px; font-size: 0.9rem;"></textarea>
-                    <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
-                        <button type="button" class="btn btn-sm btn-light border" onclick="flowOpenPersonalisationModal()" title="Insert personalisation">
-                            <i class="fas fa-user-tag"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-light border" id="flowEmojiPickerBtn" title="Insert emoji">
-                            <i class="fas fa-smile"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <span class="text-muted me-3">Characters: <strong id="flowCharCount">0</strong></span>
-                        <span class="text-muted me-3">Encoding: <strong id="flowEncodingType">GSM-7</strong></span>
-                        <span class="text-muted" id="flowSegmentDisplay">Segments: <strong id="flowSmsPartCount">1</strong></span>
-                    </div>
-                    <span class="badge d-none" id="flowUnicodeWarning" style="background:#f0ebf8;color:#5a3d8a;">
-                        <i class="fas fa-exclamation-triangle me-1"></i>Unicode
-                    </span>
-                </div>
-
-                <div class="d-none mb-2" id="flowRcsTextHelper">
-                    <div class="alert py-2 mb-0" style="background-color: #f0ebf8; color: #6b5b95; border: none;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <span id="flowRcsHelperText">Messages over 160 characters will be sent as a single RCS message.</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid #eee;">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btnApplySmsContent" style="background: #886CC0; border-color: #886CC0;">
-                    <i class="fas fa-check me-1"></i> Apply Content
-                </button>
+                <iframe id="flowMessageComposerIframe" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
             </div>
         </div>
     </div>
 </div>
-
-{{-- ==========================================
-     Personalisation Modal
-     ========================================== --}}
-<div class="modal fade" id="flowPersonalisationModal" tabindex="-1" style="z-index: 1070;">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header py-3">
-                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Insert Personalisation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted mb-3">Click a placeholder to insert it at the cursor position in your message.</p>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Contact Book Fields</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="flowInsertPlaceholder('first_name')">@{{first_name}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="flowInsertPlaceholder('last_name')">@{{last_name}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="flowInsertPlaceholder('full_name')">@{{full_name}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="flowInsertPlaceholder('mobile_number')">@{{mobile_number}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="flowInsertPlaceholder('email')">@{{email}}</button>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Flow Variables</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="flowInsertPlaceholder('trigger_data')">@{{trigger_data}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="flowInsertPlaceholder('webhook_response')">@{{webhook_response}}</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Include the existing RCS Wizard Modal and supporting components --}}
-@include('quicksms.partials.rcs-wizard-modal')
-@include('quicksms.partials.emoji-picker')
 
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260227b"></script>
 <script src="{{ asset('js/flow-builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

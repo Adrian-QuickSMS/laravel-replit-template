@@ -425,6 +425,9 @@ class QuickSMSController extends Controller
             $approvedTestNumbers = $settings->approved_test_numbers ?? [];
         }
 
+        // Flow embed context: use minimal layout, hide recipients/campaign
+        $flowContext = request()->query('context') === 'flow';
+
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
             'sender_ids' => $sender_ids,
@@ -444,6 +447,8 @@ class QuickSMSController extends Controller
             'is_dynamic_sender' => $isDynamicSender,
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
+            'flow_context' => $flowContext,
+            'layout' => $flowContext ? 'layouts.flow-embed' : 'layouts.quicksms',
         ]);
     }
 
