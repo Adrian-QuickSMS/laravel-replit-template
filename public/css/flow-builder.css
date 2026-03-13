@@ -5,8 +5,13 @@
 /* Override layout for full-canvas experience */
 .content-body.flow-builder-page {
     min-height: 0 !important;
-    height: calc(100vh - 5.3rem) !important;
+    position: fixed !important;
+    top: var(--dz-header-height, 4.5rem);
+    bottom: 0;
+    left: var(--dz-sidebar-width, 16.5rem);
+    right: 0;
     overflow: hidden !important;
+    margin-left: 0 !important;
 }
 .flow-builder-page .qsms-main {
     padding: 0 !important;
@@ -911,8 +916,16 @@
     font-weight: 600;
 }
 
+/* ---- Sidebar toggle support ---- */
+.menu-toggle .content-body.flow-builder-page {
+    left: 5rem !important;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+    .content-body.flow-builder-page {
+        left: 0 !important;
+    }
     .flow-palette {
         width: 60px;
         min-width: 60px;
