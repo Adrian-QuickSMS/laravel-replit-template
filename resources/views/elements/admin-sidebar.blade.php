@@ -101,7 +101,16 @@
                 <ul aria-expanded="false">
                     <li><a href="{{ route('admin.hr.dashboard') }}" class="{{ request()->routeIs('admin.hr.dashboard') ? 'mm-active' : '' }}">Dashboard
                         @php
-                            $hrPendingCount = \App\Models\Hr\LeaveRequest::where('status', 'pending')->count();
+                            $hrRole = session('admin_auth.hr_role', 'none');
+                            $hrAdminId = session('admin_auth.admin_id');
+                            if (in_array($hrRole, ['hr_admin']) || session('admin_auth.role') === 'super_admin') {
+                                $hrPendingCount = \App\Models\Hr\LeaveRequest::where('status', 'pending')->count();
+                            } elseif ($hrRole === 'manager' && $hrAdminId) {
+                                $mgrProfile = \App\Models\Hr\EmployeeHrProfile::where('admin_user_id', $hrAdminId)->first();
+                                $hrPendingCount = $mgrProfile ? \App\Models\Hr\LeaveRequest::where('status', 'pending')->whereIn('employee_id', $mgrProfile->directReports()->pluck('id'))->count() : 0;
+                            } else {
+                                $hrPendingCount = 0;
+                            }
                         @endphp
                         @if($hrPendingCount > 0)<span class="badge bg-warning" style="font-size: 0.6rem; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0.25rem; padding: 0;">{{ $hrPendingCount }}</span>@endif
                     </a></li>

@@ -60,6 +60,38 @@
                                 <small class="text-muted">Remaining</small>
                             </div>
                         </div>
+                        @if($balance['entitlement']['carried_over_units'] > 0 || $balance['entitlement']['purchased_units'] > 0 || $balance['entitlement']['gifted_units'] > 0)
+                        <hr>
+                        <div class="row text-center">
+                            @if($balance['entitlement']['carried_over_units'] > 0)
+                            <div class="col-4">
+                                <span class="badge bg-info mb-1"><i class="fas fa-redo me-1"></i>Carried Over</span>
+                                <h6>{{ number_format($balance['entitlement']['carried_over_units'] / 4, 1) }} days</h6>
+                            </div>
+                            @endif
+                            @if($balance['entitlement']['purchased_units'] > 0)
+                            <div class="col-4">
+                                <span class="badge bg-success mb-1"><i class="fas fa-shopping-cart me-1"></i>Purchased</span>
+                                <h6>{{ number_format($balance['entitlement']['purchased_units'] / 4, 1) }} days</h6>
+                            </div>
+                            @endif
+                            @if($balance['entitlement']['gifted_units'] > 0)
+                            <div class="col-4">
+                                <span class="badge bg-warning mb-1"><i class="fas fa-gift me-1"></i>Gifted/TOIL</span>
+                                <h6>{{ number_format($balance['entitlement']['gifted_units'] / 4, 1) }} days</h6>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+                        @if(isset($balance['additional_pool']))
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                Additional pool: {{ number_format($balance['additional_pool']['total_additional_days'], 1) }}/{{ number_format($balance['additional_pool']['max_days'], 1) }} days
+                                ({{ number_format($balance['additional_pool']['remaining_room_days'], 1) }} remaining)
+                            </small>
+                        </div>
+                        @endif
                         @if($balance['sickness']['total_days'] > 0 || $balance['medical']['total_days'] > 0)
                         <hr>
                         <div class="row text-center">
@@ -120,9 +152,38 @@
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm w-100" id="submitBtn">Submit Request</button>
                         </form>
-                        <div id="requestMessage" class="mt-2" style="display: none;"></div>
+                        <div id="requestMessage" class="mt-2 d-none"></div>
                     </div>
                 </div>
+
+                @php
+                    $settings = \App\Models\Hr\HrSettings::instance();
+                @endphp
+                @if($settings->allow_purchase && isset($balance['additional_pool']) && $balance['additional_pool']['remaining_room_days'] > 0)
+                <div class="card">
+                    <div class="card-header border-0 pb-0">
+                        <h4 class="card-title"><i class="fas fa-shopping-cart me-2"></i>Purchase Holiday</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted" style="font-size: 0.85rem;">
+                            You can purchase up to {{ number_format($balance['additional_pool']['remaining_room_days'], 1) }} additional day(s).
+                            Requires HR Admin approval.
+                        </p>
+                        <form id="purchaseForm" onsubmit="submitPurchase(event)">
+                            <div class="mb-3">
+                                <label class="form-label">Days to Purchase</label>
+                                <input type="number" name="days" class="form-control form-control-sm" step="0.25" min="0.25" max="{{ $balance['additional_pool']['remaining_room_days'] }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Reason (optional)</label>
+                                <textarea name="reason" class="form-control form-control-sm" rows="2" maxlength="500"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100" id="purchaseBtn">Submit Purchase Request</button>
+                        </form>
+                        <div id="purchaseMessage" class="mt-2 d-none"></div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
         @endif
@@ -182,6 +243,11 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
+function showMsg(el, html) {
+    el.classList.remove('d-none');
+    el.innerHTML = html;
+}
+
 function submitLeaveRequest(e) {
     e.preventDefault();
     const form = document.getElementById('leaveRequestForm');
@@ -199,18 +265,16 @@ function submitLeaveRequest(e) {
     })
     .then(r => r.json())
     .then(d => {
-        msg.style.display = 'block';
         if (d.status === 'success') {
-            msg.innerHTML = '<div class="alert alert-success py-1 px-2 mb-0">' + d.message + '</div>';
+            showMsg(msg, '<div class="alert alert-success py-1 px-2 mb-0">' + d.message + '</div>');
             form.reset();
             setTimeout(() => location.reload(), 1500);
         } else {
-            msg.innerHTML = '<div class="alert alert-danger py-1 px-2 mb-0">' + (d.message || 'Error submitting request.') + '</div>';
+            showMsg(msg, '<div class="alert alert-danger py-1 px-2 mb-0">' + (d.message || 'Error submitting request.') + '</div>');
         }
     })
     .catch(() => {
-        msg.style.display = 'block';
-        msg.innerHTML = '<div class="alert alert-danger py-1 px-2 mb-0">Network error.</div>';
+        showMsg(msg, '<div class="alert alert-danger py-1 px-2 mb-0">Network error.</div>');
     })
     .finally(() => {
         btn.disabled = false;
@@ -257,6 +321,40 @@ function submitBirthdayLeave() {
         }
     })
     .catch(() => alert('Network error'));
+}
+
+function submitPurchase(e) {
+    e.preventDefault();
+    const form = document.getElementById('purchaseForm');
+    const btn = document.getElementById('purchaseBtn');
+    const msg = document.getElementById('purchaseMessage');
+    const data = Object.fromEntries(new FormData(form));
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    fetch('{{ route("admin.hr.purchase.request") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        body: JSON.stringify(data),
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            showMsg(msg, '<div class="alert alert-success py-1 px-2 mb-0">' + d.message + '</div>');
+            form.reset();
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showMsg(msg, '<div class="alert alert-danger py-1 px-2 mb-0">' + (d.message || 'Error') + '</div>');
+        }
+    })
+    .catch(() => {
+        showMsg(msg, '<div class="alert alert-danger py-1 px-2 mb-0">Network error.</div>');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Submit Purchase Request';
+    });
 }
 </script>
 @endpush

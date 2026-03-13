@@ -15,8 +15,13 @@ use Illuminate\Validation\ValidationException;
 class LeaveRequestService
 {
     public function __construct(
-        private LeaveCalculationService $calculator
-    ) {}
+        private LeaveCalculationService $calculator,
+        private ?HrNotificationService $notifier = null
+    ) {
+        if ($this->notifier === null) {
+            $this->notifier = app(HrNotificationService::class);
+        }
+    }
 
     public function submitRequest(
         EmployeeHrProfile $employee,
@@ -110,6 +115,11 @@ class LeaveRequestService
             } catch (\Throwable $e) {
             }
 
+            try {
+                $request->load('employee.adminUser');
+                $this->notifier?->notify(HrNotificationService::EVENT_SUBMITTED, $request);
+            } catch (\Throwable $e) {}
+
             return $request;
         });
     }
@@ -188,6 +198,10 @@ class LeaveRequestService
             throw ValidationException::withMessages(['status' => 'Only pending requests can be approved.']);
         }
 
+        if ($request->employee_id === $approver->id) {
+            throw ValidationException::withMessages(['status' => 'You cannot approve your own leave request.']);
+        }
+
         return DB::transaction(function () use ($request, $approver, $comment) {
             $request->update([
                 'status' => LeaveRequest::STATUS_APPROVED,
@@ -208,6 +222,11 @@ class LeaveRequestService
                 );
             } catch (\Throwable $e) {
             }
+
+            try {
+                $request->load('employee.adminUser');
+                $this->notifier?->notify(HrNotificationService::EVENT_APPROVED, $request, $comment);
+            } catch (\Throwable $e) {}
 
             return $request->fresh();
         });
@@ -240,6 +259,11 @@ class LeaveRequestService
             } catch (\Throwable $e) {
             }
 
+            try {
+                $request->load('employee.adminUser');
+                $this->notifier?->notify(HrNotificationService::EVENT_REJECTED, $request, $comment);
+            } catch (\Throwable $e) {}
+
             return $request->fresh();
         });
     }
@@ -268,6 +292,11 @@ class LeaveRequestService
                 );
             } catch (\Throwable $e) {
             }
+
+            try {
+                $request->load('employee.adminUser');
+                $this->notifier?->notify(HrNotificationService::EVENT_CANCELLED, $request);
+            } catch (\Throwable $e) {}
 
             return $request->fresh();
         });

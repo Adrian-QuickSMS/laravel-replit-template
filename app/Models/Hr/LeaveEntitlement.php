@@ -19,6 +19,7 @@ class LeaveEntitlement extends Model
         'carried_over_units',
         'adjustment_units',
         'purchased_units',
+        'gifted_units',
         'is_prorated',
         'prorate_note',
     ];
@@ -29,6 +30,7 @@ class LeaveEntitlement extends Model
         'carried_over_units' => 'integer',
         'adjustment_units' => 'integer',
         'purchased_units' => 'integer',
+        'gifted_units' => 'integer',
         'is_prorated' => 'boolean',
     ];
 
@@ -42,7 +44,8 @@ class LeaveEntitlement extends Model
         return $this->total_entitlement_units
             + $this->carried_over_units
             + $this->adjustment_units
-            + $this->purchased_units;
+            + $this->purchased_units
+            + $this->gifted_units;
     }
 
     public function getTotalAvailableDaysAttribute(): float
@@ -53,5 +56,10 @@ class LeaveEntitlement extends Model
     public function getEntitlementDaysAttribute(): float
     {
         return $this->total_entitlement_units / 4;
+    }
+
+    public function getAdditionalUnitsUsedAttribute(): int
+    {
+        return $this->carried_over_units + $this->purchased_units + $this->gifted_units;
     }
 }

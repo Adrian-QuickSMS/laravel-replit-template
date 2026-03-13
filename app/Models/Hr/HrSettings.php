@@ -13,6 +13,10 @@ class HrSettings extends Model
 
     protected $fillable = [
         'default_annual_entitlement_units',
+        'max_additional_units',
+        'allow_purchase',
+        'allow_toil',
+        'allow_carry_over',
         'holiday_year_start_month',
         'holiday_year_start_day',
         'email_notifications_enabled',
@@ -20,10 +24,16 @@ class HrSettings extends Model
         'team_notification_email',
         'show_leave_type_in_notifications',
         'weekend_days',
+        'slack_webhook_url',
+        'teams_webhook_url',
     ];
 
     protected $casts = [
         'default_annual_entitlement_units' => 'integer',
+        'max_additional_units' => 'integer',
+        'allow_purchase' => 'boolean',
+        'allow_toil' => 'boolean',
+        'allow_carry_over' => 'boolean',
         'holiday_year_start_month' => 'integer',
         'holiday_year_start_day' => 'integer',
         'email_notifications_enabled' => 'boolean',

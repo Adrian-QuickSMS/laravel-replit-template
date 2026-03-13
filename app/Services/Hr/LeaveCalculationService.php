@@ -4,6 +4,7 @@ namespace App\Services\Hr;
 
 use App\Models\Hr\BankHoliday;
 use App\Models\Hr\EmployeeHrProfile;
+use App\Models\Hr\HolidayAdjustmentRequest;
 use App\Models\Hr\HrSettings;
 use App\Models\Hr\LeaveEntitlement;
 use App\Models\Hr\LeaveRequest;
@@ -154,8 +155,11 @@ class LeaveCalculationService
                 'base_units' => $entitlement?->total_entitlement_units ?? 0,
                 'carried_over_units' => $entitlement?->carried_over_units ?? 0,
                 'adjustment_units' => $entitlement?->adjustment_units ?? 0,
+                'purchased_units' => $entitlement?->purchased_units ?? 0,
+                'gifted_units' => $entitlement?->gifted_units ?? 0,
                 'is_prorated' => $entitlement?->is_prorated ?? false,
             ],
+            'additional_pool' => $this->getAdditionalPoolSummary($employee, $year),
             'annual_leave' => [
                 'used_units' => (int) $usedAnnualUnits,
                 'used_days' => $usedAnnualUnits / 4,
@@ -193,5 +197,62 @@ class LeaveCalculationService
         }
 
         return $query->exists();
+    }
+
+    public function validateAdditionalPool(EmployeeHrProfile $employee, int $year, int $requestedUnits): array
+    {
+        $settings = HrSettings::instance();
+        $maxUnits = $settings->max_additional_units;
+
+        $entitlement = $employee->entitlementForYear($year);
+        $currentAdditional = $entitlement ? $entitlement->additional_units_used : 0;
+
+        $pendingPurchaseUnits = HolidayAdjustmentRequest::where('employee_id', $employee->id)
+            ->forYear($year)
+            ->ofType(HolidayAdjustmentRequest::TYPE_PURCHASE)
+            ->pending()
+            ->sum('units');
+
+        $totalAfter = $currentAdditional + (int) $pendingPurchaseUnits + $requestedUnits;
+        $remainingRoom = max(0, $maxUnits - $currentAdditional - (int) $pendingPurchaseUnits);
+
+        return [
+            'allowed' => $totalAfter <= $maxUnits,
+            'max_units' => $maxUnits,
+            'max_days' => $maxUnits / 4,
+            'current_additional_units' => $currentAdditional,
+            'pending_purchase_units' => (int) $pendingPurchaseUnits,
+            'remaining_room_units' => $remainingRoom,
+            'remaining_room_days' => $remainingRoom / 4,
+            'requested_units' => $requestedUnits,
+            'would_total_units' => $totalAfter,
+        ];
+    }
+
+    public function getAdditionalPoolSummary(EmployeeHrProfile $employee, int $year): array
+    {
+        $settings = HrSettings::instance();
+        $maxUnits = $settings->max_additional_units;
+        $entitlement = $employee->entitlementForYear($year);
+
+        $carried = $entitlement?->carried_over_units ?? 0;
+        $purchased = $entitlement?->purchased_units ?? 0;
+        $gifted = $entitlement?->gifted_units ?? 0;
+        $total = $carried + $purchased + $gifted;
+
+        return [
+            'max_units' => $maxUnits,
+            'max_days' => $maxUnits / 4,
+            'carried_over_units' => $carried,
+            'carried_over_days' => $carried / 4,
+            'purchased_units' => $purchased,
+            'purchased_days' => $purchased / 4,
+            'gifted_units' => $gifted,
+            'gifted_days' => $gifted / 4,
+            'total_additional_units' => $total,
+            'total_additional_days' => $total / 4,
+            'remaining_room_units' => max(0, $maxUnits - $total),
+            'remaining_room_days' => max(0, $maxUnits - $total) / 4,
+        ];
     }
 }

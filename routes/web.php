@@ -831,6 +831,19 @@ Route::prefix('admin')->group(function () {
                 Route::post('/employee', 'storeEmployee')->name('admin.hr.employee.store');
                 Route::put('/employee/{id}', 'updateEmployee')->name('admin.hr.employee.update');
                 Route::post('/entitlement/{employeeId}', 'updateEntitlement')->name('admin.hr.entitlement.update');
+                Route::post('/purchase-request', 'requestPurchase')->name('admin.hr.purchase.request');
+                Route::post('/purchase/{id}/approve', 'approvePurchase')->name('admin.hr.purchase.approve');
+                Route::post('/purchase/{id}/reject', 'rejectPurchase')->name('admin.hr.purchase.reject');
+                Route::post('/grant-toil', 'grantToil')->name('admin.hr.grant-toil');
+                Route::post('/grant-gifted', 'grantGifted')->name('admin.hr.grant-gifted');
+                Route::post('/carry-over', 'runCarryOver')->name('admin.hr.carry-over');
+                Route::post('/bank-holiday', 'storeBankHoliday')->name('admin.hr.bank-holiday.store');
+                Route::put('/bank-holiday/{id}', 'updateBankHoliday')->name('admin.hr.bank-holiday.update');
+                Route::delete('/bank-holiday/{id}', 'deleteBankHoliday')->name('admin.hr.bank-holiday.delete');
+                Route::post('/import-bank-holidays', 'importBankHolidays')->name('admin.hr.bank-holidays.import');
+                Route::get('/api/bradford-factor', 'bradfordFactorApi')->name('admin.hr.api.bradford');
+                Route::get('/api/calendar-events', 'calendarEventsApi')->name('admin.hr.api.calendar-events');
+                Route::get('/api/pending-adjustments', 'pendingAdjustmentsApi')->name('admin.hr.api.pending-adjustments');
             });
 
             // API Connections — admin cross-tenant management
