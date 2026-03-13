@@ -4409,7 +4409,7 @@ class QuickSMSController extends Controller
     public function getCountryPermissions(Request $request)
     {
         $accountId = session('customer_tenant_id');
-        $subAccountId = auth()->user()->sub_account_id ?? null;
+        $subAccountId = auth()->user()?->sub_account_id;
 
         if (!$accountId) {
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
@@ -4454,7 +4454,7 @@ class QuickSMSController extends Controller
         ]);
 
         $accountId = session('customer_tenant_id');
-        $subAccountId = auth()->user()->sub_account_id ?? null;
+        $subAccountId = auth()->user()?->sub_account_id;
 
         if (!$accountId) {
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);

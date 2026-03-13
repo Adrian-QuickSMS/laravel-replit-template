@@ -15,11 +15,11 @@ class CountryPermissionCheckService
 {
     private CountryPermissionCacheService $cache;
 
-    /** @var array<string, string>|null Prefix→ISO map, loaded once per request */
-    private static ?array $prefixMap = null;
+    /** @var array<string, string>|null Prefix→ISO map, loaded once per singleton lifetime */
+    private ?array $prefixMap = null;
 
-    /** @var array<string, string>|null ISO→name map, loaded once per request */
-    private static ?array $countryNameMap = null;
+    /** @var array<string, string>|null ISO→name map, loaded once per singleton lifetime */
+    private ?array $countryNameMap = null;
 
     public function __construct(CountryPermissionCacheService $cache)
     {
@@ -186,29 +186,29 @@ class CountryPermissionCheckService
     }
 
     /**
-     * Load prefix→ISO map from DB (once per request via static cache).
+     * Load prefix→ISO map from DB (once per singleton lifetime).
      */
     private function getPrefixMap(): array
     {
-        if (self::$prefixMap === null) {
-            self::$prefixMap = DB::table('country_controls')
+        if ($this->prefixMap === null) {
+            $this->prefixMap = DB::table('country_controls')
                 ->whereNotNull('country_prefix')
                 ->pluck('country_iso', 'country_prefix')
                 ->toArray();
         }
-        return self::$prefixMap;
+        return $this->prefixMap;
     }
 
     /**
-     * Load ISO→name map from DB (once per request via static cache).
+     * Load ISO→name map from DB (once per singleton lifetime).
      */
     private function getCountryNameMap(): array
     {
-        if (self::$countryNameMap === null) {
-            self::$countryNameMap = DB::table('country_controls')
+        if ($this->countryNameMap === null) {
+            $this->countryNameMap = DB::table('country_controls')
                 ->pluck('country_name', 'country_iso')
                 ->toArray();
         }
-        return self::$countryNameMap;
+        return $this->countryNameMap;
     }
 }

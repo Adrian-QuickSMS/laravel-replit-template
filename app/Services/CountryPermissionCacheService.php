@@ -72,7 +72,13 @@ class CountryPermissionCacheService
         }
 
         // L3: PostgreSQL
-        $permissions = $this->resolveFromDatabase($accountId, $subAccountId);
+        try {
+            $permissions = $this->resolveFromDatabase($accountId, $subAccountId);
+        } catch (\Exception $e) {
+            // DB failed — return empty for this request but do NOT cache the failure
+            Log::error('[CountryPermissionCache] Database resolution failed, returning empty (not cached): ' . $e->getMessage());
+            return [];
+        }
 
         // Populate L2 (best-effort) + L1
         try {
@@ -173,41 +179,37 @@ class CountryPermissionCacheService
     {
         $permissions = [];
 
-        try {
-            // Layer 1: Global defaults
-            $globals = DB::table('country_controls')
-                ->select('country_iso', 'default_status')
+        // Layer 1: Global defaults
+        $globals = DB::table('country_controls')
+            ->select('country_iso', 'default_status')
+            ->get();
+
+        foreach ($globals as $row) {
+            $permissions[$row->country_iso] = $row->default_status;
+        }
+
+        // Layer 2: Account overrides
+        $overrides = DB::table('country_control_overrides')
+            ->join('country_controls', 'country_control_overrides.country_control_id', '=', 'country_controls.id')
+            ->where('country_control_overrides.account_id', $accountId)
+            ->select('country_controls.country_iso', 'country_control_overrides.override_status')
+            ->get();
+
+        foreach ($overrides as $row) {
+            $permissions[$row->country_iso] = $row->override_status;
+        }
+
+        // Layer 3: Sub-account overrides (most specific)
+        if ($subAccountId) {
+            $subOverrides = DB::table('sub_account_country_permissions')
+                ->join('country_controls', 'sub_account_country_permissions.country_control_id', '=', 'country_controls.id')
+                ->where('sub_account_country_permissions.sub_account_id', $subAccountId)
+                ->select('country_controls.country_iso', 'sub_account_country_permissions.permission_status')
                 ->get();
 
-            foreach ($globals as $row) {
-                $permissions[$row->country_iso] = $row->default_status;
+            foreach ($subOverrides as $row) {
+                $permissions[$row->country_iso] = $row->permission_status;
             }
-
-            // Layer 2: Account overrides
-            $overrides = DB::table('country_control_overrides')
-                ->join('country_controls', 'country_control_overrides.country_control_id', '=', 'country_controls.id')
-                ->where('country_control_overrides.account_id', $accountId)
-                ->select('country_controls.country_iso', 'country_control_overrides.override_status')
-                ->get();
-
-            foreach ($overrides as $row) {
-                $permissions[$row->country_iso] = $row->override_status;
-            }
-
-            // Layer 3: Sub-account overrides (most specific)
-            if ($subAccountId) {
-                $subOverrides = DB::table('sub_account_country_permissions')
-                    ->join('country_controls', 'sub_account_country_permissions.country_control_id', '=', 'country_controls.id')
-                    ->where('sub_account_country_permissions.sub_account_id', $subAccountId)
-                    ->select('country_controls.country_iso', 'sub_account_country_permissions.permission_status')
-                    ->get();
-
-                foreach ($subOverrides as $row) {
-                    $permissions[$row->country_iso] = $row->permission_status;
-                }
-            }
-        } catch (\Exception $e) {
-            Log::error('[CountryPermissionCache] Database resolution failed: ' . $e->getMessage());
         }
 
         return $permissions;
