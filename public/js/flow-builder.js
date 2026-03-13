@@ -2042,27 +2042,25 @@
         renderKeywordList();
         if (inputEl) inputEl.value = '';
 
-        // Add keyword handler
-        var addKeyword = function() {
-            var val = (inputEl.value || '').trim().toUpperCase();
-            if (!val) return;
-            // Check for duplicates
-            var exists = keywords.some(function(kw) { return kw.keyword === val; });
-            if (exists) { inputEl.value = ''; return; }
-            keywords.push({ keyword: val, handle: 'sms_kw_' + keywords.length });
-            inputEl.value = '';
-            renderKeywordList();
-            inputEl.focus();
-        };
-
         // Clone and replace to remove old listeners
         var newAddBtn = addBtn.cloneNode(true);
         addBtn.parentNode.replaceChild(newAddBtn, addBtn);
-        newAddBtn.addEventListener('click', addKeyword);
 
-        // Enter key on input
         var newInputEl = inputEl.cloneNode(true);
         inputEl.parentNode.replaceChild(newInputEl, inputEl);
+
+        var addKeyword = function() {
+            var val = (newInputEl.value || '').trim().toUpperCase();
+            if (!val) return;
+            var exists = keywords.some(function(kw) { return kw.keyword === val; });
+            if (exists) { newInputEl.value = ''; return; }
+            keywords.push({ keyword: val, handle: 'sms_kw_' + keywords.length });
+            newInputEl.value = '';
+            renderKeywordList();
+            newInputEl.focus();
+        };
+
+        newAddBtn.addEventListener('click', addKeyword);
         newInputEl.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); addKeyword(); }
         });
