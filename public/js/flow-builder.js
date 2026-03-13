@@ -526,42 +526,59 @@
         var isDynamic = typeDef.dynamicOutputs && node.config && node.config.interaction_enabled;
 
         if (isDynamic && outputs.length > 0) {
-            // Dynamic interaction ports - rendered as a list on the right side
+            el.classList.add('interaction-active');
+
             var portsContainer = document.createElement('div');
             portsContainer.className = 'interaction-ports-container';
 
-            var lastGroup = '';
+            var groups = {};
+            var groupOrder = [];
             outputs.forEach(function(out, idx) {
-                // Group separator
-                if (out.group !== lastGroup) {
-                    var groupLabel = document.createElement('div');
-                    var groupLabels = { rcs: 'RCS', sms: 'SMS', timeout: '' };
-                    var groupText = groupLabels[out.group] !== undefined ? groupLabels[out.group] : out.group;
-                    if (groupText) {
-                        groupLabel.className = 'interaction-group-label group-' + out.group;
-                        groupLabel.textContent = groupText + ' Interactions';
-                        portsContainer.appendChild(groupLabel);
-                    }
-                    lastGroup = out.group;
+                if (!groups[out.group]) {
+                    groups[out.group] = [];
+                    groupOrder.push(out.group);
                 }
+                groups[out.group].push({ out: out, idx: idx });
+            });
 
-                var row = document.createElement('div');
-                row.className = 'interaction-port-row';
+            var groupLabels = { rcs: 'RCS', sms: 'SMS', timeout: 'Response' };
 
-                var label = document.createElement('span');
-                label.className = 'interaction-port-label port-label-' + out.group;
-                label.textContent = out.label;
-                row.appendChild(label);
+            groupOrder.forEach(function(groupKey) {
+                var groupDiv = document.createElement('div');
+                groupDiv.className = 'interaction-group group-' + groupKey;
 
-                var port = document.createElement('div');
-                port.className = 'node-port port-output-dynamic port-' + out.group;
-                port.setAttribute('data-port', 'output');
-                port.setAttribute('data-handle', out.handle);
-                port.setAttribute('data-node-id', node.id);
-                port.setAttribute('data-port-index', idx);
-                row.appendChild(port);
+                var groupText = groupLabels[groupKey] !== undefined ? groupLabels[groupKey] : groupKey;
+                var groupLabel = document.createElement('div');
+                groupLabel.className = 'interaction-group-label group-' + groupKey;
+                groupLabel.textContent = groupText;
+                groupDiv.appendChild(groupLabel);
 
-                portsContainer.appendChild(row);
+                groups[groupKey].forEach(function(item) {
+                    var row = document.createElement('div');
+                    row.className = 'interaction-port-row';
+
+                    var label = document.createElement('span');
+                    label.className = 'interaction-port-label port-label-' + item.out.group;
+                    label.textContent = item.out.label;
+                    row.appendChild(label);
+
+                    groupDiv.appendChild(row);
+                });
+
+                var groupPortsRow = document.createElement('div');
+                groupPortsRow.className = 'interaction-group-ports';
+                groups[groupKey].forEach(function(item) {
+                    var port = document.createElement('div');
+                    port.className = 'node-port port-output-dynamic port-' + item.out.group;
+                    port.setAttribute('data-port', 'output');
+                    port.setAttribute('data-handle', item.out.handle);
+                    port.setAttribute('data-node-id', node.id);
+                    port.setAttribute('data-port-index', item.idx);
+                    groupPortsRow.appendChild(port);
+                });
+                groupDiv.appendChild(groupPortsRow);
+
+                portsContainer.appendChild(groupDiv);
             });
 
             el.appendChild(portsContainer);
