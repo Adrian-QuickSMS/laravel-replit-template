@@ -1465,9 +1465,40 @@ class AdminController extends Controller
                 ];
             });
 
+        $allOverrides = \Illuminate\Support\Facades\DB::table('country_control_overrides')
+            ->join('country_controls', 'country_control_overrides.country_control_id', '=', 'country_controls.id')
+            ->leftJoin('accounts', 'country_control_overrides.account_id', '=', 'accounts.id')
+            ->orderBy('country_control_overrides.created_at', 'desc')
+            ->select(
+                'country_control_overrides.id',
+                'country_control_overrides.account_id',
+                'country_controls.country_iso',
+                'accounts.company_name as account_name',
+                'country_control_overrides.override_status as override_type',
+                'country_control_overrides.reason',
+                'country_control_overrides.created_by',
+                'country_control_overrides.created_at'
+            )
+            ->get()
+            ->groupBy('country_iso')
+            ->map(function ($group) {
+                return $group->map(function ($o) {
+                    return [
+                        'id' => $o->id,
+                        'accountId' => $o->account_id,
+                        'accountName' => $o->account_name ?? 'Unknown Account',
+                        'overrideType' => $o->override_type,
+                        'reason' => $o->reason,
+                        'appliedBy' => $o->created_by ?? 'system',
+                        'dateApplied' => $o->created_at ? \Carbon\Carbon::parse($o->created_at)->format('d M Y H:i') : '',
+                    ];
+                })->values();
+            });
+
         return view('admin.security.country-controls', [
             'page_title' => 'Country Controls',
             'accounts' => $accounts,
+            'allOverrides' => $allOverrides,
         ]);
     }
 

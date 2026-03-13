@@ -4972,6 +4972,25 @@ function confirmAddOverride() {
 
         country.overrides = (country.overrides || 0) + addedCount;
 
+        if (!currentOverridesCache[countryCode]) {
+            currentOverridesCache[countryCode] = [];
+        }
+        results.forEach(function(r, i) {
+            if (r.success) {
+                var account = selectedAccountsForOverride[i];
+                currentOverridesCache[countryCode].push({
+                    id: r.override_id || null,
+                    accountId: account.id,
+                    accountName: account.name,
+                    overrideType: overrideType,
+                    reason: 'Manual override by admin',
+                    appliedBy: 'admin',
+                    dateApplied: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                });
+            }
+        });
+        overridesCache[countryCode] = currentOverridesCache[countryCode];
+
         var modalEl = document.getElementById('addOverrideModal');
         var modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
@@ -5059,15 +5078,22 @@ function confirmRemoveOverride() {
     showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
+var serverOverridesData = {!! json_encode($allOverrides ?? (object)[]) !!};
 var overridesCache = {};
 var currentViewingCountryCode = null;
 var currentOverridesCache = {};
 
+(function() {
+    Object.keys(serverOverridesData).forEach(function(iso) {
+        overridesCache[iso] = serverOverridesData[iso];
+        currentOverridesCache[iso] = serverOverridesData[iso];
+    });
+    console.log('[CountryControls] Loaded server overrides for', Object.keys(serverOverridesData).length, 'countries');
+})();
+
 function viewOverrides(countryCode) {
-    console.log('[CountryControls] viewOverrides called for:', countryCode);
     var country = countries.find(function(c) { return c.code === countryCode; });
-    if (!country) { console.warn('[CountryControls] Country not found for code:', countryCode); return; }
-    console.log('[CountryControls] Country found, id:', country.id, 'name:', country.name);
+    if (!country) return;
 
     currentViewingCountryCode = countryCode;
 
@@ -5076,45 +5102,12 @@ function viewOverrides(countryCode) {
     });
 
     document.getElementById('overridesModalCountryName').textContent = '— ' + country.name;
-    
-    var tbody = document.getElementById('overridesTableBody');
-    var noOverridesMsg = document.getElementById('noOverridesMessage');
-    var tableContainer = document.querySelector('#overridesTable').closest('.table-responsive');
-    tableContainer.style.display = 'none';
-    noOverridesMsg.style.display = 'none';
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Loading...</td></tr>';
-    tableContainer.style.display = 'block';
+
+    var overrides = currentOverridesCache[countryCode] || [];
+    renderOverridesTable(countryCode, overrides);
 
     var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
     modal.show();
-
-    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
-    var fetchUrl = '/admin/api/country-controls/' + country.id + '/overrides';
-    console.log('[CountryControls] Fetching overrides from:', fetchUrl);
-    fetch(fetchUrl, {
-        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-        credentials: 'same-origin'
-    })
-    .then(function(r) {
-        console.log('[CountryControls] Overrides response status:', r.status);
-        if (!r.ok) {
-            throw new Error('HTTP ' + r.status);
-        }
-        return r.json();
-    })
-    .then(function(data) {
-        console.log('[CountryControls] Overrides data:', data);
-        if (data.success && data.overrides) {
-            currentOverridesCache[countryCode] = data.overrides;
-            renderOverridesTable(countryCode, data.overrides);
-        } else {
-            renderOverridesTable(countryCode, []);
-        }
-    })
-    .catch(function(err) {
-        console.error('[CountryControls] Failed to load overrides:', err);
-        renderOverridesTable(countryCode, []);
-    });
 }
 
 function renderOverridesTable(countryCode, overrides) {
@@ -5228,6 +5221,7 @@ function executeRemoveOverride() {
             var overrides = currentOverridesCache[countryCode] || [];
             overrides.splice(overrideIndex, 1);
             currentOverridesCache[countryCode] = overrides;
+            overridesCache[countryCode] = overrides;
             country.overrides = Math.max(0, (country.overrides || 0) - 1);
 
             renderOverridesTable(countryCode, overrides);
