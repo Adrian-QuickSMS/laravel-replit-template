@@ -3,23 +3,27 @@
    ============================================ */
 
 /* Override layout for full-canvas experience */
-.flow-builder-page {
-    padding: 0 !important;
+.content-body.flow-builder-page {
+    min-height: 0 !important;
+    height: calc(100vh - 5.3rem) !important;
     overflow: hidden !important;
 }
 .flow-builder-page .qsms-main {
     padding: 0 !important;
     max-width: 100% !important;
+    height: 100% !important;
 }
 .flow-builder-page .qsms-content-wrap {
     padding: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
 }
 
 /* Container */
 .flow-builder-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px);
+    height: 100%;
     overflow: hidden;
     background: #f8f9fa;
 }
