@@ -1834,8 +1834,18 @@
 
         var agent = null;
         if (isAnyRcs && c.rcs_agent_name) {
-            agent = { name: c.rcs_agent_name, logo: '', verified: true, tagline: 'Business messaging' };
+            agent = { name: c.rcs_agent_name, logo: c.rcs_agent_logo || '', verified: true, tagline: 'Business messaging' };
         }
+
+        var smsFallbackText = c.sms_content || '';
+        if (!smsFallbackText && isRichRcs && c.rcs_payload) {
+            var fallbackCards = c.rcs_payload.cards || (c.rcs_payload.card ? [c.rcs_payload.card] : []);
+            if (fallbackCards.length > 0) {
+                var fc = fallbackCards[0];
+                smsFallbackText = fc.description || fc.title || fc.textBody || '';
+            }
+        }
+        if (!smsFallbackText) smsFallbackText = '(no content)';
 
         var renderForChannel = function(previewChannel) {
             if (typeof RcsPreviewRenderer === 'undefined') {
@@ -1846,7 +1856,7 @@
                 var ch = (previewChannel === 'sms') ? 'sms' : 'basic_rcs';
                 container.innerHTML = RcsPreviewRenderer.renderPreview({
                     channel: ch,
-                    message: { type: 'text', body: c.sms_content || '(no content)' },
+                    message: { type: 'text', body: smsFallbackText },
                     senderId: c.sender_id_text || 'Sender',
                     agent: agent
                 });
@@ -1857,7 +1867,7 @@
                 var fallbackCh = isAnyRcs ? 'basic_rcs' : 'sms';
                 container.innerHTML = RcsPreviewRenderer.renderPreview({
                     channel: fallbackCh,
-                    message: { type: 'text', body: c.sms_content || '(no content)' },
+                    message: { type: 'text', body: smsFallbackText },
                     senderId: c.sender_id_text || 'Sender',
                     agent: agent
                 });
@@ -2061,6 +2071,7 @@
                     node.config.sender_id_text = cfg.sender_id_text || '';
                     node.config.rcs_agent_id = cfg.rcs_agent_id || '';
                     node.config.rcs_agent_name = cfg.rcs_agent_name || '';
+                    node.config.rcs_agent_logo = cfg.rcs_agent_logo || '';
                     node.config.sms_content = cfg.sms_content || '';
                     node.config.rcs_payload = cfg.rcs_payload || null;
                     node.config.rcs_cards_data = cfg.rcs_cards_data || null;

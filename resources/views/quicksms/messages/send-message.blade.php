@@ -6335,9 +6335,14 @@ function flowApplyConfig() {
     var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : '';
 
     var rcsAgentName = '';
+    var rcsAgentLogo = '';
     if (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) {
-        rcsAgentName = rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text.trim();
+        var agentOpt = rcsAgentSelect.options[rcsAgentSelect.selectedIndex];
+        rcsAgentName = agentOpt.text.trim();
+        rcsAgentLogo = agentOpt.getAttribute('data-logo') || '';
     }
+
+    var cleanSenderName = senderName.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
 
     var optoutEnabled = document.getElementById('enableOptoutManagement') ? document.getElementById('enableOptoutManagement').checked : false;
     var optoutConfig = null;
@@ -6376,11 +6381,12 @@ function flowApplyConfig() {
     var config = {
         channel: channelVal,
         sender_id: senderId,
-        sender_id_text: senderName,
-        sender_name: senderName,
+        sender_id_text: cleanSenderName,
+        sender_name: cleanSenderName,
         sms_content: smsContent,
         rcs_agent_id: rcsAgentId,
         rcs_agent_name: rcsAgentName,
+        rcs_agent_logo: rcsAgentLogo,
         rcs_payload: rcsPayload,
         optout_config: optoutConfig,
         trackable_link: isTrackable,
