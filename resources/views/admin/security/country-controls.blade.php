@@ -2366,6 +2366,13 @@ function getOrCreateModal(el) {
     return bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 // Global handler functions for modal buttons - accessible via onclick
 window.handleConfirmApproval = function() {
     console.log('[CountryControls] handleConfirmApproval called');
@@ -5609,6 +5616,7 @@ function escapeHtmlSafe(str) {
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
 }
+
 
 function toggleUkNetworkStatus(mccMncId, newStatus) {
     var network = ukNetworksData.find(function(n) { return n.id === mccMncId; });
