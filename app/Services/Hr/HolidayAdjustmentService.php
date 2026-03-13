@@ -76,7 +76,7 @@ class HolidayAdjustmentService
             throw ValidationException::withMessages(['status' => 'Only pending requests can be approved.']);
         }
 
-        $pool = $this->calculator->validateAdditionalPool($request->employee, $request->year, $request->units);
+        $pool = $this->calculator->validateAdditionalPool($request->employee, $request->year, 0, $request->id);
         if (!$pool['allowed']) {
             throw ValidationException::withMessages([
                 'units' => sprintf(

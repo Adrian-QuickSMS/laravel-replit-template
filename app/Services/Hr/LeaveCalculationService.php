@@ -199,7 +199,7 @@ class LeaveCalculationService
         return $query->exists();
     }
 
-    public function validateAdditionalPool(EmployeeHrProfile $employee, int $year, int $requestedUnits): array
+    public function validateAdditionalPool(EmployeeHrProfile $employee, int $year, int $requestedUnits, ?string $excludeRequestId = null): array
     {
         $settings = HrSettings::instance();
         $maxUnits = $settings->max_additional_units;
@@ -207,11 +207,16 @@ class LeaveCalculationService
         $entitlement = $employee->entitlementForYear($year);
         $currentAdditional = $entitlement ? $entitlement->additional_units_used : 0;
 
-        $pendingPurchaseUnits = HolidayAdjustmentRequest::where('employee_id', $employee->id)
+        $pendingQuery = HolidayAdjustmentRequest::where('employee_id', $employee->id)
             ->forYear($year)
             ->ofType(HolidayAdjustmentRequest::TYPE_PURCHASE)
-            ->pending()
-            ->sum('units');
+            ->pending();
+
+        if ($excludeRequestId) {
+            $pendingQuery->where('id', '!=', $excludeRequestId);
+        }
+
+        $pendingPurchaseUnits = $pendingQuery->sum('units');
 
         $totalAfter = $currentAdditional + (int) $pendingPurchaseUnits + $requestedUnits;
         $remainingRoom = max(0, $maxUnits - $currentAdditional - (int) $pendingPurchaseUnits);
