@@ -4304,8 +4304,12 @@ class QuickSMSController extends Controller
 
     public function securitySettings()
     {
+        $availableCountries = \App\Models\CountryControl::orderBy('country_name')
+            ->get(['id', 'country_iso', 'country_name', 'country_prefix', 'default_status']);
+
         return view('quicksms.account.security', [
-            'page_title' => 'Security Settings'
+            'page_title' => 'Security Settings',
+            'availableCountries' => $availableCountries,
         ]);
     }
 

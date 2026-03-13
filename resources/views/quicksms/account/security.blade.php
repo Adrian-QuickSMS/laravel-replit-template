@@ -564,15 +564,14 @@
                 <div class="security-card-body">
                     <p class="setting-description mb-3">Messages can only be sent to approved countries. New country requests require approval before sending is permitted.</p>
                     <div class="country-list" id="countryList">
+                        @if(isset($availableCountries))
+                        @foreach($availableCountries->where('default_status', 'allowed') as $country)
                         <span class="country-pill approved">
                             <span class="status-dot approved"></span>
-                            United Kingdom
+                            {{ $country->country_name }}
                         </span>
-                        <span class="country-pill pending">
-                            <span class="status-dot pending"></span>
-                            Ireland
-                            <button type="button" class="remove-btn" title="Remove"><i class="fas fa-times" style="font-size: 10px;"></i></button>
-                        </span>
+                        @endforeach
+                        @endif
                         <button type="button" class="add-country-btn" data-bs-toggle="modal" data-bs-target="#addCountryModal">
                             <i class="fas fa-plus me-1"></i>Add Country
                         </button>
@@ -734,15 +733,11 @@
                     <label class="form-label">Select Country</label>
                     <select class="form-select" id="newCountrySelect">
                         <option value="">Choose a country...</option>
-                        <option value="FR">France</option>
-                        <option value="DE">Germany</option>
-                        <option value="ES">Spain</option>
-                        <option value="IT">Italy</option>
-                        <option value="NL">Netherlands</option>
-                        <option value="BE">Belgium</option>
-                        <option value="US">United States</option>
-                        <option value="CA">Canada</option>
-                        <option value="AU">Australia</option>
+                        @if(isset($availableCountries))
+                        @foreach($availableCountries as $country)
+                        <option value="{{ $country->country_iso }}">{{ $country->country_name }} (+{{ $country->country_prefix }})</option>
+                        @endforeach
+                        @endif
                     </select>
                 </div>
                 <div class="alert" style="background: rgba(111, 66, 193, 0.08); border: none; font-size: 0.8rem; color: #495057;">
@@ -1627,12 +1622,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Country List
-    var countryNames = {
-        'FR': 'France', 'DE': 'Germany', 'ES': 'Spain', 'IT': 'Italy',
-        'NL': 'Netherlands', 'BE': 'Belgium', 'US': 'United States',
-        'CA': 'Canada', 'AU': 'Australia'
-    };
-    
     var confirmAddCountryBtn = document.getElementById('confirmAddCountry');
     if (confirmAddCountryBtn) {
         confirmAddCountryBtn.addEventListener('click', function() {
@@ -1643,7 +1632,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            var name = countryNames[code];
+            var selectedOption = select.options[select.selectedIndex];
+            var name = selectedOption.textContent.replace(/\s*\(\+\d+\)\s*$/, '').trim();
             SecuritySettingsService.settings.countries.push({ code: code, name: name, status: 'pending' });
             
             var countryList = document.getElementById('countryList');
