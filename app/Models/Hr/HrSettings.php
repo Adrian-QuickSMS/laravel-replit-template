@@ -42,11 +42,20 @@ class HrSettings extends Model
         'weekend_days' => 'array',
     ];
 
+    protected $attributes = [
+        'max_additional_units' => 20,
+    ];
+
     public static function instance(): self
     {
-        return self::first() ?? self::create([
-            'default_annual_entitlement_units' => 120,
-        ]);
+        $settings = self::first();
+        if (!$settings) {
+            return self::create([
+                'default_annual_entitlement_units' => 120,
+                'max_additional_units' => 20,
+            ]);
+        }
+        return $settings;
     }
 
     public function getDefaultEntitlementDaysAttribute(): float

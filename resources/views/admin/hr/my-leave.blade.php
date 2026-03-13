@@ -91,6 +91,29 @@
                                 ({{ number_format($balance['additional_pool']['remaining_room_days'], 1) }} remaining)
                             </small>
                         </div>
+                        @php $settings_inline = \App\Models\Hr\HrSettings::instance(); @endphp
+                        @if($settings_inline->allow_purchase && $balance['additional_pool']['remaining_room_days'] > 0)
+                        <div class="mt-3 p-3 rounded" style="background: #f0faf0; border: 1px solid #d4edda;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-shopping-cart text-success me-2"></i>
+                                <strong style="font-size: 0.9rem;">Purchase Holiday</strong>
+                                <span class="badge bg-light text-muted ms-2" style="font-size: 0.72rem;">Up to {{ number_format($balance['additional_pool']['remaining_room_days'], 1) }} day(s) available</span>
+                            </div>
+                            <form id="purchaseForm" onsubmit="submitPurchase(event)" class="d-flex align-items-end gap-2">
+                                <div style="width: 100px;">
+                                    <label class="form-label mb-1" style="font-size: 0.78rem;">Days</label>
+                                    <input type="number" name="days" class="form-control form-control-sm" step="0.25" min="0.25" max="{{ $balance['additional_pool']['remaining_room_days'] }}" required>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-label mb-1" style="font-size: 0.78rem;">Reason (optional)</label>
+                                    <input type="text" name="reason" class="form-control form-control-sm" maxlength="500" placeholder="e.g. Family holiday">
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm" id="purchaseBtn" style="white-space: nowrap;"><i class="fas fa-paper-plane me-1"></i>Request</button>
+                            </form>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Requires HR Admin approval</small>
+                            <div id="purchaseMessage" class="mt-2 d-none"></div>
+                        </div>
+                        @endif
                         @endif
                         @if($balance['sickness']['total_days'] > 0 || $balance['medical']['total_days'] > 0)
                         <hr>
@@ -114,6 +137,7 @@
                         @endif
                     </div>
                 </div>
+
             </div>
             <div class="col-xl-4">
                 <div class="card">
@@ -155,35 +179,6 @@
                         <div id="requestMessage" class="mt-2 d-none"></div>
                     </div>
                 </div>
-
-                @php
-                    $settings = \App\Models\Hr\HrSettings::instance();
-                @endphp
-                @if($settings->allow_purchase && isset($balance['additional_pool']) && $balance['additional_pool']['remaining_room_days'] > 0)
-                <div class="card">
-                    <div class="card-header border-0 pb-0">
-                        <h4 class="card-title"><i class="fas fa-shopping-cart me-2"></i>Purchase Holiday</h4>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted" style="font-size: 0.85rem;">
-                            You can purchase up to {{ number_format($balance['additional_pool']['remaining_room_days'], 1) }} additional day(s).
-                            Requires HR Admin approval.
-                        </p>
-                        <form id="purchaseForm" onsubmit="submitPurchase(event)">
-                            <div class="mb-3">
-                                <label class="form-label">Days to Purchase</label>
-                                <input type="number" name="days" class="form-control form-control-sm" step="0.25" min="0.25" max="{{ $balance['additional_pool']['remaining_room_days'] }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Reason (optional)</label>
-                                <textarea name="reason" class="form-control form-control-sm" rows="2" maxlength="500"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-success btn-sm w-100" id="purchaseBtn">Submit Purchase Request</button>
-                        </form>
-                        <div id="purchaseMessage" class="mt-2 d-none"></div>
-                    </div>
-                </div>
-                @endif
             </div>
         </div>
         @endif
