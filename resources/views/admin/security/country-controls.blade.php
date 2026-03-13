@@ -2361,6 +2361,11 @@ button.action-dropdown-item:focus {
 
 @push('scripts')
 <script>
+function getOrCreateModal(el) {
+    if (typeof el === 'string') el = document.getElementById(el);
+    return bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+}
+
 // Global handler functions for modal buttons - accessible via onclick
 window.handleConfirmApproval = function() {
     console.log('[CountryControls] handleConfirmApproval called');
@@ -3578,7 +3583,7 @@ function openReviewModal(requestId) {
     if (existingModal) {
         existingModal.dispose();
     }
-    var modal = new bootstrap.Modal(modalEl);
+    var modal = getOrCreateModal(modalEl);
     modal.show();
 }
 
@@ -3676,7 +3681,7 @@ window.approveRequest = function approveRequest(requestId) {
     document.getElementById('approvalCustomerName').textContent = request.customer.name;
     document.getElementById('approvalCountryName').textContent = request.country.name;
     
-    var modal = new bootstrap.Modal(document.getElementById('approvalConfirmModal'));
+    var modal = getOrCreateModal('approvalConfirmModal');
     modal.show();
 }
 
@@ -3737,7 +3742,7 @@ window.confirmApproval = function confirmApproval() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        var newModal = new bootstrap.Modal(modalEl);
+        var newModal = getOrCreateModal(modalEl);
         newModal.hide();
     }
     pendingApprovalRequest = null;
@@ -3759,7 +3764,7 @@ window.rejectRequest = function rejectRequest(requestId) {
     document.getElementById('rejectionReasonText').value = '';
     document.getElementById('confirmRejectBtn').disabled = true;
     
-    var modal = new bootstrap.Modal(document.getElementById('rejectionReasonModal'));
+    var modal = getOrCreateModal('rejectionReasonModal');
     modal.show();
 }
 
@@ -3830,7 +3835,7 @@ window.confirmRejection = function confirmRejection() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        var newModal = new bootstrap.Modal(modalEl);
+        var newModal = getOrCreateModal(modalEl);
         newModal.hide();
     }
     pendingRejectionRequest = null;
@@ -4488,7 +4493,7 @@ function openDefaultStatusModal(countryCode, newStatus) {
         overrideWarning.style.display = 'none';
     }
 
-    var modal = new bootstrap.Modal(document.getElementById('defaultStatusConfirmModal'));
+    var modal = getOrCreateModal('defaultStatusConfirmModal');
     modal.show();
 }
 
@@ -4741,7 +4746,7 @@ function openAddOverrideModal(countryCode) {
     console.log('[CountryControls] Modal element found:', !!modalEl);
     
     if (modalEl) {
-        var modal = new bootstrap.Modal(modalEl);
+        var modal = getOrCreateModal(modalEl);
         modal.show();
         console.log('[CountryControls] Modal show() called');
     } else {
@@ -5040,7 +5045,7 @@ function openRemoveOverrideModal(countryCode) {
         });
     }
 
-    var modal = new bootstrap.Modal(document.getElementById('removeOverrideModal'));
+    var modal = getOrCreateModal('removeOverrideModal');
     modal.show();
 }
 
@@ -5056,26 +5061,38 @@ function confirmRemoveOverride() {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
 
-    var overrides = overridesCache[countryCode] || [];
+    var overrides = currentOverridesCache[countryCode] || [];
     var removedOverride = overrides[parseInt(overrideIndex)];
+    if (!removedOverride) return;
 
-    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
-        countryIso: country.code,
-        countryName: country.name,
-        accountId: removedOverride.accountId,
-        accountName: removedOverride.accountName,
-        previousOverrideType: removedOverride.overrideType,
-        result: 'override_removed'
-    }, { emitToCustomerAudit: true });
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    fetch('/admin/api/country-controls/overrides/' + removedOverride.id, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            overrides.splice(parseInt(overrideIndex), 1);
+            currentOverridesCache[countryCode] = overrides;
+            overridesCache[countryCode] = overrides;
+            country.overrides = overrides.length;
 
-    overrides.splice(parseInt(overrideIndex), 1);
-    overridesCache[countryCode] = overrides;
-    country.overrides = overrides.length;
+            var modalEl = document.getElementById('removeOverrideModal');
+            var modalInst = bootstrap.Modal.getInstance(modalEl);
+            if (modalInst) modalInst.hide();
+            renderCountryTable();
 
-    bootstrap.Modal.getInstance(document.getElementById('removeOverrideModal')).hide();
-    renderCountryTable();
-    
-    showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
+            showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
+        } else {
+            showAdminToast('Error', data.message || 'Failed to remove override.', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Failed to remove override:', err);
+        showAdminToast('Error', 'Network error removing override.', 'error');
+    });
 }
 
 var serverOverridesData = {!! json_encode($allOverrides ?? (object)[]) !!};
@@ -5106,8 +5123,7 @@ function viewOverrides(countryCode) {
     var overrides = currentOverridesCache[countryCode] || [];
     renderOverridesTable(countryCode, overrides);
 
-    var modalEl = document.getElementById('customerOverridesModal');
-    var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    var modal = getOrCreateModal('customerOverridesModal');
     modal.show();
 }
 
@@ -5194,7 +5210,7 @@ function confirmRemoveOverrideFromModal(countryCode, overrideIndex) {
     typeBadge.textContent = typeLabel;
     typeBadge.className = 'badge ' + typeBadgeClass;
 
-    var modal = new bootstrap.Modal(document.getElementById('removeOverrideConfirmModal'));
+    var modal = getOrCreateModal('removeOverrideConfirmModal');
     modal.show();
 }
 
@@ -5400,7 +5416,7 @@ function openActionModal(countryCode, newStatus) {
     document.getElementById('modalNewStatus').value = newStatus;
     document.getElementById('modalChangeReason').value = '';
 
-    var modal = new bootstrap.Modal(document.getElementById('countryActionModal'));
+    var modal = getOrCreateModal('countryActionModal');
     modal.show();
 }
 
@@ -5682,7 +5698,7 @@ function openOverridesModal(mccMncId) {
 
     hideAddOverrideForm();
     loadOverrides(mccMncId);
-    var modal = new bootstrap.Modal(document.getElementById('ukNetworkOverridesModal'));
+    var modal = getOrCreateModal('ukNetworkOverridesModal');
     modal.show();
 }
 
