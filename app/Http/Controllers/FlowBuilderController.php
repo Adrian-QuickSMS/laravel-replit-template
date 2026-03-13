@@ -79,11 +79,55 @@ class FlowBuilderController extends Controller
                 ->toArray()
             : [];
 
+        // Contact Lists
+        $contactLists = \App\Models\ContactList::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($l) => ['id' => $l->id, 'name' => $l->name])
+            ->toArray();
+
+        // Tags
+        $tags = \App\Models\Tag::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($t) => ['id' => $t->id, 'name' => $t->name])
+            ->toArray();
+
+        // Opt-Out Lists
+        $optOutLists = \App\Models\OptOutList::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($o) => ['id' => $o->id, 'name' => $o->name])
+            ->toArray();
+
+        // Active Flows (for flow handoff node)
+        $activeFlows = Flow::where('account_id', $accountId)
+            ->where('id', '!=', $id ?? 0)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($f) => ['id' => $f->id, 'name' => $f->name])
+            ->toArray();
+
+        // API Credentials
+        $apiCredentials = [];
+        if (class_exists(\App\Models\ApiCredential::class)) {
+            $apiCredentials = \App\Models\ApiCredential::where('account_id', $accountId)
+                ->orderBy('name')
+                ->get()
+                ->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'auth_type' => $c->auth_type])
+                ->toArray();
+        }
+
         return view('quicksms.flows.builder', [
             'page_title' => $flow ? 'Edit Flow: ' . $flow->name : 'New Flow',
             'flow' => $flow,
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
+            'contact_lists' => $contactLists,
+            'tags' => $tags,
+            'opt_out_lists' => $optOutLists,
+            'active_flows' => $activeFlows,
+            'api_credentials' => $apiCredentials,
         ]);
     }
 

@@ -10,37 +10,82 @@
     // Node type definitions
     // ========================================
     var NODE_TYPES = {
+        // ---- TRIGGERS ----
         trigger_api: {
             label: 'API Trigger',
             icon: 'fa-plug',
             category: 'trigger',
             outputs: ['default'],
             inputs: false,
+            description: 'Trigger via POST /flows/{id}/start',
             configFields: [
                 { key: 'endpoint_note', type: 'info', text: 'This flow will be triggered via POST /flows/{id}/start' },
                 { key: 'variables', type: 'textarea', label: 'Expected Variables (JSON)', placeholder: '{"phone": "", "name": ""}' }
             ]
         },
-        trigger_sms_keyword: {
-            label: 'SMS Keyword',
+        trigger_webhook: {
+            label: 'External Webhook',
+            icon: 'fa-satellite-dish',
+            category: 'trigger',
+            outputs: ['default'],
+            inputs: false,
+            description: 'Receive webhooks from external systems',
+            configFields: [
+                { key: 'webhook_url_note', type: 'info', text: 'A unique webhook URL will be generated when this flow is activated.' },
+                { key: 'payload_schema', type: 'textarea', label: 'Expected Payload (JSON docs)', placeholder: '{"order_id": "string", "status": "string"}' },
+                { key: 'auth_method', type: 'select', label: 'Authentication', options: ['none', 'hmac_signature'] }
+            ]
+        },
+        trigger_sms_inbound: {
+            label: 'SMS Inbound',
             icon: 'fa-comment-dots',
             category: 'trigger',
             outputs: ['default'],
             inputs: false,
+            description: 'Triggered when SMS is received',
             configFields: [
-                { key: 'keywords', type: 'text', label: 'Keywords (comma separated)', placeholder: 'HELP, INFO, BALANCE' },
-                { key: 'match_type', type: 'select', label: 'Match Type', options: ['exact', 'contains', 'starts_with'] }
+                { key: 'sender_id', type: 'select', label: 'Listen on Number', options: [], dynamic: 'senderIds' },
+                { key: 'match_type', type: 'select', label: 'Match Type', options: ['any', 'keyword', 'contains', 'regex'] },
+                { key: 'keywords', type: 'text', label: 'Keywords (comma separated)', placeholder: 'HELP, INFO, BALANCE', showWhen: { key: 'match_type', values: ['keyword', 'contains'] } }
             ]
         },
-        trigger_rcs_button: {
-            label: 'RCS Button',
+        trigger_rcs_inbound: {
+            label: 'RCS Inbound',
             icon: 'fa-hand-pointer',
             category: 'trigger',
             outputs: ['default'],
             inputs: false,
+            description: 'Triggered when RCS message/postback received',
             configFields: [
-                { key: 'button_text', type: 'text', label: 'Button Text', placeholder: 'Track Delivery' },
-                { key: 'postback_data', type: 'text', label: 'Postback Data', placeholder: 'track_delivery' }
+                { key: 'rcs_agent_id', type: 'select', label: 'RCS Agent', options: [], dynamic: 'rcsAgents' },
+                { key: 'match_type', type: 'select', label: 'Match Type', options: ['any', 'postback', 'text'] },
+                { key: 'postback_data', type: 'text', label: 'Postback Data', placeholder: 'track_delivery', showWhen: { key: 'match_type', values: ['postback'] } },
+                { key: 'text_match', type: 'text', label: 'Text Match', placeholder: 'Hello', showWhen: { key: 'match_type', values: ['text'] } }
+            ]
+        },
+        trigger_campaign: {
+            label: 'Campaign Event',
+            icon: 'fa-bullhorn',
+            category: 'trigger',
+            outputs: ['default'],
+            inputs: false,
+            description: 'Triggered by campaign events',
+            configFields: [
+                { key: 'campaign_event', type: 'select', label: 'Event', options: ['message_delivered', 'message_failed', 'link_clicked', 'reply_received', 'campaign_completed'] },
+                { key: 'campaign_id', type: 'select', label: 'Campaign', options: [], dynamic: 'campaigns', allowAny: true }
+            ]
+        },
+        trigger_contact_event: {
+            label: 'Contact Event',
+            icon: 'fa-address-book',
+            category: 'trigger',
+            outputs: ['default'],
+            inputs: false,
+            description: 'Triggered by contact book changes',
+            configFields: [
+                { key: 'event_type', type: 'select', label: 'Event', options: ['contact_created', 'contact_updated', 'added_to_list', 'removed_from_list', 'tag_added', 'tag_removed', 'opted_out', 'opted_in'] },
+                { key: 'filter_list_id', type: 'select', label: 'Filter by List (optional)', options: [], dynamic: 'contactLists', allowEmpty: true },
+                { key: 'filter_tag_id', type: 'select', label: 'Filter by Tag (optional)', options: [], dynamic: 'tags', allowEmpty: true }
             ]
         },
         trigger_schedule: {
@@ -49,54 +94,107 @@
             category: 'trigger',
             outputs: ['default'],
             inputs: false,
+            description: 'Time-based trigger',
             configFields: [
                 { key: 'schedule_type', type: 'select', label: 'Type', options: ['once', 'daily', 'weekly', 'monthly'] },
                 { key: 'time', type: 'text', label: 'Time', placeholder: '09:00' },
                 { key: 'date', type: 'text', label: 'Start Date', placeholder: '2026-03-15' }
             ]
         },
+
+        // ---- ACTIONS ----
         send_message: {
             label: 'Send Message',
             icon: 'fa-paper-plane',
             category: 'action',
             outputs: ['default'],
             inputs: true,
+            description: 'Send SMS or RCS message',
             configFields: [],
             customProperties: true,
-            dynamicOutputs: true  // outputs determined by node.config at runtime
+            dynamicOutputs: true
+        },
+        contact: {
+            label: 'Contact',
+            icon: 'fa-user-plus',
+            category: 'action',
+            outputs: ['default'],
+            inputs: true,
+            description: 'Create, update, or delete a contact',
+            configFields: [
+                { key: 'action', type: 'select', label: 'Action', options: ['create', 'update', 'delete'] },
+                { key: 'phone_number', type: 'text', label: 'Phone Number', placeholder: '{{phone}} or +44...' },
+                { key: 'first_name', type: 'text', label: 'First Name', placeholder: '{{first_name}}' },
+                { key: 'last_name', type: 'text', label: 'Last Name', placeholder: '{{last_name}}' },
+                { key: 'email', type: 'text', label: 'Email', placeholder: '{{email}}' }
+            ]
+        },
+        tag_action: {
+            label: 'Tag',
+            icon: 'fa-tag',
+            category: 'action',
+            outputs: ['default'],
+            inputs: true,
+            description: 'Add or remove a tag',
+            configFields: [
+                { key: 'action', type: 'select', label: 'Action', options: ['add', 'remove'] },
+                { key: 'tag_name', type: 'text', label: 'Tag Name', placeholder: 'vip', autocomplete: 'tags' }
+            ]
+        },
+        list_action: {
+            label: 'List',
+            icon: 'fa-list',
+            category: 'action',
+            outputs: ['default'],
+            inputs: true,
+            description: 'Add or remove from a list',
+            configFields: [
+                { key: 'action', type: 'select', label: 'Action', options: ['add', 'remove'] },
+                { key: 'list_id', type: 'select', label: 'Contact List', options: [], dynamic: 'contactLists' }
+            ]
+        },
+        optout_action: {
+            label: 'Opt-Out',
+            icon: 'fa-ban',
+            category: 'action',
+            outputs: ['default'],
+            inputs: true,
+            description: 'Add or remove opt-out',
+            configFields: [
+                { key: 'action', type: 'select', label: 'Action', options: ['add', 'remove'] },
+                { key: 'opt_out_list_id', type: 'select', label: 'Opt-Out List', options: [], dynamic: 'optOutLists', allowEmpty: true },
+                { key: 'reason', type: 'text', label: 'Reason (optional)', placeholder: 'Flow automation' }
+            ]
         },
         webhook: {
             label: 'Webhook',
             icon: 'fa-globe',
             category: 'action',
-            outputs: ['default'],
+            outputs: ['success', 'error'],
             inputs: true,
-            configFields: [
-                { key: 'url', type: 'text', label: 'URL', placeholder: 'https://api.example.com/webhook' },
-                { key: 'method', type: 'select', label: 'Method', options: ['POST', 'GET', 'PUT'] },
-                { key: 'headers', type: 'textarea', label: 'Headers (JSON)', placeholder: '{"Authorization": "Bearer ..."}' },
-                { key: 'body', type: 'textarea', label: 'Body Template (JSON)', placeholder: '{"phone": "{{phone}}"}' },
-                { key: 'retry_count', type: 'select', label: 'Retries', options: ['0', '1', '2', '3'] }
-            ]
+            description: 'Call an external API',
+            configFields: [],
+            customProperties: true
         },
-        tag: {
-            label: 'Tag / List',
-            icon: 'fa-tag',
+        action_group: {
+            label: 'Quick Steps',
+            icon: 'fa-layer-group',
             category: 'action',
             outputs: ['default'],
             inputs: true,
-            configFields: [
-                { key: 'action', type: 'select', label: 'Action', options: ['add_tag', 'remove_tag', 'add_to_list', 'remove_from_list', 'update_field'] },
-                { key: 'value', type: 'text', label: 'Tag / List / Field Name', placeholder: 'interested' },
-                { key: 'field_value', type: 'text', label: 'Field Value (for update)', placeholder: 'gold' }
-            ]
+            description: 'Multiple actions in one step',
+            configFields: [],
+            customProperties: true
         },
+
+        // ---- LOGIC ----
         wait: {
             label: 'Wait / Delay',
             icon: 'fa-hourglass-half',
             category: 'logic',
             outputs: ['default'],
             inputs: true,
+            description: 'Pause for a duration or until a date',
             configFields: [
                 { key: 'wait_type', type: 'select', label: 'Wait Type', options: ['duration', 'until_date', 'until_event'] },
                 { key: 'duration_value', type: 'text', label: 'Duration', placeholder: '24' },
@@ -110,6 +208,7 @@
             category: 'logic',
             outputs: ['yes', 'no'],
             inputs: true,
+            description: 'Branch based on a condition',
             configFields: [
                 { key: 'condition_type', type: 'select', label: 'Condition', options: ['field_equals', 'field_contains', 'tag_exists', 'rcs_capable', 'message_length', 'time_check', 'reply_received'] },
                 { key: 'field', type: 'text', label: 'Field / Tag', placeholder: 'customer_type' },
@@ -118,16 +217,51 @@
                 { key: 'timeout', type: 'text', label: 'Timeout (hours, for reply_received)', placeholder: '48' }
             ]
         },
+        decision_contact: {
+            label: 'Contact Decision',
+            icon: 'fa-address-card',
+            category: 'logic',
+            outputs: ['yes', 'no'],
+            inputs: true,
+            description: 'Branch based on contact book data',
+            configFields: [],
+            customProperties: true
+        },
+        decision_webhook: {
+            label: 'Webhook Decision',
+            icon: 'fa-code-branch',
+            category: 'logic',
+            outputs: ['yes', 'no'],
+            inputs: true,
+            description: 'Branch based on API response',
+            configFields: [],
+            customProperties: true
+        },
+
+        // ---- END ----
         inbox_handoff: {
             label: 'Inbox Handoff',
             icon: 'fa-headset',
             category: 'end',
             outputs: [],
             inputs: true,
+            description: 'Hand off to inbox agent',
             configFields: [
                 { key: 'assign_to', type: 'select', label: 'Assign To', options: ['support_team', 'sales_team', 'unassigned'] },
                 { key: 'priority', type: 'select', label: 'Priority', options: ['normal', 'high', 'urgent'] },
                 { key: 'note', type: 'textarea', label: 'Internal Note', placeholder: 'Customer needs help with...' }
+            ]
+        },
+        flow_handoff: {
+            label: 'Flow Handoff',
+            icon: 'fa-exchange-alt',
+            category: 'end',
+            outputs: [],
+            inputs: true,
+            description: 'Transfer to another flow',
+            configFields: [
+                { key: 'target_flow_id', type: 'select', label: 'Target Flow', options: [], dynamic: 'activeFlows' },
+                { key: 'pass_context', type: 'checkbox', label: 'Pass flow variables to target flow' }
             ]
         },
         end: {
@@ -136,6 +270,7 @@
             category: 'end',
             outputs: [],
             inputs: true,
+            description: 'End the flow',
             configFields: []
         }
     };
@@ -150,7 +285,7 @@
                 { node_uid: 'n2', type: 'send_message', label: 'Welcome Message', position_x: 400, position_y: 220, config: { channel: 'sms', sms_content: 'Welcome to {{company}}, {{first_name}}! We\'re glad to have you.' } },
                 { node_uid: 'n3', type: 'wait', label: 'Wait 2 Days', position_x: 400, position_y: 380, config: { wait_type: 'duration', duration_value: '2', duration_unit: 'days' } },
                 { node_uid: 'n4', type: 'send_message', label: 'Tips & Getting Started', position_x: 400, position_y: 540, config: { channel: 'sms', sms_content: 'Hi {{first_name}}, here are some tips to get started...' } },
-                { node_uid: 'n5', type: 'tag', label: 'Tag: Onboarded', position_x: 400, position_y: 680, config: { action: 'add_tag', value: 'onboarded' } },
+                { node_uid: 'n5', type: 'tag_action', label: 'Tag: Onboarded', position_x: 400, position_y: 680, config: { action: 'add', tag_name: 'onboarded' } },
                 { node_uid: 'n6', type: 'end', label: 'End', position_x: 400, position_y: 820, config: {} }
             ],
             connections: [
@@ -167,7 +302,7 @@
                 { node_uid: 'n2', type: 'wait', label: 'Wait Until 24h Before', position_x: 400, position_y: 220, config: { wait_type: 'duration', duration_value: '24', duration_unit: 'hours' } },
                 { node_uid: 'n3', type: 'send_message', label: 'Reminder with Buttons', position_x: 400, position_y: 380, config: { channel: 'rich_rcs', sms_content: 'Reminder: Your appointment is tomorrow at {{time}}. Reply CONFIRM or RESCHEDULE.', rcs_payload: { type: 'standalone', card: { title: 'Appointment Reminder', description: 'Your appointment is tomorrow at {{time}}.', suggestions: [{ type: 'reply', text: 'Confirm', postbackData: 'confirm' }, { type: 'reply', text: 'Reschedule', postbackData: 'reschedule' }] } } } },
                 { node_uid: 'n4', type: 'decision', label: 'Confirmed?', position_x: 400, position_y: 540, config: { condition_type: 'reply_received', timeout: '4' } },
-                { node_uid: 'n5', type: 'tag', label: 'Tag: Confirmed', position_x: 250, position_y: 700, config: { action: 'add_tag', value: 'appointment_confirmed' } },
+                { node_uid: 'n5', type: 'tag_action', label: 'Tag: Confirmed', position_x: 250, position_y: 700, config: { action: 'add', tag_name: 'appointment_confirmed' } },
                 { node_uid: 'n6', type: 'send_message', label: 'Fallback SMS Reminder', position_x: 550, position_y: 700, config: { channel: 'sms', sms_content: 'Reminder: You have an appointment tomorrow. Reply CONFIRM or call us.' } },
                 { node_uid: 'n7', type: 'end', label: 'End', position_x: 400, position_y: 860, config: {} }
             ],
@@ -446,7 +581,8 @@
 
         var bodyHtml = '';
         if (configPreview) {
-            bodyHtml = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
+            var previewHtml = escapeHtml(configPreview).replace(/\n/g, '<br>');
+            bodyHtml = '<div class="config-preview">' + previewHtml + '</div>';
         } else {
             bodyHtml = '<span style="color:#ccc; font-style:italic;">Click to configure</span>';
         }
@@ -567,29 +703,30 @@
                 outputPort.setAttribute('data-node-id', node.id);
                 el.appendChild(outputPort);
             } else if (typeDef.outputs.length === 2) {
-                var yesPort = document.createElement('div');
-                yesPort.className = 'node-port port-output-yes';
-                yesPort.setAttribute('data-port', 'output');
-                yesPort.setAttribute('data-handle', 'yes');
-                yesPort.setAttribute('data-node-id', node.id);
-                el.appendChild(yesPort);
+                var handles = typeDef.outputs; // ['yes','no'] or ['success','error']
+                var portClasses = {
+                    yes: 'port-output-yes', no: 'port-output-no',
+                    success: 'port-output-yes port-output-success', error: 'port-output-no port-output-error'
+                };
+                var labelClasses = {
+                    yes: 'branch-label yes', no: 'branch-label no',
+                    success: 'branch-label success', error: 'branch-label error'
+                };
+                var labelTexts = { yes: 'Yes', no: 'No', success: 'Success', error: 'Error' };
 
-                var yesLabel = document.createElement('div');
-                yesLabel.className = 'branch-label yes';
-                yesLabel.textContent = 'Yes';
-                el.appendChild(yesLabel);
+                handles.forEach(function(handle) {
+                    var port = document.createElement('div');
+                    port.className = 'node-port ' + (portClasses[handle] || 'port-output');
+                    port.setAttribute('data-port', 'output');
+                    port.setAttribute('data-handle', handle);
+                    port.setAttribute('data-node-id', node.id);
+                    el.appendChild(port);
 
-                var noPort = document.createElement('div');
-                noPort.className = 'node-port port-output-no';
-                noPort.setAttribute('data-port', 'output');
-                noPort.setAttribute('data-handle', 'no');
-                noPort.setAttribute('data-node-id', node.id);
-                el.appendChild(noPort);
-
-                var noLabel = document.createElement('div');
-                noLabel.className = 'branch-label no';
-                noLabel.textContent = 'No';
-                el.appendChild(noLabel);
+                    var label = document.createElement('div');
+                    label.className = labelClasses[handle] || 'branch-label';
+                    label.textContent = labelTexts[handle] || handle;
+                    el.appendChild(label);
+                });
             }
         }
     };
@@ -614,20 +751,72 @@
                 if (!txt) return chDisplay + ': (no content)';
                 var preview = chDisplay + ': ' + txt;
                 return preview.length > 60 ? preview.substr(0, 57) + '...' : preview;
-            case 'trigger_sms_keyword':
-                return c.keywords ? 'Keywords: ' + c.keywords : '';
+
+            // Triggers
+            case 'trigger_sms_inbound':
+                if (c.match_type === 'any') return 'Any SMS received';
+                return c.keywords ? 'Keywords: ' + c.keywords : (c.match_type || '');
+            case 'trigger_rcs_inbound':
+                if (c.match_type === 'any') return 'Any RCS message';
+                return c.match_type === 'postback' ? 'Postback: ' + (c.postback_data || '') : 'Text: ' + (c.text_match || '');
+            case 'trigger_webhook':
+                return c.auth_method && c.auth_method !== 'none' ? 'Auth: HMAC' : 'No auth';
+            case 'trigger_campaign':
+                var evLabels = { message_delivered: 'Delivered', message_failed: 'Failed', link_clicked: 'Link Clicked', reply_received: 'Reply', campaign_completed: 'Completed' };
+                return evLabels[c.campaign_event] || c.campaign_event || '';
+            case 'trigger_contact_event':
+                var ctLabels = { contact_created: 'Contact Created', contact_updated: 'Updated', added_to_list: 'Added to List', removed_from_list: 'Removed from List', tag_added: 'Tag Added', tag_removed: 'Tag Removed', opted_out: 'Opted Out', opted_in: 'Opted In' };
+                return ctLabels[c.event_type] || c.event_type || '';
+            case 'trigger_schedule':
+                return c.schedule_type ? c.schedule_type + ' at ' + (c.time || '') : '';
+
+            // Actions
+            case 'contact':
+                var actLabels = { create: 'Create', update: 'Update', delete: 'Delete' };
+                return (actLabels[c.action] || '') + (c.phone_number ? ': ' + c.phone_number : '');
+            case 'tag_action':
+                return (c.action === 'remove' ? 'Remove' : 'Add') + ': ' + (c.tag_name || '');
+            case 'list_action':
+                return (c.action === 'remove' ? 'Remove from' : 'Add to') + ': ' + (c.list_name || c.list_id || '');
+            case 'optout_action':
+                return (c.action === 'remove' ? 'Remove opt-out' : 'Add opt-out');
             case 'webhook':
-                return c.url ? c.method + ' ' + c.url : '';
+                return c.url ? (c.method || 'POST') + ' ' + c.url : '';
+            case 'action_group':
+                var steps = c.steps || [];
+                if (!steps.length) return 'No steps configured';
+                var stepLabels = { add_tag: 'Add Tag', remove_tag: 'Remove Tag', add_to_list: 'Add to List', remove_from_list: 'Remove from List', add_optout: 'Opt-Out', remove_optout: 'Remove Opt-Out', update_contact: 'Update Contact', wait: 'Wait' };
+                var lines = [];
+                for (var i = 0; i < Math.min(steps.length, 3); i++) {
+                    var s = steps[i];
+                    var sl = stepLabels[s.type] || s.type;
+                    if (s.params) {
+                        if (s.params.tag_name) sl += ': ' + s.params.tag_name;
+                        else if (s.params.list_name) sl += ': ' + s.params.list_name;
+                        else if (s.params.value && s.params.unit) sl += ' ' + s.params.value + s.params.unit.charAt(0);
+                    }
+                    lines.push((i + 1) + '. ' + sl);
+                }
+                if (steps.length > 3) lines.push('+' + (steps.length - 3) + ' more');
+                return lines.join('\n');
+
+            // Logic
             case 'wait':
                 return c.duration_value ? 'Wait ' + c.duration_value + ' ' + (c.duration_unit || 'hours') : '';
             case 'decision':
-                return c.condition_type ? 'If ' + c.condition_type + (c.field ? ' (' + c.field + ')' : '') : '';
-            case 'tag':
-                return c.action ? c.action + ': ' + (c.value || '') : '';
-            case 'trigger_schedule':
-                return c.schedule_type ? c.schedule_type + ' at ' + (c.time || '') : '';
+                return c.condition_type ? 'If ' + c.condition_type.replace(/_/g, ' ') + (c.field ? ' (' + c.field + ')' : '') : '';
+            case 'decision_contact':
+                var dcLabels = { is_contact: 'Is Contact', not_contact: 'Not Contact', in_list: 'In List', not_in_list: 'Not in List', has_tag: 'Has Tag', not_has_tag: 'No Tag', is_opted_out: 'Opted Out', not_opted_out: 'Not Opted Out' };
+                return dcLabels[c.condition] || c.condition || '';
+            case 'decision_webhook':
+                return c.condition_type ? 'If ' + c.condition_type.replace(/_/g, ' ') : '';
+
+            // End
             case 'inbox_handoff':
-                return c.assign_to ? 'Assign: ' + c.assign_to : '';
+                return c.assign_to ? 'Assign: ' + c.assign_to.replace(/_/g, ' ') : '';
+            case 'flow_handoff':
+                return c.target_flow_name || (c.target_flow_id ? 'Flow #' + c.target_flow_id : '');
+
             default:
                 return '';
         }
@@ -649,7 +838,8 @@
         el.querySelector('.node-label').textContent = node.label;
         var bodyEl = el.querySelector('.flow-node-body');
         if (configPreview) {
-            bodyEl.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
+            var previewHtml = escapeHtml(configPreview).replace(/\n/g, '<br>');
+            bodyEl.innerHTML = '<div class="config-preview">' + previewHtml + '</div>';
         } else {
             bodyEl.innerHTML = '<span style="color:#ccc; font-style:italic;">Click to configure</span>';
         }
@@ -800,15 +990,42 @@
         html += '<input type="text" class="form-control" id="prop-label" value="' + escapeHtml(node.label) + '">';
         html += '</div>';
 
-        // Custom properties for send_message
-        if (typeDef.customProperties && node.type === 'send_message') {
-            html += this._renderSendMessageProperties(node);
-            body.innerHTML = html;
-            this._bindSendMessageEvents(node, nodeId);
+        // Custom properties routing
+        if (typeDef.customProperties) {
+            if (node.type === 'send_message') {
+                html += this._renderSendMessageProperties(node);
+                body.innerHTML = html;
+                this._bindSendMessageEvents(node, nodeId);
+            } else if (node.type === 'action_group') {
+                html += this._renderActionGroupProperties(node);
+                body.innerHTML = html;
+                this._bindActionGroupEvents(node, nodeId);
+            } else if (node.type === 'webhook') {
+                html += this._renderWebhookProperties(node);
+                body.innerHTML = html;
+                this._bindWebhookEvents(node, nodeId);
+            } else if (node.type === 'decision_contact') {
+                html += this._renderDecisionContactProperties(node);
+                body.innerHTML = html;
+                this._bindDecisionContactEvents(node, nodeId);
+            } else if (node.type === 'decision_webhook') {
+                html += this._renderDecisionWebhookProperties(node);
+                body.innerHTML = html;
+                this._bindDecisionWebhookEvents(node, nodeId);
+            }
         } else {
             // Config fields
+            var self = this;
             typeDef.configFields.forEach(function(field) {
-                html += '<div class="mb-3">';
+                // showWhen: conditionally display field based on another field's value
+                var showStyle = '';
+                if (field.showWhen) {
+                    var depVal = node.config[field.showWhen.key] || '';
+                    if (field.showWhen.values.indexOf(depVal) === -1) {
+                        showStyle = ' style="display:none;"';
+                    }
+                }
+                html += '<div class="mb-3 config-field-wrap" data-field-key="' + field.key + '"' + showStyle + '>';
                 if (field.type === 'info') {
                     html += '<div class="alert alert-light p-2" style="font-size:0.78rem; border:1px solid #e0e0e0;">' + escapeHtml(field.text) + '</div>';
                 } else if (field.type === 'text') {
@@ -820,10 +1037,32 @@
                 } else if (field.type === 'select') {
                     html += '<label class="form-label">' + escapeHtml(field.label) + '</label>';
                     html += '<select class="form-select" data-config="' + field.key + '">';
-                    field.options.forEach(function(opt) {
-                        var selected = (node.config[field.key] === opt) ? ' selected' : '';
-                        html += '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt.replace(/_/g, ' ')) + '</option>';
-                    });
+                    if (field.allowEmpty) {
+                        html += '<option value="">(any)</option>';
+                    }
+                    // Dynamic options from __flowBuilderData
+                    var opts = field.options;
+                    if (field.dynamic && window.__flowBuilderData && window.__flowBuilderData[field.dynamic]) {
+                        opts = window.__flowBuilderData[field.dynamic].map(function(item) {
+                            return typeof item === 'string' ? item : item.id || item.value;
+                        });
+                        // Render with labels
+                        var items = window.__flowBuilderData[field.dynamic];
+                        if (field.allowAny) {
+                            html += '<option value=""' + (!node.config[field.key] ? ' selected' : '') + '>Any</option>';
+                        }
+                        items.forEach(function(item) {
+                            var val = typeof item === 'string' ? item : (item.id || item.value);
+                            var lbl = typeof item === 'string' ? item : (item.name || item.label || val);
+                            var selected = (String(node.config[field.key]) === String(val)) ? ' selected' : '';
+                            html += '<option value="' + escapeHtml(String(val)) + '"' + selected + '>' + escapeHtml(lbl) + '</option>';
+                        });
+                    } else {
+                        opts.forEach(function(opt) {
+                            var selected = (node.config[field.key] === opt) ? ' selected' : '';
+                            html += '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt.replace(/_/g, ' ')) + '</option>';
+                        });
+                    }
                     html += '</select>';
                 } else if (field.type === 'checkbox') {
                     html += '<div class="form-check">';
@@ -836,6 +1075,20 @@
             });
 
             body.innerHTML = html;
+
+            // Handle showWhen visibility toggling
+            typeDef.configFields.forEach(function(field) {
+                if (!field.showWhen) return;
+                var depSelect = body.querySelector('[data-config="' + field.showWhen.key + '"]');
+                if (depSelect) {
+                    depSelect.addEventListener('change', function() {
+                        var wrap = body.querySelector('[data-field-key="' + field.key + '"]');
+                        if (wrap) {
+                            wrap.style.display = field.showWhen.values.indexOf(depSelect.value) !== -1 ? '' : 'none';
+                        }
+                    });
+                }
+            });
         }
 
         // Bind change events
@@ -991,10 +1244,10 @@
             }
         }
 
-        // Static output ports
+        // Static dual output ports (yes/no or success/error — first at 30%, second at 70%)
         if (typeDef.outputs.length === 2) {
-            if (handle === 'yes') return { x: node.x + w * 0.3, y: node.y + h };
-            if (handle === 'no') return { x: node.x + w * 0.7, y: node.y + h };
+            if (handle === typeDef.outputs[0]) return { x: node.x + w * 0.3, y: node.y + h };
+            if (handle === typeDef.outputs[1]) return { x: node.x + w * 0.7, y: node.y + h };
         }
         return { x: node.x + w / 2, y: node.y + h };
     };
@@ -2102,6 +2355,557 @@
                 if (modal) modal.hide();
             });
         }
+    };
+
+    // ========================================
+    // Action Group ("Quick Steps") Properties
+    // ========================================
+    var ACTION_GROUP_STEP_TYPES = {
+        add_tag:          { label: 'Add Tag',          icon: 'fa-tag',            fields: [{ key: 'tag_name', label: 'Tag Name', type: 'text', placeholder: 'vip' }] },
+        remove_tag:       { label: 'Remove Tag',       icon: 'fa-tag',            fields: [{ key: 'tag_name', label: 'Tag Name', type: 'text', placeholder: 'vip' }] },
+        add_to_list:      { label: 'Add to List',      icon: 'fa-list',           fields: [{ key: 'list_id', label: 'List', type: 'select', dynamic: 'contactLists' }] },
+        remove_from_list: { label: 'Remove from List', icon: 'fa-list',           fields: [{ key: 'list_id', label: 'List', type: 'select', dynamic: 'contactLists' }] },
+        add_optout:       { label: 'Add Opt-Out',      icon: 'fa-ban',            fields: [] },
+        remove_optout:    { label: 'Remove Opt-Out',   icon: 'fa-ban',            fields: [] },
+        update_contact:   { label: 'Update Contact',   icon: 'fa-user-edit',      fields: [{ key: 'field', label: 'Field', type: 'text', placeholder: 'first_name' }, { key: 'value', label: 'Value', type: 'text', placeholder: '{{first_name}}' }] },
+        wait:             { label: 'Wait',             icon: 'fa-hourglass-half', fields: [{ key: 'value', label: 'Duration', type: 'text', placeholder: '24' }, { key: 'unit', label: 'Unit', type: 'select', options: ['minutes', 'hours', 'days'] }] }
+    };
+
+    FlowBuilder.prototype._renderActionGroupProperties = function(node) {
+        var c = node.config;
+        var steps = c.steps || [];
+        var html = '';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Steps</label>';
+        html += '<div id="action-group-steps">';
+
+        steps.forEach(function(step, idx) {
+            html += _renderActionGroupStep(step, idx);
+        });
+
+        html += '</div>';
+        html += '<button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100" id="btn-add-step"><i class="fas fa-plus me-1"></i> Add Step</button>';
+        html += '</div>';
+
+        return html;
+    };
+
+    function _renderActionGroupStep(step, idx) {
+        var typeDef = ACTION_GROUP_STEP_TYPES[step.type] || {};
+        var html = '<div class="action-group-step" data-step-idx="' + idx + '">';
+        html += '<div class="step-header">';
+        html += '<span class="step-drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>';
+        html += '<span class="step-number">' + (idx + 1) + '</span>';
+        html += '<select class="form-select form-select-sm step-type-select" data-step-idx="' + idx + '">';
+        Object.keys(ACTION_GROUP_STEP_TYPES).forEach(function(key) {
+            var sel = (step.type === key) ? ' selected' : '';
+            html += '<option value="' + key + '"' + sel + '>' + ACTION_GROUP_STEP_TYPES[key].label + '</option>';
+        });
+        html += '</select>';
+        html += '<button type="button" class="step-remove" data-step-idx="' + idx + '" title="Remove"><i class="fas fa-times"></i></button>';
+        html += '</div>';
+
+        // Step-specific fields
+        if (typeDef.fields && typeDef.fields.length > 0) {
+            html += '<div class="step-fields">';
+            typeDef.fields.forEach(function(field) {
+                var val = (step.params && step.params[field.key]) || '';
+                if (field.type === 'text') {
+                    html += '<input type="text" class="form-control form-control-sm step-field" data-step-idx="' + idx + '" data-field="' + field.key + '" value="' + escapeHtml(val) + '" placeholder="' + escapeHtml(field.placeholder || field.label) + '">';
+                } else if (field.type === 'select') {
+                    html += '<select class="form-select form-select-sm step-field" data-step-idx="' + idx + '" data-field="' + field.key + '">';
+                    if (field.dynamic && window.__flowBuilderData && window.__flowBuilderData[field.dynamic]) {
+                        html += '<option value="">(select)</option>';
+                        window.__flowBuilderData[field.dynamic].forEach(function(item) {
+                            var itemVal = typeof item === 'string' ? item : (item.id || '');
+                            var itemLabel = typeof item === 'string' ? item : (item.name || itemVal);
+                            var sel = (String(val) === String(itemVal)) ? ' selected' : '';
+                            html += '<option value="' + escapeHtml(String(itemVal)) + '"' + sel + '>' + escapeHtml(itemLabel) + '</option>';
+                        });
+                    } else if (field.options) {
+                        field.options.forEach(function(opt) {
+                            var sel = (val === opt) ? ' selected' : '';
+                            html += '<option value="' + opt + '"' + sel + '>' + opt + '</option>';
+                        });
+                    }
+                    html += '</select>';
+                }
+            });
+            html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    FlowBuilder.prototype._bindActionGroupEvents = function(node, nodeId) {
+        var self = this;
+        var body = document.getElementById('properties-body');
+        if (!node.config.steps) node.config.steps = [];
+
+        // Add step
+        var addBtn = document.getElementById('btn-add-step');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                node.config.steps.push({ type: 'add_tag', params: { tag_name: '' } });
+                self._refreshNode(nodeId);
+                self._showProperties(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        // Step type change
+        body.querySelectorAll('.step-type-select').forEach(function(sel) {
+            sel.addEventListener('change', function() {
+                var idx = parseInt(sel.getAttribute('data-step-idx'));
+                node.config.steps[idx] = { type: sel.value, params: {} };
+                self._refreshNode(nodeId);
+                self._showProperties(nodeId);
+                self.isDirty = true;
+            });
+        });
+
+        // Step field changes
+        body.querySelectorAll('.step-field').forEach(function(input) {
+            input.addEventListener('change', function() {
+                var idx = parseInt(input.getAttribute('data-step-idx'));
+                var field = input.getAttribute('data-field');
+                if (!node.config.steps[idx].params) node.config.steps[idx].params = {};
+                node.config.steps[idx].params[field] = input.value;
+
+                // Store list_name for display
+                if (field === 'list_id' && input.tagName === 'SELECT') {
+                    var option = input.options[input.selectedIndex];
+                    if (option) node.config.steps[idx].params.list_name = option.textContent;
+                }
+
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        });
+
+        // Remove step
+        body.querySelectorAll('.step-remove').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var idx = parseInt(btn.getAttribute('data-step-idx'));
+                node.config.steps.splice(idx, 1);
+                self._refreshNode(nodeId);
+                self._showProperties(nodeId);
+                self.isDirty = true;
+            });
+        });
+    };
+
+    // ========================================
+    // Webhook Properties (enhanced with credentials)
+    // ========================================
+    FlowBuilder.prototype._renderWebhookProperties = function(node) {
+        var c = node.config;
+        var html = '';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">URL</label>';
+        html += '<input type="text" class="form-control" id="wh-url" value="' + escapeHtml(c.url || '') + '" placeholder="https://api.example.com/webhook">';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Method</label>';
+        html += '<select class="form-select" id="wh-method">';
+        ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'].forEach(function(m) {
+            html += '<option value="' + m + '"' + (c.method === m ? ' selected' : '') + '>' + m + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        // API Credentials
+        var creds = (window.__flowBuilderData && window.__flowBuilderData.apiCredentials) || [];
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">API Credentials</label>';
+        html += '<div class="d-flex gap-2">';
+        html += '<select class="form-select" id="wh-credential" style="flex:1;">';
+        html += '<option value="">(None - no auth)</option>';
+        creds.forEach(function(cr) {
+            html += '<option value="' + cr.id + '"' + (String(c.credential_id) === String(cr.id) ? ' selected' : '') + '>' + escapeHtml(cr.name) + ' (' + cr.auth_type + ')</option>';
+        });
+        html += '</select>';
+        html += '<button type="button" class="btn btn-sm btn-outline-primary" id="wh-new-credential" title="New Credential"><i class="fas fa-plus"></i></button>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Headers (JSON)</label>';
+        html += '<textarea class="form-control" id="wh-headers" rows="2" placeholder=\'{"Content-Type": "application/json"}\'>' + escapeHtml(c.headers || '') + '</textarea>';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Body Template (JSON)</label>';
+        html += '<textarea class="form-control" id="wh-body" rows="3" placeholder=\'{"phone": "{{phone}}"}\'>' + escapeHtml(c.body || '') + '</textarea>';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Timeout (seconds)</label>';
+        html += '<input type="number" class="form-control" id="wh-timeout" value="' + (c.timeout_seconds || 30) + '" min="5" max="60">';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Retries</label>';
+        html += '<select class="form-select" id="wh-retries">';
+        [0, 1, 2, 3].forEach(function(r) {
+            html += '<option value="' + r + '"' + (String(c.retry_count) === String(r) ? ' selected' : '') + '>' + r + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Store Response As</label>';
+        html += '<input type="text" class="form-control" id="wh-response-var" value="' + escapeHtml(c.response_variable || '') + '" placeholder="api_response">';
+        html += '<div class="form-text">Variable name for use in downstream Webhook Decision nodes</div>';
+        html += '</div>';
+
+        html += '<div class="alert alert-info py-2 px-3" style="font-size:0.75rem;">';
+        html += '<i class="fas fa-info-circle me-1"></i> This node has two outputs: <strong>Success</strong> (2xx) and <strong>Error</strong> (4xx/5xx/timeout).';
+        html += '</div>';
+
+        return html;
+    };
+
+    FlowBuilder.prototype._bindWebhookEvents = function(node, nodeId) {
+        var self = this;
+        var fields = { 'wh-url': 'url', 'wh-method': 'method', 'wh-headers': 'headers', 'wh-body': 'body', 'wh-timeout': 'timeout_seconds', 'wh-retries': 'retry_count', 'wh-credential': 'credential_id', 'wh-response-var': 'response_variable' };
+
+        Object.keys(fields).forEach(function(elId) {
+            var el = document.getElementById(elId);
+            if (el) {
+                el.addEventListener('change', function() {
+                    node.config[fields[elId]] = el.value;
+                    self._refreshNode(nodeId);
+                    self.isDirty = true;
+                });
+            }
+        });
+
+        // New credential button
+        var newCredBtn = document.getElementById('wh-new-credential');
+        if (newCredBtn) {
+            newCredBtn.addEventListener('click', function() {
+                self._openCredentialModal(nodeId);
+            });
+        }
+    };
+
+    // ========================================
+    // Contact Decision Properties
+    // ========================================
+    FlowBuilder.prototype._renderDecisionContactProperties = function(node) {
+        var c = node.config;
+        var html = '';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Condition</label>';
+        html += '<select class="form-select" id="dc-condition">';
+        var conditions = [
+            { value: 'is_contact', label: 'Is a Contact' },
+            { value: 'not_contact', label: 'Is NOT a Contact' },
+            { value: 'in_list', label: 'Is in List' },
+            { value: 'not_in_list', label: 'Is NOT in List' },
+            { value: 'has_tag', label: 'Has Tag' },
+            { value: 'not_has_tag', label: 'Does NOT have Tag' },
+            { value: 'is_opted_out', label: 'Is Opted Out' },
+            { value: 'not_opted_out', label: 'Is NOT Opted Out' }
+        ];
+        conditions.forEach(function(cond) {
+            html += '<option value="' + cond.value + '"' + (c.condition === cond.value ? ' selected' : '') + '>' + cond.label + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        // Conditional: list selector
+        var showList = (c.condition === 'in_list' || c.condition === 'not_in_list');
+        html += '<div class="mb-3" id="dc-list-wrap"' + (showList ? '' : ' style="display:none;"') + '>';
+        html += '<label class="form-label">Contact List</label>';
+        html += '<select class="form-select" id="dc-list-id">';
+        html += '<option value="">(select list)</option>';
+        var lists = (window.__flowBuilderData && window.__flowBuilderData.contactLists) || [];
+        lists.forEach(function(l) {
+            html += '<option value="' + l.id + '"' + (String(c.list_id) === String(l.id) ? ' selected' : '') + '>' + escapeHtml(l.name) + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        // Conditional: tag selector
+        var showTag = (c.condition === 'has_tag' || c.condition === 'not_has_tag');
+        html += '<div class="mb-3" id="dc-tag-wrap"' + (showTag ? '' : ' style="display:none;"') + '>';
+        html += '<label class="form-label">Tag Name</label>';
+        html += '<input type="text" class="form-control" id="dc-tag-name" value="' + escapeHtml(c.tag_name || '') + '" placeholder="vip">';
+        html += '</div>';
+
+        // Conditional: optout list
+        var showOptout = (c.condition === 'is_opted_out' || c.condition === 'not_opted_out');
+        html += '<div class="mb-3" id="dc-optout-wrap"' + (showOptout ? '' : ' style="display:none;"') + '>';
+        html += '<label class="form-label">Opt-Out List (optional)</label>';
+        html += '<select class="form-select" id="dc-optout-id">';
+        html += '<option value="">(global)</option>';
+        var optOuts = (window.__flowBuilderData && window.__flowBuilderData.optOutLists) || [];
+        optOuts.forEach(function(o) {
+            html += '<option value="' + o.id + '"' + (String(c.optout_list_id) === String(o.id) ? ' selected' : '') + '>' + escapeHtml(o.name) + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        return html;
+    };
+
+    FlowBuilder.prototype._bindDecisionContactEvents = function(node, nodeId) {
+        var self = this;
+
+        var condSel = document.getElementById('dc-condition');
+        if (condSel) {
+            condSel.addEventListener('change', function() {
+                node.config.condition = condSel.value;
+                // Toggle conditional fields
+                var listWrap = document.getElementById('dc-list-wrap');
+                var tagWrap = document.getElementById('dc-tag-wrap');
+                var optoutWrap = document.getElementById('dc-optout-wrap');
+                if (listWrap) listWrap.style.display = (condSel.value === 'in_list' || condSel.value === 'not_in_list') ? '' : 'none';
+                if (tagWrap) tagWrap.style.display = (condSel.value === 'has_tag' || condSel.value === 'not_has_tag') ? '' : 'none';
+                if (optoutWrap) optoutWrap.style.display = (condSel.value === 'is_opted_out' || condSel.value === 'not_opted_out') ? '' : 'none';
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        ['dc-list-id', 'dc-tag-name', 'dc-optout-id'].forEach(function(elId) {
+            var el = document.getElementById(elId);
+            if (el) {
+                el.addEventListener('change', function() {
+                    var key = { 'dc-list-id': 'list_id', 'dc-tag-name': 'tag_name', 'dc-optout-id': 'optout_list_id' }[elId];
+                    node.config[key] = el.value;
+                    self._refreshNode(nodeId);
+                    self.isDirty = true;
+                });
+            }
+        });
+    };
+
+    // ========================================
+    // Webhook Decision Properties
+    // ========================================
+    FlowBuilder.prototype._renderDecisionWebhookProperties = function(node) {
+        var c = node.config;
+        var html = '';
+
+        // Find upstream webhook nodes in the flow
+        var webhookNodes = [];
+        var nodes = this.nodes;
+        for (var nid in nodes) {
+            if (nodes[nid].type === 'webhook') {
+                webhookNodes.push({ id: nid, label: nodes[nid].label || 'Webhook' });
+            }
+        }
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Source Webhook Node</label>';
+        html += '<select class="form-select" id="dw-source">';
+        html += '<option value="">(select webhook node)</option>';
+        webhookNodes.forEach(function(wn) {
+            html += '<option value="' + wn.id + '"' + (c.source_node_uid === wn.id ? ' selected' : '') + '>' + escapeHtml(wn.label) + '</option>';
+        });
+        html += '</select>';
+        if (webhookNodes.length === 0) {
+            html += '<div class="form-text text-warning">Add a Webhook node to the flow first.</div>';
+        }
+        html += '</div>';
+
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Condition Type</label>';
+        html += '<select class="form-select" id="dw-condition-type">';
+        var types = [
+            { value: 'status_code', label: 'HTTP Status Code' },
+            { value: 'json_path_equals', label: 'JSON Path Equals' },
+            { value: 'json_path_contains', label: 'JSON Path Contains' },
+            { value: 'json_path_exists', label: 'JSON Path Exists' },
+            { value: 'response_empty', label: 'Response is Empty' }
+        ];
+        types.forEach(function(t) {
+            html += '<option value="' + t.value + '"' + (c.condition_type === t.value ? ' selected' : '') + '>' + t.label + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+
+        // JSON path (shown for json_path_* conditions)
+        var showPath = c.condition_type && c.condition_type.indexOf('json_path') === 0;
+        html += '<div class="mb-3" id="dw-path-wrap"' + (showPath ? '' : ' style="display:none;"') + '>';
+        html += '<label class="form-label">JSON Path</label>';
+        html += '<input type="text" class="form-control" id="dw-json-path" value="' + escapeHtml(c.json_path || '') + '" placeholder="data.status">';
+        html += '<div class="form-text">Use dot notation e.g. <code>data.order.status</code></div>';
+        html += '</div>';
+
+        // Operator + compare value (for equals/contains)
+        var showCompare = (c.condition_type === 'json_path_equals' || c.condition_type === 'json_path_contains' || c.condition_type === 'status_code');
+        html += '<div class="mb-3" id="dw-compare-wrap"' + (showCompare ? '' : ' style="display:none;"') + '>';
+        html += '<label class="form-label">Operator</label>';
+        html += '<select class="form-select mb-2" id="dw-operator">';
+        ['equals', 'not_equals', 'contains', 'greater_than', 'less_than'].forEach(function(op) {
+            html += '<option value="' + op + '"' + (c.operator === op ? ' selected' : '') + '>' + op.replace(/_/g, ' ') + '</option>';
+        });
+        html += '</select>';
+        html += '<label class="form-label">Compare Value</label>';
+        html += '<input type="text" class="form-control" id="dw-compare-value" value="' + escapeHtml(c.compare_value || '') + '" placeholder="approved">';
+        html += '</div>';
+
+        return html;
+    };
+
+    FlowBuilder.prototype._bindDecisionWebhookEvents = function(node, nodeId) {
+        var self = this;
+
+        var condTypeSel = document.getElementById('dw-condition-type');
+        if (condTypeSel) {
+            condTypeSel.addEventListener('change', function() {
+                node.config.condition_type = condTypeSel.value;
+                var pathWrap = document.getElementById('dw-path-wrap');
+                var compareWrap = document.getElementById('dw-compare-wrap');
+                if (pathWrap) pathWrap.style.display = condTypeSel.value.indexOf('json_path') === 0 ? '' : 'none';
+                if (compareWrap) compareWrap.style.display = ['json_path_equals', 'json_path_contains', 'status_code'].indexOf(condTypeSel.value) !== -1 ? '' : 'none';
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        ['dw-source', 'dw-json-path', 'dw-operator', 'dw-compare-value'].forEach(function(elId) {
+            var el = document.getElementById(elId);
+            if (el) {
+                el.addEventListener('change', function() {
+                    var key = { 'dw-source': 'source_node_uid', 'dw-json-path': 'json_path', 'dw-operator': 'operator', 'dw-compare-value': 'compare_value' }[elId];
+                    node.config[key] = el.value;
+                    self._refreshNode(nodeId);
+                    self.isDirty = true;
+                });
+            }
+        });
+    };
+
+    // ========================================
+    // Credential Modal
+    // ========================================
+    FlowBuilder.prototype._openCredentialModal = function(nodeId) {
+        var self = this;
+        var modalEl = document.getElementById('flowCredentialModal');
+        if (!modalEl) {
+            alert('Credential management is not yet available.');
+            return;
+        }
+
+        // Reset form
+        document.getElementById('cred-name').value = '';
+        document.getElementById('cred-auth-type').value = 'bearer';
+        this._toggleCredentialFields('bearer');
+
+        // Auth type toggle
+        var authTypeSelect = document.getElementById('cred-auth-type');
+        authTypeSelect.onchange = function() {
+            self._toggleCredentialFields(authTypeSelect.value);
+        };
+
+        // Save handler
+        var saveBtn = document.getElementById('cred-save-btn');
+        saveBtn.onclick = function() {
+            self._saveCredential(nodeId);
+        };
+
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    };
+
+    FlowBuilder.prototype._toggleCredentialFields = function(authType) {
+        var sections = ['cred-basic-fields', 'cred-bearer-fields', 'cred-apikey-fields', 'cred-custom-fields'];
+        sections.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        var showId = {
+            basic: 'cred-basic-fields',
+            bearer: 'cred-bearer-fields',
+            api_key: 'cred-apikey-fields',
+            custom_header: 'cred-custom-fields'
+        }[authType];
+        if (showId) {
+            var el = document.getElementById(showId);
+            if (el) el.style.display = '';
+        }
+    };
+
+    FlowBuilder.prototype._saveCredential = function(nodeId) {
+        var self = this;
+        var name = document.getElementById('cred-name').value.trim();
+        var authType = document.getElementById('cred-auth-type').value;
+
+        if (!name) {
+            alert('Please enter a credential name.');
+            return;
+        }
+
+        var credentials = {};
+        if (authType === 'basic') {
+            credentials = {
+                username: document.getElementById('cred-basic-user').value,
+                password: document.getElementById('cred-basic-pass').value
+            };
+        } else if (authType === 'bearer') {
+            credentials = {
+                token: document.getElementById('cred-bearer-token').value
+            };
+        } else if (authType === 'api_key') {
+            credentials = {
+                header_name: document.getElementById('cred-apikey-header').value || 'X-API-Key',
+                key: document.getElementById('cred-apikey-value').value
+            };
+        } else if (authType === 'custom_header') {
+            credentials = {
+                headers_json: document.getElementById('cred-custom-json').value
+            };
+        }
+
+        // POST to server
+        fetch('/api-credentials', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': this.options.csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: name, auth_type: authType, credentials: credentials })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.credential) {
+                // Add to local data
+                if (!window.__flowBuilderData.apiCredentials) window.__flowBuilderData.apiCredentials = [];
+                window.__flowBuilderData.apiCredentials.push({
+                    id: data.credential.id,
+                    name: data.credential.name,
+                    auth_type: data.credential.auth_type
+                });
+
+                // Set on node
+                var node = self.nodes[nodeId];
+                if (node) {
+                    node.config.credential_id = data.credential.id;
+                    self._showProperties(nodeId);
+                }
+
+                // Close modal
+                var modalEl = document.getElementById('flowCredentialModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } else {
+                alert(data.message || 'Failed to save credential.');
+            }
+        })
+        .catch(function(err) {
+            alert('Error saving credential: ' + err.message);
+        });
     };
 
     // Export
