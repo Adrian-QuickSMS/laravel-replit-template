@@ -333,10 +333,16 @@
                                 <input class="form-check-input" type="checkbox" id="messageExpiry" onchange="toggleMessageExpiryModal()">
                                 <label class="form-check-label" for="messageExpiry">Message expiry</label>
                             </div>
-                            <div class="form-check form-switch">
+                            <div class="form-check form-switch" id="scheduleRulesToggleWrap">
                                 <input class="form-check-input" type="checkbox" id="scheduleRules" onchange="toggleScheduleRulesModal()">
                                 <label class="form-check-label" for="scheduleRules">Schedule & sending rules</label>
                             </div>
+                            @if(!empty($flow_context))
+                            <div class="form-check form-switch" id="socialHoursToggleWrap">
+                                <input class="form-check-input" type="checkbox" id="socialHoursToggle" onchange="toggleSocialHoursFromFlow()">
+                                <label class="form-check-label" for="socialHoursToggle">Social hours</label>
+                            </div>
+                            @endif
                         </div>
                     </div>
                     
@@ -1110,7 +1116,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-4">
+                <div class="mb-4" id="scheduleCampaignSection">
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="scheduleToggle" onchange="toggleScheduleFields()">
                         <label class="form-check-label fw-medium" for="scheduleToggle">Schedule this campaign</label>
@@ -1129,7 +1135,7 @@
                     </div>
                 </div>
                 
-                <div class="border-top pt-4 mb-4">
+                <div class="{{ !empty($flow_context) ? '' : 'border-top pt-4' }} mb-4">
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="unsociableToggle" onchange="toggleUnsociableFields()">
                         <label class="form-check-label fw-medium" for="unsociableToggle">Define unsociable hours</label>
@@ -6321,6 +6327,23 @@ function showTestSentConfirmation(phoneNumber) {
 var isFlowContext = true;
 var flowEmbedToken = '{{ csrf_token() }}';
 
+function flowShowValidationError(msg) {
+    var existing = document.getElementById('flowValidationAlert');
+    if (existing) existing.remove();
+    var alert = document.createElement('div');
+    alert.id = 'flowValidationAlert';
+    alert.className = 'alert alert-danger py-2 px-3 mb-3';
+    alert.style.cssText = 'font-size:0.85rem; position:sticky; top:0; z-index:100;';
+    alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + msg;
+    var applyBtn = document.getElementById('flowApplyBtn');
+    if (applyBtn && applyBtn.closest('.card-body')) {
+        applyBtn.closest('.card').insertAdjacentElement('beforebegin', alert);
+    } else {
+        document.querySelector('.container-fluid, .card').prepend(alert);
+    }
+    setTimeout(function() { var el = document.getElementById('flowValidationAlert'); if (el) el.remove(); }, 5000);
+}
+
 function flowApplyConfig() {
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelVal = channel ? channel.value : 'sms';
@@ -6344,13 +6367,56 @@ function flowApplyConfig() {
 
     var cleanSenderName = senderName.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
 
+    var isRcs = (channelVal === 'rcs_basic' || channelVal === 'basic_rcs' || channelVal === 'rcs_rich' || channelVal === 'rich_rcs');
+    var isRichRcs = (channelVal === 'rcs_rich' || channelVal === 'rich_rcs');
+
+    if (channelVal === 'sms' && !senderId) {
+        flowShowValidationError('Please select an SMS Sender ID before applying.');
+        if (senderSelect) senderSelect.focus();
+        return;
+    }
+
+    if (isRcs && !rcsAgentId) {
+        flowShowValidationError('Please select an RCS Agent before applying.');
+        if (rcsAgentSelect) rcsAgentSelect.focus();
+        return;
+    }
+
+    if (!isRichRcs && !smsContent.trim()) {
+        flowShowValidationError('Please enter message content before applying.');
+        var contentEl = document.getElementById('smsContent');
+        if (contentEl) contentEl.focus();
+        return;
+    }
+
+    var rcsPayload = null;
+    if (isRichRcs) {
+        if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+            rcsPayload = rcsPersistentPayload;
+        } else if (typeof buildRcsPayload === 'function') {
+            rcsPayload = buildRcsPayload();
+        }
+        if (!rcsPayload || !rcsPayload.cards || rcsPayload.cards.length === 0) {
+            flowShowValidationError('Please configure RCS content using the RCS Content Wizard before applying.');
+            return;
+        }
+    }
+
     var optoutEnabled = document.getElementById('enableOptoutManagement') ? document.getElementById('enableOptoutManagement').checked : false;
     var optoutConfig = null;
     if (optoutEnabled) {
         var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
         var urlEnabled = document.getElementById('enableUrlOptout') ? document.getElementById('enableUrlOptout').checked : false;
+        if (!replyEnabled && !urlEnabled) {
+            flowShowValidationError('Opt-out is enabled but no opt-out method is selected. Please choose reply-based or URL-based opt-out, or disable opt-out management.');
+            return;
+        }
         var keywordInput = document.getElementById('optOutKeywordInput');
         var keywordText = keywordInput ? keywordInput.value.trim() : '';
+        if (replyEnabled && !keywordText) {
+            flowShowValidationError('Reply opt-out is enabled but no keyword is set. Please enter an opt-out keyword (e.g. STOP).');
+            return;
+        }
         optoutConfig = {
             enabled: true,
             reply_optout: replyEnabled,
@@ -6361,15 +6427,6 @@ function flowApplyConfig() {
         };
         var replyListSelect = document.getElementById('replyOptOutListId');
         if (replyListSelect) optoutConfig.reply_opt_out_list_id = replyListSelect.value;
-    }
-
-    var rcsPayload = null;
-    if ((channelVal === 'rcs_rich' || channelVal === 'rich_rcs')) {
-        if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
-            rcsPayload = rcsPersistentPayload;
-        } else if (typeof buildRcsPayload === 'function') {
-            rcsPayload = buildRcsPayload();
-        }
     }
 
     var isTrackable = (typeof trackableLinkConfirmed !== 'undefined' && trackableLinkConfirmed) ? true : false;
@@ -6395,11 +6452,40 @@ function flowApplyConfig() {
         segments: segmentEl ? parseInt(segmentEl.textContent, 10) || 0 : 0
     };
 
+    var unsociableToggle = document.getElementById('unsociableToggle');
+    if (unsociableToggle && unsociableToggle.checked) {
+        config.social_hours = {
+            enabled: true,
+            from: document.getElementById('unsociableFrom') ? document.getElementById('unsociableFrom').value : '08:00',
+            to: document.getElementById('unsociableTo') ? document.getElementById('unsociableTo').value : '20:00'
+        };
+    }
+
     window.parent.postMessage({ type: 'flowConfigApplied', config: config, token: flowEmbedToken }, '*');
 }
 
 function flowCancelEmbed() {
     window.parent.postMessage({ type: 'flowConfigCancelled', token: flowEmbedToken }, '*');
+}
+
+function toggleSocialHoursFromFlow() {
+    var isChecked = document.getElementById('socialHoursToggle').checked;
+    if (isChecked) {
+        var unsociableToggle = document.getElementById('unsociableToggle');
+        if (unsociableToggle) unsociableToggle.checked = true;
+        var unsociableFields = document.getElementById('unsociableFields');
+        if (unsociableFields) unsociableFields.classList.remove('d-none');
+        var modalEl = document.getElementById('scheduleRulesModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    } else {
+        var unsociableToggle = document.getElementById('unsociableToggle');
+        if (unsociableToggle) unsociableToggle.checked = false;
+        var unsociableFields = document.getElementById('unsociableFields');
+        if (unsociableFields) unsociableFields.classList.add('d-none');
+        var scheduleSummary = document.getElementById('scheduleSummary');
+        if (scheduleSummary) scheduleSummary.classList.add('d-none');
+    }
 }
 
 function flowRestoreConfig(config) {
@@ -6486,6 +6572,16 @@ window.addEventListener('message', function(e) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    var scheduleWrap = document.getElementById('scheduleRulesToggleWrap');
+    if (scheduleWrap) scheduleWrap.classList.add('d-none');
+    var scheduleSummary = document.getElementById('scheduleSummary');
+    if (scheduleSummary) scheduleSummary.classList.add('d-none');
+    var scheduleCampaignSection = document.getElementById('scheduleCampaignSection');
+    if (scheduleCampaignSection) scheduleCampaignSection.classList.add('d-none');
+
+    var scheduleRulesLabel = document.querySelector('#scheduleRulesModal .modal-title');
+    if (scheduleRulesLabel) scheduleRulesLabel.innerHTML = '<i class="fas fa-clock me-2"></i>Social Hours';
+
     try {
         window.parent.postMessage({ type: 'flowEmbedReady', token: flowEmbedToken }, '*');
     } catch(err) { }
