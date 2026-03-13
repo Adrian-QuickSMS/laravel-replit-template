@@ -67,18 +67,27 @@ class ApprovalQueueController extends Controller
     public function getCountryRequests(Request $request)
     {
         $query = DB::table('country_requests')
-            ->whereNull('deleted_at');
+            ->leftJoin('accounts', 'country_requests.account_id', '=', 'accounts.id')
+            ->leftJoin('country_controls', 'country_requests.country_code', '=', 'country_controls.country_iso')
+            ->select(
+                'country_requests.*',
+                'accounts.company_name as account_name',
+                'accounts.status as account_status',
+                'country_controls.country_prefix',
+                'country_controls.risk_level'
+            )
+            ->whereNull('country_requests.deleted_at');
 
         if ($status = $request->input('status')) {
-            $query->where('workflow_status', $status);
+            $query->where('country_requests.workflow_status', $status);
         }
 
         if ($accountId = $request->input('account_id')) {
-            $query->where('account_id', $accountId);
+            $query->where('country_requests.account_id', $accountId);
         }
 
-        $requests = $query->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 20));
+        $requests = $query->orderBy('country_requests.created_at', 'desc')
+            ->paginate($request->input('per_page', 50));
 
         return response()->json([
             'success' => true,

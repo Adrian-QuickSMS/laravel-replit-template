@@ -3332,18 +3332,53 @@ var selectedCountry = null;
 var selectedRequest = null;
 
 function initCountryControls() {
-    countryRequests = generateMockRequests();
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
     
-    fetch('/admin/api/country-controls', {
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
-            countries = data.countries;
+    Promise.all([
+        fetch('/admin/api/country-controls', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) { return r.json(); }),
+        fetch('/admin/api/governance/country-requests', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) { return r.json(); })
+    ])
+    .then(function(results) {
+        var countryData = results[0];
+        var requestData = results[1];
+        
+        if (countryData.success) {
+            countries = countryData.countries;
         } else {
             countries = [];
         }
+        
+        if (requestData.success && requestData.data && requestData.data.data) {
+            countryRequests = requestData.data.data.map(function(r) {
+                var statusMap = { 'SUBMITTED': 'pending', 'IN_REVIEW': 'pending', 'APPROVED': 'approved', 'REJECTED': 'rejected', 'RETURNED': 'rejected' };
+                var prefix = r.country_prefix ? '+' + r.country_prefix : '';
+                var accountStatus = 'live';
+                if (r.account_status) {
+                    accountStatus = r.account_status.indexOf('test') !== -1 ? 'test' : (r.account_status.indexOf('active') !== -1 ? 'live' : r.account_status);
+                }
+                return {
+                    id: r.request_uuid || r.id,
+                    status: statusMap[r.workflow_status] || 'pending',
+                    customer: {
+                        name: r.account_name || 'Unknown Account',
+                        id: r.account_id,
+                        accountNumber: r.account_id,
+                        accountStatus: accountStatus,
+                        subAccount: null
+                    },
+                    country: {
+                        name: r.country_name,
+                        code: r.country_code,
+                        dialCode: prefix
+                    },
+                    submittedAt: r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+                    risk: r.risk_level || 'medium'
+                };
+            });
+        } else {
+            countryRequests = [];
+        }
+        
         if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
             window.SharedPolicyStore.initialize();
         }
@@ -3352,10 +3387,12 @@ function initCountryControls() {
         bindEvents();
         updateReviewStats();
         console.log('[CountryControls] Initialized with ' + countries.length + ' countries from database');
+        console.log('[CountryControls] Loaded ' + countryRequests.length + ' country requests');
     })
     .catch(function(err) {
-        console.error('[CountryControls] Failed to load countries:', err);
+        console.error('[CountryControls] Failed to load data:', err);
         countries = [];
+        countryRequests = [];
         if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
             window.SharedPolicyStore.initialize();
         }

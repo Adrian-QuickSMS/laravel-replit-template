@@ -4313,6 +4313,47 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function submitCountryRequest(Request $request)
+    {
+        $request->validate([
+            'country_code' => 'required|string|size:2',
+            'country_name' => 'required|string|max:100',
+        ]);
+
+        $user = session('user');
+        $accountId = session('tenant_id');
+
+        if (!$user || !$accountId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $existing = \App\Models\CountryRequest::where('account_id', $accountId)
+            ->where('country_code', $request->input('country_code'))
+            ->whereIn('workflow_status', ['SUBMITTED', 'IN_REVIEW'])
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($existing) {
+            return response()->json(['success' => false, 'message' => 'A request for this country is already pending'], 409);
+        }
+
+        $countryRequest = \App\Models\CountryRequest::create([
+            'request_uuid' => \Illuminate\Support\Str::uuid(),
+            'account_id' => $accountId,
+            'country_code' => strtoupper($request->input('country_code')),
+            'country_name' => $request->input('country_name'),
+            'workflow_status' => 'SUBMITTED',
+            'submitted_by' => $user['id'] ?? $accountId,
+            'version' => 1,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Country access request submitted successfully',
+            'request_id' => $countryRequest->request_uuid,
+        ]);
+    }
+
     public function support()
     {
         return view('quicksms.placeholder', [

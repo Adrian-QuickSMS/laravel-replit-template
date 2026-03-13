@@ -1635,24 +1635,61 @@ document.addEventListener('DOMContentLoaded', function() {
             
             var selectedOption = select.options[select.selectedIndex];
             var name = selectedOption.textContent.replace(/\s*\(\+\d+\)\s*$/, '').trim();
-            SecuritySettingsService.settings.countries.push({ code: code, name: name, status: 'pending' });
             
-            var countryList = document.getElementById('countryList');
-            if (countryList) {
-                var addBtn = countryList.querySelector('.add-country-btn');
-                var newPill = document.createElement('span');
-                newPill.className = 'country-pill pending';
-                newPill.innerHTML = '<span class="status-dot pending"></span>' + name +
-                    '<button type="button" class="remove-btn" title="Remove"><i class="fas fa-times" style="font-size: 10px;"></i></button>';
-                countryList.insertBefore(newPill, addBtn);
-            }
+            confirmAddCountryBtn.disabled = true;
+            confirmAddCountryBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Submitting...';
             
-            emitAuditEvent('COUNTRY_REQUESTED', { country: name }, 'security');
-            showSaveIndicator();
-            
-            select.value = '';
-            var modal = bootstrap.Modal.getInstance(document.getElementById('addCountryModal'));
-            if (modal) modal.hide();
+            fetch('/account/security/country-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ country_code: code, country_name: name })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    SecuritySettingsService.settings.countries.push({ code: code, name: name, status: 'pending' });
+                    
+                    var countryList = document.getElementById('countryList');
+                    if (countryList) {
+                        var addBtn = countryList.querySelector('.add-country-btn');
+                        var newPill = document.createElement('span');
+                        newPill.className = 'country-pill pending';
+                        newPill.innerHTML = '<span class="status-dot pending"></span>' + name +
+                            '<button type="button" class="remove-btn" title="Remove"><i class="fas fa-times" style="font-size: 10px;"></i></button>';
+                        countryList.insertBefore(newPill, addBtn);
+                    }
+                    
+                    emitAuditEvent('COUNTRY_REQUESTED', { country: name }, 'security');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Country access request submitted for ' + name);
+                    }
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.warning(data.message || 'Could not submit request');
+                    } else {
+                        alert(data.message || 'Could not submit request');
+                    }
+                }
+            })
+            .catch(function(err) {
+                console.error('Country request error:', err);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Failed to submit country request');
+                } else {
+                    alert('Failed to submit country request');
+                }
+            })
+            .finally(function() {
+                confirmAddCountryBtn.disabled = false;
+                confirmAddCountryBtn.innerHTML = '<i class="fas fa-plus me-1"></i>Request Country';
+                select.value = '';
+                var modal = bootstrap.Modal.getInstance(document.getElementById('addCountryModal'));
+                if (modal) modal.hide();
+            });
         });
     }
     

@@ -110,6 +110,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/account/sub-accounts/{subId}/users/{userId}', 'userDetail')->name('account.users.detail');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
     Route::get('/account/security', 'securitySettings')->name('account.security');
+    Route::post('/account/security/country-request', 'submitCountryRequest')->name('account.security.country-request');
     
     Route::get('/support', 'support')->name('support');
     Route::get('/support/dashboard', 'supportDashboard')->name('support.dashboard');
