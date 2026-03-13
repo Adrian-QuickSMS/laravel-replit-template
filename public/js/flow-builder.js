@@ -469,6 +469,11 @@
             '</div>';
         }
 
+        var descText = node.config && node.config.description ? node.config.description : '';
+        var descHtml = descText
+            ? '<div class="node-description">' + escapeHtml(descText) + '</div>'
+            : '<div class="node-description node-description-empty">Add a description...</div>';
+
         el.innerHTML =
             '<div class="flow-node-header">' +
                 '<div class="node-icon ' + typeDef.category + '"><i class="fas ' + typeDef.icon + '"></i></div>' +
@@ -478,7 +483,7 @@
             '</div>' +
             '<div class="flow-node-body">' +
                 '<div class="node-label-editable" title="Double-click to rename">' + escapeHtml(node.label) + '</div>' +
-                (bodyHtml ? '<div class="node-body-summary">' + bodyHtml + '</div>' : '') +
+                descHtml +
             '</div>' +
             actionBtnsHtml;
 
@@ -519,9 +524,18 @@
         if (labelEl) {
             labelEl.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
-                self._startInlineEdit(node.id, labelEl);
+                self._startInlineEdit(node.id, labelEl, 'label');
             });
             labelEl.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+        }
+
+        var descEl = el.querySelector('.node-description');
+        if (descEl) {
+            descEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                self._startInlineEdit(node.id, descEl, 'description');
+            });
+            descEl.addEventListener('mousedown', function(e) { e.stopPropagation(); });
         }
 
         this.nodesLayer.appendChild(el);
@@ -680,24 +694,13 @@
             return;
         }
 
-        var configPreview = this._getConfigPreview(node);
         var labelEditable = el.querySelector('.node-label-editable');
         if (labelEditable) labelEditable.textContent = node.label;
-        var summaryEl = el.querySelector('.node-body-summary');
-        if (configPreview) {
-            if (summaryEl) {
-                summaryEl.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
-            } else {
-                var bodyEl = el.querySelector('.flow-node-body');
-                if (bodyEl) {
-                    var newSummary = document.createElement('div');
-                    newSummary.className = 'node-body-summary';
-                    newSummary.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
-                    bodyEl.appendChild(newSummary);
-                }
-            }
-        } else if (summaryEl) {
-            summaryEl.innerHTML = '<span style="color:#ccc; font-style:italic;">Click to configure</span>';
+        var descEl = el.querySelector('.node-description');
+        if (descEl) {
+            var descText = node.config && node.config.description ? node.config.description : '';
+            descEl.textContent = descText || 'Add a description...';
+            descEl.classList.toggle('node-description-empty', !descText);
         }
     };
 
@@ -818,40 +821,57 @@
         this._showProperties(nodeId);
     };
 
-    FlowBuilder.prototype._startInlineEdit = function(nodeId, labelEl) {
+    FlowBuilder.prototype._startInlineEdit = function(nodeId, targetEl, field) {
         var self = this;
         var node = this.nodes[nodeId];
         if (!node) return;
+        if (!node.config) node.config = {};
 
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.value = node.label;
-        input.className = 'node-label-input';
-        input.maxLength = 60;
+        var isDesc = (field === 'description');
+        var currentVal = isDesc ? (node.config.description || '') : node.label;
 
-        labelEl.style.display = 'none';
-        labelEl.parentNode.insertBefore(input, labelEl);
+        var input = document.createElement(isDesc ? 'textarea' : 'input');
+        if (!isDesc) input.type = 'text';
+        input.value = currentVal;
+        input.className = isDesc ? 'node-description-input' : 'node-label-input';
+        input.maxLength = isDesc ? 200 : 60;
+        if (isDesc) { input.rows = 2; input.placeholder = 'Describe this step...'; }
+
+        targetEl.style.display = 'none';
+        targetEl.parentNode.insertBefore(input, targetEl);
         input.focus();
-        input.select();
+        if (!isDesc) input.select();
 
         var commit = function() {
             var val = input.value.trim();
-            if (val && val !== node.label) {
-                self._saveUndo();
-                node.label = val;
-                self.isDirty = true;
-                var propInput = document.getElementById('prop-label');
-                if (propInput) propInput.value = val;
+            if (isDesc) {
+                if (val !== (node.config.description || '')) {
+                    self._saveUndo();
+                    node.config.description = val;
+                    self.isDirty = true;
+                    var propDesc = document.getElementById('prop-description');
+                    if (propDesc) propDesc.value = val;
+                }
+                targetEl.textContent = val || 'Add a description...';
+                targetEl.classList.toggle('node-description-empty', !val);
+            } else {
+                if (val && val !== node.label) {
+                    self._saveUndo();
+                    node.label = val;
+                    self.isDirty = true;
+                    var propInput = document.getElementById('prop-label');
+                    if (propInput) propInput.value = val;
+                }
+                targetEl.textContent = node.label;
             }
-            labelEl.textContent = node.label;
-            labelEl.style.display = '';
+            targetEl.style.display = '';
             if (input.parentNode) input.parentNode.removeChild(input);
         };
 
         input.addEventListener('blur', commit);
         input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-            if (e.key === 'Escape') { input.value = node.label; input.blur(); }
+            if (e.key === 'Enter' && !isDesc) { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') { input.value = currentVal; input.blur(); }
         });
         input.addEventListener('mousedown', function(e) { e.stopPropagation(); });
     };
@@ -878,13 +898,16 @@
         panel.style.display = 'flex';
 
         var html = '';
-        // Node label field
         html += '<div class="mb-3">';
         html += '<label class="form-label">Node Label</label>';
         html += '<input type="text" class="form-control" id="prop-label" value="' + escapeHtml(node.label) + '">';
         html += '</div>';
 
-        // Custom properties for send_message
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Description</label>';
+        html += '<textarea class="form-control" id="prop-description" rows="2" maxlength="200" placeholder="Describe what this step does...">' + escapeHtml(node.config.description || '') + '</textarea>';
+        html += '</div>';
+
         if (typeDef.customProperties && node.type === 'send_message') {
             html += this._renderSendMessageProperties(node);
             body.innerHTML = html;
@@ -928,6 +951,15 @@
         if (labelInput) {
             labelInput.addEventListener('change', function() {
                 node.label = this.value;
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        var descInput = document.getElementById('prop-description');
+        if (descInput) {
+            descInput.addEventListener('change', function() {
+                node.config.description = this.value.trim();
                 self._refreshNode(nodeId);
                 self.isDirty = true;
             });
@@ -1784,11 +1816,19 @@
     FlowBuilder.prototype._bindSendMessageEvents = function(node, nodeId) {
         var self = this;
 
-        // Label input
         var labelInput = document.getElementById('prop-label');
         if (labelInput) {
             labelInput.addEventListener('change', function() {
                 node.label = this.value;
+                self._refreshNode(nodeId);
+                self.isDirty = true;
+            });
+        }
+
+        var descInput = document.getElementById('prop-description');
+        if (descInput) {
+            descInput.addEventListener('change', function() {
+                node.config.description = this.value.trim();
                 self._refreshNode(nodeId);
                 self.isDirty = true;
             });
