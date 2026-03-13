@@ -586,12 +586,21 @@ class CampaignService
         $blockedSet = array_flip($summary['blocked']);
         $restrictedSet = array_flip($summary['restricted']);
 
+        $problemCountries = $destinationCountries->filter(
+            fn ($iso) => isset($restrictedSet[$iso]) || isset($blockedSet[$iso])
+        );
+
+        $countryNames = $problemCountries->isNotEmpty()
+            ? DB::table('country_controls')
+                ->whereIn('country_iso', $problemCountries->values())
+                ->pluck('country_name', 'country_iso')
+            : collect();
+
         foreach ($destinationCountries as $countryIso) {
+            $name = $countryNames[$countryIso] ?? $countryIso;
             if (isset($restrictedSet[$countryIso])) {
-                $name = DB::table('country_controls')->where('country_iso', $countryIso)->value('country_name') ?? $countryIso;
                 $errors[] = "Sending to {$name} ({$countryIso}) requires approval. Submit a country access request.";
             } elseif (isset($blockedSet[$countryIso])) {
-                $name = DB::table('country_controls')->where('country_iso', $countryIso)->value('country_name') ?? $countryIso;
                 $errors[] = "Sending to {$name} ({$countryIso}) is not permitted for your account.";
             }
         }
