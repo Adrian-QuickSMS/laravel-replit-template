@@ -345,6 +345,19 @@
 <script src="{{ asset('js/flow-builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    requestAnimationFrame(function() {
+        var cb = document.querySelector('.content-body.flow-builder-page');
+        if (cb) {
+            var top = cb.getBoundingClientRect().top + window.scrollY;
+            cb.style.height = 'calc(100vh - ' + top + 'px)';
+            cb.style.overflow = 'hidden';
+            window.addEventListener('resize', function() {
+                var t = cb.getBoundingClientRect().top + window.scrollY;
+                cb.style.height = 'calc(100vh - ' + t + 'px)';
+            });
+        }
+    });
+
     var flowId = document.getElementById('flow-id').value;
     var flowDataRaw = document.getElementById('flow-data').value;
     var flowData = flowDataRaw ? JSON.parse(flowDataRaw) : null;

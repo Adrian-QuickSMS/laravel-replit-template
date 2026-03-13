@@ -5,7 +5,6 @@
 /* Override layout for full-canvas experience */
 .content-body.flow-builder-page {
     min-height: 0 !important;
-    height: calc(100vh - 5.3rem) !important;
     padding: 0 !important;
     overflow: hidden !important;
 }
@@ -24,7 +23,6 @@
 .flow-builder-container {
     display: flex;
     flex-direction: column;
-    height: 100% !important;
     overflow: hidden;
     background: #f8f9fa;
 }
