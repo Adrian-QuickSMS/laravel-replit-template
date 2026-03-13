@@ -368,7 +368,7 @@
                         ->pluck('mcc');
                 @endphp
                 @foreach($mccCodes as $mcc)
-                <option value="{{ $mcc }}" {{ request('mcc') == $mcc ? 'selected' : '' }}>{{ $mcc }}</option>
+                <option value="{{ $mcc }}" {{ request('prefix') == $mcc ? 'selected' : '' }}>{{ $mcc }}</option>
                 @endforeach
             </select>
         </div>

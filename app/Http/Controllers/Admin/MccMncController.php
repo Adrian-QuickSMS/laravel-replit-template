@@ -21,12 +21,16 @@ class MccMncController extends Controller
             });
         }
 
-        if ($request->country_iso) {
-            $query->where('country_iso', $request->country_iso);
+        if ($request->country) {
+            $query->where('country_iso', $request->country);
         }
 
-        if ($request->has('active')) {
-            $query->where('active', $request->active);
+        if ($request->prefix) {
+            $query->where('mcc', $request->prefix);
+        }
+
+        if ($request->status) {
+            $query->where('active', $request->status === 'active');
         }
 
         $networks = $query->orderBy('country_name')
