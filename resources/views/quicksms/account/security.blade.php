@@ -1371,6 +1371,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ipAllowlistToggle.checked = false;
             }
         });
+    }
     
     // Add Current IP Button
     var addCurrentIPBtn = document.getElementById('addCurrentIPBtn');
