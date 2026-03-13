@@ -1561,19 +1561,19 @@ button.action-dropdown-item:focus {
         <div class="tab-pane fade show active" id="reviewPane" role="tabpanel">
             <div class="queue-stats-row">
                 <div class="queue-stat-card awaiting active" data-filter="pending" onclick="filterByStatus('pending')">
-                    <div class="stat-count" id="reviewPendingCount">3</div>
+                    <div class="stat-count" id="reviewPendingCount">0</div>
                     <div class="stat-label">Awaiting Review</div>
                 </div>
                 <div class="queue-stat-card approved" data-filter="approved" onclick="filterByStatus('approved')">
-                    <div class="stat-count" id="reviewApprovedCount">5</div>
+                    <div class="stat-count" id="reviewApprovedCount">0</div>
                     <div class="stat-label">Approved</div>
                 </div>
                 <div class="queue-stat-card rejected" data-filter="rejected" onclick="filterByStatus('rejected')">
-                    <div class="stat-count" id="reviewRejectedCount">1</div>
+                    <div class="stat-count" id="reviewRejectedCount">0</div>
                     <div class="stat-label">Rejected</div>
                 </div>
                 <div class="queue-stat-card total" data-filter="" onclick="filterByStatus('')">
-                    <div class="stat-count" id="reviewTotalCount">9</div>
+                    <div class="stat-count" id="reviewTotalCount">0</div>
                     <div class="stat-label">Total</div>
                 </div>
             </div>
