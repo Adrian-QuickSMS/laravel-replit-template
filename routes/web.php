@@ -802,6 +802,8 @@ Route::prefix('admin')->group(function () {
                 Route::get('/senderid-requests', 'getSenderIdRequests')->name('admin.api.governance.senderid-requests');
                 Route::get('/rcs-agent-requests', 'getRcsAgentRequests')->name('admin.api.governance.rcs-agent-requests');
                 Route::get('/country-requests', 'getCountryRequests')->name('admin.api.governance.country-requests');
+                Route::post('/country-requests/{requestUuid}/approve', 'approveCountryRequest')->name('admin.api.governance.approve-country-request');
+                Route::post('/country-requests/{requestUuid}/reject', 'rejectCountryRequest')->name('admin.api.governance.reject-country-request');
                 Route::post('/requests/{type}/{id}/status', 'updateRequestStatus')->name('admin.api.governance.update-request-status');
                 Route::post('/entity/lock', 'applyEntityLock')->name('admin.api.governance.apply-lock');
                 Route::post('/entity/unlock', 'removeEntityLock')->name('admin.api.governance.remove-lock');

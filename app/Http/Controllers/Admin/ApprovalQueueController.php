@@ -105,6 +105,98 @@ class ApprovalQueueController extends Controller
         ]);
     }
 
+    public function approveCountryRequest(Request $request, string $requestUuid)
+    {
+        $countryRequest = DB::table('country_requests')
+            ->where('request_uuid', $requestUuid)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$countryRequest) {
+            return response()->json(['success' => false, 'error' => 'Request not found.'], 404);
+        }
+
+        $adminUser = session('admin_user');
+        $adminId = $adminUser['id'] ?? null;
+
+        DB::table('country_requests')
+            ->where('id', $countryRequest->id)
+            ->update([
+                'workflow_status' => 'APPROVED',
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+                'review_notes' => $request->input('review_notes'),
+                'updated_at' => now(),
+            ]);
+
+        $countryControl = DB::table('country_controls')
+            ->where('country_iso', $countryRequest->country_code)
+            ->first();
+
+        if ($countryControl) {
+            $existing = DB::table('country_control_overrides')
+                ->where('country_control_id', $countryControl->id)
+                ->where('account_id', $countryRequest->account_id)
+                ->first();
+
+            if ($existing) {
+                DB::table('country_control_overrides')
+                    ->where('id', $existing->id)
+                    ->update([
+                        'override_status' => 'allowed',
+                        'reason' => 'Approved via country access request ' . $requestUuid,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('country_control_overrides')->insert([
+                    'country_control_id' => $countryControl->id,
+                    'account_id' => $countryRequest->account_id,
+                    'override_status' => 'allowed',
+                    'reason' => 'Approved via country access request ' . $requestUuid,
+                    'created_by' => $adminUser['email'] ?? 'admin',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Country request approved and override created.',
+        ]);
+    }
+
+    public function rejectCountryRequest(Request $request, string $requestUuid)
+    {
+        $countryRequest = DB::table('country_requests')
+            ->where('request_uuid', $requestUuid)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$countryRequest) {
+            return response()->json(['success' => false, 'error' => 'Request not found.'], 404);
+        }
+
+        $adminUser = session('admin_user');
+        $adminId = $adminUser['id'] ?? null;
+
+        DB::table('country_requests')
+            ->where('id', $countryRequest->id)
+            ->update([
+                'workflow_status' => 'REJECTED',
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+                'rejection_reason' => $request->input('rejection_reason', ''),
+                'review_notes' => $request->input('review_notes'),
+                'updated_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Country request rejected.',
+        ]);
+    }
+
     public function updateRequestStatus(Request $request, string $type, int $id)
     {
         $validated = $request->validate([

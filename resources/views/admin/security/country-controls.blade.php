@@ -3698,46 +3698,58 @@ window.approveRequest = function approveRequest(requestId) {
 
 window.confirmApproval = function confirmApproval() {
     console.log('[CountryControls] confirmApproval called');
-    // Use window scope to ensure cross-context accessibility
     var request = window.pendingApprovalRequest || pendingApprovalRequest;
-    console.log('[CountryControls] Request to approve:', request);
     if (!request) {
         console.error('[CountryControls] confirmApproval: No pending request found');
         return;
     }
 
-    var now = new Date();
-    var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    
+    fetch('/admin/api/governance/country-requests/' + request.id + '/approve', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ review_notes: 'Approved by admin' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            var now = new Date();
+            var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
+            request.status = 'approved';
+            request.reviewedBy = currentAdmin.email;
+            request.reviewedAt = formattedDate;
 
-    console.log('[CountryControls] Updating request status to approved for:', request.id);
-    request.status = 'approved';
-    request.reviewedBy = currentAdmin.email;
-    request.reviewedAt = formattedDate;
-    console.log('[CountryControls] Request after update:', JSON.stringify(request));
+            logAuditEvent('COUNTRY_REQUEST_APPROVED', {
+                requestId: request.id,
+                customerId: request.customer.id,
+                customerName: request.customer.name,
+                countryCode: request.country.code,
+                countryName: request.country.name,
+                adminEmail: currentAdmin.email,
+                overrideType: 'account-level',
+                globalPolicyChanged: false
+            });
 
-    addAccountOverride(request.customer.id, request.country.code, 'allow');
-
-    logAuditEvent('COUNTRY_REQUEST_APPROVED', {
-        requestId: request.id,
-        customerId: request.customer.id,
-        customerName: request.customer.name,
-        countryCode: request.country.code,
-        countryName: request.country.name,
-        adminEmail: currentAdmin.email,
-        overrideType: 'account-level',
-        globalPolicyChanged: false
+            updateReviewStats();
+            renderRequestsList();
+            showUpdatedStatus(request.id, 'approved');
+            showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
+        } else {
+            showAdminToast('Approval failed', data.error || 'Could not approve request', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Approval API error:', err);
+        showAdminToast('Approval failed', 'Network error', 'error');
     });
 
-    sendCustomerNotification(request.customer.id, 'country_request_approved', {
-        countryName: request.country.name,
-        countryCode: request.country.code
-    });
-
-    // Hide modal
     var modalEl = document.getElementById('approvalConfirmModal');
-    console.log('[CountryControls] Modal element:', modalEl);
     var modalInstance = bootstrap.Modal.getInstance(modalEl);
-    console.log('[CountryControls] Modal instance:', modalInstance);
     if (modalInstance) {
         modalInstance.hide();
     } else {
@@ -3746,10 +3758,6 @@ window.confirmApproval = function confirmApproval() {
     }
     pendingApprovalRequest = null;
     window.pendingApprovalRequest = null;
-
-    updateReviewStats();
-    showUpdatedStatus(request.id, 'approved');
-    showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
 }
 
 window.rejectRequest = function rejectRequest(requestId) {
@@ -3773,9 +3781,7 @@ window.rejectRequest = function rejectRequest(requestId) {
 
 window.confirmRejection = function confirmRejection() {
     console.log('[CountryControls] confirmRejection called');
-    // Use window scope to ensure cross-context accessibility
     var request = window.pendingRejectionRequest || pendingRejectionRequest;
-    console.log('[CountryControls] Request to reject:', request);
     if (!request) {
         console.error('[CountryControls] confirmRejection: No pending request found');
         return;
@@ -3789,39 +3795,54 @@ window.confirmRejection = function confirmRejection() {
         return;
     }
 
-    var now = new Date();
-    var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
+    var rejectionReason = category + (additionalText ? ': ' + additionalText : '');
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    
+    fetch('/admin/api/governance/country-requests/' + request.id + '/reject', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ rejection_reason: rejectionReason })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            var now = new Date();
+            var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
+            request.status = 'rejected';
+            request.reviewedBy = currentAdmin.email;
+            request.reviewedAt = formattedDate;
+            request.rejectionReason = rejectionReason;
 
-    console.log('[CountryControls] Updating request status to rejected for:', request.id);
-    request.status = 'rejected';
-    request.reviewedBy = currentAdmin.email;
-    request.reviewedAt = formattedDate;
-    request.rejectionReason = category + (additionalText ? ': ' + additionalText : '');
-    request.rejectionCategory = category;
-    console.log('[CountryControls] Request after update:', JSON.stringify(request));
+            logAuditEvent('COUNTRY_REQUEST_REJECTED', {
+                requestId: request.id,
+                customerId: request.customer.id,
+                customerName: request.customer.name,
+                countryCode: request.country.code,
+                countryName: request.country.name,
+                adminEmail: currentAdmin.email,
+                rejectionCategory: category,
+                rejectionReason: rejectionReason
+            });
 
-    logAuditEvent('COUNTRY_REQUEST_REJECTED', {
-        requestId: request.id,
-        customerId: request.customer.id,
-        customerName: request.customer.name,
-        countryCode: request.country.code,
-        countryName: request.country.name,
-        adminEmail: currentAdmin.email,
-        rejectionCategory: category,
-        rejectionReason: request.rejectionReason
+            updateReviewStats();
+            renderRequestsList();
+            showUpdatedStatus(request.id, 'rejected');
+            showAdminToast('Request rejected', 'The customer has been notified of the decision.', 'info');
+        } else {
+            showAdminToast('Rejection failed', data.error || 'Could not reject request', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Rejection API error:', err);
+        showAdminToast('Rejection failed', 'Network error', 'error');
     });
 
-    sendCustomerNotification(request.customer.id, 'country_request_rejected', {
-        countryName: request.country.name,
-        countryCode: request.country.code,
-        reason: request.rejectionReason
-    });
-
-    // Hide modal
     var modalEl = document.getElementById('rejectionReasonModal');
-    console.log('[CountryControls] Modal element:', modalEl);
     var modalInstance = bootstrap.Modal.getInstance(modalEl);
-    console.log('[CountryControls] Modal instance:', modalInstance);
     if (modalInstance) {
         modalInstance.hide();
     } else {
@@ -3830,10 +3851,6 @@ window.confirmRejection = function confirmRejection() {
     }
     pendingRejectionRequest = null;
     window.pendingRejectionRequest = null;
-
-    updateReviewStats();
-    showUpdatedStatus(request.id, 'rejected');
-    showAdminToast('Request rejected', 'The customer has been notified of the decision.', 'info');
 }
 
 function validateRejectionForm() {
@@ -3842,12 +3859,7 @@ function validateRejectionForm() {
 }
 
 function addAccountOverride(customerId, countryCode, action) {
-    console.log('[CountryControls] Adding account override:', {
-        customerId: customerId,
-        countryCode: countryCode,
-        action: action,
-        timestamp: new Date().toISOString()
-    });
+    console.log('[CountryControls] Account override will be created by the approval API');
 }
 
 function sendCustomerNotification(customerId, notificationType, data) {
