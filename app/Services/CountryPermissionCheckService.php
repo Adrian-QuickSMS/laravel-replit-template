@@ -15,6 +15,12 @@ class CountryPermissionCheckService
 {
     private CountryPermissionCacheService $cache;
 
+    /** @var array<string, string>|null Prefix→ISO map, loaded once per request */
+    private static ?array $prefixMap = null;
+
+    /** @var array<string, string>|null ISO→name map, loaded once per request */
+    private static ?array $countryNameMap = null;
+
     public function __construct(CountryPermissionCacheService $cache)
     {
         $this->cache = $cache;
@@ -149,27 +155,24 @@ class CountryPermissionCheckService
     }
 
     /**
-     * Resolve country ISO from E.164 phone number using mcc_mnc_master prefix lookup.
+     * Resolve country ISO from E.164 phone number using in-memory prefix map.
+     * Loads the prefix→ISO map from DB once, then all lookups are in-memory.
      */
     private function resolveCountryFromNumber(string $number): ?string
     {
-        // Strip leading + if present
         $digits = ltrim($number, '+');
 
         if (empty($digits)) {
             return null;
         }
 
-        // Try progressively shorter prefixes (max 4 digits for country codes)
+        $map = $this->getPrefixMap();
+
+        // Try progressively shorter prefixes (longest match first)
         for ($len = min(4, strlen($digits)); $len >= 1; $len--) {
             $prefix = substr($digits, 0, $len);
-
-            $match = DB::table('country_controls')
-                ->where('country_prefix', $prefix)
-                ->value('country_iso');
-
-            if ($match) {
-                return $match;
+            if (isset($map[$prefix])) {
+                return $map[$prefix];
             }
         }
 
@@ -178,8 +181,34 @@ class CountryPermissionCheckService
 
     private function getCountryName(string $countryIso): string
     {
-        return DB::table('country_controls')
-            ->where('country_iso', $countryIso)
-            ->value('country_name') ?? $countryIso;
+        $names = $this->getCountryNameMap();
+        return $names[$countryIso] ?? $countryIso;
+    }
+
+    /**
+     * Load prefix→ISO map from DB (once per request via static cache).
+     */
+    private function getPrefixMap(): array
+    {
+        if (self::$prefixMap === null) {
+            self::$prefixMap = DB::table('country_controls')
+                ->whereNotNull('country_prefix')
+                ->pluck('country_iso', 'country_prefix')
+                ->toArray();
+        }
+        return self::$prefixMap;
+    }
+
+    /**
+     * Load ISO→name map from DB (once per request via static cache).
+     */
+    private function getCountryNameMap(): array
+    {
+        if (self::$countryNameMap === null) {
+            self::$countryNameMap = DB::table('country_controls')
+                ->pluck('country_name', 'country_iso')
+                ->toArray();
+        }
+        return self::$countryNameMap;
     }
 }

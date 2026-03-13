@@ -59,19 +59,27 @@ class CountryPermissionCacheService
             return $this->l1[$l1Key];
         }
 
-        // L2: Redis
+        // L2: Redis (with fallback to L3 if Redis is unavailable)
         $l2Key = self::L2_PREFIX . $l1Key;
-        $cached = Cache::store('redis')->get($l2Key);
-        if ($cached !== null) {
-            $this->l1[$l1Key] = $cached;
-            return $cached;
+        try {
+            $cached = Cache::store('redis')->get($l2Key);
+            if ($cached !== null) {
+                $this->l1[$l1Key] = $cached;
+                return $cached;
+            }
+        } catch (\Exception $e) {
+            Log::warning('[CountryPermissionCache] Redis read failed, falling through to DB: ' . $e->getMessage());
         }
 
         // L3: PostgreSQL
         $permissions = $this->resolveFromDatabase($accountId, $subAccountId);
 
-        // Populate L2 + L1
-        Cache::store('redis')->put($l2Key, $permissions, self::L2_TTL_SECONDS);
+        // Populate L2 (best-effort) + L1
+        try {
+            Cache::store('redis')->put($l2Key, $permissions, self::L2_TTL_SECONDS);
+        } catch (\Exception $e) {
+            Log::warning('[CountryPermissionCache] Redis write failed: ' . $e->getMessage());
+        }
         $this->l1[$l1Key] = $permissions;
 
         return $permissions;
@@ -83,20 +91,24 @@ class CountryPermissionCacheService
      */
     public function invalidateAccount(string $accountId, ?string $subAccountId = null): void
     {
-        if ($subAccountId) {
-            $l1Key = $accountId . ':' . $subAccountId;
-            $l2Key = self::L2_PREFIX . $l1Key;
-            unset($this->l1[$l1Key]);
-            Cache::store('redis')->forget($l2Key);
-        } else {
-            // Invalidate the account-level cache
-            $l1Key = $accountId . ':_';
-            $l2Key = self::L2_PREFIX . $l1Key;
-            unset($this->l1[$l1Key]);
-            Cache::store('redis')->forget($l2Key);
+        try {
+            if ($subAccountId) {
+                $l1Key = $accountId . ':' . $subAccountId;
+                $l2Key = self::L2_PREFIX . $l1Key;
+                unset($this->l1[$l1Key]);
+                Cache::store('redis')->forget($l2Key);
+            } else {
+                // Invalidate the account-level cache
+                $l1Key = $accountId . ':_';
+                $l2Key = self::L2_PREFIX . $l1Key;
+                unset($this->l1[$l1Key]);
+                Cache::store('redis')->forget($l2Key);
 
-            // Invalidate all sub-account caches for this account
-            $this->invalidateAllSubAccounts($accountId);
+                // Invalidate all sub-account caches for this account
+                $this->invalidateAllSubAccounts($accountId);
+            }
+        } catch (\Exception $e) {
+            Log::warning('[CountryPermissionCache] Redis invalidation failed: ' . $e->getMessage());
         }
     }
 
@@ -108,8 +120,10 @@ class CountryPermissionCacheService
         $this->l1 = [];
 
         try {
-            $redis = Cache::store('redis')->getStore()->connection();
-            $prefix = config('cache.prefix', '') . ':' . self::L2_PREFIX;
+            $store = Cache::store('redis')->getStore();
+            $redis = $store->connection();
+            // Use the store's actual prefix to match how Laravel internally keys entries
+            $prefix = $store->getPrefix() . self::L2_PREFIX;
             $cursor = null;
             do {
                 [$cursor, $keys] = $redis->scan($cursor ?: 0, ['match' => $prefix . '*', 'count' => 200]);

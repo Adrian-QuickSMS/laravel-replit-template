@@ -44,27 +44,34 @@ class WarmCountryPermissionCache implements ShouldQueue
             return;
         }
 
-        // Warm all active accounts
-        $accountIds = DB::table('accounts')
-            ->whereIn('status', ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic'])
-            ->pluck('id');
-
+        // Warm all active accounts in chunks to avoid memory spikes and Redis write storms
         $count = 0;
-        foreach ($accountIds as $accountId) {
-            try {
-                $cacheService->warmAccount($accountId);
-                $count++;
-            } catch (\Exception $e) {
-                Log::warning('[WarmCountryPermissionCache] Failed to warm account', [
-                    'account_id' => $accountId,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $total = 0;
+
+        DB::table('accounts')
+            ->whereIn('status', ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic'])
+            ->select('id')
+            ->orderBy('id')
+            ->chunk(100, function ($accounts) use ($cacheService, &$count, &$total) {
+                $total += $accounts->count();
+                foreach ($accounts as $account) {
+                    try {
+                        $cacheService->warmAccount($account->id);
+                        $count++;
+                    } catch (\Exception $e) {
+                        Log::warning('[WarmCountryPermissionCache] Failed to warm account', [
+                            'account_id' => $account->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+                // Brief pause between chunks to avoid Redis write storms
+                usleep(50000); // 50ms
+            });
 
         Log::info('[WarmCountryPermissionCache] Cache warming complete', [
             'accounts_warmed' => $count,
-            'total_accounts' => $accountIds->count(),
+            'total_accounts' => $total,
         ]);
     }
 }

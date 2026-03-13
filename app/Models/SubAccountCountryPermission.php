@@ -25,7 +25,6 @@ class SubAccountCountryPermission extends Model
 
     protected $casts = [
         'sub_account_id' => 'string',
-        'created_by' => 'string',
     ];
 
     public function subAccount(): BelongsTo
