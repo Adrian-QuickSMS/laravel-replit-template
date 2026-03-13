@@ -5106,7 +5106,8 @@ function viewOverrides(countryCode) {
     var overrides = currentOverridesCache[countryCode] || [];
     renderOverridesTable(countryCode, overrides);
 
-    var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
+    var modalEl = document.getElementById('customerOverridesModal');
+    var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
 }
 
