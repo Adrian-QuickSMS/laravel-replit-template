@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.admin-hr')
 
 @section('title', 'Team Calendar')
 
@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="page-titles">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.landing') }}">Admin</a></li>
             <li class="breadcrumb-item"><a href="{{ route('admin.hr.dashboard') }}">HR</a></li>
             <li class="breadcrumb-item active">Team Calendar</li>
         </ol>

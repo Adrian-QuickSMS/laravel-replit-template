@@ -14,7 +14,7 @@ class AdminAuthController extends Controller
     public function showLogin()
     {
         if ($this->isAdminAuthenticated()) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.landing');
         }
 
         return view('admin.auth.login', [
@@ -144,7 +144,7 @@ class AdminAuthController extends Controller
                 return response()->json(['redirect' => route('admin.password.change')]);
             }
 
-            return response()->json(['redirect' => route('admin.dashboard')]);
+            return response()->json(['redirect' => route('admin.landing')]);
         }
 
         if ($mfaRequired) {
@@ -160,7 +160,7 @@ class AdminAuthController extends Controller
             return redirect()->route('admin.password.change');
         }
 
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.landing');
     }
 
     public function logout(Request $request)
@@ -201,7 +201,7 @@ class AdminAuthController extends Controller
         $adminSession = session('admin_auth');
 
         if (!$adminSession || !isset($adminSession['mfa_setup_required']) || !$adminSession['mfa_setup_required']) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.landing');
         }
 
         $secret = $this->generateMfaSecret();
@@ -256,7 +256,7 @@ class AdminAuthController extends Controller
             return redirect()->route('admin.password.change')->with('success', 'MFA has been enabled. Please change your password.');
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'MFA has been enabled for your account');
+        return redirect()->route('admin.landing')->with('success', 'MFA has been enabled for your account');
     }
 
     public function skipMfaSetup(Request $request)
@@ -282,7 +282,7 @@ class AdminAuthController extends Controller
             'reason' => 'development_bypass'
         ]);
 
-        return redirect()->route('admin.dashboard')->with('warning', 'MFA skipped for development. Enable MFA before going to production.');
+        return redirect()->route('admin.landing')->with('warning', 'MFA skipped for development. Enable MFA before going to production.');
     }
 
     public function showMfaVerify()
@@ -294,7 +294,7 @@ class AdminAuthController extends Controller
         }
 
         if (isset($adminSession['mfa_verified']) && $adminSession['mfa_verified'] === true) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.landing');
         }
 
         return view('admin.auth.mfa-verify', [
@@ -349,14 +349,14 @@ class AdminAuthController extends Controller
             if ($adminUser && ($adminUser->needsPasswordChange() || $adminUser->force_password_change)) {
                 return response()->json(['redirect' => route('admin.password.change')]);
             }
-            return response()->json(['redirect' => route('admin.dashboard')]);
+            return response()->json(['redirect' => route('admin.landing')]);
         }
 
         if ($adminUser && ($adminUser->needsPasswordChange() || $adminUser->force_password_change)) {
             return redirect()->route('admin.password.change');
         }
 
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.landing');
     }
 
     // =====================================================
@@ -434,7 +434,7 @@ class AdminAuthController extends Controller
             return response()->json(['redirect' => route('admin.password.change')]);
         }
 
-        return response()->json(['redirect' => route('admin.dashboard')]);
+        return response()->json(['redirect' => route('admin.landing')]);
     }
 
     // =====================================================
@@ -480,7 +480,7 @@ class AdminAuthController extends Controller
 
         AdminAuditService::log('admin_password_changed', ['admin_id' => $adminUser->id]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Password changed successfully');
+        return redirect()->route('admin.landing')->with('success', 'Password changed successfully');
     }
 
     // =====================================================

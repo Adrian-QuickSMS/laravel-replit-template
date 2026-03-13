@@ -541,7 +541,9 @@ Route::prefix('admin')->group(function () {
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
         ->controller(\App\Http\Controllers\AdminController::class)
         ->group(function () {
-            Route::get('/', 'dashboard')->name('admin.dashboard');
+            Route::get('/', 'landing')->name('admin.landing');
+            Route::get('/messaging/dashboard', 'dashboard')->name('admin.messaging.dashboard');
+            Route::get('/dashboard', function () { return redirect()->route('admin.messaging.dashboard'); })->name('admin.dashboard');
             Route::get('/approval-queue', 'approvalQueue')->name('admin.approval-queue');
             
             Route::get('/accounts/overview', 'accountsOverview')->name('admin.accounts.overview');

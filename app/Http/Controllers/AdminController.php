@@ -200,6 +200,11 @@ class AdminController extends Controller
         return response()->json(['success' => true, 'event_logged' => $eventType]);
     }
 
+    public function landing()
+    {
+        return view('admin.landing');
+    }
+
     public function dashboard()
     {
         return view('admin.dashboard', [
