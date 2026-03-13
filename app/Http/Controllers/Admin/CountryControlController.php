@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CountryControl;
 use App\Models\CountryControlOverride;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CountryControlController extends Controller
 {
