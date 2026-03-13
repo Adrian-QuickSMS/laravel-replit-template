@@ -3367,78 +3367,7 @@ function initCountryControls() {
 }
 
 function generateMockRequests() {
-    return [
-        {
-            id: 'REQ-001',
-            customer: { id: 'CUST-001', name: 'TechStart Ltd', accountNumber: 'ACC-10045', accountStatus: 'live', subAccount: null },
-            country: { code: 'NG', name: 'Nigeria', dialCode: '+234' },
-            requestType: 'enable',
-            reason: 'We have legitimate business operations in Nigeria and need to send SMS to our local customers.',
-            submittedBy: 'james@techstart.co.uk',
-            submittedAt: '28-01-2026 14:30',
-            status: 'pending',
-            risk: 'high',
-            estimatedVolume: '5,000/mo',
-            reviewedBy: null,
-            reviewedAt: null
-        },
-        {
-            id: 'REQ-002',
-            customer: { id: 'CUST-002', name: 'HealthFirst UK', accountNumber: 'ACC-10089', accountStatus: 'live', subAccount: 'NHS Partnership' },
-            country: { code: 'IN', name: 'India', dialCode: '+91' },
-            requestType: 'enable',
-            reason: 'Need to send appointment reminders to patients in our Indian branch.',
-            submittedBy: 'dr.jones@healthfirst.nhs.uk',
-            submittedAt: '28-01-2026 10:15',
-            status: 'pending',
-            risk: 'medium',
-            estimatedVolume: '2,000/mo',
-            reviewedBy: null,
-            reviewedAt: null
-        },
-        {
-            id: 'REQ-003',
-            customer: { id: 'CUST-003', name: 'E-Commerce Hub', accountNumber: 'ACC-10112', accountStatus: 'test', subAccount: null },
-            country: { code: 'PH', name: 'Philippines', dialCode: '+63' },
-            requestType: 'enable',
-            reason: 'Expanding e-commerce operations to Philippines, need order confirmation SMS.',
-            submittedBy: 'ops@ecommercehub.com',
-            submittedAt: '27-01-2026 16:45',
-            status: 'pending',
-            risk: 'critical',
-            estimatedVolume: '10,000/mo',
-            reviewedBy: null,
-            reviewedAt: null
-        },
-        {
-            id: 'REQ-004',
-            customer: { id: 'CUST-004', name: 'RetailMax', accountNumber: 'ACC-10078', accountStatus: 'live', subAccount: 'LATAM Division' },
-            country: { code: 'BR', name: 'Brazil', dialCode: '+55' },
-            requestType: 'enable',
-            reason: 'Opening new retail stores in Brazil.',
-            submittedBy: 'admin@retailmax.com',
-            submittedAt: '27-01-2026 09:00',
-            status: 'approved',
-            risk: 'medium',
-            estimatedVolume: '8,000/mo',
-            reviewedBy: 'sarah.johnson@quicksms.co.uk',
-            reviewedAt: '27-01-2026 11:30'
-        },
-        {
-            id: 'REQ-005',
-            customer: { id: 'CUST-005', name: 'Unknown Corp', accountNumber: 'ACC-10099', accountStatus: 'suspended', subAccount: null },
-            country: { code: 'RU', name: 'Russia', dialCode: '+7' },
-            requestType: 'enable',
-            reason: 'Business expansion.',
-            submittedBy: 'info@unknowncorp.com',
-            submittedAt: '26-01-2026 14:00',
-            status: 'rejected',
-            risk: 'critical',
-            estimatedVolume: '50,000/mo',
-            reviewedBy: 'emily.chen@quicksms.co.uk',
-            reviewedAt: '26-01-2026 15:30'
-        }
-    ];
+    return [];
 }
 
 function viewAccount(customerId) {
@@ -4634,18 +4563,7 @@ window.toggleSelectAllAccounts = toggleSelectAllAccounts;
 window.filterAccountOptions = filterAccountOptions;
 window.removeAccountFromSelection = removeAccountFromSelection;
 
-window.mockAccounts = [
-    { id: 'ACC-10045', name: 'TechStart Ltd', accountNumber: 'ACC-10045', status: 'live', subAccounts: [] },
-    { id: 'ACC-10089', name: 'HealthFirst UK', accountNumber: 'ACC-10089', status: 'live', subAccounts: ['NHS Partnership', 'Private Clinics'] },
-    { id: 'ACC-10112', name: 'E-Commerce Hub', accountNumber: 'ACC-10112', status: 'test', subAccounts: [] },
-    { id: 'ACC-10156', name: 'MediCare Global', accountNumber: 'ACC-10156', status: 'live', subAccounts: ['UK Division', 'EU Division'] },
-    { id: 'ACC-10034', name: 'RetailMax Corp', accountNumber: 'ACC-10034', status: 'live', subAccounts: ['APAC Operations', 'EMEA Operations'] },
-    { id: 'ACC-10078', name: 'Global Comms Inc', accountNumber: 'ACC-10078', status: 'live', subAccounts: ['Marketing Division', 'Sales Division'] },
-    { id: 'ACC-10098', name: 'TravelWise Ltd', accountNumber: 'ACC-10098', status: 'live', subAccounts: [] },
-    { id: 'ACC-10067', name: 'Logistics Pro', accountNumber: 'ACC-10067', status: 'test', subAccounts: [] },
-    { id: 'ACC-10102', name: 'FinServe Solutions', accountNumber: 'ACC-10102', status: 'live', subAccounts: ['Investments', 'Insurance'] },
-    { id: 'ACC-10199', name: 'Digital Media Co', accountNumber: 'ACC-10199', status: 'live', subAccounts: [] }
-];
+window.mockAccounts = {!! json_encode($accounts ?? []) !!};
 var mockAccounts = window.mockAccounts;
 
 function initAccountTypeahead() {
@@ -5126,55 +5044,7 @@ function confirmRemoveOverride() {
     showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
-var mockOverridesData = {
-    'US': [
-        { accountName: 'Global Comms Inc', accountId: 'ACC-10078', subAccount: null, overrideType: 'blocked', dateApplied: '25-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'RetailMax Corp', accountId: 'ACC-10034', subAccount: null, overrideType: 'blocked', dateApplied: '20-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
-        { accountName: 'MediCare Global', accountId: 'ACC-10156', subAccount: 'West Region', overrideType: 'allowed', dateApplied: '18-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'DE': [
-        { accountName: 'TravelWise Ltd', accountId: 'ACC-10098', subAccount: null, overrideType: 'blocked', dateApplied: '22-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'ES': [
-        { accountName: 'Digital Media Co', accountId: 'ACC-10199', subAccount: null, overrideType: 'blocked', dateApplied: '19-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
-        { accountName: 'Logistics Pro', accountId: 'ACC-10067', subAccount: null, overrideType: 'allowed', dateApplied: '15-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'CH': [
-        { accountName: 'FinServe Solutions', accountId: 'ACC-10102', subAccount: 'Investments', overrideType: 'blocked', dateApplied: '12-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'NG': [
-        { accountName: 'TechStart Ltd', accountId: 'ACC-10045', subAccount: null, overrideType: 'allowed', dateApplied: '28-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'Global Comms Inc', accountId: 'ACC-10078', subAccount: 'Marketing Division', overrideType: 'allowed', dateApplied: '25-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
-        { accountName: 'FinServe Solutions', accountId: 'ACC-10102', subAccount: null, overrideType: 'allowed', dateApplied: '20-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'MediCare Global', accountId: 'ACC-10156', subAccount: null, overrideType: 'allowed', dateApplied: '18-01-2026', appliedBy: 'james.smith@quicksms.co.uk' },
-        { accountName: 'E-Commerce Hub', accountId: 'ACC-10112', subAccount: null, overrideType: 'allowed', dateApplied: '15-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'IN': [
-        { accountName: 'HealthFirst UK', accountId: 'ACC-10089', subAccount: 'NHS Partnership', overrideType: 'allowed', dateApplied: '28-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'MediCare Global', accountId: 'ACC-10156', subAccount: null, overrideType: 'allowed', dateApplied: '22-01-2026', appliedBy: 'james.smith@quicksms.co.uk' },
-        { accountName: 'TechStart Ltd', accountId: 'ACC-10045', subAccount: null, overrideType: 'allowed', dateApplied: '20-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'Digital Media Co', accountId: 'ACC-10199', subAccount: null, overrideType: 'allowed', dateApplied: '18-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
-        { accountName: 'Global Comms Inc', accountId: 'ACC-10078', subAccount: null, overrideType: 'allowed', dateApplied: '16-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'Logistics Pro', accountId: 'ACC-10067', subAccount: null, overrideType: 'allowed', dateApplied: '14-01-2026', appliedBy: 'james.smith@quicksms.co.uk' },
-        { accountName: 'RetailMax Corp', accountId: 'ACC-10034', subAccount: null, overrideType: 'allowed', dateApplied: '12-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'TravelWise Ltd', accountId: 'ACC-10098', subAccount: null, overrideType: 'allowed', dateApplied: '10-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' }
-    ],
-    'PH': [
-        { accountName: 'E-Commerce Hub', accountId: 'ACC-10112', subAccount: null, overrideType: 'allowed', dateApplied: '27-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'TechStart Ltd', accountId: 'ACC-10045', subAccount: null, overrideType: 'allowed', dateApplied: '20-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
-        { accountName: 'Digital Media Co', accountId: 'ACC-10199', subAccount: null, overrideType: 'allowed', dateApplied: '15-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'PK': [
-        { accountName: 'RetailMax Corp', accountId: 'ACC-10034', subAccount: 'APAC Operations', overrideType: 'allowed', dateApplied: '15-01-2026', appliedBy: 'admin@quicksms.co.uk' },
-        { accountName: 'TravelWise Ltd', accountId: 'ACC-10098', subAccount: null, overrideType: 'allowed', dateApplied: '10-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' }
-    ],
-    'BD': [
-        { accountName: 'HealthFirst UK', accountId: 'ACC-10089', subAccount: null, overrideType: 'allowed', dateApplied: '08-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ],
-    'RU': [
-        { accountName: 'Logistics Pro', accountId: 'ACC-10067', subAccount: null, overrideType: 'blocked', dateApplied: '05-01-2026', appliedBy: 'admin@quicksms.co.uk' }
-    ]
-};
+var mockOverridesData = {};
 
 var currentViewingCountryCode = null;
 
@@ -5806,17 +5676,12 @@ function loadOverrides(mccMncId) {
     });
 }
 
-// TODO: Replace with real API call when accounts backend is implemented
-var overrideAccountsData = {
-    'Acme Corp': { id: 1001, subAccounts: ['Marketing', 'Operations', 'Customer Service'] },
-    'TechStart Ltd': { id: 1002, subAccounts: ['Engineering', 'Sales'] },
-    'FastDelivery Inc': { id: 1003, subAccounts: ['Dispatch', 'Billing'] },
-    'GlobalMsg Ltd': { id: 1004, subAccounts: ['UK Division', 'EU Division'] },
-    'MediaBuzz': { id: 1005, subAccounts: ['Content', 'Advertising'] },
-    'RetailChain PLC': { id: 1006, subAccounts: ['Online Store', 'In-Store', 'Loyalty'] },
-    'DataFlow Systems': { id: 1007, subAccounts: ['Monitoring', 'Support'] },
-    'CloudReach UK': { id: 1008, subAccounts: ['Enterprise', 'SMB'] }
-};
+var overrideAccountsData = {};
+@if(isset($accounts))
+@foreach($accounts as $account)
+overrideAccountsData[{!! json_encode($account['name']) !!}] = { id: {!! json_encode($account['id']) !!}, subAccounts: [] };
+@endforeach
+@endif
 
 var overrideSelectedAccount = null;
 

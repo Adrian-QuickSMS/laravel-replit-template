@@ -1452,8 +1452,22 @@ class AdminController extends Controller
 
     public function securityCountryControls()
     {
+        $accounts = \App\Models\Account::select('id', 'company_name', 'status')
+            ->orderBy('company_name')
+            ->get()
+            ->map(function ($a) {
+                return [
+                    'id' => $a->id,
+                    'name' => $a->company_name,
+                    'accountNumber' => $a->id,
+                    'status' => str_contains($a->status, 'active') ? 'live' : (str_contains($a->status, 'test') ? 'test' : $a->status),
+                    'subAccounts' => [],
+                ];
+            });
+
         return view('admin.security.country-controls', [
-            'page_title' => 'Country Controls'
+            'page_title' => 'Country Controls',
+            'accounts' => $accounts,
         ]);
     }
 
