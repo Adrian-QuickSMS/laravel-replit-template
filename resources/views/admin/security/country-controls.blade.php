@@ -4964,58 +4964,40 @@ function confirmAddOverride() {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
 
-    if (!mockOverridesData[countryCode]) {
-        mockOverridesData[countryCode] = [];
-    }
-    
-    var addedCount = 0;
-    var skippedCount = 0;
-    
-    selectedAccountsForOverride.forEach(function(account) {
-        var existingOverride = mockOverridesData[countryCode].find(function(o) {
-            return o.accountId === account.id && o.subAccount === subAccount;
-        });
-        
-        if (existingOverride) {
-            skippedCount++;
-            return;
-        }
-
-        mockOverridesData[countryCode].push({
-            accountName: account.name,
-            accountId: account.id,
-            subAccount: subAccount,
-            overrideType: overrideType,
-            dateApplied: formatDateDDMMYYYY(new Date()),
-            appliedBy: 'admin@quicksms.co.uk'
-        });
-        addedCount++;
-
-        CountryReviewAuditService.emit('COUNTRY_OVERRIDE_ADDED', {
-            countryIso: country.code,
-            countryName: country.name,
-            accountId: account.id,
-            accountName: account.name,
-            subAccount: subAccount,
-            overrideType: overrideType,
-            adminUser: 'admin@quicksms.co.uk',
-            timestamp: new Date().toISOString()
-        });
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    var promises = selectedAccountsForOverride.map(function(account) {
+        return fetch('/admin/api/country-controls/overrides', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                country_control_id: country.id,
+                account_id: account.id,
+                override_status: overrideType,
+                reason: 'Manual override by admin'
+            })
+        }).then(function(r) { return r.json(); });
     });
-    
-    country.overrides = mockOverridesData[countryCode].length;
 
-    var message = addedCount + ' override' + (addedCount !== 1 ? 's' : '') + ' added successfully.';
-    if (skippedCount > 0) {
-        message += ' ' + skippedCount + ' skipped (already exist).';
-    }
-    
-    var modalEl = document.getElementById('addOverrideModal');
-    var modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-    
-    showToast(message, 'success');
-    renderCountriesTab();
+    Promise.all(promises).then(function(results) {
+        var addedCount = results.filter(function(r) { return r.success; }).length;
+        var message = addedCount + ' override' + (addedCount !== 1 ? 's' : '') + ' added successfully.';
+
+        country.overrides = (country.overrides || 0) + addedCount;
+
+        var modalEl = document.getElementById('addOverrideModal');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        showToast(message, 'success');
+        renderCountryTable();
+    }).catch(function(err) {
+        console.error('[CountryControls] Failed to add overrides:', err);
+        showAdminToast('Error', 'Failed to add overrides', 'error');
+    });
 }
 
 // Close dropdown when clicking outside
@@ -5094,8 +5076,8 @@ function confirmRemoveOverride() {
 }
 
 var mockOverridesData = {};
-
 var currentViewingCountryCode = null;
+var currentOverridesCache = {};
 
 function viewOverrides(countryCode) {
     var country = countries.find(function(c) { return c.code === countryCode; });
@@ -5109,21 +5091,44 @@ function viewOverrides(countryCode) {
 
     document.getElementById('overridesModalCountryName').textContent = '— ' + country.name;
     
-    renderOverridesTable(countryCode);
-    
+    var tbody = document.getElementById('overridesTableBody');
+    var noOverridesMsg = document.getElementById('noOverridesMessage');
+    var tableContainer = document.querySelector('#overridesTable').closest('.table-responsive');
+    tableContainer.style.display = 'none';
+    noOverridesMsg.style.display = 'none';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Loading...</td></tr>';
+    tableContainer.style.display = 'block';
+
     var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
     modal.show();
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    fetch('/admin/api/country-controls/' + country.id + '/overrides', {
+        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            currentOverridesCache[countryCode] = data.overrides;
+            renderOverridesTable(countryCode, data.overrides);
+        } else {
+            renderOverridesTable(countryCode, []);
+        }
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Failed to load overrides:', err);
+        renderOverridesTable(countryCode, []);
+    });
 }
 
-function renderOverridesTable(countryCode) {
-    var overrides = mockOverridesData[countryCode] || [];
+function renderOverridesTable(countryCode, overrides) {
     var tbody = document.getElementById('overridesTableBody');
     var noOverridesMsg = document.getElementById('noOverridesMessage');
     var tableContainer = document.querySelector('#overridesTable').closest('.table-responsive');
     
     tbody.innerHTML = '';
     
-    if (overrides.length === 0) {
+    if (!overrides || overrides.length === 0) {
         tableContainer.style.display = 'none';
         noOverridesMsg.style.display = 'block';
     } else {
@@ -5139,21 +5144,21 @@ function renderOverridesTable(countryCode) {
             row.innerHTML = 
                 '<td>' +
                     '<div class="override-account-cell">' +
-                        '<span class="account-name">' + override.accountName + '</span>' +
-                        '<span class="account-id">' + override.accountId + '</span>' +
+                        '<span class="account-name">' + escapeHtml(override.accountName) + '</span>' +
+                        '<span class="account-id">' + escapeHtml(override.accountId) + '</span>' +
                     '</div>' +
                 '</td>' +
-                '<td>' + (override.subAccount ? '<span class="text-muted">' + override.subAccount + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
+                '<td><span class="text-muted">—</span></td>' +
                 '<td>' +
                     '<span class="override-type-badge ' + override.overrideType + '">' +
                         '<i class="fas ' + typeIcon + '"></i>' + typeLabel +
                     '</span>' +
                 '</td>' +
-                '<td class="text-muted">' + override.dateApplied + '</td>' +
+                '<td class="text-muted">' + escapeHtml(override.dateApplied) + '</td>' +
                 '<td>' +
                     '<div class="override-admin">' +
                         '<i class="fas fa-user-shield"></i>' +
-                        '<span>' + override.appliedBy + '</span>' +
+                        '<span>' + escapeHtml(override.appliedBy) + '</span>' +
                     '</div>' +
                 '</td>' +
                 '<td>' +
@@ -5171,7 +5176,7 @@ function renderOverridesTable(countryCode) {
 
 function confirmRemoveOverrideFromModal(countryCode, overrideIndex) {
     var country = countries.find(function(c) { return c.code === countryCode; });
-    var overrides = mockOverridesData[countryCode] || [];
+    var overrides = currentOverridesCache[countryCode] || [];
     var override = overrides[overrideIndex];
     
     if (!country || !override) return;
@@ -5212,29 +5217,37 @@ function executeRemoveOverride() {
     var override = pendingOverrideRemoval.override;
     var scopeText = pendingOverrideRemoval.scopeText;
 
-    var overrides = mockOverridesData[countryCode] || [];
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
 
-    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
-        countryIso: country.code,
-        countryName: country.name,
-        accountId: override.accountId,
-        accountName: override.accountName,
-        subAccount: override.subAccount,
-        previousOverrideType: override.overrideType,
-        result: 'override_removed'
-    }, { emitToCustomerAudit: true });
+    fetch('/admin/api/country-controls/overrides/' + override.id, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            var overrides = currentOverridesCache[countryCode] || [];
+            overrides.splice(overrideIndex, 1);
+            currentOverridesCache[countryCode] = overrides;
+            country.overrides = Math.max(0, (country.overrides || 0) - 1);
 
-    overrides.splice(overrideIndex, 1);
-    mockOverridesData[countryCode] = overrides;
-    country.overrides = overrides.length;
+            renderOverridesTable(countryCode, overrides);
+            renderCountryTable();
+            showAdminToast('Override removed', scopeText + ' override for ' + country.name + ' has been removed.', 'success');
+        } else {
+            showAdminToast('Error', data.message || 'Failed to remove override', 'error');
+        }
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Failed to remove override:', err);
+        showAdminToast('Error', 'Network error removing override', 'error');
+    });
 
     bootstrap.Modal.getInstance(document.getElementById('removeOverrideConfirmModal')).hide();
     pendingOverrideRemoval = null;
-
-    renderOverridesTable(countryCode);
-    renderCountryTable();
-    
-    showAdminToast('Override removed', scopeText + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
 function capitalize(str) {

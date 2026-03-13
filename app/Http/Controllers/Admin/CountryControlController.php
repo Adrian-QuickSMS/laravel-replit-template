@@ -84,9 +84,26 @@ class CountryControlController extends Controller
 
     public function getOverrides($countryId)
     {
-        $overrides = CountryControlOverride::where('country_control_id', $countryId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $overrides = DB::table('country_control_overrides')
+            ->leftJoin('accounts', 'country_control_overrides.account_id', '=', 'accounts.id')
+            ->where('country_control_overrides.country_control_id', $countryId)
+            ->orderBy('country_control_overrides.created_at', 'desc')
+            ->select(
+                'country_control_overrides.*',
+                'accounts.company_name as account_name'
+            )
+            ->get()
+            ->map(function ($o) {
+                return [
+                    'id' => $o->id,
+                    'accountId' => $o->account_id,
+                    'accountName' => $o->account_name ?? 'Unknown Account',
+                    'overrideType' => $o->override_status,
+                    'reason' => $o->reason,
+                    'appliedBy' => $o->created_by ?? 'admin',
+                    'dateApplied' => $o->created_at ? \Carbon\Carbon::parse($o->created_at)->format('d M Y H:i') : '—',
+                ];
+            });
 
         return response()->json(['success' => true, 'overrides' => $overrides]);
     }
@@ -95,7 +112,7 @@ class CountryControlController extends Controller
     {
         $request->validate([
             'country_control_id' => 'required|exists:country_controls,id',
-            'account_id' => 'required|integer',
+            'account_id' => 'required|string',
             'override_status' => 'required|in:allowed,blocked',
             'reason' => 'nullable|string|max:500',
         ]);
@@ -104,11 +121,13 @@ class CountryControlController extends Controller
             ->where('account_id', $request->account_id)
             ->first();
 
+        $adminEmail = session('admin_auth.email', 'admin');
+
         if ($existing) {
             $existing->update([
                 'override_status' => $request->override_status,
                 'reason' => $request->reason,
-                'created_by' => 'admin',
+                'created_by' => $adminEmail,
             ]);
             return response()->json(['success' => true, 'message' => 'Override updated.']);
         }
@@ -118,7 +137,7 @@ class CountryControlController extends Controller
             'account_id' => $request->account_id,
             'override_status' => $request->override_status,
             'reason' => $request->reason,
-            'created_by' => 'admin',
+            'created_by' => $adminEmail,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Override added.']);
