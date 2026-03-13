@@ -4320,10 +4320,10 @@ class QuickSMSController extends Controller
             'country_name' => 'required|string|max:100',
         ]);
 
-        $user = session('user');
-        $accountId = session('tenant_id');
+        $userId = session('customer_user_id');
+        $accountId = session('customer_tenant_id');
 
-        if (!$user || !$accountId) {
+        if (!$userId || !$accountId) {
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
@@ -4343,7 +4343,7 @@ class QuickSMSController extends Controller
             'country_code' => strtoupper($request->input('country_code')),
             'country_name' => $request->input('country_name'),
             'workflow_status' => 'SUBMITTED',
-            'submitted_by' => $user['id'] ?? $accountId,
+            'submitted_by' => $userId,
             'version' => 1,
         ]);
 
