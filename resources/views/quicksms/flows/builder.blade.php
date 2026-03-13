@@ -345,16 +345,6 @@
 <script src="{{ asset('js/flow-builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var fb = document.getElementById('flow-builder');
-    if (fb) {
-        var rect = fb.getBoundingClientRect();
-        fb.style.height = (window.innerHeight - rect.top) + 'px';
-        window.addEventListener('resize', function() {
-            var r = fb.getBoundingClientRect();
-            fb.style.height = (window.innerHeight - r.top) + 'px';
-        });
-    }
-
     var flowId = document.getElementById('flow-id').value;
     var flowDataRaw = document.getElementById('flow-data').value;
     var flowData = flowDataRaw ? JSON.parse(flowDataRaw) : null;
