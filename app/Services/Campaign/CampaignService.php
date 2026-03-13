@@ -13,6 +13,7 @@ use App\Models\SenderId;
 use App\Services\Admin\MessageEnforcementService;
 use App\Services\Audit\AuditContext;
 use App\Services\RcsContentValidator;
+use App\Services\CountryPermissionCheckService;
 use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +38,7 @@ class CampaignService
         private MessageEnforcementService $enforcement,
         private RcsContentValidator $rcsValidator,
         private TestModeEnforcementService $testModeEnforcement,
+        private CountryPermissionCheckService $countryPermissionCheck,
     ) {}
 
     // =====================================================
@@ -506,7 +508,15 @@ class CampaignService
             $errors[] = 'No valid recipients found. Please resolve recipients first.';
         }
 
-        // 4. Content enforcement (sender ID, content, URLs)
+        // 4. Country permission enforcement
+        $blockedCountries = $this->checkCountryPermissions($campaign);
+        if (!empty($blockedCountries)) {
+            foreach ($blockedCountries as $country) {
+                $errors[] = $country;
+            }
+        }
+
+        // 5. Content enforcement (sender ID, content, URLs)
         if ($campaign->message_content && $this->enforcement) {
             $senderValue = null;
             if ($campaign->isSms() && $campaign->sender_id_id) {
@@ -543,6 +553,55 @@ class CampaignService
                         break; // One blocked URL is enough to report
                     }
                 }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Check country permissions for all destination countries in a campaign.
+     * Returns error messages for any blocked/restricted countries.
+     */
+    private function checkCountryPermissions(Campaign $campaign): array
+    {
+        $errors = [];
+
+        $destinationCountries = DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignRecipient::STATUS_PENDING)
+            ->whereNotNull('country_iso')
+            ->distinct()
+            ->pluck('country_iso');
+
+        if ($destinationCountries->isEmpty()) {
+            return $errors;
+        }
+
+        $summary = $this->countryPermissionCheck->getCountrySummary(
+            $campaign->account_id,
+            $campaign->sub_account_id
+        );
+
+        $blockedSet = array_flip($summary['blocked']);
+        $restrictedSet = array_flip($summary['restricted']);
+
+        $problemCountries = $destinationCountries->filter(
+            fn ($iso) => isset($restrictedSet[$iso]) || isset($blockedSet[$iso])
+        );
+
+        $countryNames = $problemCountries->isNotEmpty()
+            ? DB::table('country_controls')
+                ->whereIn('country_iso', $problemCountries->values())
+                ->pluck('country_name', 'country_iso')
+            : collect();
+
+        foreach ($destinationCountries as $countryIso) {
+            $name = $countryNames[$countryIso] ?? $countryIso;
+            if (isset($restrictedSet[$countryIso])) {
+                $errors[] = "Sending to {$name} ({$countryIso}) requires approval. Submit a country access request.";
+            } elseif (isset($blockedSet[$countryIso])) {
+                $errors[] = "Sending to {$name} ({$countryIso}) is not permitted for your account.";
             }
         }
 

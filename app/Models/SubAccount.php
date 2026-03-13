@@ -122,6 +122,11 @@ class SubAccount extends Model
         return $this->hasMany(UserInvitation::class, 'sub_account_id');
     }
 
+    public function countryPermissions(): HasMany
+    {
+        return $this->hasMany(SubAccountCountryPermission::class, 'sub_account_id');
+    }
+
     // =====================================================
     // SCOPES
     // =====================================================

@@ -4308,8 +4308,10 @@ class QuickSMSController extends Controller
             ->get(['id', 'country_iso', 'country_name', 'country_prefix', 'default_status']);
 
         $accountId = session('customer_tenant_id');
+        $subAccountId = auth()->check() ? (auth()->user()->sub_account_id ?? null) : null;
         $pendingRequests = collect();
         $approvedOverrides = collect();
+        $countryPermissions = [];
 
         if ($accountId) {
             $pendingRequests = \App\Models\CountryRequest::where('account_id', $accountId)
@@ -4323,6 +4325,10 @@ class QuickSMSController extends Controller
                 ->where('country_control_overrides.override_status', 'allowed')
                 ->select('country_controls.country_iso', 'country_controls.country_name')
                 ->get();
+
+            // Get effective permissions via cache service
+            $cacheService = app(\App\Services\CountryPermissionCacheService::class);
+            $countryPermissions = $cacheService->getPermissionsForEntity($accountId, $subAccountId);
         }
 
         return view('quicksms.account.security', [
@@ -4330,6 +4336,7 @@ class QuickSMSController extends Controller
             'availableCountries' => $availableCountries,
             'pendingRequests' => $pendingRequests,
             'approvedOverrides' => $approvedOverrides,
+            'countryPermissions' => $countryPermissions,
         ]);
     }
 
@@ -4392,6 +4399,73 @@ class QuickSMSController extends Controller
             'success' => true,
             'message' => 'Country access request submitted successfully',
             'request_id' => $countryRequest->request_uuid,
+        ]);
+    }
+
+    /**
+     * API: Get country permissions for the current account/sub-account.
+     * Returns allowed, blocked, and restricted countries with effective status.
+     */
+    public function getCountryPermissions(Request $request)
+    {
+        $accountId = session('customer_tenant_id');
+        $subAccountId = auth()->user()?->sub_account_id;
+
+        if (!$accountId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $cacheService = app(\App\Services\CountryPermissionCacheService::class);
+        $checkService = app(\App\Services\CountryPermissionCheckService::class);
+
+        $summary = $checkService->getCountrySummary($accountId, $subAccountId);
+
+        // Get detailed country info
+        $countries = \App\Models\CountryControl::orderBy('country_name')->get();
+        $permissions = $cacheService->getPermissionsForEntity($accountId, $subAccountId);
+
+        $detailed = $countries->map(function ($country) use ($permissions) {
+            return [
+                'country_iso' => $country->country_iso,
+                'country_name' => $country->country_name,
+                'country_prefix' => $country->country_prefix,
+                'permission' => $permissions[$country->country_iso] ?? 'blocked',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'summary' => [
+                'allowed' => $summary['allowed_count'],
+                'blocked' => $summary['blocked_count'],
+                'restricted' => $summary['restricted_count'],
+            ],
+            'countries' => $detailed,
+        ]);
+    }
+
+    /**
+     * API: Check if a specific phone number can be sent to.
+     */
+    public function checkCountryPermission(Request $request)
+    {
+        $request->validate([
+            'phone_number' => 'required|string',
+        ]);
+
+        $accountId = session('customer_tenant_id');
+        $subAccountId = auth()->user()?->sub_account_id;
+
+        if (!$accountId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $checkService = app(\App\Services\CountryPermissionCheckService::class);
+        $result = $checkService->checkDestination($accountId, $subAccountId, $request->input('phone_number'));
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
         ]);
     }
 

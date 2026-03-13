@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Admin\GovernanceEnforcementService;
+use App\Services\CountryPermissionCacheService;
 use App\Traits\ChecksAdminLocks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,10 +15,12 @@ class ApprovalQueueController extends Controller
     use ChecksAdminLocks;
 
     protected GovernanceEnforcementService $governanceService;
+    protected CountryPermissionCacheService $cacheService;
 
-    public function __construct(GovernanceEnforcementService $governanceService)
+    public function __construct(GovernanceEnforcementService $governanceService, CountryPermissionCacheService $cacheService)
     {
         $this->governanceService = $governanceService;
+        $this->cacheService = $cacheService;
     }
 
     public function getSenderIdRequests(Request $request)
@@ -168,6 +171,9 @@ class ApprovalQueueController extends Controller
                 ]);
             }
         }
+
+        // Invalidate country permission cache for this account
+        $this->cacheService->invalidateAccount($countryRequest->account_id);
 
         return response()->json([
             'success' => true,

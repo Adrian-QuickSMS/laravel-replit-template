@@ -111,7 +111,9 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
     Route::get('/account/security', 'securitySettings')->name('account.security');
     Route::post('/account/security/country-request', 'submitCountryRequest')->name('account.security.country-request');
-    
+    Route::get('/api/country-permissions', 'getCountryPermissions')->name('api.country-permissions');
+    Route::post('/api/country-permissions/check', 'checkCountryPermission')->name('api.country-permissions.check');
+
     Route::get('/support', 'support')->name('support');
     Route::get('/support/dashboard', 'supportDashboard')->name('support.dashboard');
     Route::get('/support/create-ticket', 'createTicket')->name('support.create-ticket');
@@ -708,6 +710,13 @@ Route::prefix('admin')->group(function () {
                 Route::get('/{countryId}/overrides', 'getOverrides')->name('admin.api.country-controls.overrides');
                 Route::post('/overrides', 'addOverride')->name('admin.api.country-controls.add-override');
                 Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.country-controls.delete-override');
+            });
+
+            Route::prefix('api/sub-account-country-permissions')->controller(\App\Http\Controllers\Admin\SubAccountCountryPermissionController::class)->group(function () {
+                Route::get('/{subAccountId}', 'index')->name('admin.api.sub-account-country-permissions.index');
+                Route::post('/', 'setPermission')->name('admin.api.sub-account-country-permissions.set');
+                Route::post('/bulk', 'bulkSetPermissions')->name('admin.api.sub-account-country-permissions.bulk');
+                Route::delete('/{permissionId}', 'removePermission')->name('admin.api.sub-account-country-permissions.remove');
             });
 
             Route::prefix('api/uk-network-controls')->controller(\App\Http\Controllers\Admin\UkNetworkControlController::class)->group(function () {
