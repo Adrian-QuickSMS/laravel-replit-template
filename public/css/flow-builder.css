@@ -915,6 +915,104 @@
     font-weight: 600;
 }
 
+/* ---- Action Group Step Cards ---- */
+.action-group-step {
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    position: relative;
+}
+.action-group-step:hover {
+    border-color: #d0d0d0;
+}
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.step-number {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #886CC0;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.step-drag-handle {
+    cursor: grab;
+    color: #ccc;
+    font-size: 0.9rem;
+    padding: 0 2px;
+}
+.step-drag-handle:hover {
+    color: #886CC0;
+}
+.step-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+.step-remove:hover {
+    color: #c62828;
+}
+.step-fields {
+    padding-left: 30px;
+}
+.step-fields .form-control,
+.step-fields .form-select {
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+}
+
+/* ---- Webhook Success/Error Ports ---- */
+.node-port.port-output-success {
+    bottom: -7px;
+    left: 30%;
+    margin-left: -7px;
+    border-color: #2e7d32;
+}
+.node-port.port-output-success:hover {
+    background: #2e7d32;
+    border-color: #2e7d32;
+}
+.node-port.port-output-error {
+    bottom: -7px;
+    left: 70%;
+    margin-left: -7px;
+    border-color: #c62828;
+}
+.node-port.port-output-error:hover {
+    background: #c62828;
+    border-color: #c62828;
+}
+.branch-label.success {
+    left: 20%;
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.branch-label.error {
+    left: 60%;
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ---- Credential Fields Toggle ---- */
+.credential-fields {
+    transition: opacity 0.15s;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
     .flow-palette {

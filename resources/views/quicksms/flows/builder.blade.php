@@ -78,18 +78,39 @@
                         <div class="palette-node-desc">Start via API call</div>
                     </div>
                 </div>
-                <div class="palette-node" draggable="true" data-type="trigger_sms_keyword">
+                <div class="palette-node" draggable="true" data-type="trigger_webhook">
+                    <div class="palette-node-icon trigger"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">External Webhook</div>
+                        <div class="palette-node-desc">Receive webhook POST</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="trigger_sms_inbound">
                     <div class="palette-node-icon trigger"><i class="fas fa-comment-dots"></i></div>
                     <div class="palette-node-info">
-                        <div class="palette-node-name">SMS Keyword</div>
+                        <div class="palette-node-name">SMS Inbound</div>
                         <div class="palette-node-desc">Trigger on inbound SMS</div>
                     </div>
                 </div>
-                <div class="palette-node" draggable="true" data-type="trigger_rcs_button">
+                <div class="palette-node" draggable="true" data-type="trigger_rcs_inbound">
                     <div class="palette-node-icon trigger"><i class="fas fa-hand-pointer"></i></div>
                     <div class="palette-node-info">
-                        <div class="palette-node-name">RCS Button</div>
-                        <div class="palette-node-desc">Trigger on button tap</div>
+                        <div class="palette-node-name">RCS Inbound</div>
+                        <div class="palette-node-desc">RCS reply or button tap</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="trigger_campaign">
+                    <div class="palette-node-icon trigger"><i class="fas fa-bullhorn"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Campaign Event</div>
+                        <div class="palette-node-desc">Campaign activity trigger</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="trigger_contact_event">
+                    <div class="palette-node-icon trigger"><i class="fas fa-address-book"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Contact Event</div>
+                        <div class="palette-node-desc">Contact book changes</div>
                     </div>
                 </div>
                 <div class="palette-node" draggable="true" data-type="trigger_schedule">
@@ -112,18 +133,46 @@
                         <div class="palette-node-desc">SMS or RCS message</div>
                     </div>
                 </div>
+                <div class="palette-node" draggable="true" data-type="contact">
+                    <div class="palette-node-icon action"><i class="fas fa-user-plus"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Contact</div>
+                        <div class="palette-node-desc">Create, update or delete</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="tag_action">
+                    <div class="palette-node-icon action"><i class="fas fa-tag"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Tag</div>
+                        <div class="palette-node-desc">Add or remove tags</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="list_action">
+                    <div class="palette-node-icon action"><i class="fas fa-list"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">List</div>
+                        <div class="palette-node-desc">Add or remove from list</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="optout_action">
+                    <div class="palette-node-icon action"><i class="fas fa-ban"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Opt-Out</div>
+                        <div class="palette-node-desc">Manage opt-out status</div>
+                    </div>
+                </div>
                 <div class="palette-node" draggable="true" data-type="webhook">
                     <div class="palette-node-icon action"><i class="fas fa-globe"></i></div>
                     <div class="palette-node-info">
                         <div class="palette-node-name">Webhook</div>
-                        <div class="palette-node-desc">Call external URL</div>
+                        <div class="palette-node-desc">Call external API</div>
                     </div>
                 </div>
-                <div class="palette-node" draggable="true" data-type="tag">
-                    <div class="palette-node-icon action"><i class="fas fa-tag"></i></div>
+                <div class="palette-node" draggable="true" data-type="action_group">
+                    <div class="palette-node-icon action"><i class="fas fa-layer-group"></i></div>
                     <div class="palette-node-info">
-                        <div class="palette-node-name">Tag / List</div>
-                        <div class="palette-node-desc">Add or remove tags</div>
+                        <div class="palette-node-name">Quick Steps</div>
+                        <div class="palette-node-desc">Multiple actions in one</div>
                     </div>
                 </div>
             </div>
@@ -146,6 +195,20 @@
                         <div class="palette-node-desc">If/else branching</div>
                     </div>
                 </div>
+                <div class="palette-node" draggable="true" data-type="decision_contact">
+                    <div class="palette-node-icon logic"><i class="fas fa-address-card"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Contact Decision</div>
+                        <div class="palette-node-desc">Branch on contact data</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="decision_webhook">
+                    <div class="palette-node-icon logic"><i class="fas fa-code-branch"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Webhook Decision</div>
+                        <div class="palette-node-desc">Branch on API response</div>
+                    </div>
+                </div>
             </div>
 
             <div class="palette-section">
@@ -157,6 +220,13 @@
                     <div class="palette-node-info">
                         <div class="palette-node-name">Inbox Handoff</div>
                         <div class="palette-node-desc">Transfer to agent</div>
+                    </div>
+                </div>
+                <div class="palette-node" draggable="true" data-type="flow_handoff">
+                    <div class="palette-node-icon end"><i class="fas fa-exchange-alt"></i></div>
+                    <div class="palette-node-info">
+                        <div class="palette-node-name">Flow Handoff</div>
+                        <div class="palette-node-desc">Continue in another flow</div>
                     </div>
                 </div>
                 <div class="palette-node" draggable="true" data-type="end">
@@ -229,7 +299,12 @@
 <script>
     window.__flowBuilderData = {
         senderIds: @json($sender_ids),
-        rcsAgents: @json($rcs_agents)
+        rcsAgents: @json($rcs_agents),
+        contactLists: @json($contact_lists ?? []),
+        tags: @json($tags ?? []),
+        optOutLists: @json($opt_out_lists ?? []),
+        activeFlows: @json($active_flows ?? []),
+        apiCredentials: @json($api_credentials ?? [])
     };
 </script>
 
@@ -328,6 +403,80 @@
                 <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-primary" id="flowKeywordApplyBtn" style="background: #886CC0; border-color: #886CC0;">
                     <i class="fas fa-check me-1"></i> Apply Keywords
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ==========================================
+     Credential Modal - Create API credentials inline
+     ========================================== --}}
+<div class="modal fade" id="flowCredentialModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header py-2 px-3" style="background: #f8f6fc; border-bottom: 1px solid #e8e0f0;">
+                <h6 class="modal-title mb-0"><i class="fas fa-key me-2" style="color: #886CC0;"></i>New API Credential</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; font-weight:600;">Name</label>
+                    <input type="text" class="form-control" id="credentialName" placeholder="e.g. Shopify Production" maxlength="100">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; font-weight:600;">Auth Type</label>
+                    <select class="form-select" id="credentialAuthType">
+                        <option value="none">None</option>
+                        <option value="basic">Basic Auth</option>
+                        <option value="bearer" selected>Bearer Token</option>
+                        <option value="api_key">API Key</option>
+                        <option value="custom_header">Custom Header</option>
+                    </select>
+                </div>
+                {{-- Conditional fields per auth type --}}
+                <div id="credentialFields-basic" class="credential-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Username</label>
+                        <input type="text" class="form-control" id="credentialBasicUser">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Password</label>
+                        <input type="password" class="form-control" id="credentialBasicPass">
+                    </div>
+                </div>
+                <div id="credentialFields-bearer" class="credential-fields">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Token</label>
+                        <input type="password" class="form-control" id="credentialBearerToken" placeholder="Bearer token...">
+                    </div>
+                </div>
+                <div id="credentialFields-api_key" class="credential-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Header Name</label>
+                        <input type="text" class="form-control" id="credentialApiKeyHeader" placeholder="X-API-Key" value="X-API-Key">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">API Key</label>
+                        <input type="password" class="form-control" id="credentialApiKeyValue">
+                    </div>
+                </div>
+                <div id="credentialFields-custom_header" class="credential-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Header Name</label>
+                        <input type="text" class="form-control" id="credentialCustomHeaderName" placeholder="X-Custom-Auth">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;">Header Value</label>
+                        <input type="password" class="form-control" id="credentialCustomHeaderValue">
+                    </div>
+                </div>
+                <div id="credentialError" class="alert alert-danger py-2 px-3 d-none" style="font-size:0.78rem;"></div>
+            </div>
+            <div class="modal-footer py-2 px-3">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary" id="flowCredentialSaveBtn" style="background: #886CC0; border-color: #886CC0;">
+                    <i class="fas fa-save me-1"></i> Save Credential
                 </button>
             </div>
         </div>
