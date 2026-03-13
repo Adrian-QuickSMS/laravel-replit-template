@@ -139,7 +139,8 @@ var RcsPreviewRenderer = (function() {
             return '<div class="rcs-message">' + renderCarousel(message.content) + '</div>';
         } else if (message.type === 'text') {
             var bubbleVariant = options.channel === 'sms' ? 'sms' : 'rcs';
-            return '<div class="rcs-message">' + renderTextBubble(message.content ? message.content.body : '', { variant: bubbleVariant }) + '</div>';
+            var textBody = message.body || (message.content ? message.content.body : '') || '';
+            return '<div class="rcs-message">' + renderTextBubble(textBody, { variant: bubbleVariant }) + '</div>';
         }
         return '';
     }

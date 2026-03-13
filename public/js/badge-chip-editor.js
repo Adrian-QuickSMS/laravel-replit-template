@@ -30,15 +30,19 @@
         this.el.setAttribute('role', 'textbox');
 
         var existingTextarea = this.container.querySelector('textarea');
-        if (existingTextarea) {
-            this.hiddenTextarea = existingTextarea;
+        var existingInput = !existingTextarea ? this.container.querySelector('input[type="text"]') : null;
+        var sourceEl = existingTextarea || existingInput;
+        if (sourceEl) {
+            this.hiddenTextarea = sourceEl;
             this.hiddenTextarea.style.display = 'none';
-            this.el.style.paddingBottom = existingTextarea.style.paddingBottom || '';
-            this.el.style.minHeight = (existingTextarea.rows * 1.5) + 'em';
-            if (existingTextarea.style.resize === 'none') {
-                this.el.style.resize = 'none';
+            if (existingTextarea) {
+                this.el.style.paddingBottom = existingTextarea.style.paddingBottom || '';
+                this.el.style.minHeight = (existingTextarea.rows * 1.5) + 'em';
+                if (existingTextarea.style.resize === 'none') {
+                    this.el.style.resize = 'none';
+                }
             }
-            existingTextarea.parentNode.insertBefore(this.el, existingTextarea);
+            sourceEl.parentNode.insertBefore(this.el, sourceEl);
         } else {
             this.hiddenTextarea = null;
             this.container.appendChild(this.el);

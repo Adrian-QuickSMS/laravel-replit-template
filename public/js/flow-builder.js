@@ -473,11 +473,13 @@
             '<div class="flow-node-header">' +
                 '<div class="node-icon ' + typeDef.category + '"><i class="fas ' + typeDef.icon + '"></i></div>' +
                 '<div style="flex:1; min-width:0;">' +
-                    '<div class="node-label">' + escapeHtml(node.label) + '</div>' +
                     '<div class="node-type-label">' + escapeHtml(typeDef.label) + '</div>' +
                 '</div>' +
             '</div>' +
-            '<div class="flow-node-body">' + bodyHtml + '</div>' +
+            '<div class="flow-node-body">' +
+                '<div class="node-label-editable" title="Double-click to rename">' + escapeHtml(node.label) + '</div>' +
+                (bodyHtml ? '<div class="node-body-summary">' + bodyHtml + '</div>' : '') +
+            '</div>' +
             actionBtnsHtml;
 
         // Add input port
@@ -509,9 +511,17 @@
                         self._toggleInteraction(node.id);
                     }
                 });
-                // Prevent drag from starting on button click
                 btn.addEventListener('mousedown', function(e) { e.stopPropagation(); });
             });
+        }
+
+        var labelEl = el.querySelector('.node-label-editable');
+        if (labelEl) {
+            labelEl.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                self._startInlineEdit(node.id, labelEl);
+            });
+            labelEl.addEventListener('mousedown', function(e) { e.stopPropagation(); });
         }
 
         this.nodesLayer.appendChild(el);
@@ -671,12 +681,23 @@
         }
 
         var configPreview = this._getConfigPreview(node);
-        el.querySelector('.node-label').textContent = node.label;
-        var bodyEl = el.querySelector('.flow-node-body');
+        var labelEditable = el.querySelector('.node-label-editable');
+        if (labelEditable) labelEditable.textContent = node.label;
+        var summaryEl = el.querySelector('.node-body-summary');
         if (configPreview) {
-            bodyEl.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
-        } else {
-            bodyEl.innerHTML = '<span style="color:#ccc; font-style:italic;">Click to configure</span>';
+            if (summaryEl) {
+                summaryEl.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
+            } else {
+                var bodyEl = el.querySelector('.flow-node-body');
+                if (bodyEl) {
+                    var newSummary = document.createElement('div');
+                    newSummary.className = 'node-body-summary';
+                    newSummary.innerHTML = '<div class="config-preview">' + escapeHtml(configPreview) + '</div>';
+                    bodyEl.appendChild(newSummary);
+                }
+            }
+        } else if (summaryEl) {
+            summaryEl.innerHTML = '<span style="color:#ccc; font-style:italic;">Click to configure</span>';
         }
     };
 
@@ -795,6 +816,44 @@
         if (el) el.classList.add('selected');
 
         this._showProperties(nodeId);
+    };
+
+    FlowBuilder.prototype._startInlineEdit = function(nodeId, labelEl) {
+        var self = this;
+        var node = this.nodes[nodeId];
+        if (!node) return;
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = node.label;
+        input.className = 'node-label-input';
+        input.maxLength = 60;
+
+        labelEl.style.display = 'none';
+        labelEl.parentNode.insertBefore(input, labelEl);
+        input.focus();
+        input.select();
+
+        var commit = function() {
+            var val = input.value.trim();
+            if (val && val !== node.label) {
+                self._saveUndo();
+                node.label = val;
+                self.isDirty = true;
+                var propInput = document.getElementById('prop-label');
+                if (propInput) propInput.value = val;
+            }
+            labelEl.textContent = node.label;
+            labelEl.style.display = '';
+            if (input.parentNode) input.parentNode.removeChild(input);
+        };
+
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') { input.value = node.label; input.blur(); }
+        });
+        input.addEventListener('mousedown', function(e) { e.stopPropagation(); });
     };
 
     FlowBuilder.prototype._deselectAll = function() {

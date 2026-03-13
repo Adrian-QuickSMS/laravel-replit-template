@@ -314,6 +314,37 @@
     color: #666;
     min-height: 30px;
 }
+.node-label-editable {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #333;
+    cursor: text;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.node-label-editable:hover {
+    background: rgba(136, 108, 192, 0.06);
+}
+.node-label-input {
+    width: 100%;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #333;
+    border: 1px solid #886CC0;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin-bottom: 4px;
+    outline: none;
+    background: #fff;
+}
+.node-body-summary {
+    font-size: 0.72rem;
+    color: #888;
+}
 .flow-node-body .config-preview {
     background: #f8f8f8;
     border-radius: 6px;
