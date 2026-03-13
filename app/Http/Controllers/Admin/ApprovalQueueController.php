@@ -107,6 +107,11 @@ class ApprovalQueueController extends Controller
 
     public function approveCountryRequest(Request $request, string $requestUuid)
     {
+        $adminRole = session('admin_auth.role');
+        if (!in_array($adminRole, ['super_admin', 'compliance'])) {
+            return response()->json(['success' => false, 'error' => 'Insufficient permissions.'], 403);
+        }
+
         $countryRequest = DB::table('country_requests')
             ->where('request_uuid', $requestUuid)
             ->whereNull('deleted_at')
@@ -116,8 +121,12 @@ class ApprovalQueueController extends Controller
             return response()->json(['success' => false, 'error' => 'Request not found.'], 404);
         }
 
-        $adminUser = session('admin_user');
-        $adminId = $adminUser['id'] ?? null;
+        if (!in_array($countryRequest->workflow_status, ['SUBMITTED', 'IN_REVIEW'])) {
+            return response()->json(['success' => false, 'error' => 'Request is not in a reviewable state.'], 422);
+        }
+
+        $adminId = session('admin_auth.admin_id');
+        $adminEmail = session('admin_auth.email', 'admin');
 
         DB::table('country_requests')
             ->where('id', $countryRequest->id)
@@ -153,7 +162,7 @@ class ApprovalQueueController extends Controller
                     'account_id' => $countryRequest->account_id,
                     'override_status' => 'allowed',
                     'reason' => 'Approved via country access request ' . $requestUuid,
-                    'created_by' => $adminUser['email'] ?? 'admin',
+                    'created_by' => $adminEmail,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -168,6 +177,11 @@ class ApprovalQueueController extends Controller
 
     public function rejectCountryRequest(Request $request, string $requestUuid)
     {
+        $adminRole = session('admin_auth.role');
+        if (!in_array($adminRole, ['super_admin', 'compliance'])) {
+            return response()->json(['success' => false, 'error' => 'Insufficient permissions.'], 403);
+        }
+
         $countryRequest = DB::table('country_requests')
             ->where('request_uuid', $requestUuid)
             ->whereNull('deleted_at')
@@ -177,8 +191,11 @@ class ApprovalQueueController extends Controller
             return response()->json(['success' => false, 'error' => 'Request not found.'], 404);
         }
 
-        $adminUser = session('admin_user');
-        $adminId = $adminUser['id'] ?? null;
+        if (!in_array($countryRequest->workflow_status, ['SUBMITTED', 'IN_REVIEW'])) {
+            return response()->json(['success' => false, 'error' => 'Request is not in a reviewable state.'], 422);
+        }
+
+        $adminId = session('admin_auth.admin_id');
 
         DB::table('country_requests')
             ->where('id', $countryRequest->id)

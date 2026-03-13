@@ -572,6 +572,24 @@
                         </span>
                         @endforeach
                         @endif
+                        @if(isset($approvedOverrides))
+                        @foreach($approvedOverrides as $override)
+                        @if(!isset($availableCountries) || !$availableCountries->where('default_status', 'allowed')->where('country_iso', $override->country_iso)->count())
+                        <span class="country-pill approved">
+                            <span class="status-dot approved"></span>
+                            {{ $override->country_name }}
+                        </span>
+                        @endif
+                        @endforeach
+                        @endif
+                        @if(isset($pendingRequests))
+                        @foreach($pendingRequests as $pending)
+                        <span class="country-pill pending">
+                            <span class="status-dot pending"></span>
+                            {{ $pending->country_name }}
+                        </span>
+                        @endforeach
+                        @endif
                         <button type="button" class="add-country-btn" data-bs-toggle="modal" data-bs-target="#addCountryModal">
                             <i class="fas fa-plus me-1"></i>Add Country
                         </button>
@@ -731,11 +749,26 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">Select Country</label>
+                    @php
+                        $excludedIsos = collect();
+                        if(isset($availableCountries)) {
+                            $excludedIsos = $excludedIsos->merge($availableCountries->where('default_status', 'allowed')->pluck('country_iso'));
+                        }
+                        if(isset($pendingRequests)) {
+                            $excludedIsos = $excludedIsos->merge($pendingRequests->pluck('country_code'));
+                        }
+                        if(isset($approvedOverrides)) {
+                            $excludedIsos = $excludedIsos->merge($approvedOverrides->pluck('country_iso'));
+                        }
+                        $excludedIsos = $excludedIsos->unique()->toArray();
+                    @endphp
                     <select class="form-select" id="newCountrySelect">
                         <option value="">Choose a country...</option>
                         @if(isset($availableCountries))
                         @foreach($availableCountries as $country)
+                        @if(!in_array($country->country_iso, $excludedIsos))
                         <option value="{{ $country->country_iso }}">{{ $country->country_name }} (+{{ $country->country_prefix }})</option>
+                        @endif
                         @endforeach
                         @endif
                     </select>

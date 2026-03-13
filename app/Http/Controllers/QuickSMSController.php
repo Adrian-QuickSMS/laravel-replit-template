@@ -4307,9 +4307,29 @@ class QuickSMSController extends Controller
         $availableCountries = \App\Models\CountryControl::orderBy('country_name')
             ->get(['id', 'country_iso', 'country_name', 'country_prefix', 'default_status']);
 
+        $accountId = session('customer_tenant_id');
+        $pendingRequests = collect();
+        $approvedOverrides = collect();
+
+        if ($accountId) {
+            $pendingRequests = \App\Models\CountryRequest::where('account_id', $accountId)
+                ->whereIn('workflow_status', ['SUBMITTED', 'IN_REVIEW'])
+                ->whereNull('deleted_at')
+                ->get(['country_code', 'country_name', 'workflow_status']);
+
+            $approvedOverrides = \Illuminate\Support\Facades\DB::table('country_control_overrides')
+                ->join('country_controls', 'country_control_overrides.country_control_id', '=', 'country_controls.id')
+                ->where('country_control_overrides.account_id', $accountId)
+                ->where('country_control_overrides.override_status', 'allowed')
+                ->select('country_controls.country_iso', 'country_controls.country_name')
+                ->get();
+        }
+
         return view('quicksms.account.security', [
             'page_title' => 'Security Settings',
             'availableCountries' => $availableCountries,
+            'pendingRequests' => $pendingRequests,
+            'approvedOverrides' => $approvedOverrides,
         ]);
     }
 
@@ -4327,8 +4347,29 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
+        $countryCode = strtoupper($request->input('country_code'));
+
+        $countryControl = \App\Models\CountryControl::where('country_iso', $countryCode)->first();
+        if (!$countryControl) {
+            return response()->json(['success' => false, 'message' => 'Invalid country code'], 422);
+        }
+
+        if ($countryControl->default_status === 'allowed') {
+            return response()->json(['success' => false, 'message' => 'This country is already allowed globally'], 409);
+        }
+
+        $existingOverride = \Illuminate\Support\Facades\DB::table('country_control_overrides')
+            ->where('country_control_id', $countryControl->id)
+            ->where('account_id', $accountId)
+            ->where('override_status', 'allowed')
+            ->first();
+
+        if ($existingOverride) {
+            return response()->json(['success' => false, 'message' => 'This country is already allowed for your account'], 409);
+        }
+
         $existing = \App\Models\CountryRequest::where('account_id', $accountId)
-            ->where('country_code', $request->input('country_code'))
+            ->where('country_code', $countryCode)
             ->whereIn('workflow_status', ['SUBMITTED', 'IN_REVIEW'])
             ->whereNull('deleted_at')
             ->first();
@@ -4340,8 +4381,8 @@ class QuickSMSController extends Controller
         $countryRequest = \App\Models\CountryRequest::create([
             'request_uuid' => \Illuminate\Support\Str::uuid(),
             'account_id' => $accountId,
-            'country_code' => strtoupper($request->input('country_code')),
-            'country_name' => $request->input('country_name'),
+            'country_code' => $countryCode,
+            'country_name' => $countryControl->country_name,
             'workflow_status' => 'SUBMITTED',
             'submitted_by' => $userId,
             'version' => 1,
