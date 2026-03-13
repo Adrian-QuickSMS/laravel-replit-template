@@ -5064,8 +5064,10 @@ var currentViewingCountryCode = null;
 var currentOverridesCache = {};
 
 function viewOverrides(countryCode) {
+    console.log('[CountryControls] viewOverrides called for:', countryCode);
     var country = countries.find(function(c) { return c.code === countryCode; });
-    if (!country) return;
+    if (!country) { console.warn('[CountryControls] Country not found for code:', countryCode); return; }
+    console.log('[CountryControls] Country found, id:', country.id, 'name:', country.name);
 
     currentViewingCountryCode = countryCode;
 
@@ -5087,12 +5089,22 @@ function viewOverrides(countryCode) {
     modal.show();
 
     var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
-    fetch('/admin/api/country-controls/' + country.id + '/overrides', {
-        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+    var fetchUrl = '/admin/api/country-controls/' + country.id + '/overrides';
+    console.log('[CountryControls] Fetching overrides from:', fetchUrl);
+    fetch(fetchUrl, {
+        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        credentials: 'same-origin'
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        console.log('[CountryControls] Overrides response status:', r.status);
+        if (!r.ok) {
+            throw new Error('HTTP ' + r.status);
+        }
+        return r.json();
+    })
     .then(function(data) {
-        if (data.success) {
+        console.log('[CountryControls] Overrides data:', data);
+        if (data.success && data.overrides) {
             currentOverridesCache[countryCode] = data.overrides;
             renderOverridesTable(countryCode, data.overrides);
         } else {
