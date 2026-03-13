@@ -25,4 +25,9 @@ class CountryControlOverride extends Model
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
+
+    protected $casts = [
+        'account_id' => 'string',
+        'created_by' => 'string',
+    ];
 }

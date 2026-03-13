@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\CountryPermissionCacheService;
+use App\Services\CountryPermissionCheckService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Country permission cache must be a singleton so L1 (in-process array)
+        // persists for the lifetime of the request.
+        $this->app->singleton(CountryPermissionCacheService::class);
+        $this->app->singleton(CountryPermissionCheckService::class);
     }
 
     /**

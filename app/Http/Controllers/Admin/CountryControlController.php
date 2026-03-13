@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CountryControl;
 use App\Models\CountryControlOverride;
+use App\Services\CountryPermissionCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CountryControlController extends Controller
 {
+    public function __construct(
+        private CountryPermissionCacheService $cacheService
+    ) {}
     public function index()
     {
         $countries = CountryControl::withCount('overrides')
@@ -41,6 +45,9 @@ class CountryControlController extends Controller
 
         $country = CountryControl::findOrFail($request->country_id);
         $country->update(['default_status' => $request->default_status]);
+
+        // Global default changed — invalidate all cached permissions
+        $this->cacheService->invalidateAll();
 
         return response()->json([
             'success' => true,
@@ -74,6 +81,9 @@ class CountryControlController extends Controller
 
         CountryControl::whereIn('id', $request->country_ids)
             ->update(['default_status' => $request->default_status]);
+
+        // Global defaults changed — invalidate all cached permissions
+        $this->cacheService->invalidateAll();
 
         $count = count($request->country_ids);
 
@@ -130,6 +140,7 @@ class CountryControlController extends Controller
                 'reason' => $request->reason,
                 'created_by' => $adminEmail,
             ]);
+            $this->cacheService->invalidateAccount($request->account_id);
             return response()->json(['success' => true, 'message' => 'Override updated.']);
         }
 
@@ -141,13 +152,18 @@ class CountryControlController extends Controller
             'created_by' => $adminEmail,
         ]);
 
+        $this->cacheService->invalidateAccount($request->account_id);
+
         return response()->json(['success' => true, 'message' => 'Override added.']);
     }
 
     public function deleteOverride($overrideId)
     {
         $override = CountryControlOverride::findOrFail($overrideId);
+        $accountId = $override->account_id;
         $override->delete();
+
+        $this->cacheService->invalidateAccount($accountId);
 
         return response()->json(['success' => true, 'message' => 'Override removed.']);
     }
