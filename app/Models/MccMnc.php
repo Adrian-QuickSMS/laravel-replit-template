@@ -16,6 +16,7 @@ class MccMnc extends Model
         'mnc',
         'country_name',
         'country_iso',
+        'country_prefix',
         'network_name',
         'network_type',
         'active',

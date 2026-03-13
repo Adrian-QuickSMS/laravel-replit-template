@@ -413,7 +413,11 @@
                     </td>
                     <td>{{ $network->network_name }}</td>
                     <td>
-                        <code class="country-prefix-code">{{ $network->mcc }}/{{ $network->mnc }}</code>
+                        @if($network->country_prefix)
+                        <code class="country-prefix-code">+{{ $network->country_prefix }}</code>
+                        @else
+                        <span class="text-muted">—</span>
+                        @endif
                     </td>
                     <td>
                         <span class="status-badge {{ $network->active ? 'active' : 'inactive' }}">
@@ -794,6 +798,16 @@
                             <input type="text" class="form-control" name="country_iso" maxlength="2" placeholder="e.g. GB" required>
                             <small class="text-muted">2-letter code</small>
                         </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Country Prefix</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+</span>
+                                <input type="text" class="form-control" name="country_prefix" maxlength="10" placeholder="e.g. 44">
+                            </div>
+                            <small class="text-muted">International dial code</small>
+                        </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-semibold">Network Type <span class="text-danger">*</span></label>
                             <select class="form-select" name="network_type">
@@ -862,13 +876,23 @@
                         <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="network_name" id="editNetworkName" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Network Type <span class="text-danger">*</span></label>
-                        <select class="form-select" name="network_type" id="editNetworkType">
-                            <option value="mobile">Mobile</option>
-                            <option value="fixed">Fixed</option>
-                            <option value="virtual">Virtual</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Network Type <span class="text-danger">*</span></label>
+                            <select class="form-select" name="network_type" id="editNetworkType">
+                                <option value="mobile">Mobile</option>
+                                <option value="fixed">Fixed</option>
+                                <option value="virtual">Virtual</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Country Prefix</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+</span>
+                                <input type="text" class="form-control" name="country_prefix" id="editCountryPrefix" maxlength="10" placeholder="e.g. 44">
+                            </div>
+                            <small class="text-muted">International dial code</small>
+                        </div>
                     </div>
 
                     <hr class="my-3">
@@ -971,6 +995,11 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
                             <select class="form-select" id="mapNetworkName"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Country Prefix <span class="text-muted">(optional)</span></label>
+                            <select class="form-select" id="mapCountryPrefix"></select>
+                            <small class="text-muted">International dial code (e.g. 44, 1, 33)</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Network Type <span class="text-muted">(optional)</span></label>
@@ -1160,10 +1189,13 @@ function submitAddMccMnc() {
         return;
     }
 
+    var countryPrefix = (form.querySelector('[name="country_prefix"]').value || '').trim();
+
     var payload = {
         network_name: networkName,
         country_name: countryName,
         country_iso: countryIso,
+        country_prefix: countryPrefix || null,
         network_type: networkType,
         entries: entries
     };
@@ -1210,6 +1242,7 @@ function editNetwork(networkId) {
             document.getElementById('editNetworkId').value = data.id;
             document.getElementById('editNetworkName').value = data.network_name;
             document.getElementById('editNetworkType').value = data.network_type || 'mobile';
+            document.getElementById('editCountryPrefix').value = data.country_prefix || '';
 
             const existingContainer = document.getElementById('editExistingMncs');
             existingContainer.innerHTML = '';
@@ -1264,6 +1297,7 @@ function submitEditMccMnc() {
     const networkId = document.getElementById('editNetworkId').value;
     const networkName = document.getElementById('editNetworkName').value;
     const networkType = document.getElementById('editNetworkType').value;
+    const countryPrefix = (document.getElementById('editCountryPrefix').value || '').trim();
 
     const newMncs = [];
     document.querySelectorAll('.edit-new-mnc-row').forEach(row => {
@@ -1283,6 +1317,7 @@ function submitEditMccMnc() {
         body: JSON.stringify({
             network_name: networkName,
             network_type: networkType,
+            country_prefix: countryPrefix || null,
             new_mncs: newMncs
         })
     })
@@ -1459,6 +1494,7 @@ function populateMappingDropdowns() {
         { id: 'mapCountryName', keywords: ['country_name','country name','country','countryname'] },
         { id: 'mapCountryIso', keywords: ['country_iso','iso','country_code','countryiso','country iso','cc'] },
         { id: 'mapNetworkName', keywords: ['network_name','network name','operator','network','networkname','carrier'] },
+        { id: 'mapCountryPrefix', keywords: ['country_prefix','prefix','dial_code','dial code','dialcode','country prefix','countryprefix','dial_prefix','dial prefix'], optional: true },
         { id: 'mapNetworkType', keywords: ['network_type','type','network type','networktype'], optional: true },
     ];
     fields.forEach(field => {
@@ -1483,16 +1519,18 @@ function buildPreviewTable() {
     const mapping = getMappingValues();
     const headerRow = document.getElementById('previewHeader');
     const tbody = document.getElementById('previewBody');
-    headerRow.innerHTML = '<th>MCC</th><th>MNC</th><th>Country</th><th>ISO</th><th>Network</th><th>Type</th>';
+    headerRow.innerHTML = '<th>MCC</th><th>MNC</th><th>Country</th><th>ISO</th><th>Prefix</th><th>Network</th><th>Type</th>';
     tbody.innerHTML = '';
     importState.preview.forEach(row => {
         const tr = document.createElement('tr');
         const typeVal = mapping.network_type !== '' ? (row[mapping.network_type] || 'mobile') : 'mobile';
+        const prefixVal = mapping.country_prefix !== '' ? (row[mapping.country_prefix] || '') : '';
         tr.innerHTML = `
             <td><code>${row[mapping.mcc] || ''}</code></td>
             <td><code>${row[mapping.mnc] || ''}</code></td>
             <td>${row[mapping.country_name] || ''}</td>
             <td>${row[mapping.country_iso] || ''}</td>
+            <td>${prefixVal ? '+' + prefixVal : '<span class="text-muted">—</span>'}</td>
             <td>${row[mapping.network_name] || ''}</td>
             <td>${typeVal}</td>`;
         tbody.appendChild(tr);
@@ -1508,6 +1546,7 @@ function getMappingValues() {
         country_name: parseInt(document.getElementById('mapCountryName').value),
         country_iso: parseInt(document.getElementById('mapCountryIso').value),
         network_name: parseInt(document.getElementById('mapNetworkName').value),
+        country_prefix: document.getElementById('mapCountryPrefix').value,
         network_type: document.getElementById('mapNetworkType').value,
     };
 }

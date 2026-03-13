@@ -45,16 +45,74 @@ class MccMncController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('entries')) {
+            $validated = $request->validate([
+                'country_name' => 'required|string',
+                'country_iso' => 'required|string|size:2',
+                'country_prefix' => 'nullable|string|max:10',
+                'network_name' => 'required|string',
+                'network_type' => 'required|in:mobile,fixed,virtual',
+                'entries' => 'required|array|min:1',
+                'entries.*.mcc' => 'required|string|size:3',
+                'entries.*.mnc' => 'required|string|max:3',
+            ]);
+
+            $created = 0;
+            $duplicates = [];
+
+            $countryPrefix = isset($validated['country_prefix']) ? ltrim($validated['country_prefix'], '+') : null;
+
+            foreach ($validated['entries'] as $entry) {
+                $exists = MccMnc::where('mcc', $entry['mcc'])
+                    ->where('mnc', $entry['mnc'])
+                    ->exists();
+
+                if ($exists) {
+                    $duplicates[] = $entry['mcc'] . '/' . $entry['mnc'];
+                    continue;
+                }
+
+                MccMnc::create([
+                    'mcc' => $entry['mcc'],
+                    'mnc' => $entry['mnc'],
+                    'country_name' => $validated['country_name'],
+                    'country_iso' => $validated['country_iso'],
+                    'country_prefix' => $countryPrefix ?: null,
+                    'network_name' => $validated['network_name'],
+                    'network_type' => $validated['network_type'],
+                    'active' => true,
+                ]);
+                $created++;
+            }
+
+            if ($created === 0 && !empty($duplicates)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'All MCC/MNC combinations already exist: ' . implode(', ', $duplicates),
+                ], 400);
+            }
+
+            $msg = "{$created} network(s) added successfully";
+            if (!empty($duplicates)) {
+                $msg .= '. Skipped duplicates: ' . implode(', ', $duplicates);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+            ]);
+        }
+
         $validated = $request->validate([
             'mcc' => 'required|string|size:3',
             'mnc' => 'required|string|max:3',
             'country_name' => 'required|string',
             'country_iso' => 'required|string|size:2',
+            'country_prefix' => 'nullable|string|max:10',
             'network_name' => 'required|string',
             'network_type' => 'required|in:mobile,fixed,virtual',
         ]);
 
-        // Check for duplicates
         $exists = MccMnc::where('mcc', $validated['mcc'])
             ->where('mnc', $validated['mnc'])
             ->exists();
@@ -64,6 +122,10 @@ class MccMncController extends Controller
                 'success' => false,
                 'message' => 'MCC/MNC combination already exists',
             ], 400);
+        }
+
+        if (isset($validated['country_prefix'])) {
+            $validated['country_prefix'] = ltrim($validated['country_prefix'], '+');
         }
 
         $validated['active'] = true;
@@ -80,10 +142,15 @@ class MccMncController extends Controller
     public function update(Request $request, MccMnc $mccMnc)
     {
         $validated = $request->validate([
-            'country_name' => 'required|string',
+            'country_name' => 'sometimes|required|string',
+            'country_prefix' => 'nullable|string|max:10',
             'network_name' => 'required|string',
             'network_type' => 'required|in:mobile,fixed,virtual',
         ]);
+
+        if (isset($validated['country_prefix'])) {
+            $validated['country_prefix'] = ltrim($validated['country_prefix'], '+');
+        }
 
         $mccMnc->update($validated);
 
@@ -173,54 +240,102 @@ class MccMncController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:csv',
-        ]);
+        $importId = $request->input('importId');
+        $mapping = $request->input('mapping');
 
-        $file = $request->file('file');
-        $handle = fopen($file->getRealPath(), 'r');
-        $header = fgetcsv($handle);
+        if (!$importId || !$mapping) {
+            return response()->json(['success' => false, 'message' => 'Missing import ID or column mapping.'], 400);
+        }
+
+        $sessionData = session("import_{$importId}");
+        if (!$sessionData || !file_exists($sessionData['path'])) {
+            return response()->json(['success' => false, 'message' => 'Import session expired. Please re-upload the file.'], 400);
+        }
+
+        $ext = $sessionData['ext'];
+
+        try {
+            if (in_array($ext, ['csv', 'txt'])) {
+                $handle = fopen($sessionData['path'], 'r');
+                $headers = fgetcsv($handle);
+                $rows = [];
+                while (($row = fgetcsv($handle)) !== false) {
+                    $rows[] = $row;
+                }
+                fclose($handle);
+            } else {
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::load($sessionData['path']);
+                $sheet = $reader->getActiveSheet();
+                $allRows = $sheet->toArray();
+                $headers = array_shift($allRows);
+                $rows = $allRows;
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to read file: ' . $e->getMessage()]);
+        }
 
         $imported = 0;
-        $skipped = 0;
+        $updated = 0;
         $errors = [];
 
-        while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($header, $row);
+        foreach ($rows as $index => $row) {
+            $rowNum = $index + 2;
 
-            // Skip if already exists
-            $exists = MccMnc::where('mcc', $data['mcc'])
-                ->where('mnc', $data['mnc'])
-                ->exists();
+            $mcc = trim($row[$mapping['mcc']] ?? '');
+            $mnc = trim($row[$mapping['mnc']] ?? '');
+            $countryName = trim($row[$mapping['country_name']] ?? '');
+            $countryIso = strtoupper(trim($row[$mapping['country_iso']] ?? ''));
+            $networkName = trim($row[$mapping['network_name']] ?? '');
+            $countryPrefix = isset($mapping['country_prefix']) && $mapping['country_prefix'] !== '' ? trim($row[$mapping['country_prefix']] ?? '') : null;
+            $networkType = isset($mapping['network_type']) && $mapping['network_type'] !== '' ? (trim($row[$mapping['network_type']] ?? '') ?: 'mobile') : 'mobile';
 
-            if ($exists) {
-                $skipped++;
+            if (!$mcc || !$mnc || !$countryName || !$countryIso || !$networkName) {
+                $errors[] = ['row' => $rowNum, 'error' => 'Missing required field(s)'];
                 continue;
             }
 
+            if ($countryPrefix) {
+                $countryPrefix = ltrim($countryPrefix, '+');
+            }
+
             try {
-                MccMnc::create([
-                    'mcc' => $data['mcc'],
-                    'mnc' => $data['mnc'],
-                    'country_name' => $data['country_name'],
-                    'country_iso' => $data['country_iso'],
-                    'network_name' => $data['network_name'],
-                    'network_type' => $data['network_type'] ?? 'mobile',
-                    'active' => true,
-                ]);
-                $imported++;
+                $existing = MccMnc::where('mcc', $mcc)->where('mnc', $mnc)->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'country_name' => $countryName,
+                        'country_iso' => $countryIso,
+                        'country_prefix' => $countryPrefix ?: $existing->country_prefix,
+                        'network_name' => $networkName,
+                        'network_type' => $networkType,
+                    ]);
+                    $updated++;
+                } else {
+                    MccMnc::create([
+                        'mcc' => $mcc,
+                        'mnc' => $mnc,
+                        'country_name' => $countryName,
+                        'country_iso' => $countryIso,
+                        'country_prefix' => $countryPrefix ?: null,
+                        'network_name' => $networkName,
+                        'network_type' => $networkType,
+                        'active' => true,
+                    ]);
+                    $imported++;
+                }
             } catch (\Exception $e) {
-                $errors[] = "Row {$data['mcc']}-{$data['mnc']}: " . $e->getMessage();
+                $errors[] = ['row' => $rowNum, 'error' => "MCC {$mcc}/MNC {$mnc}: " . $e->getMessage()];
             }
         }
 
-        fclose($handle);
+        @unlink($sessionData['path']);
+        session()->forget("import_{$importId}");
 
         return response()->json([
             'success' => true,
-            'message' => "Imported {$imported} networks, skipped {$skipped} duplicates",
+            'message' => "Imported {$imported} new, updated {$updated} existing networks",
             'imported' => $imported,
-            'skipped' => $skipped,
+            'updated' => $updated,
             'errors' => $errors,
         ]);
     }

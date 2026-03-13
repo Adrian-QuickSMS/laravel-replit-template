@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **API Connections:** `api_connections`, `api_connection_audit_events`.
 - **Numbers:** `vmn_pool`, `purchased_numbers`, `shortcode_keywords`, `number_assignments`, `number_auto_reply_rules`.
 - **Routing Rules:** `routing_rules`, `routing_gateway_weights`, `routing_customer_overrides`, `routing_audit_log`.
-- **Supplier Rate Cards:** `suppliers`, `gateways`, `mcc_mnc_master`, `rate_cards`, `fx_rates`, `rate_card_audit_log`.
+- **Supplier Rate Cards:** `suppliers`, `gateways`, `mcc_mnc_master` (includes `country_prefix` for international dial codes, backfilled from PhoneNumberUtils PREFIX_MAP), `rate_cards`, `fx_rates`, `rate_card_audit_log`.
 - **Reporting:** Financial data with drill-down capabilities.
 - **RCS Media Assets:** `rcs_assets` (tenant-scoped, draft lifecycle, daily cleanup), managed by `RcsAssetService` for image processing and `RcsContentValidator` for content integrity.
 - **Message Templates:** `message_templates` with version tracking (`message_template_versions`), a status lifecycle (draft, active, suspended, archived), and `message_template_audit_log` for changes.
