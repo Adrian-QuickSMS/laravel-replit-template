@@ -4,8 +4,12 @@
 
 /* Override layout for full-canvas experience */
 .content-body.flow-builder-page {
+    height: 100vh !important;
     min-height: 0 !important;
-    padding: 0 !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
     overflow: hidden !important;
 }
 .flow-builder-page .qsms-main {

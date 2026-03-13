@@ -345,26 +345,6 @@
 <script src="{{ asset('js/flow-builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var cb = document.querySelector('.content-body.flow-builder-page');
-    function sizeFlowBuilder() {
-        if (!cb) return;
-        window.scrollTo(0, 0);
-        var top = cb.getBoundingClientRect().top;
-        if (top < 1) {
-            var header = document.querySelector('.header');
-            top = header ? header.offsetHeight : 72;
-        }
-        cb.style.height = Math.max(window.innerHeight - top, 200) + 'px';
-    }
-    sizeFlowBuilder();
-    setTimeout(sizeFlowBuilder, 300);
-    window.addEventListener('resize', sizeFlowBuilder);
-    var banner = document.getElementById('test-mode-activation-banner');
-    if (banner) {
-        new MutationObserver(function() { setTimeout(sizeFlowBuilder, 20); })
-            .observe(banner, { attributes: true, attributeFilter: ['style'] });
-    }
-
     var flowId = document.getElementById('flow-id').value;
     var flowDataRaw = document.getElementById('flow-data').value;
     var flowData = flowDataRaw ? JSON.parse(flowDataRaw) : null;
