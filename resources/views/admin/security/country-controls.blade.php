@@ -2588,7 +2588,7 @@ var CountryPrecedenceService = (function() {
     }
 
     function getAccountOverride(countryCode, accountId, subAccountId) {
-        var overrides = mockOverridesData[countryCode] || [];
+        var overrides = overridesCache[countryCode] || [];
         
         if (subAccountId) {
             var subOverride = overrides.find(function(o) {
@@ -2678,7 +2678,7 @@ var CountryPrecedenceService = (function() {
     }
 
     function buildGlobalChangeConfirmation(data) {
-        var overrideCount = (mockOverridesData[data.countryCode] || []).length;
+        var overrideCount = (overridesCache[data.countryCode] || []).length;
         var msg = 'Change global default for ' + data.countryName + ' to ' + 
                   (data.newStatus === 'allowed' ? 'ALLOWED' : 'BLOCKED') + '?\n\n';
         
@@ -2794,8 +2794,8 @@ var SharedPolicyStore = (function() {
             };
         });
 
-        Object.keys(mockOverridesData).forEach(function(countryCode) {
-            policyStore.accountOverrides[countryCode] = mockOverridesData[countryCode].map(function(override) {
+        Object.keys(overridesCache).forEach(function(countryCode) {
+            policyStore.accountOverrides[countryCode] = overridesCache[countryCode].map(function(override) {
                 return {
                     accountId: override.accountId,
                     accountName: override.accountName,
@@ -2805,22 +2805,6 @@ var SharedPolicyStore = (function() {
                     appliedBy: override.appliedBy
                 };
             });
-        });
-
-        (window.mockReviewData || []).forEach(function(request) {
-            var key = request.accountId + ':' + request.countryCode;
-            policyStore.pendingRequests[key] = {
-                requestId: request.id,
-                accountId: request.accountId,
-                accountName: request.accountName,
-                subAccountId: request.subAccountId,
-                subAccountName: request.subAccountName,
-                countryCode: request.countryCode,
-                countryName: request.countryName,
-                status: request.status,
-                submittedAt: request.submittedAt,
-                reason: request.reason
-            };
         });
 
         console.log('[SharedPolicyStore] Initialized with', Object.keys(policyStore.globalDefaults).length, 'countries');
@@ -4612,8 +4596,8 @@ window.toggleSelectAllAccounts = toggleSelectAllAccounts;
 window.filterAccountOptions = filterAccountOptions;
 window.removeAccountFromSelection = removeAccountFromSelection;
 
-window.mockAccounts = {!! json_encode($accounts ?? []) !!};
-var mockAccounts = window.mockAccounts;
+window.accountsList = {!! json_encode($accounts ?? []) !!};
+var accountsList = window.accountsList;
 
 function initAccountTypeahead() {
     var searchInput = document.getElementById('addOverrideAccountSearch');
@@ -4640,11 +4624,11 @@ function initAccountTypeahead() {
         var query = this.value.toLowerCase().trim();
         
         if (query.length === 0) {
-            renderAccountList(mockAccounts);
+            renderAccountList(accountsList);
             return;
         }
 
-        var filtered = mockAccounts.filter(function(account) {
+        var filtered = accountsList.filter(function(account) {
             return account.name.toLowerCase().includes(query) || 
                    account.id.toLowerCase().includes(query);
         });
@@ -4661,9 +4645,9 @@ function initAccountTypeahead() {
     searchInput.addEventListener('focus', function() {
         var query = this.value.toLowerCase().trim();
         if (query.length === 0) {
-            renderAccountList(mockAccounts);
+            renderAccountList(accountsList);
         } else {
-            var filtered = mockAccounts.filter(function(account) {
+            var filtered = accountsList.filter(function(account) {
                 return account.name.toLowerCase().includes(query) || 
                        account.id.toLowerCase().includes(query);
             });
@@ -4673,7 +4657,7 @@ function initAccountTypeahead() {
 }
 
 function selectAccount(accountId) {
-    var account = mockAccounts.find(function(a) { return a.id === accountId; });
+    var account = accountsList.find(function(a) { return a.id === accountId; });
     if (!account) return;
 
     document.getElementById('addOverrideAccountId').value = account.id;
@@ -4769,7 +4753,7 @@ function populateAccountOptions() {
     var optionsContainer = document.getElementById('accountMultiselectOptions');
     optionsContainer.innerHTML = '';
     
-    mockAccounts.forEach(function(account) {
+    accountsList.forEach(function(account) {
         var isSelected = selectedAccountsForOverride.some(function(a) { return a.id === account.id; });
         var statusClass = account.status === 'live' ? 'live' : 'test';
         
@@ -4818,7 +4802,7 @@ function closeAccountDropdown() {
 }
 
 function toggleAccountSelection(accountId) {
-    var account = mockAccounts.find(function(a) { return a.id === accountId; });
+    var account = accountsList.find(function(a) { return a.id === accountId; });
     if (!account) return;
     
     var existingIndex = selectedAccountsForOverride.findIndex(function(a) { return a.id === accountId; });
@@ -4891,7 +4875,7 @@ function toggleSelectAllAccounts() {
 
 function getVisibleAccounts() {
     var searchTerm = document.getElementById('accountMultiselectSearch').value.toLowerCase();
-    return mockAccounts.filter(function(account) {
+    return accountsList.filter(function(account) {
         return account.name.toLowerCase().indexOf(searchTerm) >= 0 || 
                account.accountNumber.toLowerCase().indexOf(searchTerm) >= 0;
     });
@@ -4909,15 +4893,15 @@ function filterAccountOptions() {
     var searchInput = document.getElementById('accountMultiselectSearch');
     var optionsContainer = document.getElementById('accountMultiselectOptions');
     
-    // Guard against null elements or undefined mockAccounts
-    if (!searchInput || !optionsContainer || !mockAccounts) {
+    // Guard against null elements or undefined accountsList
+    if (!searchInput || !optionsContainer || !accountsList) {
         return;
     }
     
     var searchTerm = searchInput.value.toLowerCase();
     optionsContainer.innerHTML = '';
     
-    var filteredAccounts = mockAccounts.filter(function(account) {
+    var filteredAccounts = accountsList.filter(function(account) {
         return account.name.toLowerCase().indexOf(searchTerm) >= 0 || 
                account.accountNumber.toLowerCase().indexOf(searchTerm) >= 0;
     });
@@ -5022,7 +5006,7 @@ function openRemoveOverrideModal(countryCode) {
     var select = document.getElementById('removeOverrideSelect');
     select.innerHTML = '<option value="">Choose an override...</option>';
     
-    var overrides = mockOverridesData[countryCode] || [];
+    var overrides = overridesCache[countryCode] || [];
     if (overrides.length === 0) {
         select.innerHTML = '<option value="">No overrides exist for this country</option>';
         select.disabled = true;
@@ -5053,7 +5037,7 @@ function confirmRemoveOverride() {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
 
-    var overrides = mockOverridesData[countryCode] || [];
+    var overrides = overridesCache[countryCode] || [];
     var removedOverride = overrides[parseInt(overrideIndex)];
 
     CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
@@ -5066,7 +5050,7 @@ function confirmRemoveOverride() {
     }, { emitToCustomerAudit: true });
 
     overrides.splice(parseInt(overrideIndex), 1);
-    mockOverridesData[countryCode] = overrides;
+    overridesCache[countryCode] = overrides;
     country.overrides = overrides.length;
 
     bootstrap.Modal.getInstance(document.getElementById('removeOverrideModal')).hide();
@@ -5075,7 +5059,7 @@ function confirmRemoveOverride() {
     showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
-var mockOverridesData = {};
+var overridesCache = {};
 var currentViewingCountryCode = null;
 var currentOverridesCache = {};
 
