@@ -509,3 +509,14 @@ These rules MUST be followed by any AI agent or developer modifying Phase 2 code
 - [ ] Credential modal saves, adds to dropdown, auto-selects in webhook node
 - [ ] Templates load with correct node type keys (tag_action, not tag)
 - [ ] Canvas preview text renders for all node types
+
+---
+
+## 9. Known Limitations (Phase 3 Backlog)
+
+| Node | Limitation | Notes |
+|------|-----------|-------|
+| `trigger_campaign` | No runtime event handler | Configurable on canvas and persists to DB, but no backend listener fires this trigger. Phase 3. |
+| `trigger_contact_event` | No runtime event handler | Same as above — contact book events don't dispatch to flows yet. Phase 3. |
+| `flow_handoff` | No runtime executor | Saves `target_flow_id` in config, but no backend logic transfers execution to the target flow. Phase 3. |
+| `ApiCredential.creator()` | Tenant-scoped User relationship | The User model has a global tenant scope. If credentials are loaded with `->with('creator')` in a cross-tenant admin context, the relationship may return null. Not currently an issue since `creator()` is not eager-loaded anywhere, but worth noting for future admin tooling. |

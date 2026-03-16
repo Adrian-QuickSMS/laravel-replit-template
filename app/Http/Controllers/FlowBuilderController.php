@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Models\Flow;
 use App\Models\FlowNode;
 use App\Models\FlowConnection;
@@ -178,6 +179,20 @@ class FlowBuilderController extends Controller
             'connections.*.label' => 'nullable|string|max:255',
             'canvas_meta' => 'nullable|array',
         ]);
+
+        // Validate action_group step types
+        $allowedStepTypes = ['add_tag', 'remove_tag', 'add_to_list', 'remove_from_list', 'add_optout', 'remove_optout', 'update_contact', 'wait'];
+        foreach ($request->input('nodes', []) as $i => $node) {
+            if (($node['type'] ?? '') === 'action_group' && !empty($node['config']['steps'])) {
+                foreach ($node['config']['steps'] as $j => $step) {
+                    if (!in_array($step['type'] ?? '', $allowedStepTypes, true)) {
+                        throw ValidationException::withMessages([
+                            "nodes.{$i}.config.steps.{$j}.type" => 'Invalid step type.',
+                        ]);
+                    }
+                }
+            }
+        }
 
         $nodeUids = collect($request->nodes)->pluck('node_uid')->toArray();
         foreach ($request->connections as $conn) {
