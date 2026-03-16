@@ -138,9 +138,9 @@ Route::middleware('customer.auth')->prefix('flows')->controller(\App\Http\Contro
 // API Credentials vault (for webhook/API nodes in Flow Builder)
 Route::middleware('customer.auth')->prefix('api-credentials')->controller(\App\Http\Controllers\ApiCredentialController::class)->group(function () {
     Route::get('/', 'index')->name('api-credentials.index');
-    Route::post('/', 'store')->name('api-credentials.store');
-    Route::put('/{id}', 'update')->name('api-credentials.update');
-    Route::delete('/{id}', 'destroy')->name('api-credentials.destroy');
+    Route::post('/', 'store')->middleware('permission:manage_api_credentials')->name('api-credentials.store');
+    Route::put('/{id}', 'update')->middleware('permission:manage_api_credentials')->name('api-credentials.update');
+    Route::delete('/{id}', 'destroy')->middleware('permission:manage_api_credentials')->name('api-credentials.destroy');
 });
 
 Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {

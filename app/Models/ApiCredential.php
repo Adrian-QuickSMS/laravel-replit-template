@@ -14,6 +14,8 @@ class ApiCredential extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'account_id',
+        'created_by',
         'name',
         'auth_type',
         'credentials',

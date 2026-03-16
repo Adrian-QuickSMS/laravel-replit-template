@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\ApiCredential;
+use App\Models\AccountAuditLog;
+use App\Services\Audit\AuditContext;
 
 class ApiCredentialController extends Controller
 {
@@ -53,6 +56,20 @@ class ApiCredentialController extends Controller
             'description' => $request->description,
         ]);
 
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record(
+                session('customer_tenant_id'),
+                'api_credential_created',
+                $actor['user_id'],
+                $actor['user_name'],
+                "API credential '{$credential->name}' created",
+                ['credential_id' => $credential->id, 'auth_type' => $credential->auth_type]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record api_credential_created', ['error' => $e->getMessage()]);
+        }
+
         return response()->json([
             'success' => true,
             'credential' => [
@@ -78,12 +95,32 @@ class ApiCredentialController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
+        $oldValues = $credential->only(['name', 'auth_type', 'description']);
+
         if ($request->has('name')) $credential->name = $request->name;
         if ($request->has('auth_type')) $credential->auth_type = $request->auth_type;
         if ($request->has('credentials')) $credential->credentials = $request->credentials;
         if ($request->has('description')) $credential->description = $request->description;
 
         $credential->save();
+
+        try {
+            $actor = AuditContext::actor();
+            $changes = AuditContext::diff($oldValues, $credential->only(['name', 'auth_type', 'description']));
+            if ($request->has('credentials')) {
+                $changes['credentials'] = ['from' => '[REDACTED]', 'to' => '[REDACTED]'];
+            }
+            AccountAuditLog::record(
+                $accountId,
+                'api_credential_updated',
+                $actor['user_id'],
+                $actor['user_name'],
+                "API credential '{$credential->name}' updated",
+                ['credential_id' => $credential->id, 'changes' => $changes]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record api_credential_updated', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
@@ -102,7 +139,23 @@ class ApiCredentialController extends Controller
     {
         $accountId = session('customer_tenant_id');
         $credential = ApiCredential::forAccount($accountId)->findOrFail($id);
+        $credentialName = $credential->name;
+        $credentialId = $credential->id;
         $credential->delete();
+
+        try {
+            $actor = AuditContext::actor();
+            AccountAuditLog::record(
+                $accountId,
+                'api_credential_deleted',
+                $actor['user_id'],
+                $actor['user_name'],
+                "API credential '{$credentialName}' deleted",
+                ['credential_id' => $credentialId]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AuditLog] Failed to record api_credential_deleted', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,

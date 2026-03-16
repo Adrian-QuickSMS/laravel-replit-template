@@ -3004,12 +3004,17 @@
             if (headerName) credentials.headers[headerName] = headerValue;
         }
 
-        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) {
+            errorEl.textContent = 'Session expired. Please refresh the page.';
+            errorEl.classList.remove('d-none');
+            return;
+        }
         fetch('/api-credentials', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                'X-CSRF-TOKEN': csrfMeta.content,
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ name: name, auth_type: authType, credentials: credentials })
