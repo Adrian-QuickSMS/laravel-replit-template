@@ -1342,7 +1342,7 @@
                 var elRect = el.getBoundingClientRect();
                 var zoom = self.zoom || 1;
                 var portX = node.x + (portRect.left - elRect.left + portRect.width / 2) / zoom;
-                var portY = node.y + (portRect.top - elRect.top + portRect.height / 2) / zoom;
+                var portY = node.y + (portRect.top - elRect.top + portRect.height) / zoom;
                 return { x: portX, y: portY };
             }
         }
