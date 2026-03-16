@@ -994,7 +994,7 @@
         input.maxLength = isDesc ? 200 : 60;
         if (isDesc) { input.rows = 2; input.placeholder = 'Describe this step...'; }
 
-        targetEl.style.display = 'none';
+        targetEl.classList.add('d-none');
         targetEl.parentNode.insertBefore(input, targetEl);
         input.focus();
         if (!isDesc) input.select();
@@ -1021,7 +1021,7 @@
                 }
                 targetEl.textContent = node.label;
             }
-            targetEl.style.display = '';
+            targetEl.classList.remove('d-none');
             if (input.parentNode) input.parentNode.removeChild(input);
         };
 
@@ -1052,7 +1052,8 @@
         var title = document.getElementById('properties-title');
 
         title.textContent = typeDef.label + ' Settings';
-        panel.style.display = 'flex';
+        panel.classList.remove('d-none');
+        panel.classList.add('d-flex');
 
         var html = '';
         html += '<div class="mb-3">';
@@ -1146,7 +1147,11 @@
                     triggerInput.addEventListener('change', function() {
                         var wrap = body.querySelector('.config-field-wrap[data-field-key="' + field.key + '"]');
                         if (wrap) {
-                            wrap.style.display = field.showWhen.values.indexOf(triggerInput.value) >= 0 ? '' : 'none';
+                            if (field.showWhen.values.indexOf(triggerInput.value) >= 0) {
+                                wrap.classList.remove('d-none');
+                            } else {
+                                wrap.classList.add('d-none');
+                            }
                         }
                     });
                 }
@@ -1202,7 +1207,9 @@
     };
 
     FlowBuilder.prototype._hideProperties = function() {
-        document.getElementById('flow-properties').style.display = 'none';
+        var propertiesPanel = document.getElementById('flow-properties');
+        propertiesPanel.classList.add('d-none');
+        propertiesPanel.classList.remove('d-flex');
     };
 
     // ========================================
@@ -1556,7 +1563,11 @@
             document.querySelectorAll('.palette-node').forEach(function(el) {
                 var name = el.querySelector('.palette-node-name').textContent.toLowerCase();
                 var desc = el.querySelector('.palette-node-desc').textContent.toLowerCase();
-                el.style.display = (name.indexOf(query) >= 0 || desc.indexOf(query) >= 0 || !query) ? 'flex' : 'none';
+                if (name.indexOf(query) >= 0 || desc.indexOf(query) >= 0 || !query) {
+                    el.classList.remove('d-none');
+                } else {
+                    el.classList.add('d-none');
+                }
             });
         });
     };
@@ -1848,7 +1859,11 @@
     FlowBuilder.prototype._updateEmptyState = function() {
         var hasNodes = Object.keys(this.nodes).length > 0;
         if (this.emptyState) {
-            this.emptyState.style.display = hasNodes ? 'none' : 'block';
+            if (hasNodes) {
+                this.emptyState.classList.add('d-none');
+            } else {
+                this.emptyState.classList.remove('d-none');
+            }
         }
     };
 
@@ -2226,7 +2241,7 @@
             renderForChannel('sms');
         }
 
-        var modal = new bootstrap.Modal(modalEl);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     };
 
@@ -2335,7 +2350,7 @@
             });
         }
 
-        var modal = new bootstrap.Modal(modalEl);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     };
 
@@ -2359,7 +2374,7 @@
         iframe.src = '';
 
         // Show the modal
-        var modal = new bootstrap.Modal(modalEl);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
 
         // Load the send-message page with flow context
@@ -2763,9 +2778,9 @@
                 var listWrap = document.getElementById('dc-list-wrap');
                 var tagWrap = document.getElementById('dc-tag-wrap');
                 var optWrap = document.getElementById('dc-optout-wrap');
-                if (listWrap) listWrap.style.display = (condSel.value === 'in_list' || condSel.value === 'not_in_list') ? '' : 'none';
-                if (tagWrap) tagWrap.style.display = (condSel.value === 'has_tag' || condSel.value === 'not_has_tag') ? '' : 'none';
-                if (optWrap) optWrap.style.display = (condSel.value === 'is_opted_out' || condSel.value === 'not_opted_out') ? '' : 'none';
+                if (listWrap) { (condSel.value === 'in_list' || condSel.value === 'not_in_list') ? listWrap.classList.remove('d-none') : listWrap.classList.add('d-none'); }
+                if (tagWrap) { (condSel.value === 'has_tag' || condSel.value === 'not_has_tag') ? tagWrap.classList.remove('d-none') : tagWrap.classList.add('d-none'); }
+                if (optWrap) { (condSel.value === 'is_opted_out' || condSel.value === 'not_opted_out') ? optWrap.classList.remove('d-none') : optWrap.classList.add('d-none'); }
                 self._refreshNode(nodeId);
                 self.isDirty = true;
             });
@@ -2864,8 +2879,8 @@
                     if (elId === 'prop-dw-condition-type') {
                         var jsonWrap = document.getElementById('dw-json-path-wrap');
                         var compareWrap = document.getElementById('dw-compare-wrap');
-                        if (jsonWrap) jsonWrap.style.display = el.value.indexOf('json_path') === 0 ? '' : 'none';
-                        if (compareWrap) compareWrap.style.display = (el.value !== 'json_path_exists' && el.value !== 'response_empty') ? '' : 'none';
+                        if (jsonWrap) { el.value.indexOf('json_path') === 0 ? jsonWrap.classList.remove('d-none') : jsonWrap.classList.add('d-none'); }
+                        if (compareWrap) { (el.value !== 'json_path_exists' && el.value !== 'response_empty') ? compareWrap.classList.remove('d-none') : compareWrap.classList.add('d-none'); }
                     }
 
                     self._refreshNode(nodeId);
@@ -2945,16 +2960,16 @@
             self._saveCredential(nodeId);
         });
 
-        var modal = new bootstrap.Modal(modalEl);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     };
 
     FlowBuilder.prototype._toggleCredentialFields = function(authType) {
         document.querySelectorAll('.credential-fields').forEach(function(el) {
-            el.style.display = 'none';
+            el.classList.add('d-none');
         });
         var target = document.getElementById('credentialFields-' + authType);
-        if (target) target.style.display = '';
+        if (target) target.classList.remove('d-none');
     };
 
     FlowBuilder.prototype._saveCredential = function(nodeId) {

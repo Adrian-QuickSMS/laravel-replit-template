@@ -14,13 +14,11 @@ class ApiCredential extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'account_id',
         'name',
         'auth_type',
         'credentials',
         'description',
         'last_used_at',
-        'created_by',
     ];
 
     protected $casts = [

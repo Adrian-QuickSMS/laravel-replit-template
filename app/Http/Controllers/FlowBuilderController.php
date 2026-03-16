@@ -166,7 +166,7 @@ class FlowBuilderController extends Controller
             'description' => 'sometimes|nullable|string|max:1000',
             'nodes' => 'required|array',
             'nodes.*.node_uid' => 'required|string|max:64',
-            'nodes.*.type' => 'required|string|max:50',
+            'nodes.*.type' => 'required|in:trigger_api,trigger_webhook,trigger_sms_inbound,trigger_rcs_inbound,trigger_campaign,trigger_contact_event,trigger_schedule,send_message,contact,tag_action,list_action,optout_action,webhook,action_group,wait,decision,decision_contact,decision_webhook,inbox_handoff,flow_handoff,end',
             'nodes.*.label' => 'nullable|string|max:255',
             'nodes.*.config' => 'nullable|array',
             'nodes.*.position_x' => 'required|numeric',
