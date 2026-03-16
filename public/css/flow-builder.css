@@ -690,7 +690,7 @@
 
 /* ---- Dynamic Interaction Ports ---- */
 .interaction-ports-container {
-    padding: 8px 12px 14px 12px;
+    padding: 8px 12px 18px 12px;
     border-top: 1px dashed #e0e0e0;
     display: flex;
     gap: 0;
@@ -703,6 +703,7 @@
     padding: 0 10px;
     display: flex;
     flex-direction: column;
+    overflow: visible;
 }
 .interaction-group:first-child {
     padding-left: 0;
@@ -747,6 +748,7 @@
     padding-top: 6px;
     margin-top: auto;
     position: relative;
+    overflow: visible;
 }
 .interaction-group-ports .node-port {
     position: relative !important;
@@ -755,7 +757,7 @@
     right: auto !important;
     bottom: auto !important;
     flex-shrink: 0;
-    margin: 0 3px -7px 3px;
+    margin: 0 3px -6px 3px;
 }
 /* Dynamic ports: white fill by default, coloured border from inline style */
 .port-output-dynamic {

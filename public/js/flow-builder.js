@@ -1340,8 +1340,9 @@
             if (portEl) {
                 var portRect = portEl.getBoundingClientRect();
                 var elRect = el.getBoundingClientRect();
-                var portX = node.x + (portRect.left - elRect.left + portRect.width / 2);
-                var portY = node.y + (portRect.top - elRect.top + portRect.height);
+                var zoom = self.zoom || 1;
+                var portX = node.x + (portRect.left - elRect.left + portRect.width / 2) / zoom;
+                var portY = node.y + (portRect.top - elRect.top + portRect.height / 2) / zoom;
                 return { x: portX, y: portY };
             }
         }
