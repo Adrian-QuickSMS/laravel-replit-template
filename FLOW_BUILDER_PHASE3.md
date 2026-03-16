@@ -21,10 +21,17 @@
 7. [Live Flow Monitor](#7-live-flow-monitor)
 8. [Flow Analytics Dashboard](#8-flow-analytics-dashboard)
 9. [Runtime Node Handlers](#9-runtime-node-handlers)
-10. [Frontend Changes](#10-frontend-changes)
-11. [Routes & Controllers](#11-routes--controllers)
-12. [Anti-Drift Rules (Phase 3 Additions)](#12-anti-drift-rules-phase-3-additions)
-13. [Implementation Order](#13-implementation-order)
+10. [Entry/Exit Rules & Journey Guards](#10-entryexit-rules--journey-guards)
+11. [Frequency Capping](#11-frequency-capping)
+12. [Flow Versioning & Snapshots](#12-flow-versioning--snapshots)
+13. [Dry Run / Simulation Mode](#13-dry-run--simulation-mode)
+14. [Cost Estimation](#14-cost-estimation)
+15. [Flow Permissions](#15-flow-permissions)
+16. [Frontend Changes](#16-frontend-changes)
+17. [Routes & Controllers](#17-routes--controllers)
+18. [Anti-Drift Rules (Phase 3 Additions)](#18-anti-drift-rules-phase-3-additions)
+19. [Implementation Order](#19-implementation-order)
+20. [Considered and Deferred (Phase 4+)](#20-considered-and-deferred-phase-4)
 
 ---
 
@@ -40,6 +47,12 @@
 | **A/B Split Node** | New logic node — split contacts into branches by ratio, measure which performs better |
 | **Live Monitor** | Real-time overlay on the canvas — node count badges, contact status, click-to-inspect |
 | **Analytics Dashboard** | Conversion funnel, drop-off analysis, message performance per node, cost tracking |
+| **Entry/Exit Rules** | Journey guards — re-entry control (once per contact, cooldown), exit on opt-out or flow entry |
+| **Frequency Capping** | Account-level daily/weekly message limits, enforced across all flows and campaigns |
+| **Flow Versioning** | Increment version on save, snapshot graph at run start so edits don't affect active runs |
+| **Dry Run Mode** | Simulate a flow without sending messages or calling webhooks — show predicted path |
+| **Cost Estimation** | Pre-run cost estimate using PricingEngine + audience size before clicking Start Run |
+| **Flow Permissions** | `manage_flows` + `activate_flows` permissions gating flow CRUD and activation |
 
 ### What Already Exists (Phase 2 → Phase 3 Bridges)
 
@@ -175,6 +188,18 @@ CREATE TABLE flow_ab_results (
 -- flows table: add columns
 ALTER TABLE flows ADD COLUMN total_runs integer DEFAULT 0;
 ALTER TABLE flows ADD COLUMN last_run_at timestamptz;
+ALTER TABLE flows ADD COLUMN entry_rules jsonb DEFAULT NULL;
+    -- {"max_entries_per_contact": 1, "cooldown_hours": 168, "allow_reentry": false}
+ALTER TABLE flows ADD COLUMN exit_rules jsonb DEFAULT NULL;
+    -- {"exit_on_optout": true, "exit_on_reply_stop": true, "exit_on_flow_entry": []}
+
+-- flow_runs table: add snapshot column
+ALTER TABLE flow_runs ADD COLUMN flow_snapshot jsonb DEFAULT NULL;
+    -- Frozen copy of nodes + connections at run start. Execution reads from this, not live tables.
+
+-- accounts table: add frequency caps
+ALTER TABLE accounts ADD COLUMN frequency_caps jsonb DEFAULT NULL;
+    -- {"daily_max": 3, "weekly_max": 10, "monthly_max": null}
 ```
 
 ---
@@ -1111,7 +1136,381 @@ ResumeFlowContact::dispatch($contact->id, $nodeUid)
 
 ---
 
-## 10. Frontend Changes
+## 10. Entry/Exit Rules & Journey Guards
+
+### Problem
+
+Without guards, contacts can accidentally enter flows repeatedly (e.g., welcome message sent 3 times) or remain stuck in flows after opting out.
+
+### Entry Rules
+
+Stored in `flows.entry_rules` (JSONB column):
+
+```json
+{
+    "max_entries_per_contact": 1,
+    "cooldown_hours": 168,
+    "allow_reentry": false
+}
+```
+
+| Rule | Default | Effect |
+|------|---------|--------|
+| `max_entries_per_contact` | `null` (unlimited) | Contact can only enter this flow N times total |
+| `cooldown_hours` | `null` (none) | After entering, contact must wait N hours before re-entering |
+| `allow_reentry` | `true` | If false, contact can never re-enter once they've completed/exited |
+
+**Enforcement** in `FlowRunService::startRun()`:
+
+```php
+private function checkEntryRules(Flow $flow, string $mobileNumber): bool
+{
+    $rules = $flow->entry_rules ?? [];
+
+    if ($maxEntries = $rules['max_entries_per_contact'] ?? null) {
+        $count = FlowRunContact::whereHas('flowRun', fn($q) => $q->where('flow_id', $flow->id))
+            ->where('mobile_number', $mobileNumber)
+            ->count();
+        if ($count >= $maxEntries) return false;
+    }
+
+    if ($cooldown = $rules['cooldown_hours'] ?? null) {
+        $recent = FlowRunContact::whereHas('flowRun', fn($q) => $q->where('flow_id', $flow->id))
+            ->where('mobile_number', $mobileNumber)
+            ->where('entered_at', '>=', now()->subHours($cooldown))
+            ->exists();
+        if ($recent) return false;
+    }
+
+    return true;
+}
+```
+
+### Exit Rules
+
+Stored in `flows.exit_rules` (JSONB column):
+
+```json
+{
+    "exit_on_optout": true,
+    "exit_on_reply_stop": true,
+    "exit_on_flow_entry": ["uuid-of-other-flow"]
+}
+```
+
+| Rule | Default | Effect |
+|------|---------|--------|
+| `exit_on_optout` | `true` | Cancel contact if they opt out while in this flow |
+| `exit_on_reply_stop` | `true` | Cancel contact if they reply STOP/UNSUBSCRIBE |
+| `exit_on_flow_entry` | `[]` | Cancel contact if they enter any of the listed flows |
+
+**Enforcement**: When an opt-out or inbound STOP is received, check all active flow runs for that contact and cancel them if the exit rule applies. When a new flow run starts for a contact, check if other active flows have `exit_on_flow_entry` that includes the new flow's ID.
+
+### Frontend — Flow Settings Panel
+
+Add a "Settings" tab alongside the properties panel:
+
+```
+┌─────────────────────────────────────────────┐
+│  Flow Settings                              │
+│                                             │
+│  Entry Rules                                │
+│  Max entries per contact: [ 1       ]       │
+│  Cooldown between entries: [ 168 ] hours    │
+│  ☐ Allow re-entry after completion          │
+│                                             │
+│  Exit Rules                                 │
+│  ☑ Exit on opt-out                          │
+│  ☑ Exit on STOP reply                       │
+│  Exit if contact enters: [ Select flows ▼]  │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 11. Frequency Capping
+
+### Problem
+
+Without frequency capping, a contact could receive messages from multiple flows AND campaigns simultaneously, leading to message fatigue and opt-outs.
+
+### Account-Level Configuration
+
+New `frequency_caps` JSONB column on `accounts` table:
+
+```json
+{
+    "daily_max": 3,
+    "weekly_max": 10,
+    "monthly_max": null
+}
+```
+
+`null` = no cap for that window.
+
+### Enforcement
+
+Enforced in `DeliveryService` (used by BOTH campaign batch sending and flow `SendMessageHandler`), making it a universal safety net:
+
+```php
+private function checkFrequencyCap(string $accountId, string $mobileNumber): bool
+{
+    $caps = Account::find($accountId)->frequency_caps;
+    if (!$caps) return true;
+
+    if ($dailyMax = $caps['daily_max'] ?? null) {
+        $todayCount = MessageLog::where('account_id', $accountId)
+            ->where('mobile_number', $mobileNumber)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+        if ($todayCount >= $dailyMax) return false;
+    }
+
+    if ($weeklyMax = $caps['weekly_max'] ?? null) {
+        $weekCount = MessageLog::where('account_id', $accountId)
+            ->where('mobile_number', $mobileNumber)
+            ->where('created_at', '>=', now()->startOfWeek())
+            ->count();
+        if ($weekCount >= $weeklyMax) return false;
+    }
+
+    return true;
+}
+```
+
+When cap is hit in a flow, `SendMessageHandler` returns `NodeResult::wait()` until the next window opens. When cap is hit in a campaign, the recipient is marked as `skipped` with reason `frequency_cap`.
+
+### Migration
+
+```sql
+ALTER TABLE accounts ADD COLUMN frequency_caps jsonb DEFAULT NULL;
+```
+
+---
+
+## 12. Flow Versioning & Snapshots
+
+### Problem
+
+If a user edits a flow while a run is active, the changes could corrupt in-progress contact journeys (nodes moved, deleted, or reconfigured).
+
+### Version Increment
+
+In `FlowBuilderController::save()`, increment the version on every save:
+
+```php
+$flow->increment('version');
+```
+
+### Graph Snapshot at Run Start
+
+New `flow_snapshot` JSONB column on `flow_runs` table:
+
+```php
+// FlowRunService::startRun()
+$run = FlowRun::create([
+    // ... existing fields ...
+    'flow_snapshot' => [
+        'version' => $flow->version,
+        'nodes' => $flow->nodes->map(fn($n) => $n->only(['node_uid', 'type', 'label', 'config', 'position_x', 'position_y']))->toArray(),
+        'connections' => $flow->connections->map(fn($c) => $c->only(['source_node_uid', 'target_node_uid', 'source_handle', 'label']))->toArray(),
+    ],
+]);
+```
+
+### Execution Reads from Snapshot
+
+The `ExecuteFlowNode` job resolves nodes and connections from `$run->flow_snapshot`, NOT from the live `flow_nodes` / `flow_connections` tables:
+
+```php
+$snapshot = $run->flow_snapshot;
+$node = collect($snapshot['nodes'])->firstWhere('node_uid', $this->nodeUid);
+$connections = collect($snapshot['connections'])->where('source_node_uid', $this->nodeUid);
+```
+
+This means users can freely edit a flow while a run is active — the active run uses its frozen snapshot.
+
+### Save Guard
+
+When saving a flow that has active runs, show a warning:
+> "This flow has an active run with X contacts in progress. Your changes will only apply to future runs."
+
+---
+
+## 13. Dry Run / Simulation Mode
+
+### Purpose
+
+Allow users to simulate a flow run without actually sending messages, making webhook calls, or modifying contacts. Shows the predicted path through the graph.
+
+### How It Works
+
+```php
+// FlowRunService::startRun()
+public function startRun(Flow $flow, array $triggerConfig, ?string $userId = null, bool $dryRun = false): FlowRun
+{
+    $run = FlowRun::create([
+        // ... existing fields ...
+        'status' => $dryRun ? 'simulated' : 'pending',
+    ]);
+    // ... rest of start logic, with dryRun flag propagated to jobs
+}
+```
+
+### Handler Behavior in Dry Run
+
+Each handler checks `$context->isDryRun`:
+
+```php
+// SendMessageHandler
+if ($ctx->isDryRun) {
+    return NodeResult::advance('default', [
+        'message.simulated' => true,
+        'message.would_send_to' => $contact->mobile_number,
+        'message.channel' => $config['channel'],
+        'message.content_preview' => substr($resolvedContent, 0, 100),
+    ]);
+}
+
+// WebhookHandler
+if ($ctx->isDryRun) {
+    return NodeResult::advance('success', [
+        'webhook.simulated' => true,
+        'webhook.would_call' => $url,
+        'webhook.method' => $config['method'],
+    ]);
+}
+
+// WaitHandler — skip the actual delay
+if ($ctx->isDryRun) {
+    return NodeResult::advance('default', ['wait.simulated' => true, 'wait.would_wait_seconds' => $seconds]);
+}
+
+// DecisionHandler — evaluate condition normally (can still branch yes/no)
+// No special dry run logic needed — decisions don't have side effects
+```
+
+### Simulation with Limited Contacts
+
+For audience triggers with large audiences, dry run processes only a sample (first 10 contacts) to show the path without running the full audience.
+
+### Frontend
+
+"Test Run" button alongside "Start Run":
+```html
+<button class="btn btn-outline-secondary" id="dryRunBtn">
+    <i class="fas fa-flask"></i> Test Run
+</button>
+```
+
+Shows results in a modal: the simulated path for each sample contact, with annotations on what each node would have done.
+
+---
+
+## 14. Cost Estimation
+
+### Purpose
+
+Before starting a real run, show the estimated cost so users can confirm before committing budget.
+
+### Endpoint
+
+`POST /flows/{id}/estimate-cost`
+
+```php
+public function estimateCost(Request $request, $id)
+{
+    $flow = Flow::forAccount($accountId)->findOrFail($id);
+    $triggerNode = $flow->nodes->firstWhere('type', 'trigger_audience');
+
+    // Count audience
+    $audienceCount = $this->resolveAudienceCount($triggerNode->config['recipient_sources'] ?? []);
+
+    // Count send_message nodes in the flow
+    $messageNodes = $flow->nodes->whereIn('type', ['send_message']);
+
+    // Estimate: each contact hits each message node (worst case)
+    // Use PricingEngine for cost per message
+    $avgCostPerMessage = $this->pricingEngine->getAverageRate($accountId, 'sms');
+    $estimatedMessages = $audienceCount * $messageNodes->count();
+    $estimatedCost = $estimatedMessages * $avgCostPerMessage;
+
+    return response()->json([
+        'audience_count' => $audienceCount,
+        'message_nodes' => $messageNodes->count(),
+        'estimated_messages' => $estimatedMessages,
+        'estimated_cost' => round($estimatedCost, 2),
+        'currency' => $account->currency ?? 'ZAR',
+        'note' => 'Estimate assumes all contacts reach all message nodes. Actual cost may be lower due to branching.',
+    ]);
+}
+```
+
+### Frontend — Start Run Confirmation
+
+```
+┌───────────────────────────────────────────────┐
+│  Start Flow Run                               │
+│                                               │
+│  Audience: 4,339 contacts                     │
+│  Message nodes: 2                             │
+│  Estimated messages: 8,678                    │
+│  Estimated cost: R 521.00                     │
+│                                               │
+│  ⓘ Estimate assumes all contacts reach all    │
+│    message nodes. Actual cost may be lower.   │
+│                                               │
+│  [ Cancel ]              [ Start Run ]        │
+└───────────────────────────────────────────────┘
+```
+
+---
+
+## 15. Flow Permissions
+
+### New Permissions
+
+Add to `User::ROLE_DEFAULT_PERMISSIONS` for all 7 roles:
+
+| Role | `manage_flows` | `activate_flows` |
+|------|----------------|-------------------|
+| owner | true | true |
+| admin | true | true |
+| messaging_manager | true | true |
+| finance | false | false |
+| developer | true | true |
+| user | false | false |
+| readonly | false | false |
+
+`manage_flows` = create, edit, delete, duplicate flows
+`activate_flows` = change status (draft → active, pause, cancel runs)
+
+### Route Middleware
+
+```php
+// Flow CRUD — requires manage_flows
+Route::post('/flows', ...)->middleware('permission:manage_flows');
+Route::put('/flows/{id}/save', ...)->middleware('permission:manage_flows');
+Route::delete('/flows/{id}', ...)->middleware('permission:manage_flows');
+Route::post('/flows/{id}/duplicate', ...)->middleware('permission:manage_flows');
+
+// Flow activation — requires activate_flows
+Route::put('/flows/{id}/status', ...)->middleware('permission:activate_flows');
+Route::post('/flows/{id}/run', ...)->middleware('permission:activate_flows');
+Route::put('/flows/runs/{runId}/pause', ...)->middleware('permission:activate_flows');
+Route::put('/flows/runs/{runId}/cancel', ...)->middleware('permission:activate_flows');
+
+// Read-only — open to all authenticated users
+Route::get('/flows', ...);           // List
+Route::get('/flows/builder/{id?}', ...);  // View canvas
+Route::get('/flows/{id}/load', ...);      // Load data
+Route::get('/flows/{id}/runs', ...);      // View runs
+Route::get('/flows/{id}/analytics', ...); // View analytics
+```
+
+---
+
+## 16. Frontend Changes
 
 ### New/Modified UI Components
 
@@ -1160,7 +1559,7 @@ When a flow is active, the toolbar shows run controls:
 
 ---
 
-## 11. Routes & Controllers
+## 17. Routes & Controllers
 
 ### New Routes
 
@@ -1210,7 +1609,7 @@ Route::get('/messages/send', [MessageController::class, 'send']);
 
 ---
 
-## 12. Anti-Drift Rules (Phase 3 Additions)
+## 18. Anti-Drift Rules (Phase 3 Additions)
 
 ### DO
 
@@ -1223,6 +1622,11 @@ Route::get('/messages/send', [MessageController::class, 'send']);
 7. **Log every node execution** in `flow_run_logs` — this is the audit trail and analytics source
 8. **Use `DB::raw('counter + 1')`** for atomic counter increments on stats (not read-modify-write)
 9. **Scope all FlowRun queries to account_id** — same tenant isolation pattern as Phase 2
+10. **Enforce entry rules before creating FlowRunContact records** — check max entries and cooldown in FlowRunService::startRun()
+11. **Enforce frequency caps in DeliveryService** — not in individual handlers. This ensures both flow and campaign sending respect the same limits
+12. **Read from flow_snapshot during execution** — never from live flow_nodes/flow_connections tables
+13. **Increment flow.version on every save** — never leave version stale
+14. **Gate flow routes with permission middleware** — manage_flows for CRUD, activate_flows for status/run operations
 
 ### DO NOT
 
@@ -1233,6 +1637,9 @@ Route::get('/messages/send', [MessageController::class, 'send']);
 5. **Never fan-out contacts at decision/split nodes** — one contact follows exactly one branch
 6. **Never block the queue** with long-running webhook calls — use `Http::timeout(30)` max
 7. **Never expose `flow_run_contacts.variables` in list endpoints** — it may contain PII. Only expose in detail view with permission check
+8. **Never skip entry rule checks** — even for API-triggered flows
+9. **Never bypass frequency caps** — even for test mode (use separate test credit limits instead)
+10. **Never execute from live flow graph during a run** — always use the frozen snapshot
 
 ### When Adding New Node Types (Updated for Phase 3)
 
@@ -1245,63 +1652,86 @@ All Phase 2 rules still apply, plus:
 
 ---
 
-## 13. Implementation Order
+## 19. Implementation Order
+
+### Wave 0 — Configuration & Permissions (Prerequisites)
+
+```
+0a. Add manage_flows and activate_flows to User::ROLE_DEFAULT_PERMISSIONS (all 7 roles)
+0b. Add permission:manage_flows middleware to flow CRUD routes
+0c. Add permission:activate_flows middleware to status change and run routes
+0d. Migration: add entry_rules (JSONB) and exit_rules (JSONB) columns to flows table
+0e. Migration: add frequency_caps (JSONB) column to accounts table
+0f. Migration: add flow_snapshot (JSONB) column to flow_runs table
+```
+
+**Milestone**: Permission-gated flow routes. Schema ready for entry/exit rules, frequency caps, and versioned snapshots.
 
 ### Wave 1 — Foundation (Engine + Schema)
 
 ```
 1. Database migrations (flow_runs, flow_run_contacts, flow_run_logs, flow_ab_results)
 2. Models (FlowRun, FlowRunContact, FlowRunLog, FlowAbResult)
-3. NodeHandler contract + NodeResult
+3. NodeHandler contract + NodeResult + NodeExecutionContext (with isDryRun flag)
 4. NodeHandlerRegistry
 5. Simple handlers: TriggerPassthroughHandler, EndHandler, WaitHandler
 6. FlowRunService (startRun, advanceContact, checkCompletion)
-7. ExecuteFlowNode job
-8. ResumeFlowContact job
-9. FlowRunController (start, pause, resume, cancel)
+7. Entry rule enforcement in FlowRunService::startRun()
+8. Exit rule enforcement (check on optout/STOP events)
+9. Flow graph snapshot at run start (freeze nodes+connections into flow_runs.flow_snapshot)
+10. Increment flow.version on every save in FlowBuilderController::save()
+11. ExecuteFlowNode job (reads from snapshot, not live tables)
+12. ResumeFlowContact job
+13. FlowRunController (start, pause, resume, cancel)
+14. Dry run mode (dryRun flag → handlers log but don't execute)
 ```
 
-**Milestone**: Can run a simple flow (Trigger → Wait → End) with a single hardcoded contact.
+**Milestone**: Can run a simple flow (Trigger → Wait → End) with a single hardcoded contact. Entry rules enforced. Dry run works.
 
 ### Wave 2 — Audience Trigger + Sending
 
 ```
-10. trigger_audience node type (JS, PHP model, PHP validation — the 22nd type)
-11. Audience trigger properties renderer (iframe integration)
-12. /messages/send?context=flow&mode=audience iframe mode
-13. Audience resolution in FlowRunService (reuse RecipientResolverService)
-14. SendMessageHandler (integrate with DeliveryService)
-15. Run controls in toolbar (Start Run button, Pause, Cancel)
+15. trigger_audience node type (JS, PHP model, PHP validation — the 22nd type)
+16. Audience trigger properties renderer (iframe integration)
+17. /messages/send?context=flow&mode=audience iframe mode
+18. Audience resolution in FlowRunService (reuse RecipientResolverService)
+19. SendMessageHandler (integrate with DeliveryService)
+20. Cost estimation endpoint: POST /flows/{id}/estimate-cost
+21. Start Run confirmation dialog with estimated cost
+22. Run controls in toolbar (Start Run, Test Run, Pause, Cancel)
+23. Flow settings panel (entry/exit rules UI)
 ```
 
-**Milestone**: Can build a flow with audience trigger + send message, select contacts, and run it.
+**Milestone**: Can build a flow with audience trigger + send message, select contacts, see cost estimate, and run it.
 
-### Wave 3 — All Handlers
+### Wave 3 — All Handlers + Frequency Capping
 
 ```
-16. ContactActionHandler
-17. TagActionHandler
-18. ListActionHandler
-19. OptOutActionHandler
-20. WebhookHandler (with credential loading)
-21. ActionGroupHandler (runs steps sequentially)
-22. DecisionHandler
-23. DecisionContactHandler
-24. DecisionWebhookHandler
-25. InboxHandoffHandler
-26. FlowHandoffHandler
+24. ContactActionHandler
+25. TagActionHandler
+26. ListActionHandler
+27. OptOutActionHandler
+28. WebhookHandler (with credential loading)
+29. ActionGroupHandler (runs steps sequentially)
+30. DecisionHandler
+31. DecisionContactHandler
+32. DecisionWebhookHandler
+33. InboxHandoffHandler
+34. FlowHandoffHandler
+35. Frequency cap enforcement in DeliveryService (account-level daily/weekly limits)
+36. Per-contact message count check in SendMessageHandler
 ```
 
-**Milestone**: All 21 existing node types execute at runtime.
+**Milestone**: All 21 existing node types execute at runtime. Frequency capping active.
 
 ### Wave 4 — Variables
 
 ```
-27. Variable resolution in FlowRunService
-28. Variable output from each handler (merge into contact.variables)
-29. Variable picker UI component
-30. Variable insertion in text fields ({{ }} button)
-31. Upstream variable detection (_getAvailableVariables)
+37. Variable resolution in FlowRunService
+38. Variable output from each handler (merge into contact.variables)
+39. Variable picker UI component
+40. Variable insertion in text fields ({{ }} button)
+41. Upstream variable detection (_getAvailableVariables)
 ```
 
 **Milestone**: Variables flow between nodes. Messages can use `{{contact.first_name}}`.
@@ -1309,11 +1739,11 @@ All Phase 2 rules still apply, plus:
 ### Wave 5 — A/B Split
 
 ```
-32. ab_split node type (JS, PHP model, PHP validation — the 23rd type)
-33. A/B Split properties renderer (branch editor)
-34. AbSplitHandler
-35. Dynamic output ports for A/B/C branches
-36. FlowAbResult tracking
+42. ab_split node type (JS, PHP model, PHP validation — the 23rd type)
+43. A/B Split properties renderer (branch editor)
+44. AbSplitHandler
+45. Dynamic output ports for A/B/C branches
+46. FlowAbResult tracking
 ```
 
 **Milestone**: Can split contacts into branches and track which performs better.
@@ -1321,12 +1751,12 @@ All Phase 2 rules still apply, plus:
 ### Wave 6 — Live Monitor
 
 ```
-37. Stats endpoint (FlowRunController::stats)
-38. Monitor overlay component (badges on nodes)
-39. Polling logic (5-second interval while run active)
-40. Contact inspector modal (click node → see contacts)
-41. Node contacts endpoint
-42. Run status bar in toolbar
+47. Stats endpoint (FlowRunController::stats)
+48. Monitor overlay component (badges on nodes)
+49. Polling logic (5-second interval while run active)
+50. Contact inspector modal (click node → see contacts)
+51. Node contacts endpoint
+52. Run status bar in toolbar
 ```
 
 **Milestone**: Real-time visibility into running flows.
@@ -1334,12 +1764,12 @@ All Phase 2 rules still apply, plus:
 ### Wave 7 — Analytics
 
 ```
-43. FlowAnalyticsService (funnel, timeline, cost)
-44. FlowAnalyticsController
-45. Analytics tab view (funnel chart, stats cards)
-46. A/B results view
-47. Run history list
-48. Export (CSV of contacts/results)
+53. FlowAnalyticsService (funnel, timeline, cost)
+54. FlowAnalyticsController
+55. Analytics tab view (funnel chart, stats cards)
+56. A/B results view
+57. Run history list
+58. Export (CSV of contacts/results)
 ```
 
 **Milestone**: Full analytics dashboard with conversion funnel and A/B comparison.
@@ -1401,4 +1831,29 @@ resources/views/quicksms/flows/
 public/
     js/flow-monitor.js                  # Live monitoring overlay (separate file)
     css/flow-monitor.css                # Monitor styles (separate file)
+
+database/migrations/ (Wave 0 additions)
+    2026_03_16_000025_add_entry_exit_rules_to_flows_table.php
+    2026_03_16_000026_add_frequency_caps_to_accounts_table.php
+    2026_03_16_000027_add_flow_snapshot_to_flow_runs_table.php
 ```
+
+---
+
+## 20. Considered and Deferred (Phase 4+)
+
+The following features were evaluated during Phase 3 planning and intentionally deferred. They are documented here so future developers know they were considered, not forgotten.
+
+| Feature | Why Deferred | Prerequisite |
+|---------|-------------|--------------|
+| **Event Bus Trigger** (Kafka/Redis/SQS) | Premature — Laravel queues handle expected scale. The NodeHandler interface is decoupled enough to swap execution backends later. | Phase 3 engine running at scale |
+| **Channel Router Node** | Achievable with existing Decision node + `rcs_capable` condition. A dedicated node is syntactic sugar. | None — can be built anytime |
+| **Link Tracking Service** | Platform-wide feature, not flow-specific. Needs URL shortener, redirect endpoint, click event dispatching. `trackable_link` fields already exist on MessageTemplate and send_message config. | Standalone platform service |
+| **AI Journey Optimisation** | Requires running engine + historical engagement data. AI flow generation, content optimization, and drop-off detection need months of flow execution data to be useful. | Phase 3 complete + data accumulation |
+| **Redis Flow Graph Cache** | Optimization to avoid DB lookups per node. Simple to add but premature until performance profiling shows it's needed. | Performance bottleneck identified |
+| **Distributed Worker Pools** | Separate queues per node type (flow-wait, flow-webhook, flow-message). Over-engineering for pre-launch. Single `flows` queue is sufficient initially. | Queue contention at scale |
+| **UX Polish** (minimap, node search, step grouping) | Nice-to-have canvas improvements. Focus Phase 3 on making flows run, not making the canvas prettier. | Phase 3 complete |
+| **Journey Orchestration Layer** | Meta-layer where Journey = collection of flows (onboarding + engagement + reactivation). `flow_handoff` already enables basic flow chaining. | Single flows working perfectly |
+| **Send-Time Optimization** | "Send when user most active" requires historical engagement data per contact. | Engagement history data |
+| **Unified Customer Timeline** | CDP view showing all messages, flows, events for a contact in one timeline. The Contact model with custom_data covers the data layer. | Multiple features generating data |
+| **Campaign Approval Workflow for Flows** | Require manager approval before activating a flow. Routes for `campaign-approvals` already exist as a pattern to follow. | Permission system stable |
