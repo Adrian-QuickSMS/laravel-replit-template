@@ -669,8 +669,24 @@
         this.nodesLayer.appendChild(el);
     };
 
+    FlowBuilder.prototype._getPortShades = function(groupKey, count) {
+        var baseColors = {
+            rcs:     { h: 286, s: 65, lBase: 35, lStep: 12 },
+            sms:     { h: 210, s: 70, lBase: 35, lStep: 14 },
+            timeout: { h: 30,  s: 85, lBase: 40, lStep: 0  }
+        };
+        var cfg = baseColors[groupKey] || { h: 0, s: 0, lBase: 50, lStep: 8 };
+        var shades = [];
+        for (var i = 0; i < count; i++) {
+            var l = Math.min(cfg.lBase + (i * cfg.lStep), 72);
+            shades.push('hsl(' + cfg.h + ', ' + cfg.s + '%, ' + l + '%)');
+        }
+        return shades;
+    };
+
     // Renders output ports on a node element (handles static and dynamic outputs)
     FlowBuilder.prototype._renderOutputPorts = function(el, node) {
+        var self = this;
         var typeDef = NODE_TYPES[node.type];
         var outputs = this._getNodeOutputs(node);
 
@@ -696,6 +712,9 @@
             var groupLabels = { rcs: 'RCS', sms: 'SMS', timeout: 'Response' };
 
             groupOrder.forEach(function(groupKey) {
+                var items = groups[groupKey];
+                var shades = self._getPortShades(groupKey, items.length);
+
                 var groupDiv = document.createElement('div');
                 groupDiv.className = 'interaction-group group-' + groupKey;
 
@@ -705,13 +724,16 @@
                 groupLabel.textContent = groupText;
                 groupDiv.appendChild(groupLabel);
 
-                groups[groupKey].forEach(function(item) {
+                items.forEach(function(item, i) {
+                    var color = shades[i];
                     var row = document.createElement('div');
                     row.className = 'interaction-port-row';
 
                     var label = document.createElement('span');
-                    label.className = 'interaction-port-label port-label-' + item.out.group;
+                    label.className = 'interaction-port-label';
                     label.textContent = item.out.label;
+                    label.style.color = color;
+                    label.style.fontWeight = '600';
                     row.appendChild(label);
 
                     groupDiv.appendChild(row);
@@ -719,9 +741,12 @@
 
                 var groupPortsRow = document.createElement('div');
                 groupPortsRow.className = 'interaction-group-ports';
-                groups[groupKey].forEach(function(item) {
+                items.forEach(function(item, i) {
+                    var color = shades[i];
                     var port = document.createElement('div');
-                    port.className = 'node-port port-output-dynamic port-' + item.out.group;
+                    port.className = 'node-port port-output-dynamic';
+                    port.style.borderColor = color;
+                    port.style.setProperty('--port-color', color);
                     port.setAttribute('data-port', 'output');
                     port.setAttribute('data-handle', item.out.handle);
                     port.setAttribute('data-node-id', node.id);
@@ -1313,11 +1338,10 @@
         if (typeDef.dynamicOutputs && node.config && node.config.interaction_enabled) {
             var portEl = el.querySelector('.node-port[data-handle="' + handle + '"]');
             if (portEl) {
-                // Get position relative to node element
                 var portRect = portEl.getBoundingClientRect();
                 var elRect = el.getBoundingClientRect();
                 var portX = node.x + (portRect.left - elRect.left + portRect.width / 2);
-                var portY = node.y + (portRect.top - elRect.top + portRect.height / 2);
+                var portY = node.y + (portRect.top - elRect.top + portRect.height);
                 return { x: portX, y: portY };
             }
         }
@@ -1353,6 +1377,15 @@
             path.setAttribute('class', 'connection-line');
             path.setAttribute('data-conn-idx', idx);
 
+            var srcEl = document.getElementById('node-' + conn.source);
+            if (srcEl) {
+                var portEl = srcEl.querySelector('.node-port[data-handle="' + conn.handle + '"]');
+                if (portEl && portEl.style.borderColor) {
+                    path.style.stroke = portEl.style.borderColor;
+                    path.style.strokeOpacity = '0.7';
+                }
+            }
+
             // Click to delete connection
             path.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -1376,6 +1409,29 @@
                 text.setAttribute('class', 'connection-label');
                 text.textContent = conn.label;
                 self.svg.appendChild(text);
+            }
+        });
+
+        this._updateConnectedPorts();
+    };
+
+    FlowBuilder.prototype._updateConnectedPorts = function() {
+        var allDynamic = document.querySelectorAll('.port-output-dynamic');
+        allDynamic.forEach(function(p) { p.classList.remove('port-connected'); });
+
+        var connectedInputs = document.querySelectorAll('.node-port.port-input');
+        connectedInputs.forEach(function(p) { p.classList.remove('port-connected'); });
+
+        this.connections.forEach(function(conn) {
+            var srcEl = document.getElementById('node-' + conn.source);
+            if (srcEl) {
+                var portEl = srcEl.querySelector('.node-port[data-handle="' + conn.handle + '"]');
+                if (portEl) portEl.classList.add('port-connected');
+            }
+            var tgtEl = document.getElementById('node-' + conn.target);
+            if (tgtEl) {
+                var inputEl = tgtEl.querySelector('.node-port.port-input');
+                if (inputEl) inputEl.classList.add('port-connected');
             }
         });
     };

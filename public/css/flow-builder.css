@@ -685,14 +685,16 @@
 .flow-node.interaction-active {
     min-width: 340px;
     max-width: 480px;
+    overflow: visible;
 }
 
 /* ---- Dynamic Interaction Ports ---- */
 .interaction-ports-container {
-    padding: 8px 12px 20px 12px;
+    padding: 8px 12px 14px 12px;
     border-top: 1px dashed #e0e0e0;
     display: flex;
     gap: 0;
+    overflow: visible;
 }
 .interaction-group {
     flex: 1;
@@ -729,9 +731,8 @@
     padding-bottom: 4px;
 }
 .interaction-port-label {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: #555;
+    font-size: 0.68rem;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -754,39 +755,18 @@
     right: auto !important;
     bottom: auto !important;
     flex-shrink: 0;
-    margin-bottom: -15px;
+    margin: 0 3px -7px 3px;
 }
-/* Colour variants for dynamic ports */
-.port-rcs {
-    border-color: #9c27b0 !important;
+/* Dynamic ports: white fill by default, coloured border from inline style */
+.port-output-dynamic {
+    background: #fff !important;
 }
-.port-rcs:hover {
-    background: #9c27b0 !important;
-    border-color: #9c27b0 !important;
+.port-output-dynamic.port-connected {
+    background: var(--port-color) !important;
 }
-.port-sms {
-    border-color: #1976d2 !important;
-}
-.port-sms:hover {
-    background: #1976d2 !important;
-    border-color: #1976d2 !important;
-}
-.port-timeout {
-    border-color: #ef6c00 !important;
-}
-.port-timeout:hover {
-    background: #ef6c00 !important;
-    border-color: #ef6c00 !important;
-}
-/* Coloured port labels */
-.interaction-port-label.port-label-rcs {
-    color: #9c27b0;
-}
-.interaction-port-label.port-label-sms {
-    color: #1976d2;
-}
-.interaction-port-label.port-label-timeout {
-    color: #ef6c00;
+.port-output-dynamic:hover {
+    background: var(--port-color) !important;
+    transform: scale(1.3);
 }
 
 /* ---- Interaction Summary (Properties Panel) ---- */
