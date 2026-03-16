@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Models\Flow;
 use App\Models\FlowNode;
 use App\Models\FlowConnection;
@@ -77,11 +78,55 @@ class FlowBuilderController extends Controller
                 ->toArray()
             : [];
 
+        // Contact Lists
+        $contactLists = \App\Models\ContactList::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($l) => ['id' => $l->id, 'name' => $l->name])
+            ->toArray();
+
+        // Tags
+        $tags = \App\Models\Tag::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($t) => ['id' => $t->id, 'name' => $t->name])
+            ->toArray();
+
+        // Opt-Out Lists
+        $optOutLists = \App\Models\OptOutList::where('account_id', $accountId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($o) => ['id' => $o->id, 'name' => $o->name])
+            ->toArray();
+
+        // Active Flows (for flow handoff node)
+        $activeFlows = Flow::where('account_id', $accountId)
+            ->where('id', '!=', $id ?? 0)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($f) => ['id' => $f->id, 'name' => $f->name])
+            ->toArray();
+
+        // API Credentials
+        $apiCredentials = [];
+        if (class_exists(\App\Models\ApiCredential::class)) {
+            $apiCredentials = \App\Models\ApiCredential::where('account_id', $accountId)
+                ->orderBy('name')
+                ->get()
+                ->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'auth_type' => $c->auth_type])
+                ->toArray();
+        }
+
         return view('quicksms.flows.builder', [
             'page_title' => $flow ? 'Edit Flow: ' . $flow->name : 'New Flow',
             'flow' => $flow,
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
+            'contact_lists' => $contactLists,
+            'tags' => $tags,
+            'opt_out_lists' => $optOutLists,
+            'active_flows' => $activeFlows,
+            'api_credentials' => $apiCredentials,
         ]);
     }
 
@@ -117,19 +162,12 @@ class FlowBuilderController extends Controller
         $accountId = session('customer_tenant_id');
         $flow = Flow::where('account_id', $accountId)->findOrFail($id);
 
-        $allowedNodeTypes = [
-            'trigger_api', 'trigger_sms_keyword', 'trigger_rcs_button', 'trigger_schedule',
-            'send_message', 'send_sms', 'send_rcs', 'webhook', 'tag',
-            'wait', 'decision',
-            'inbox_handoff', 'end',
-        ];
-
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'sometimes|nullable|string|max:1000',
             'nodes' => 'required|array',
             'nodes.*.node_uid' => 'required|string|max:64',
-            'nodes.*.type' => 'required|string|in:' . implode(',', $allowedNodeTypes),
+            'nodes.*.type' => 'required|in:trigger_api,trigger_webhook,trigger_sms_inbound,trigger_rcs_inbound,trigger_campaign,trigger_contact_event,trigger_schedule,send_message,contact,tag_action,list_action,optout_action,webhook,action_group,wait,decision,decision_contact,decision_webhook,inbox_handoff,flow_handoff,end',
             'nodes.*.label' => 'nullable|string|max:255',
             'nodes.*.config' => 'nullable|array',
             'nodes.*.position_x' => 'required|numeric',
@@ -141,6 +179,20 @@ class FlowBuilderController extends Controller
             'connections.*.label' => 'nullable|string|max:255',
             'canvas_meta' => 'nullable|array',
         ]);
+
+        // Validate action_group step types
+        $allowedStepTypes = ['add_tag', 'remove_tag', 'add_to_list', 'remove_from_list', 'add_optout', 'remove_optout', 'update_contact', 'wait'];
+        foreach ($request->input('nodes', []) as $i => $node) {
+            if (($node['type'] ?? '') === 'action_group' && !empty($node['config']['steps'])) {
+                foreach ($node['config']['steps'] as $j => $step) {
+                    if (!in_array($step['type'] ?? '', $allowedStepTypes, true)) {
+                        throw ValidationException::withMessages([
+                            "nodes.{$i}.config.steps.{$j}.type" => 'Invalid step type.',
+                        ]);
+                    }
+                }
+            }
+        }
 
         $nodeUids = collect($request->nodes)->pluck('node_uid')->toArray();
         foreach ($request->connections as $conn) {
