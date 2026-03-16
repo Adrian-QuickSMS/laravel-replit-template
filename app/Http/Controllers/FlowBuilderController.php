@@ -101,7 +101,7 @@ class FlowBuilderController extends Controller
 
         // Active Flows (for flow handoff node)
         $activeFlows = Flow::where('account_id', $accountId)
-            ->where('id', '!=', $id ?? 0)
+            ->when($id, fn($q) => $q->where('id', '!=', $id))
             ->orderBy('name')
             ->get()
             ->map(fn($f) => ['id' => $f->id, 'name' => $f->name])
