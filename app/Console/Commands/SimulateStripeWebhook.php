@@ -4,12 +4,12 @@ namespace App\Console\Commands;
 
 use App\Models\Account;
 use App\Models\Billing\AccountBalance;
+use App\Models\Billing\AutoTopUpConfig;
 use App\Models\Billing\FinancialAuditLog;
 use App\Models\Billing\Invoice;
 use App\Models\Billing\Payment;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\InvoiceService;
-use App\Services\Billing\StripeCheckoutService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -27,7 +27,6 @@ class SimulateStripeWebhook extends Command
     protected $description = 'Simulate a Stripe webhook event to test the payment → balance credit flow without a Stripe connection';
 
     public function handle(
-        StripeCheckoutService $checkoutService,
         BalanceService $balanceService,
         InvoiceService $invoiceService
     ): int {
@@ -76,10 +75,9 @@ class SimulateStripeWebhook extends Command
         $beforeAvailable = $balance ? $balance->effective_available : 'N/A';
         $beforeOutstanding = $balance ? $balance->total_outstanding : 'N/A';
 
-        $simUuid = (string) Str::uuid();
         $simPiId = 'pi_sim_' . Str::random(16);
         $simEventId = 'evt_sim_' . Str::random(16);
-        $amountPence = (int)bcmul($amount, '100', 0);
+        $simRefUuid = (string) Str::uuid();
 
         $typeLabels = [
             'top_up' => 'Checkout Top-Up',
@@ -121,13 +119,16 @@ class SimulateStripeWebhook extends Command
         if ($dryRun) {
             $this->newLine();
             $this->warn('[DRY RUN] No changes made. The above shows what would be processed.');
-            $this->line("  → Would call: " . ($type === 'top_up' ? 'BalanceService::processTopUp()' : 'StripeCheckoutService::handlePaymentIntentSucceeded()'));
-            $this->line("  → Would create Payment record (method: " . $this->paymentMethod($type) . ")");
+            $this->line("  → Would credit account via BalanceService");
+            $this->line("  → Would create Payment record (method: " . $this->paymentMethod($type) . ", PI: {$simPiId})");
             if ($type === 'top_up') {
                 $this->line("  → Would create top-up invoice");
             }
-            if ($type === 'dd_collection' && $invoiceId) {
+            if ($type === 'dd_collection') {
                 $this->line("  → Would mark invoice {$invoiceId} as paid");
+            }
+            if ($type === 'auto_topup') {
+                $this->line("  → Would update auto top-up config last_triggered_at");
             }
             $this->line("  → Would log to financial_audit_log (source: cli_simulation)");
             return self::SUCCESS;
@@ -139,20 +140,74 @@ class SimulateStripeWebhook extends Command
         }
 
         try {
-            if ($type === 'top_up') {
-                $this->processTopUp($balanceService, $invoiceService, $account, $amount, $currency, $simPiId, $simUuid);
-            } else {
-                $fakeEvent = $this->buildFakeEvent($simEventId, $simUuid, $amountPence, $currency, $accountId, $type, $invoiceId);
-                $checkoutService->handlePaymentIntentSucceeded($fakeEvent);
+            DB::transaction(function () use ($balanceService, $invoiceService, $account, $accountId, $amount, $currency, $type, $invoiceId, $simPiId, $simEventId, $simRefUuid) {
+                $idempotencyKey = "sim-{$type}-{$simRefUuid}";
+                $simMeta = ['simulated' => true, 'source' => 'billing:simulate-stripe', 'simulated_pi' => $simPiId, 'simulated_event' => $simEventId];
 
-                Payment::where('stripe_payment_intent_id', $simUuid)
-                    ->update([
+                if ($type === 'top_up') {
+                    if ($account->billing_type === 'postpay') {
+                        $balanceService->processPostpayAdvance($accountId, $amount, $currency, $idempotencyKey, $simMeta);
+                    } else {
+                        $balanceService->processTopUp($accountId, $amount, $currency, $idempotencyKey, 'cli_simulation', $simRefUuid, $simMeta);
+                    }
+
+                    Payment::create([
+                        'account_id' => $accountId,
+                        'payment_method' => 'stripe_checkout',
                         'stripe_payment_intent_id' => $simPiId,
-                        'metadata' => json_encode(['simulated' => true, 'source' => 'billing:simulate-stripe', 'original_sim_uuid' => $simUuid]),
+                        'currency' => $currency,
+                        'amount' => $amount,
+                        'status' => 'succeeded',
+                        'paid_at' => now(),
+                        'metadata' => $simMeta,
                     ]);
-            }
 
-            try {
+                    $invoiceService->createTopUpInvoice($account, $amount, $currency, 'cs_sim_' . Str::random(16));
+
+                } elseif ($type === 'auto_topup') {
+                    $balanceService->processTopUp($accountId, $amount, $currency, $idempotencyKey, 'cli_simulation', $simRefUuid, array_merge($simMeta, ['auto_topup' => true]));
+
+                    Payment::create([
+                        'account_id' => $accountId,
+                        'payment_method' => 'stripe_auto_topup',
+                        'stripe_payment_intent_id' => $simPiId,
+                        'currency' => $currency,
+                        'amount' => $amount,
+                        'status' => 'succeeded',
+                        'paid_at' => now(),
+                        'metadata' => $simMeta,
+                    ]);
+
+                    $invoiceService->createTopUpInvoice($account, $amount, $currency);
+
+                    AutoTopUpConfig::where('account_id', $accountId)->update(['last_triggered_at' => now()]);
+
+                } elseif ($type === 'dd_collection') {
+                    $balanceService->processPostpayAdvance($accountId, $amount, $currency, $idempotencyKey, array_merge($simMeta, ['dd' => true]));
+
+                    Payment::create([
+                        'account_id' => $accountId,
+                        'invoice_id' => $invoiceId,
+                        'payment_method' => 'stripe_dd',
+                        'stripe_payment_intent_id' => $simPiId,
+                        'currency' => $currency,
+                        'amount' => $amount,
+                        'status' => 'succeeded',
+                        'paid_at' => now(),
+                        'metadata' => $simMeta,
+                    ]);
+
+                    $invoice = Invoice::find($invoiceId);
+                    if ($invoice) {
+                        $invoice->update([
+                            'amount_paid' => $amount,
+                            'amount_due' => '0',
+                            'status' => 'paid',
+                            'paid_date' => now()->toDateString(),
+                        ]);
+                    }
+                }
+
                 FinancialAuditLog::record(
                     'simulated_stripe_' . $type, 'account', $accountId,
                     null,
@@ -167,9 +222,7 @@ class SimulateStripeWebhook extends Command
                     ],
                     null, 'cli_simulation'
                 );
-            } catch (\Throwable $auditEx) {
-                $this->warn("Balance updated successfully but audit log failed: {$auditEx->getMessage()}");
-            }
+            });
         } catch (\Throwable $e) {
             $this->newLine();
             $this->error("Simulation failed: {$e->getMessage()}");
@@ -225,85 +278,9 @@ class SimulateStripeWebhook extends Command
         }
 
         $this->newLine();
-        $this->info('✓ Simulation complete. Balance credited successfully.');
+        $this->info('Simulation complete. Balance credited successfully.');
 
         return self::SUCCESS;
-    }
-
-    private function processTopUp(
-        BalanceService $balanceService,
-        InvoiceService $invoiceService,
-        Account $account,
-        string $amount,
-        string $currency,
-        string $simPiId,
-        string $simUuid
-    ): void {
-        $idempotencyKey = "sim-topup-{$simUuid}";
-
-        DB::transaction(function () use ($balanceService, $invoiceService, $account, $amount, $currency, $simPiId, $simUuid, $idempotencyKey) {
-            if ($account->billing_type === 'postpay') {
-                $balanceService->processPostpayAdvance(
-                    $account->id, $amount, $currency, $idempotencyKey,
-                    ['simulated' => true, 'source' => 'billing:simulate-stripe', 'simulated_pi' => $simPiId]
-                );
-            } else {
-                $balanceService->processTopUp(
-                    $account->id, $amount, $currency, $idempotencyKey,
-                    'cli_simulation', $simUuid,
-                    ['simulated' => true, 'source' => 'billing:simulate-stripe', 'simulated_pi' => $simPiId]
-                );
-            }
-
-            Payment::create([
-                'account_id' => $account->id,
-                'payment_method' => 'stripe_checkout',
-                'stripe_payment_intent_id' => $simPiId,
-                'currency' => $currency,
-                'amount' => $amount,
-                'status' => 'succeeded',
-                'paid_at' => now(),
-                'metadata' => ['simulated' => true, 'source' => 'billing:simulate-stripe'],
-            ]);
-
-            $invoiceService->createTopUpInvoice($account, $amount, $currency, 'cs_sim_' . Str::random(16));
-        });
-    }
-
-    private function buildFakeEvent(
-        string $eventId,
-        string $piId,
-        int $amountPence,
-        string $currency,
-        string $accountId,
-        string $type,
-        ?string $invoiceId
-    ): array {
-        $metadata = [
-            'account_id' => $accountId,
-            'type' => $type,
-            'amount' => bcdiv((string)$amountPence, '100', 4),
-        ];
-
-        if ($invoiceId) {
-            $metadata['invoice_id'] = $invoiceId;
-        }
-
-        return [
-            'id' => $eventId,
-            'type' => 'payment_intent.succeeded',
-            'created' => now()->timestamp,
-            'data' => [
-                'object' => [
-                    'id' => $piId,
-                    'amount' => $amountPence,
-                    'currency' => strtolower($currency),
-                    'status' => 'succeeded',
-                    'metadata' => $metadata,
-                    'latest_charge' => 'ch_sim_' . Str::random(16),
-                ],
-            ],
-        ];
     }
 
     private function paymentMethod(string $type): string
