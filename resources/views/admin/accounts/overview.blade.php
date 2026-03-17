@@ -378,7 +378,7 @@
                             <th class="sortable text-end" data-sort="volume-month">Volume (Month)</th>
                             <th class="sortable text-end" data-sort="balance">Balance</th>
                             <th class="sortable" data-sort="status">Status</th>
-                            <th class="text-center" style="width: 110px;">Actions</th>
+                            <th class="text-center" style="width: 140px;">Actions</th>
                             <th class="text-center" style="width: 50px;"></th>
                         </tr>
                     </thead>
@@ -434,6 +434,7 @@
                                     <button class="action-icon-btn" onclick="openBillingModal('{{ $acct->account_number }}', '{{ addslashes($acct->company_name) }}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('{{ $acct->account_number }}', '{{ addslashes($acct->company_name) }}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="openRoutingModal('{{ $acct->account_number }}', '{{ addslashes($acct->company_name) }}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Routing"><i class="fas fa-route"></i></button>
+                                    <a class="action-icon-btn" href="{{ route('admin.accounts.settings', $acct->id) }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Settings"><i class="fas fa-cog"></i></a>
                                 </div>
                             </td>
                             <td class="text-center">
