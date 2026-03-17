@@ -1195,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+        const invoiceModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('invoiceModal'));
         
         document.getElementById('invoiceLoading').classList.remove('d-none');
         document.getElementById('invoiceSuccess').classList.add('d-none');
@@ -1234,17 +1234,31 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('invoiceLoading').classList.add('d-none');
             document.getElementById('invoiceSuccess').classList.remove('d-none');
 
-            const stripeUrl = data.payment_url;
-            
-            document.getElementById('openStripeBtn').onclick = function() {
-                window.open(stripeUrl, '_blank');
-                invoiceModal.hide();
-            };
+            if (data.payment_url) {
+                document.getElementById('openStripeBtn').onclick = function() {
+                    window.open(data.payment_url, '_blank');
+                    invoiceModal.hide();
+                };
+                setTimeout(() => {
+                    window.open(data.payment_url, '_blank');
+                    startPaymentPolling();
+                }, 1500);
+            } else if (data.payment_completed) {
+                document.getElementById('openStripeBtn').classList.add('d-none');
+                const successH5 = document.querySelector('#invoiceSuccess h5');
+                if (successH5) successH5.textContent = 'Purchase Complete!';
+                const successP = document.querySelector('#invoiceSuccess p.text-muted');
+                if (successP) successP.textContent = data.currency + ' ' + parseFloat(data.amount).toFixed(2) + ' has been credited to your account.';
 
-            setTimeout(() => {
-                window.open(stripeUrl, '_blank');
-                startPaymentPolling();
-            }, 1500);
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'btn btn-primary';
+                closeBtn.innerHTML = '<i class="fas fa-check me-2"></i>Done';
+                closeBtn.onclick = function() {
+                    invoiceModal.hide();
+                    window.location.reload();
+                };
+                document.getElementById('openStripeBtn').parentNode.appendChild(closeBtn);
+            }
 
             console.log('[Purchase] Invoice created:', data.invoice_id);
 
@@ -1253,8 +1267,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             logErrorForAudit({
                 type: 'invoice_creation_failed',
-                tier: selectedTier,
-                volume: selectedVolume,
+                tier: state.selectedTier,
+                volume: calc.volume,
                 error: error.message,
                 timestamp: new Date().toISOString()
             });
@@ -1294,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('paidAmount').textContent = formatCurrencyShort(amount);
         document.getElementById('newBalance').textContent = formatCurrencyShort(newBalance);
         
-        const successModal = new bootstrap.Modal(document.getElementById('paymentSuccessModal'));
+        const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentSuccessModal'));
         successModal.show();
         
         console.log('[Payment] Success modal shown', { amount, newBalance });

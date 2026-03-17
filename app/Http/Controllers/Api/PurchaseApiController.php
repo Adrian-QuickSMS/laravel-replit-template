@@ -4,19 +4,23 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Billing\Payment;
 use App\Models\Billing\ProductTierPrice;
 use App\Models\Billing\ServiceCatalogue;
-use App\Services\HubSpotProductService;
+use App\Services\Billing\BalanceService;
+use App\Services\Billing\InvoiceService;
 use App\Services\VatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PurchaseApiController extends Controller
 {
-    private HubSpotProductService $hubSpotService;
     private VatService $vatService;
+    private BalanceService $balanceService;
+    private InvoiceService $invoiceService;
 
     private const PRODUCT_TYPE_TO_KEY = [
         'sms' => 'sms',
@@ -50,10 +54,11 @@ class PurchaseApiController extends Controller
         'shortcode_keyword' => 'monthly',
     ];
 
-    public function __construct(HubSpotProductService $hubSpotService, VatService $vatService)
+    public function __construct(VatService $vatService, BalanceService $balanceService, InvoiceService $invoiceService)
     {
-        $this->hubSpotService = $hubSpotService;
         $this->vatService = $vatService;
+        $this->balanceService = $balanceService;
+        $this->invoiceService = $invoiceService;
     }
 
     public function getProducts(Request $request): JsonResponse
@@ -195,21 +200,131 @@ class PurchaseApiController extends Controller
         ]);
 
         $accountId = $this->getAccountId();
-        $validated['account_id'] = $accountId;
-        $validated['selected_tier'] = $validated['tier'];
 
-        $invoiceData = $this->hubSpotService->createInvoice($validated);
-
-        if (!$invoiceData['success']) {
-            return response()->json($invoiceData, 500);
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Account not found.',
+            ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'invoice_id' => $invoiceData['invoice_id'],
-            'payment_url' => $invoiceData['payment_url'],
-            'message' => 'Invoice created successfully',
-        ]);
+        $currency = $validated['currency'];
+        $tier = $validated['tier'];
+        $volume = $validated['volume'];
+
+        $serverUnitPrice = $this->getServerSideUnitPrice($accountId, $tier);
+        if ($serverUnitPrice === null) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Unable to verify pricing for the selected tier.',
+            ], 400);
+        }
+
+        $amount = bcmul((string) $serverUnitPrice, (string) $volume, 2);
+
+        if (bccomp($amount, '0', 2) <= 0) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Calculated amount must be greater than zero.',
+            ], 400);
+        }
+
+        try {
+            $result = DB::transaction(function () use ($account, $amount, $currency, $tier, $volume, $serverUnitPrice) {
+                $invoice = $this->invoiceService->createTopUpInvoice(
+                    $account, $amount, $currency
+                );
+
+                $idempotencyKey = "purchase-{$invoice->id}";
+                $referenceId = (string) Str::uuid();
+
+                $this->balanceService->processTopUp(
+                    $account->id, $amount, $currency, $idempotencyKey,
+                    'purchase_payment', $referenceId,
+                    [
+                        'tier' => $tier,
+                        'volume' => $volume,
+                        'sms_unit_price' => (string) $serverUnitPrice,
+                        'invoice_id' => $invoice->id,
+                    ]
+                );
+
+                Payment::create([
+                    'account_id' => $account->id,
+                    'invoice_id' => $invoice->id,
+                    'payment_method' => 'stripe_checkout',
+                    'stripe_payment_intent_id' => $referenceId,
+                    'currency' => $currency,
+                    'amount' => $amount,
+                    'status' => 'succeeded',
+                    'paid_at' => now(),
+                    'metadata' => [
+                        'tier' => $tier,
+                        'volume' => $volume,
+                        'source' => 'purchase_page',
+                    ],
+                ]);
+
+                return $invoice;
+            });
+
+            Log::info('Purchase invoice created and balance credited', [
+                'account_id' => $account->id,
+                'invoice_id' => $result->id,
+                'amount' => $amount,
+                'currency' => $currency,
+                'tier' => $validated['tier'],
+                'volume' => $validated['volume'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'invoice_id' => $result->id,
+                'invoice_number' => $result->invoice_number,
+                'amount' => $amount,
+                'currency' => $currency,
+                'payment_completed' => true,
+                'message' => 'Purchase completed successfully. Your balance has been credited.',
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Purchase invoice creation failed', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Unable to process your purchase. Please try again or contact support.',
+            ], 500);
+        }
+    }
+
+    private function getServerSideUnitPrice(string $accountId, string $tier): ?string
+    {
+        if ($tier === 'bespoke') {
+            $price = \App\Models\Billing\CustomerPrice::where('account_id', $accountId)
+                ->where('product_type', 'sms')
+                ->whereNull('country_iso')
+                ->where('active', true)
+                ->whereRaw("valid_from <= CURRENT_DATE")
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+                })
+                ->first();
+
+            return $price ? (string) $price->unit_price : null;
+        }
+
+        $price = ProductTierPrice::where('product_tier', $tier)
+            ->where('product_type', 'sms')
+            ->whereNull('country_iso')
+            ->active()
+            ->validAt()
+            ->first();
+
+        return $price ? (string) $price->unit_price : null;
     }
 
     private function isVatApplicable(): bool
