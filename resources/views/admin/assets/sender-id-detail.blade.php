@@ -2061,12 +2061,12 @@ function showAdminActionsModal() {
 <div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--admin-primary, #1e3a5f) 0%, #2d5a87 100%); color: #fff;">
+            <div class="modal-header" style="background: #fff; color: #1e293b; border-bottom: 1px solid #e2e8f0;">
                 <h5 class="modal-title" id="adminActionsModalLabel">
-                    <i class="fas fa-gavel me-2"></i>Admin Actions
+                    <i class="fas fa-gavel me-2" style="color: #3b82f6;"></i>Admin Actions
                     <span class="badge bg-warning text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-lock me-1"></i>INTERNAL ONLY</span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="padding: 1.25rem;">
                 <div id="adminActionsRiskWarning" class="d-none" style="margin-bottom: 1rem;"></div>
@@ -2130,7 +2130,7 @@ function showAdminActionsModal() {
                         <div class="notes-tab-pane active" id="tab-internal">
                             <textarea class="notes-textarea" id="internalNoteText" placeholder="Add internal note (admin-only, never visible to customer)..." style="width: 100%; min-height: 100px; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; resize: vertical;"></textarea>
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-                                <button class="btn btn-sm" onclick="addInternalNote()" style="background: var(--admin-primary, #1e3a5f); color: #fff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px; border: none;">
+                                <button class="btn btn-sm" onclick="addInternalNote()" style="background: #22c55e; color: #fff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px; border: none;">
                                     <i class="fas fa-plus me-1"></i> Add Note
                                 </button>
                             </div>
