@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\Alerting\HighRiskAccountBehaviour;
 use App\Models\Account;
 use App\Models\AccountFlags;
 use App\Models\AdminNotification;
@@ -368,6 +369,21 @@ class FraudScreeningService
             'company_name' => $account->company_name,
             'context' => $context,
         ]);
+
+        // Fire alertable event for the alerting engine
+        if (in_array($type, ['auto_rejected', 'pending_review'])) {
+            HighRiskAccountBehaviour::dispatch(
+                $account->id,
+                $account->account_number ?? $account->id,
+                'fraud_' . $type,
+                trim($body),
+                [
+                    'risk_score' => $context['risk_score'] ?? null,
+                    'reason' => $context['reason'] ?? null,
+                    'screening_type' => $type,
+                ]
+            );
+        }
     }
 }
 

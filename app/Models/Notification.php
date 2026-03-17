@@ -18,9 +18,12 @@ class Notification extends Model
         'user_id',
         'type',
         'severity',
+        'category',
         'title',
         'body',
         'deep_link',
+        'action_url',
+        'action_label',
         'meta',
         'read_at',
         'dismissed_at',
@@ -67,6 +70,16 @@ class Notification extends Model
     public function scopeForTenant(Builder $query, string $tenantId): Builder
     {
         return $query->where('tenant_id', $tenantId);
+    }
+
+    public function scopeForCategory(Builder $query, string $category): Builder
+    {
+        return $query->where('category', $category);
+    }
+
+    public function scopeOfSeverity(Builder $query, string $severity): Builder
+    {
+        return $query->where('severity', $severity);
     }
 
     public function markAsRead(): void
