@@ -12,6 +12,23 @@
 
 .admin-page { padding: 1.5rem; }
 
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+.nav-tabs .nav-link:hover { color: var(--admin-primary); border-color: transparent; }
+.nav-tabs .nav-link.active {
+    color: var(--admin-primary);
+    background: transparent;
+    border-color: transparent transparent var(--admin-primary) transparent;
+}
+.nav-tabs .nav-link:visited { color: #6c757d; }
+.nav-tabs .nav-link.active:visited { color: var(--admin-primary); }
+
 .billing-header {
     display: flex;
     justify-content: space-between;
