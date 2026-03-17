@@ -17,9 +17,11 @@ class AdminAuthController extends Controller
             return redirect()->route('admin.landing');
         }
 
-        return view('admin.auth.login', [
-            'page_title' => 'Admin Login'
-        ]);
+        return response()
+            ->view('admin.auth.login', ['page_title' => 'Admin Login'])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     public function login(Request $request)
