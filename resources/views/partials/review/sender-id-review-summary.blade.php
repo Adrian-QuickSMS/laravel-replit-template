@@ -154,9 +154,9 @@
     flex-shrink: 0;
 }
 
-.senderid-validation-icon.pass { background: #d9f99d; color: #3f6212; }
-.senderid-validation-icon.fail { background: #fecaca; color: #991b1b; }
-.senderid-validation-icon.warn { background: #fef3c7; color: #92400e; }
+.senderid-validation-icon.pass { background: #22c55e; color: #fff; }
+.senderid-validation-icon.fail { background: #ef4444; color: #fff; }
+.senderid-validation-icon.warn { background: #f59e0b; color: #fff; }
 
 .senderid-validation-text {
     font-size: 0.8rem;
