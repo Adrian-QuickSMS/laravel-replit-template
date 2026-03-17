@@ -6206,9 +6206,9 @@ function showTestSentConfirmation(phoneNumber) {
         var errorMsg = '';
 
         if (detectedType === 'alphanumeric') {
-            if (!/^[A-Za-z0-9\-_& ]+$/.test(val)) {
+            if (!/^[A-Za-z0-9.\-_& ]+$/.test(val)) {
                 hasError = true;
-                errorMsg = 'Only A-Z, a-z, 0-9, -, _, &, and space are allowed';
+                errorMsg = 'Only A-Z, a-z, 0-9, -, _, &, period, and space are allowed';
             } else if (val.length > 11) {
                 hasError = true;
                 errorMsg = 'Maximum 11 characters for alphanumeric Sender ID';

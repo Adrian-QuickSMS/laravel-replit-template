@@ -78,8 +78,8 @@ class SenderIdValidationService
             $errors[] = 'Alphanumeric SenderID must be at least 1 character.';
         }
 
-        if (!preg_match('/^[A-Za-z0-9\-_& ]+$/', $value)) {
-            $errors[] = 'Alphanumeric SenderID may only contain letters, numbers, hyphens, underscores, ampersands, and spaces.';
+        if (!preg_match('/^[A-Za-z0-9.\-_& ]+$/', $value)) {
+            $errors[] = 'Alphanumeric SenderID may only contain letters, numbers, hyphens, underscores, ampersands, periods, and spaces.';
         }
 
         // Must contain at least one letter (pure numeric would be a NUMERIC type)

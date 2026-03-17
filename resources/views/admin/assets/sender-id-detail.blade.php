@@ -846,11 +846,11 @@ function ajaxHeaders() {
 
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
-        var alphanumericOnly = /^[A-Za-z0-9]+$/.test(value);
+        var allowedCharsOnly = /^[A-Za-z0-9.\-_& ]+$/.test(value);
         var startsWithLetter = /^[A-Za-z]/.test(value);
         return {
-            pass: alphanumericOnly && startsWithLetter,
-            message: alphanumericOnly ? 'Only alphanumeric characters detected' : 'Contains invalid characters'
+            pass: allowedCharsOnly && startsWithLetter,
+            message: allowedCharsOnly ? 'Only allowed characters (A-Z, a-z, 0-9, -, _, &, ., space) detected' : 'Contains invalid characters'
         };
     },
     
@@ -1236,15 +1236,15 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
         var sid = data.sender_id_value || '';
         var sType = (data.sender_type || 'ALPHA').toUpperCase();
 
-        var charPass = sType === 'ALPHA' ? /^[A-Za-z0-9\-_& ]+$/.test(sid) : /^[0-9+]+$/.test(sid);
+        var charPass = sType === 'ALPHA' ? /^[A-Za-z0-9.\-_& ]+$/.test(sid) : /^[0-9+]+$/.test(sid);
         var maxLen = sType === 'ALPHA' ? 11 : 15;
         var minLen = sType === 'ALPHA' ? 3 : 5;
         var lenPass = sid.length >= minLen && sid.length <= maxLen;
-        var restrictedPass = sType === 'ALPHA' ? !/[!@#$%^*()\[\]{};':"\\|,.<>\/?]/.test(sid) : true;
+        var restrictedPass = sType === 'ALPHA' ? !/[!@#$%^*()\[\]{};':"\\|,<>\/?]/.test(sid) : true;
         var ukPass = charPass && lenPass;
 
         var validationChecks = [
-            { label: 'Character Compliance', pass: charPass, passMsg: 'Only allowed characters used (A-Z, a-z, 0-9, -, _, &, space)', failMsg: 'Contains invalid characters' },
+            { label: 'Character Compliance', pass: charPass, passMsg: 'Only allowed characters used (A-Z, a-z, 0-9, -, _, &, ., space)', failMsg: 'Contains invalid characters' },
             { label: 'Length Compliance', pass: lenPass, passMsg: 'Within ' + minLen + '-' + maxLen + ' character limit (' + sid.length + ' chars)', failMsg: 'Outside allowed length (' + sid.length + ' chars, limit ' + minLen + '-' + maxLen + ')' },
             { label: 'Restricted Characters', pass: restrictedPass, passMsg: 'No restricted characters detected', failMsg: 'Contains restricted characters' },
             { label: 'UK Rules', pass: ukPass, passMsg: 'Complies with UK carrier requirements', failMsg: 'May require additional validation' }
