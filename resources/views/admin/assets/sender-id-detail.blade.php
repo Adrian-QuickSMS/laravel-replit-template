@@ -607,6 +607,18 @@ html, body {
 
     <div class="detail-grid">
         <div class="main-content">
+            <div class="detail-card validation-section" id="validationResultsCard">
+                <div class="detail-card-header">
+                    <i class="fas fa-shield-alt"></i> Automated Validation Results
+                </div>
+                <div class="detail-card-body">
+                    <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 0.5rem;">Loading validation results...</p>
+                    </div>
+                </div>
+            </div>
+
             {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 5 --}}
             {{-- Sections A-D: Matches customer final review exactly --}}
             <div class="detail-card">
@@ -665,18 +677,6 @@ html, body {
                         
                         {{-- Section E: Admin-only Submission Metadata --}}
                         @include('partials.admin.sender-id-admin-extras', ['metadata' => $senderIdMetadata])
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card validation-section">
-                <div class="detail-card-header">
-                    <i class="fas fa-shield-alt"></i> Automated Validation Results
-                </div>
-                <div class="detail-card-body">
-                    <div style="text-align: center; padding: 2rem; color: #94a3b8;">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
-                        <p style="margin-top: 0.5rem;">Loading validation results...</p>
                     </div>
                 </div>
             </div>
