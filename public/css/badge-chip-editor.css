@@ -25,6 +25,11 @@
     pointer-events: none;
 }
 
+.bce-editor:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
 .bce-chip {
     display: inline-flex;
     align-items: center;
@@ -101,6 +106,15 @@
     overflow-y: hidden;
     padding: 0.25rem 0.5rem;
     font-size: 0.82rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.bce-wrapper-active {
+    border-color: transparent !important;
+}
+
+.bce-wrapper-active > .bce-editor {
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
 }

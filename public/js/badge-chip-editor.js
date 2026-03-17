@@ -42,7 +42,18 @@
                     this.el.style.resize = 'none';
                 }
             }
-            sourceEl.parentNode.insertBefore(this.el, sourceEl);
+            if (sourceEl.style.paddingRight) {
+                this.el.style.paddingRight = sourceEl.style.paddingRight;
+            }
+            if (sourceEl.classList.contains('fw-bold')) {
+                this.el.style.fontWeight = 'bold';
+            }
+            var wrapper = sourceEl.parentNode;
+            if (wrapper && wrapper.classList && wrapper.classList.contains('border')) {
+                wrapper.classList.remove('border');
+                wrapper.classList.add('bce-wrapper-active');
+            }
+            wrapper.insertBefore(this.el, sourceEl);
         } else {
             this.hiddenTextarea = null;
             this.container.appendChild(this.el);
@@ -367,46 +378,58 @@
     };
 
     BadgeChipEditor.prototype.insertAtCursor = function(text) {
-        var savedRange = this._savedRange;
-        this.el.focus();
-
-        var sel = window.getSelection();
-        var range;
-
-        if (savedRange) {
-            try {
-                sel.removeAllRanges();
-                sel.addRange(savedRange);
-                range = savedRange;
-            } catch (e) {
-                range = null;
-            }
-        }
-
-        if (!range || !sel.rangeCount || !this.el.contains(sel.anchorNode)) {
-            if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
-                range = sel.getRangeAt(0);
-            } else {
-                range = document.createRange();
-                range.selectNodeContents(this.el);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-        }
-
-        range.deleteContents();
-
         var frag = this._parseAndRender(text);
         var lastNode = frag.lastChild;
-        range.insertNode(frag);
+        var inserted = false;
 
-        if (lastNode) {
-            var newRange = document.createRange();
-            newRange.setStartAfter(lastNode);
-            newRange.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(newRange);
+        var savedRange = this._savedRange;
+        if (savedRange) {
+            try {
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+                if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
+                    var range = sel.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(frag);
+                    inserted = true;
+                    if (lastNode) {
+                        var newRange = document.createRange();
+                        newRange.setStartAfter(lastNode);
+                        newRange.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(newRange);
+                    }
+                }
+            } catch (e) {
+                inserted = false;
+            }
+        }
+
+        if (!inserted) {
+            try {
+                this.el.focus();
+                var sel = window.getSelection();
+                if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
+                    var range = sel.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(frag);
+                    inserted = true;
+                    if (lastNode) {
+                        var newRange = document.createRange();
+                        newRange.setStartAfter(lastNode);
+                        newRange.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(newRange);
+                    }
+                }
+            } catch (e) {
+                inserted = false;
+            }
+        }
+
+        if (!inserted) {
+            this.el.appendChild(frag);
         }
 
         this._savedRange = null;

@@ -1398,7 +1398,7 @@
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260317a"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260317b"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
