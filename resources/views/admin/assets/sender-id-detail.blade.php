@@ -839,6 +839,7 @@ html, body {
 var csrfToken = $('meta[name="csrf-token"]').attr('content');
 var senderIdUuid = @json($sender_id ?? '');
 var currentSenderIdData = null;
+var currentSpoofingCheck = null;
 
 function ajaxHeaders() {
     return { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' };
@@ -990,6 +991,7 @@ function loadSenderIdDetail() {
 }
 
 function populateDetailPage(data, spoofingCheck, statusHistory, account) {
+    currentSpoofingCheck = spoofingCheck;
     document.getElementById('senderIdValue').textContent = data.sender_id_value || '';
 
     var statusMap = {
@@ -1884,9 +1886,69 @@ function sendCustomerMessage() {
 
 function showAdminActionsModal() {
     var modal = document.getElementById('adminActionsModal');
-    if (modal) {
-        new bootstrap.Modal(modal).show();
+    if (!modal) return;
+
+    var warningEl = document.getElementById('adminActionsRiskWarning');
+    if (warningEl) {
+        var policyCheckNames = ['Anti-Spoofing Check', 'Restricted Keyword Detection'];
+        var failedChecks = [];
+        if (currentSpoofingCheck && currentSpoofingCheck.results && Array.isArray(currentSpoofingCheck.results)) {
+            failedChecks = currentSpoofingCheck.results.filter(function(r) {
+                return (r.pass === false || r.result === 'fail' || r.result === 'warn') && policyCheckNames.indexOf(r.name) !== -1;
+            });
+        }
+
+        if (failedChecks.length > 0) {
+            var senderValue = (currentSenderIdData && currentSenderIdData.sender_id_value) ? currentSenderIdData.sender_id_value : '';
+            var action = currentSpoofingCheck.action || 'flag';
+            var isBlocked = action === 'block';
+            var borderColor = isBlocked ? '#dc2626' : '#dc2626';
+            var bgColor = isBlocked ? '#fef2f2' : '#fef2f2';
+            var iconBg = '#dc2626';
+
+            var html = '<div style="background: ' + bgColor + '; border: 2px solid ' + borderColor + '; border-radius: 8px; padding: 0; overflow: hidden;">';
+            html += '<div style="background: ' + iconBg + '; color: #fff; padding: 0.65rem 1rem; display: flex; align-items: center; gap: 0.5rem;">';
+            html += '<i class="fas fa-shield-alt" style="font-size: 1rem;"></i>';
+            html += '<span style="font-weight: 700; font-size: 0.85rem; letter-spacing: 0.3px;">RESTRICTED SENDERID POLICY TRIGGERED</span>';
+            html += '</div>';
+            html += '<div style="padding: 0.85rem 1rem;">';
+
+            if (senderValue) {
+                html += '<div style="font-size: 0.8rem; color: #991b1b; margin-bottom: 0.6rem;">';
+                html += '<strong>&ldquo;' + escapeHtml(senderValue) + '&rdquo;</strong> has been flagged by automated screening:';
+                html += '</div>';
+            }
+
+            html += '<ul style="margin: 0; padding-left: 1.25rem; list-style: none;">';
+            failedChecks.forEach(function(check) {
+                html += '<li style="font-size: 0.78rem; color: #7f1d1d; margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.4rem;">';
+                html += '<i class="fas fa-exclamation-triangle" style="color: #dc2626; margin-top: 2px; flex-shrink: 0;"></i>';
+                html += '<span><strong>' + escapeHtml(check.name) + ':</strong> ' + escapeHtml(check.message) + '</span>';
+                html += '</li>';
+            });
+            html += '</ul>';
+
+            if (isBlocked) {
+                html += '<div style="margin-top: 0.6rem; padding: 0.5rem 0.75rem; background: #dc2626; color: #fff; border-radius: 4px; font-size: 0.78rem; font-weight: 600;">';
+                html += '<i class="fas fa-ban me-1"></i>This SenderID is BLOCKED and must not be approved.';
+                html += '</div>';
+            } else {
+                html += '<div style="margin-top: 0.6rem; padding: 0.5rem 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px; font-size: 0.78rem; color: #92400e; font-weight: 500;">';
+                html += '<i class="fas fa-exclamation-circle me-1"></i>Review the validation results carefully before taking any action. Proof of brand authorisation may be required.';
+                html += '</div>';
+            }
+
+            html += '</div></div>';
+
+            warningEl.innerHTML = html;
+            warningEl.classList.remove('d-none');
+        } else {
+            warningEl.innerHTML = '';
+            warningEl.classList.add('d-none');
+        }
     }
+
+    bootstrap.Modal.getOrCreateInstance(modal).show();
 }
 </script>
 @endpush
@@ -1957,6 +2019,7 @@ function showAdminActionsModal() {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="padding: 1.25rem;">
+                <div id="adminActionsRiskWarning" class="d-none" style="margin-bottom: 1rem;"></div>
                 <div class="admin-action-group">
                     <div style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;">ACTIONS</div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="senderIdActionButtons">
