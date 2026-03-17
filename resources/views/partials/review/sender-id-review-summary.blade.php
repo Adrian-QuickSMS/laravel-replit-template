@@ -108,8 +108,8 @@
     font-weight: 600;
 }
 
-.senderid-yes-no.yes { background: #d9f99d; color: #3f6212; }
-.senderid-yes-no.no { background: #fecaca; color: #991b1b; }
+.senderid-yes-no.yes { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.senderid-yes-no.no { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
 .senderid-channel-pills {
     display: flex;
@@ -128,7 +128,7 @@
     font-weight: 600;
 }
 
-.senderid-channel-pill.enabled { background: #d9f99d; color: #3f6212; }
+.senderid-channel-pill.enabled { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 .senderid-channel-pill.disabled { background: #f1f5f9; color: #94a3b8; }
 
 .senderid-validation-item {
