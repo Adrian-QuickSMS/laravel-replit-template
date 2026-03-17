@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\Alerting\DispatchBatchedAlertsJob;
+use App\Jobs\Alerting\PlatformHealthCheckJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -28,6 +30,18 @@ class Kernel extends ConsoleKernel
         $schedule->command('message:purge-expired')
             ->daily()
             ->at('02:00')
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        // Alerting Engine — Batch dispatch (every 5 minutes)
+        $schedule->job(new DispatchBatchedAlertsJob)
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        // Alerting Engine — Platform health check (every 5 minutes)
+        $schedule->job(new PlatformHealthCheckJob)
+            ->everyFiveMinutes()
             ->withoutOverlapping()
             ->onOneServer();
     }

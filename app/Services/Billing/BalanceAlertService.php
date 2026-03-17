@@ -2,6 +2,7 @@
 
 namespace App\Services\Billing;
 
+use App\Events\Alerting\BalanceThresholdBreached;
 use App\Models\Account;
 use App\Models\Billing\AccountBalance;
 use App\Models\Billing\BalanceAlertConfig;
@@ -67,8 +68,20 @@ class BalanceAlertService
             'remaining' => $remaining,
         ]);
 
-        // In production, dispatch notification jobs here:
-        // if ($alert->notify_customer) dispatch(new SendCustomerBalanceAlert(...));
-        // if ($alert->notify_admin) dispatch(new SendAdminBalanceAlert(...));
+        // Fire alertable event for the alerting engine
+        $severity = $usagePercentage >= 95 ? 'critical' : 'warning';
+
+        BalanceThresholdBreached::dispatch(
+            $account->id,
+            round($usagePercentage, 2),
+            (float) $remaining,
+            $currency,
+            $severity,
+            [
+                'threshold_percentage' => $alert->threshold_percentage,
+                'account_number' => $account->account_number ?? null,
+                'billing_type' => $account->billing_type ?? null,
+            ]
+        );
     }
 }

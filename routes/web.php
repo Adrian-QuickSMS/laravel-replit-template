@@ -289,8 +289,32 @@ Route::post('/webhook/inbound/{gateway}', [\App\Http\Controllers\Api\InboundWebh
 
 Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
     Route::get('/', 'index')->name('api.notifications.index');
+    Route::post('/mark-all-read', 'markAllRead')->name('api.notifications.markAllRead');
     Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');
     Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
+});
+
+// Alerting Engine — Customer API
+Route::middleware('customer.auth')->prefix('api/v1/alerts')->group(function () {
+    // Alert Rules
+    Route::get('/rules', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'index'])->name('api.alerts.rules.index');
+    Route::post('/rules', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'store'])->name('api.alerts.rules.store');
+    Route::get('/rules/{id}', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'show'])->name('api.alerts.rules.show');
+    Route::put('/rules/{id}', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'update'])->name('api.alerts.rules.update');
+    Route::delete('/rules/{id}', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'destroy'])->name('api.alerts.rules.destroy');
+
+    // Alert History
+    Route::get('/history', [\App\Http\Controllers\Api\V1\AlertHistoryController::class, 'index'])->name('api.alerts.history.index');
+    Route::get('/history/summary', [\App\Http\Controllers\Api\V1\AlertHistoryController::class, 'summary'])->name('api.alerts.history.summary');
+
+    // Alert Preferences
+    Route::get('/preferences', [\App\Http\Controllers\Api\V1\AlertPreferenceController::class, 'index'])->name('api.alerts.preferences.index');
+    Route::put('/preferences', [\App\Http\Controllers\Api\V1\AlertPreferenceController::class, 'update'])->name('api.alerts.preferences.update');
+
+    // Alert Channel Configs
+    Route::get('/channels', [\App\Http\Controllers\Api\V1\AlertChannelController::class, 'index'])->name('api.alerts.channels.index');
+    Route::put('/channels/{channel}', [\App\Http\Controllers\Api\V1\AlertChannelController::class, 'update'])->name('api.alerts.channels.update');
+    Route::delete('/channels/{channel}', [\App\Http\Controllers\Api\V1\AlertChannelController::class, 'destroy'])->name('api.alerts.channels.destroy');
 });
 
 // API Connections — customer portal (session-based auth)
@@ -771,6 +795,18 @@ Route::prefix('admin')->group(function () {
                 Route::get('/', 'index')->name('admin.api.notifications.index');
                 Route::post('/mark-all-read', 'markAllRead')->name('admin.api.notifications.markAllRead');
                 Route::post('/{uuid}/read', 'markRead')->name('admin.api.notifications.read');
+                Route::post('/{uuid}/dismiss', 'dismiss')->name('admin.api.notifications.dismiss');
+                Route::post('/{uuid}/resolve', 'resolve')->name('admin.api.notifications.resolve');
+            });
+
+            // Alerting Engine — Admin API
+            Route::prefix('api/alerts')->group(function () {
+                Route::get('/rules', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'index'])->name('admin.api.alerts.rules.index');
+                Route::post('/rules', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'store'])->name('admin.api.alerts.rules.store');
+                Route::put('/rules/{id}', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'update'])->name('admin.api.alerts.rules.update');
+                Route::delete('/rules/{id}', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'destroy'])->name('admin.api.alerts.rules.destroy');
+                Route::get('/history', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'history'])->name('admin.api.alerts.history');
+                Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'dashboard'])->name('admin.api.alerts.dashboard');
             });
 
             Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {
