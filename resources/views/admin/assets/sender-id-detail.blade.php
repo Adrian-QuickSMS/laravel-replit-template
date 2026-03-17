@@ -556,12 +556,12 @@ html, body {
     </div>
 
     <div class="status-header">
-        <span class="sender-id-display" id="senderIdValue">ACMEBANK</span>
-        <span class="status-pill submitted" id="currentStatus"><i class="fas fa-paper-plane"></i> Submitted</span>
+        <span class="sender-id-display" id="senderIdValue"></span>
+        <span class="status-pill submitted" id="currentStatus"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
         <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
             <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;">
-                <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>SID-001</strong></span>
-                <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 20, 2026, 10:15 AM</strong></span>
+                <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>...</strong></span>
+                <span><i class="fas fa-clock me-1"></i>Submitted: <strong>...</strong></span>
             </div>
             @php
                 $senderIdVersions = [
@@ -590,17 +590,12 @@ html, body {
         <div class="context-item">
             <i class="fas fa-building"></i>
             <span class="context-label">Account:</span>
-            <span class="context-value">Acme Corporation</span>
-        </div>
-        <div class="context-item">
-            <i class="fas fa-sitemap"></i>
-            <span class="context-label">Sub-Account:</span>
-            <span class="context-value">Marketing Dept</span>
+            <span class="context-value">...</span>
         </div>
         <div class="context-item">
             <i class="fas fa-user"></i>
-            <span class="context-label">Submitted By:</span>
-            <span class="context-value">John Smith (j.smith@acme.com)</span>
+            <span class="context-label">Created By:</span>
+            <span class="context-value">...</span>
         </div>
     </div>
 
@@ -702,40 +697,8 @@ html, body {
                 </div>
                 <div class="detail-card-body">
                     <div class="audit-trail">
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-paper-plane"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Request Submitted</div>
-                                <div class="audit-meta">John Smith | Jan 20, 2026, 10:15 AM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-robot"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Automated Validation Complete</div>
-                                <div class="audit-meta">System | Jan 20, 2026, 10:15 AM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Brand Warning Flagged</div>
-                                <div class="audit-meta">System | Jan 20, 2026, 10:15 AM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-eye"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Viewed by Admin</div>
-                                <div class="audit-meta">Sarah Johnson | Jan 20, 2026, 11:28 AM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-comment"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Internal Note Added</div>
-                                <div class="audit-meta">Sarah Johnson | Jan 20, 2026, 11:30 AM</div>
-                            </div>
+                        <div class="text-center py-3 text-muted" style="font-size: 0.8rem;">
+                            <i class="fas fa-spinner fa-spin me-1"></i> Loading audit trail...
                         </div>
                     </div>
                 </div>
