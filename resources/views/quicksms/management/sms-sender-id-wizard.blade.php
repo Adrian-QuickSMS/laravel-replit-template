@@ -272,8 +272,8 @@ button.btn-save-draft:hover {
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-id-badge me-2 text-primary"></i>Register SenderID</h4>
-                    <span class="autosave-indicator saved" id="autosaveIndicator">
-                        <i class="fas fa-cloud me-1"></i><span id="autosaveText">Draft saved</span>
+                    <span class="autosave-indicator" id="autosaveIndicator">
+                        <i class="fas fa-cloud me-1"></i><span id="autosaveText"></span>
                     </span>
                 </div>
                 <div class="card-body">
@@ -957,7 +957,7 @@ $(document).ready(function() {
     });
 
     $('#btnSubmit').on('click', function() {
-        var modal = new bootstrap.Modal(document.getElementById('submitConfirmModal'));
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('submitConfirmModal'));
         modal.show();
     });
 
@@ -986,21 +986,39 @@ $(document).ready(function() {
             contentType: 'application/json',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function() {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
+                var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('submitConfirmModal'));
                 modal.hide();
                 window.location.href = '{{ route("management.sms-sender-id") }}?created=1';
             },
             error: function(xhr) {
                 $btn.prop('disabled', false).text('Submit');
                 var resp = xhr.responseJSON;
-                var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
+                var modalEl = document.getElementById('submitConfirmModal');
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.hide();
 
                 var errorMsg = 'Failed to submit SenderID. Please try again.';
-                if (resp && resp.errors && resp.errors.length > 0) {
-                    errorMsg = resp.errors.join('<br>');
+                if (xhr.status === 419) {
+                    errorMsg = 'Your session has expired. Please refresh the page and try again.';
+                } else if (resp && resp.errors) {
+                    if (Array.isArray(resp.errors)) {
+                        errorMsg = resp.errors.join('<br>');
+                    } else if (typeof resp.errors === 'object') {
+                        var msgs = [];
+                        Object.keys(resp.errors).forEach(function(key) {
+                            var fieldErrors = resp.errors[key];
+                            if (Array.isArray(fieldErrors)) {
+                                msgs = msgs.concat(fieldErrors);
+                            } else {
+                                msgs.push(fieldErrors);
+                            }
+                        });
+                        if (msgs.length > 0) errorMsg = msgs.join('<br>');
+                    }
                 } else if (resp && resp.error) {
                     errorMsg = resp.error;
+                } else if (resp && resp.message) {
+                    errorMsg = resp.message;
                 }
 
                 var alertHtml = '<div class="alert alert-danger alert-dismissible fade show mt-3" id="submitErrorAlert">' +

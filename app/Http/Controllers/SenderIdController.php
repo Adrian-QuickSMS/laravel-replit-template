@@ -227,10 +227,11 @@ class SenderIdController extends Controller
                     : 'SenderID saved as draft.',
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('[SenderIdController] Failed to create SenderID', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'account_id' => $accountId,
             ]);
 
