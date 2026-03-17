@@ -738,26 +738,22 @@ class AdminController extends Controller
                     'expired' => false,
                 ]);
 
-                try {
-                    AdminAuditLog::record(
-                        'TEST_CREDITS_ADDED',
-                        'account_management',
-                        'MEDIUM',
-                        $adminId,
-                        $adminUser,
-                        'account',
-                        $accountId,
-                        $accountId,
-                        "Added {$credits} test credits. Reason: " . $request->input('reason'),
-                        [
-                            'credits_added' => $credits,
-                            'wallet_id' => $wallet->id,
-                            'reason' => $request->input('reason'),
-                        ]
-                    );
-                } catch (\Throwable $auditEx) {
-                    Log::warning('Audit log failed for test credits', ['error' => $auditEx->getMessage()]);
-                }
+                AdminAuditLog::record(
+                    'TEST_CREDITS_ADDED',
+                    'account_management',
+                    'MEDIUM',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    "Added {$credits} test credits. Reason: " . $request->input('reason'),
+                    [
+                        'credits_added' => $credits,
+                        'wallet_id' => $wallet->id,
+                        'reason' => $request->input('reason'),
+                    ]
+                );
 
                 return $wallet;
             });
@@ -798,14 +794,12 @@ class AdminController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($account, $newMode) {
-                $account->update(['spam_filter_mode' => $newMode]);
-            });
-
             $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
             $adminId = session('admin_auth.admin_id', session('admin_user_id'));
 
-            try {
+            DB::transaction(function () use ($account, $newMode, $previousMode, $adminId, $adminUser, $accountId) {
+                $account->update(['spam_filter_mode' => $newMode]);
+
                 AdminAuditLog::record(
                     'SPAM_FILTER_MODE_CHANGED',
                     'account_management',
@@ -821,9 +815,7 @@ class AdminController extends Controller
                         'new_mode' => $newMode,
                     ]
                 );
-            } catch (\Throwable $auditEx) {
-                Log::warning('Audit log failed for spam filter mode change', ['error' => $auditEx->getMessage()]);
-            }
+            });
 
             return response()->json([
                 'success' => true,
