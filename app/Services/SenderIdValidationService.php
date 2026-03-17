@@ -179,22 +179,8 @@ class SenderIdValidationService
         if (strtoupper($type) === SenderId::TYPE_ALPHA) {
             $spoofing = $this->checkAntiSpoofing($value);
             if (!$spoofing['passed']) {
-                $rule = $spoofing['matched_rule'];
-                $action = $spoofing['action'];
-
-                if ($action === 'block') {
-                    return [
-                        'valid' => false,
-                        'errors' => [
-                            "This SenderID is not permitted. It matches a protected pattern: " .
-                            ($rule['name'] ?? 'blocked pattern') . "."
-                        ],
-                        'spoofing' => $spoofing,
-                    ];
-                }
-
-                // 'quarantine' - allow submission but flag for enhanced review
-                // The admin will see the spoofing data in the review
+                // Allow submission but flag for admin review
+                // Do not reveal matched patterns or rules to the user
             }
         }
 

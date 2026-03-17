@@ -787,18 +787,7 @@ $(document).ready(function() {
                         var msgs = (response.errors || []).join('. ');
                         $('#senderIdError').text(msgs).addClass('d-block').show();
                     }
-                    if (response.spoofing && !response.spoofing.passed) {
-                        var warningHtml = '<div class="alert alert-warning mt-2" id="spoofingWarning">' +
-                            '<i class="fas fa-exclamation-triangle me-2"></i>' +
-                            '<strong>Anti-Spoofing Warning:</strong> This SenderID may be flagged. ' +
-                            'Normalised form: <code>' + (response.spoofing.normalised || '') + '</code>. ' +
-                            'Action: ' + (response.spoofing.action || 'review') +
-                            '</div>';
-                        $('#spoofingWarning').remove();
-                        $('#inputSenderId').closest('.mb-3').append(warningHtml);
-                    } else {
-                        $('#spoofingWarning').remove();
-                    }
+                    $('#spoofingWarning').remove();
                 }
             });
         }, 500);

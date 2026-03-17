@@ -127,7 +127,6 @@ class SenderIdController extends Controller
             return response()->json([
                 'success' => false,
                 'errors' => $validation['errors'],
-                'spoofing' => $validation['spoofing'],
             ], 422);
         }
 
@@ -189,12 +188,12 @@ class SenderIdController extends Controller
                 }
             }
 
-            // If spoofing check returned 'quarantine', store in admin_notes for reviewer
-            if ($validation['spoofing'] && $validation['spoofing']['action'] === 'quarantine') {
+            if ($validation['spoofing'] && !$validation['spoofing']['passed']) {
                 $senderId->update([
-                    'admin_notes' => 'AUTO-FLAGGED: SenderID triggered quarantine rule. ' .
+                    'admin_notes' => 'AUTO-FLAGGED: SenderID triggered anti-spoofing rule. ' .
+                        'Action: ' . ($validation['spoofing']['action'] ?? 'unknown') . '. ' .
                         'Matched: ' . ($validation['spoofing']['matched_rule']['name'] ?? 'unknown') . '. ' .
-                        'Normalised form: ' . $validation['spoofing']['normalised'],
+                        'Normalised form: ' . ($validation['spoofing']['normalised'] ?? $validated['sender_id_value']),
                 ]);
             }
 
@@ -330,7 +329,6 @@ class SenderIdController extends Controller
                 return response()->json([
                     'success' => false,
                     'errors' => $validation['errors'],
-                    'spoofing' => $validation['spoofing'],
                 ], 422);
             }
         }
@@ -347,6 +345,15 @@ class SenderIdController extends Controller
                 'version', 'version_history',
             ])->toArray();
             $senderId->update($updateData);
+
+            if (isset($validation) && isset($validation['spoofing']) && !$validation['spoofing']['passed']) {
+                $senderId->update([
+                    'admin_notes' => 'AUTO-FLAGGED: SenderID triggered anti-spoofing rule. ' .
+                        'Action: ' . ($validation['spoofing']['action'] ?? 'unknown') . '. ' .
+                        'Matched: ' . ($validation['spoofing']['matched_rule']['name'] ?? 'unknown') . '. ' .
+                        'Normalised form: ' . ($validation['spoofing']['normalised'] ?? $senderValue),
+                ]);
+            }
 
             // Update assignments if provided
             $accountId = session('customer_tenant_id');
@@ -638,11 +645,6 @@ class SenderIdController extends Controller
         return response()->json([
             'valid' => $result['valid'],
             'errors' => $result['errors'],
-            'spoofing' => $result['spoofing'] ? [
-                'passed' => $result['spoofing']['passed'],
-                'action' => $result['spoofing']['action'],
-                'normalised' => $result['spoofing']['normalised'],
-            ] : null,
         ]);
     }
 
