@@ -288,6 +288,24 @@
                         </div>
                     </div>
                     
+                    <div class="d-none mb-3" id="rcsContentSection">
+                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
+                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
+                            <h6 class="mb-2">Rich RCS Card</h6>
+                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                            <button type="button" class="btn btn-primary" onclick="openRcsWizard()">
+                                <i class="fas fa-magic me-1"></i>Create RCS Message
+                            </button>
+                            <div class="d-none mt-3" id="rcsConfiguredSummary">
+                                <div class="alert alert-primary py-2 mb-0">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    <span id="rcsConfiguredText">RCS content configured</span>
+                                    <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <label class="form-label mb-2" id="contentLabel">SMS Content</label>
                     
                     <div class="position-relative border rounded mb-2">
@@ -367,23 +385,6 @@
                         </div>
                     </div>
                     
-                    <div class="d-none mt-3" id="rcsContentSection">
-                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
-                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
-                            <h6 class="mb-2">Rich RCS Card</h6>
-                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                            <button type="button" class="btn btn-primary" onclick="openRcsWizard()">
-                                <i class="fas fa-magic me-1"></i>Create RCS Message
-                            </button>
-                            <div class="d-none mt-3" id="rcsConfiguredSummary">
-                                <div class="alert alert-primary py-2 mb-0">
-                                    <i class="fas fa-check-circle me-1"></i>
-                                    <span id="rcsConfiguredText">RCS content configured</span>
-                                    <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             
