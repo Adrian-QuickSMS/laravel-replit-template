@@ -13,6 +13,28 @@ class AdminAuthController extends Controller
 {
     public function showLogin()
     {
+        if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
+            if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
+                $devAdmin = AdminUser::where('role', 'super_admin')
+                    ->where('status', 'active')
+                    ->first();
+                if ($devAdmin) {
+                    session()->put('admin_auth', [
+                        'authenticated' => true,
+                        'mfa_verified' => true,
+                        'admin_id' => $devAdmin->id,
+                        'email' => $devAdmin->email,
+                        'name' => $devAdmin->full_name,
+                        'role' => $devAdmin->role,
+                        'hr_role' => $devAdmin->hr_role ?? 'none',
+                        'last_activity' => now()->timestamp,
+                        'ip_address' => request()->ip(),
+                    ]);
+                    session()->put('admin_user_email', $devAdmin->email);
+                }
+            }
+        }
+
         if ($this->isAdminAuthenticated()) {
             return redirect()->route('admin.landing');
         }
