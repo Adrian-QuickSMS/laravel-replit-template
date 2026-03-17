@@ -949,6 +949,29 @@ function loadSenderIdDetail() {
         success: function(response) {
             if (response.success) {
                 currentSenderIdData = response.data;
+
+                if (response.data.workflow_status === 'submitted') {
+                    $.ajax({
+                        url: '/admin/api/sender-ids/' + senderIdUuid + '/review',
+                        method: 'POST',
+                        headers: ajaxHeaders(),
+                        success: function(reviewResp) {
+                            if (reviewResp.success && reviewResp.data) {
+                                currentSenderIdData = reviewResp.data;
+                                response.data = reviewResp.data;
+                            }
+                            populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
+                            renderCommentThread(response.comments || []);
+                            loadSenderIdDetail();
+                        },
+                        error: function() {
+                            populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
+                            renderCommentThread(response.comments || []);
+                        }
+                    });
+                    return;
+                }
+
                 populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
                 renderCommentThread(response.comments || []);
                 $('#sender-id-overview-loading').hide();
@@ -1544,18 +1567,7 @@ function showConfirmModal(options) {
 }
 
 function startReview() {
-    showConfirmModal({
-        title: 'Start Review',
-        message: 'Begin reviewing this SenderID registration request?',
-        icon: 'fa-search',
-        headerBg: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
-        btnClass: 'btn-primary',
-        btnIcon: 'fa-search',
-        btnText: 'Start Review',
-        onConfirm: function() {
-            performAction('review', {}, 'SenderID is now in review.');
-        }
-    });
+    performAction('review', {}, 'SenderID is now in review.');
 }
 
 function renderCommentThread(comments) {

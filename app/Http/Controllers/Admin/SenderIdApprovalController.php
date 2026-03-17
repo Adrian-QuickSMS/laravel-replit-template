@@ -131,6 +131,23 @@ class SenderIdApprovalController extends Controller
      */
     public function startReview(Request $request, string $uuid): JsonResponse
     {
+        $senderId = SenderId::withoutGlobalScope('tenant')
+            ->where('uuid', $uuid)
+            ->first();
+
+        if (!$senderId) {
+            return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
+        }
+
+        if ($senderId->workflow_status === SenderId::STATUS_IN_REVIEW) {
+            return response()->json([
+                'success' => true,
+                'data' => $senderId->toAdminArray(),
+                'message' => 'Review already in progress.',
+                'already_in_review' => true,
+            ]);
+        }
+
         return $this->performTransition($request, $uuid, SenderId::STATUS_IN_REVIEW);
     }
 
