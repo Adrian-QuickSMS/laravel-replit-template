@@ -101,6 +101,7 @@ class SenderIdApprovalController extends Controller
                 if ($updated) {
                     $adminId = session('admin_auth.admin_id');
                     $adminEmail = session('admin_auth.email', 'system');
+                    $adminName = session('admin_auth.name', $adminEmail);
 
                     $senderId->refresh();
 
@@ -108,22 +109,13 @@ class SenderIdApprovalController extends Controller
                         'sender_id_id' => $senderId->id,
                         'from_status' => SenderId::STATUS_SUBMITTED,
                         'to_status' => SenderId::STATUS_IN_REVIEW,
-                        'changed_by' => $adminId,
+                        'action' => 'review_started',
                         'notes' => 'Auto-started on detail page view',
-                        'created_at' => now(),
-                    ]);
-
-                    DB::table('governance_audit_events')->insert([
-                        'event_uuid' => Str::uuid()->toString(),
-                        'event_type' => 'SENDER_ID_STATUS_CHANGED',
-                        'entity_type' => 'sender_id',
-                        'entity_id' => $senderId->id,
-                        'actor_id' => $adminId,
-                        'actor_type' => 'ADMIN',
-                        'actor_email' => $adminEmail,
-                        'before_state' => json_encode(['workflow_status' => SenderId::STATUS_SUBMITTED, 'sender_id_value' => $senderId->sender_id_value, 'uuid' => $uuid]),
-                        'after_state' => json_encode(['workflow_status' => SenderId::STATUS_IN_REVIEW, 'sender_id_value' => $senderId->sender_id_value, 'uuid' => $uuid]),
-                        'source_ip' => request()->ip(),
+                        'user_id' => $adminId,
+                        'user_name' => $adminName,
+                        'user_email' => $adminEmail,
+                        'ip_address' => request()->ip(),
+                        'user_agent' => request()->userAgent(),
                         'created_at' => now(),
                     ]);
 
