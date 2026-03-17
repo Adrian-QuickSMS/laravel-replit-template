@@ -91,6 +91,58 @@ class SenderIdApprovalController extends Controller
             return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
         }
 
+        if ($senderId->workflow_status === SenderId::STATUS_SUBMITTED) {
+            try {
+                $updated = DB::table('sender_ids')
+                    ->where('uuid', $uuid)
+                    ->where('workflow_status', SenderId::STATUS_SUBMITTED)
+                    ->update(['workflow_status' => SenderId::STATUS_IN_REVIEW, 'is_locked' => true, 'updated_at' => now()]);
+
+                if ($updated) {
+                    $adminId = session('admin_auth.admin_id');
+                    $adminEmail = session('admin_auth.email', 'system');
+
+                    $senderId->refresh();
+
+                    DB::table('sender_id_status_history')->insert([
+                        'sender_id_id' => $senderId->id,
+                        'from_status' => SenderId::STATUS_SUBMITTED,
+                        'to_status' => SenderId::STATUS_IN_REVIEW,
+                        'changed_by' => $adminId,
+                        'notes' => 'Auto-started on detail page view',
+                        'created_at' => now(),
+                    ]);
+
+                    DB::table('governance_audit_events')->insert([
+                        'event_uuid' => Str::uuid()->toString(),
+                        'event_type' => 'SENDER_ID_STATUS_CHANGED',
+                        'entity_type' => 'sender_id',
+                        'entity_id' => $senderId->id,
+                        'actor_id' => $adminId,
+                        'actor_type' => 'ADMIN',
+                        'actor_email' => $adminEmail,
+                        'before_state' => json_encode(['workflow_status' => SenderId::STATUS_SUBMITTED, 'sender_id_value' => $senderId->sender_id_value, 'uuid' => $uuid]),
+                        'after_state' => json_encode(['workflow_status' => SenderId::STATUS_IN_REVIEW, 'sender_id_value' => $senderId->sender_id_value, 'uuid' => $uuid]),
+                        'source_ip' => request()->ip(),
+                        'created_at' => now(),
+                    ]);
+
+                    $senderId->load([
+                        'account:id,company_name,account_number,status,created_at',
+                        'createdBy:id,email,first_name,last_name',
+                        'reviewedBy:id,email,first_name,last_name',
+                        'statusHistory',
+                        'assignments',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('[SenderIdApproval] Auto-transition to in_review failed', [
+                    'uuid' => $uuid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $spoofingRaw = $this->validationService->checkAntiSpoofing($senderId->sender_id_value);
         $senderType = $senderId->sender_type ?? SenderId::TYPE_ALPHA;
         $typeValidation = $this->validationService->validate($senderId->sender_id_value, $senderType);

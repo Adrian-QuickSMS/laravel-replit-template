@@ -950,28 +950,6 @@ function loadSenderIdDetail() {
             if (response.success) {
                 currentSenderIdData = response.data;
 
-                if (response.data.workflow_status === 'submitted') {
-                    $.ajax({
-                        url: '/admin/api/sender-ids/' + senderIdUuid + '/review',
-                        method: 'POST',
-                        headers: ajaxHeaders(),
-                        success: function(reviewResp) {
-                            if (reviewResp.success && reviewResp.data) {
-                                currentSenderIdData = reviewResp.data;
-                                response.data = reviewResp.data;
-                            }
-                            populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
-                            renderCommentThread(response.comments || []);
-                            loadSenderIdDetail();
-                        },
-                        error: function() {
-                            populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
-                            renderCommentThread(response.comments || []);
-                        }
-                    });
-                    return;
-                }
-
                 populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
                 renderCommentThread(response.comments || []);
                 $('#sender-id-overview-loading').hide();
@@ -1382,7 +1360,7 @@ function renderAuditTrail(statusHistory) {
 }
 
 function updateActionButtonVisibility(status) {
-    var btnIds = ['btnStartReview', 'btnApprove', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
+    var btnIds = ['btnApprove', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
     var noActionsMsg = document.getElementById('noActionsMsg');
 
     btnIds.forEach(function(id) {
@@ -1398,9 +1376,6 @@ function updateActionButtonVisibility(status) {
     }
 
     switch (status) {
-        case 'submitted':
-            showBtn('btnStartReview');
-            break;
         case 'in_review':
             showBtn('btnApprove');
             showBtn('btnReject');
@@ -1564,10 +1539,6 @@ function showConfirmModal(options) {
     }
 
     new bootstrap.Modal(modal).show();
-}
-
-function startReview() {
-    performAction('review', {}, 'SenderID is now in review.');
 }
 
 function renderCommentThread(comments) {
@@ -1989,10 +1960,6 @@ function showAdminActionsModal() {
                 <div class="admin-action-group">
                     <div style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;">ACTIONS</div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="senderIdActionButtons">
-                        <button id="btnStartReview" class="admin-action-btn approve" onclick="startReview()" style="display:none;">
-                            <i class="fas fa-search"></i>
-                            <span>Start Review</span>
-                        </button>
                         <button id="btnApprove" class="admin-action-btn approve" onclick="approveSenderId()" style="display:none;">
                             <i class="fas fa-check-circle"></i>
                             <span>Approve</span>
