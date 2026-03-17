@@ -2424,6 +2424,7 @@ function executeStatusChange() {
 
 // ───── Payment Terms Edit ─────
 var currentPaymentTermsDays = 30;
+var paymentTermsInitialized = false;
 
 function initPaymentTermsEdit(days) {
     currentPaymentTermsDays = days || 30;
@@ -2434,6 +2435,9 @@ function initPaymentTermsEdit(days) {
     var cancelBtn = document.getElementById('paymentTermsCancelBtn');
 
     selectEl.value = String(currentPaymentTermsDays);
+
+    if (paymentTermsInitialized) return;
+    paymentTermsInitialized = true;
 
     editBtn.addEventListener('click', function() {
         editBtn.classList.add('hidden');
@@ -2481,6 +2485,7 @@ var currentEnforcementMode = 'hard';
 var selectedEnforcementMode = 'hard';
 var currentGraceDays = 0;
 var currentEmailFrequency = 'weekly';
+var enforcementInitialized = false;
 
 function initEnforcementControls(mode, graceDays, emailFrequency) {
     currentEnforcementMode = mode;
@@ -2503,6 +2508,9 @@ function initEnforcementControls(mode, graceDays, emailFrequency) {
     }
 
     updateGraceDaysSummary();
+
+    if (enforcementInitialized) return;
+    enforcementInitialized = true;
 
     document.getElementById('graceDaysValue').addEventListener('input', function() {
         updateGraceDaysSummary();
