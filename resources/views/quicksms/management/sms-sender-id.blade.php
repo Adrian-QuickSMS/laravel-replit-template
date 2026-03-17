@@ -852,16 +852,6 @@ body > .dropdown-menu.dropdown-menu-end,
                                         </div>
                                     </div>
 
-                                    <div class="mb-3" id="confirmationSection" style="display: none;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="inputConfirmAuthorised">
-                                            <label class="form-check-label" for="inputConfirmAuthorised">
-                                                I confirm I am authorised to use this SenderID and understand that misuse may result in suspension
-                                            </label>
-                                        </div>
-                                        <div class="invalid-feedback" id="confirmError"></div>
-                                    </div>
-
                                     <div class="mb-0" id="explanationSection" style="display: none;">
                                         <label class="form-label fw-semibold">Additional Explanation (Optional)</label>
                                         <textarea class="form-control" id="inputExplanation" rows="3" 
@@ -1440,7 +1430,6 @@ $(document).ready(function() {
         $('#inputBrand').removeClass('is-invalid');
         $('#inputUseCase').removeClass('is-invalid');
         $('#inputPermission').removeClass('is-invalid');
-        $('#inputConfirmAuthorised').prop('checked', false);
         $('#senderIdCharCount').text('0');
         $('.type-card').removeClass('selected');
         $('.type-card[data-type="alphanumeric"]').addClass('selected');
@@ -1542,7 +1531,6 @@ $(document).ready(function() {
             }
         } else if (step === 3) {
             var permission = $('#inputPermission').val();
-            var confirmed = $('#inputConfirmAuthorised').is(':checked');
             
             if (!permission) {
                 $('#inputPermission').addClass('is-invalid');
@@ -1552,14 +1540,7 @@ $(document).ready(function() {
                 isValid = false;
             } else {
                 $('#inputPermission').removeClass('is-invalid');
-                
-                if (!confirmed) {
-                    $('#confirmError').text('You must confirm authorisation to proceed');
-                    $('#confirmError').show();
-                    isValid = false;
-                } else {
-                    $('#confirmError').hide();
-                }
+                $('#permissionError').hide();
             }
         } else if (step === 4) {
             var useCase = $('#inputUseCase').val();
@@ -1595,15 +1576,12 @@ $(document).ready(function() {
         
         if (val === 'no') {
             $('#permissionBlockedAlert').show();
-            $('#confirmationSection').hide();
             $('#explanationSection').hide();
         } else if (val === 'yes') {
             $('#permissionBlockedAlert').hide();
-            $('#confirmationSection').show();
             $('#explanationSection').show();
         } else {
             $('#permissionBlockedAlert').hide();
-            $('#confirmationSection').hide();
             $('#explanationSection').hide();
         }
     });

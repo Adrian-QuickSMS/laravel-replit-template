@@ -413,16 +413,6 @@ button.btn-save-draft:hover {
                                             </div>
                                         </div>
 
-                                        <div class="mb-3" id="confirmationSection" style="display: none;">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="inputConfirmAuthorised">
-                                                <label class="form-check-label" for="inputConfirmAuthorised">
-                                                    I confirm I am authorised to use this SenderID and understand that misuse may result in suspension
-                                                </label>
-                                            </div>
-                                            <div class="invalid-feedback" id="confirmError"></div>
-                                        </div>
-
                                         <div class="mb-3" id="explanationSection" style="display: none;">
                                             <label class="form-label fw-semibold">Additional Explanation (Optional)</label>
                                             <textarea class="form-control" id="inputExplanation" rows="3" 
@@ -817,12 +807,12 @@ $(document).ready(function() {
         var val = $(this).val();
         if (val === 'yes') {
             $('#permissionBlockedAlert').hide();
-            $('#confirmationSection, #explanationSection').show();
+            $('#explanationSection').show();
         } else if (val === 'no') {
             $('#permissionBlockedAlert').show();
-            $('#confirmationSection, #explanationSection').hide();
+            $('#explanationSection').hide();
         } else {
-            $('#permissionBlockedAlert, #confirmationSection, #explanationSection').hide();
+            $('#permissionBlockedAlert, #explanationSection').hide();
         }
     });
 
@@ -882,12 +872,9 @@ $(document).ready(function() {
                 isValid = false;
             } else if (permission === 'no') {
                 isValid = false;
-            } else if (permission === 'yes' && !$('#inputConfirmAuthorised').is(':checked')) {
-                $('#confirmError').text('You must confirm authorisation').show();
-                isValid = false;
             } else {
                 $('#inputPermission').removeClass('is-invalid');
-                $('#permissionError, #confirmError').hide();
+                $('#permissionError').hide();
             }
         } else if (stepIndex === 3) {
             var useCase = $('#inputUseCase').val();
@@ -953,7 +940,7 @@ $(document).ready(function() {
             country_code: 'GB',
             use_case: $('#inputUseCase').val() || 'transactional',
             use_case_description: $('#inputDescription').val().trim(),
-            permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
+            permission_confirmed: $('#inputPermission').val() === 'yes',
             permission_explanation: $('#inputExplanation').val().trim(),
             sub_account_ids: ($('#inputSubaccount').val() || []).filter(function(v) { return v !== 'main'; }),
             user_ids: $('#inputUsers').val() || [],
@@ -995,7 +982,7 @@ $(document).ready(function() {
             country_code: 'GB',
             use_case: $('#inputUseCase').val(),
             use_case_description: $('#inputDescription').val().trim(),
-            permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
+            permission_confirmed: $('#inputPermission').val() === 'yes',
             permission_explanation: $('#inputExplanation').val().trim(),
             sub_account_ids: ($('#inputSubaccount').val() || []).filter(function(v) { return v !== 'main'; }),
             user_ids: $('#inputUsers').val() || [],
