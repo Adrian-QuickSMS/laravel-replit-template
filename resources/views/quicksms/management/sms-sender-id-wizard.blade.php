@@ -436,7 +436,7 @@ button.btn-save-draft:hover {
                                             <select class="form-select" id="inputUseCase">
                                                 <option value="">Select use case...</option>
                                                 <option value="transactional">Transactional - Order updates, confirmations, receipts</option>
-                                                <option value="marketing">Promotional - Marketing messages, offers, campaigns</option>
+                                                <option value="promotional">Promotional - Marketing messages, offers, campaigns</option>
                                                 <option value="otp">OTP - One-time passwords, verification codes, 2FA</option>
                                                 <option value="mixed">Mixed - Combination of above use cases</option>
                                             </select>
