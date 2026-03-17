@@ -49,7 +49,8 @@ class SimulateStripeWebhook extends Command
         }
 
         if ($type === 'dd_collection' && !$invoiceId) {
-            $this->warn('No --invoice provided for dd_collection. Payment will be recorded without linking to an invoice.');
+            $this->error('The --invoice option is required for dd_collection type.');
+            return self::FAILURE;
         }
 
         $account = Account::find($accountId);
@@ -143,6 +144,12 @@ class SimulateStripeWebhook extends Command
             } else {
                 $fakeEvent = $this->buildFakeEvent($simEventId, $simUuid, $amountPence, $currency, $accountId, $type, $invoiceId);
                 $checkoutService->handlePaymentIntentSucceeded($fakeEvent);
+
+                Payment::where('stripe_payment_intent_id', $simUuid)
+                    ->update([
+                        'stripe_payment_intent_id' => $simPiId,
+                        'metadata' => json_encode(['simulated' => true, 'source' => 'billing:simulate-stripe', 'original_sim_uuid' => $simUuid]),
+                    ]);
             }
 
             try {
@@ -201,8 +208,7 @@ class SimulateStripeWebhook extends Command
             ]
         );
 
-        $paymentPiId = ($type === 'top_up') ? $simPiId : $simUuid;
-        $payment = Payment::where('stripe_payment_intent_id', $paymentPiId)->first();
+        $payment = Payment::where('stripe_payment_intent_id', $simPiId)->first();
         if ($payment) {
             $this->newLine();
             $this->info('── Payment Record Created ──');
