@@ -80,9 +80,21 @@ class MessageEnforcementService
         $normalised = '';
         $mappingHits = [];
 
+        $separators = ['_', '-', '.', ' ', "\t", "\xC2\xA0"];
+
         $chars = preg_split('//u', $input, -1, PREG_SPLIT_NO_EMPTY);
 
         foreach ($chars as $index => $char) {
+            if (in_array($char, $separators, true)) {
+                $mappingHits[] = [
+                    'from' => $char,
+                    'to' => '',
+                    'index' => $index,
+                    'base' => 'separator_stripped',
+                ];
+                continue;
+            }
+
             if (isset($equivMap[$char])) {
                 $baseChar = $equivMap[$char];
                 $mappingHits[] = [

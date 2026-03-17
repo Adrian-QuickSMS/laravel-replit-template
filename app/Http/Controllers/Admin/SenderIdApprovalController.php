@@ -530,9 +530,10 @@ class SenderIdApprovalController extends Controller
 
             $restricted = ['HMRC', 'NHS', 'GOV', 'GOVUK', 'POLICE', 'DVLA', 'DWP', 'HMCTS', 'OFCOM', 'FCA', 'HSBC', 'BARCLAYS', 'LLOYDS', 'NATWEST', 'SANTANDER', 'HALIFAX', 'NATIONWIDE', 'MONZO', 'STARLING', 'REVOLUT'];
             $upperVal = strtoupper($value);
+            $strippedVal = strtoupper(preg_replace('/[\s_\-\.]+/', '', $value));
             $matchedKeyword = null;
             foreach ($restricted as $kw) {
-                if (str_contains($upperVal, $kw)) {
+                if (str_contains($upperVal, $kw) || str_contains($strippedVal, $kw)) {
                     $matchedKeyword = $kw;
                     break;
                 }
