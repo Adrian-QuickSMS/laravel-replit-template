@@ -456,13 +456,13 @@ class SenderIdApprovalController extends Controller
         $isShortcode = $type === SenderId::TYPE_SHORTCODE;
 
         if ($isAlpha) {
-            $charPass = (bool) preg_match('/^[A-Za-z0-9\-_& ]+$/', $value);
+            $charPass = (bool) preg_match('/^[A-Za-z0-9.\-_& ]+$/', $value);
             $results[] = [
                 'name' => 'Character Rules',
                 'pass' => $charPass,
                 'warn' => false,
                 'message' => $charPass
-                    ? 'Only allowed characters (A-Z, a-z, 0-9, -, _, &, space) detected.'
+                    ? 'Only allowed characters (A-Z, a-z, 0-9, -, _, &, ., space) detected.'
                     : 'Contains disallowed characters for an alphanumeric SenderID.',
             ];
 
