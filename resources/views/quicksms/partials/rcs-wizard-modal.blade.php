@@ -33,13 +33,44 @@
         overflow-y: auto !important;
         min-height: 0 !important;
     }
+    @media (max-width: 767.98px) {
+        #rcsWizardBody {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto 1fr !important;
+            overflow-y: auto !important;
+        }
+        #rcsPreviewColumn {
+            display: none !important;
+            border-end: none !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            max-height: 45vh !important;
+            padding: 1rem !important;
+        }
+        #rcsPreviewColumn.rcs-preview-visible {
+            display: flex !important;
+        }
+        #rcsConfigColumn {
+            padding: 1rem !important;
+        }
+        #rcsConfigColumn .btn-group {
+            flex-wrap: wrap !important;
+        }
+        #rcsConfigColumn .btn-group .btn {
+            font-size: 0.8rem !important;
+        }
+    }
 </style>
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
-                <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light d-md-none" id="rcsPreviewToggleBtn" onclick="toggleRcsMobilePreview()">
+                        <i class="fas fa-eye me-1"></i><span id="rcsPreviewToggleText">Preview</span>
+                    </button>
+                    <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
+                </div>
             </div>
             <div class="modal-body p-0" id="rcsWizardBody">
                     <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1);">
@@ -340,8 +371,23 @@ document.addEventListener('DOMContentLoaded', function() {
             var configCol = document.getElementById('rcsConfigColumn');
             if (configCol) configCol.focus();
         });
+        rcsModal.addEventListener('hidden.bs.modal', function() {
+            var previewCol = document.getElementById('rcsPreviewColumn');
+            if (previewCol) previewCol.classList.remove('rcs-preview-visible');
+            var toggleText = document.getElementById('rcsPreviewToggleText');
+            if (toggleText) toggleText.textContent = 'Preview';
+        });
     }
 });
+
+function toggleRcsMobilePreview() {
+    var previewCol = document.getElementById('rcsPreviewColumn');
+    var toggleText = document.getElementById('rcsPreviewToggleText');
+    if (!previewCol) return;
+    var isVisible = previewCol.classList.toggle('rcs-preview-visible');
+    if (toggleText) toggleText.textContent = isVisible ? 'Hide Preview' : 'Preview';
+    if (isVisible) previewCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 </script>
 
 <div class="modal fade" id="rcsRemoveCardModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
