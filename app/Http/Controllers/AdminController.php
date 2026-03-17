@@ -1202,12 +1202,16 @@ class AdminController extends Controller
             'creditLimit' => $creditLimit,
             'availableCredit' => $availableCredit,
             'paymentTerms' => $paymentTermsLabel,
+            'paymentTermsDays' => $paymentTermsDays,
             'currency' => $account->currency ?? 'GBP',
             'vatRegistered' => (bool) $account->vat_registered,
             'vatRate' => 20,
             'reverseCharge' => (bool) $account->vat_reverse_charges,
             'vatCountry' => $account->tax_country ?? 'GB',
             'lastUpdated' => ($balance ? $balance->updated_at : $account->updated_at)?->toISOString(),
+            'overdueEnforcementMode' => $account->overdue_enforcement_mode ?? 'hard',
+            'overdueGraceDays' => (int) ($account->overdue_grace_days ?? 0),
+            'overdueEmailFrequency' => $account->overdue_email_frequency ?? 'weekly',
         ]);
     }
 

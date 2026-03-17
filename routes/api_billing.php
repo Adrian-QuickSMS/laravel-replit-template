@@ -50,6 +50,7 @@ Route::prefix('api/admin/v1')->middleware(['auth:admin', 'throttle:60,1'])->grou
     Route::put('/accounts/{id}/billing-method', [$ctrl, 'updateBillingMethod']);
     Route::put('/accounts/{id}/credit-limit', [$ctrl, 'updateCreditLimit']);
     Route::put('/accounts/{id}/payment-terms', [$ctrl, 'updatePaymentTerms']);
+    Route::put('/accounts/{id}/overdue-enforcement', [$ctrl, 'updateOverdueEnforcement']);
 
     // Pricing management
     Route::get('/accounts/{id}/pricing', [$ctrl, 'accountPricing']);

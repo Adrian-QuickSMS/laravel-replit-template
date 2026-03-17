@@ -8,6 +8,7 @@ use App\Models\Billing\AccountBalance;
 use App\Models\Billing\CustomerPrice;
 use App\Models\Billing\RecurringCharge;
 use App\Models\Billing\TestCreditWallet;
+use App\Models\AdminAuditLog;
 use App\Models\Billing\FinancialAuditLog;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\LedgerService;
@@ -206,9 +207,70 @@ class BillingAdminController extends Controller
      */
     public function updatePaymentTerms(Request $request, string $id): JsonResponse
     {
-        $request->validate(['payment_terms_days' => 'required|integer|in:15,30,60']);
+        $request->validate(['payment_terms_days' => 'required|integer|in:15,20,30,40,60']);
 
-        Account::findOrFail($id)->update(['payment_terms_days' => $request->input('payment_terms_days')]);
+        $account = Account::findOrFail($id);
+        $previousDays = $account->payment_terms_days;
+        $newDays = (int) $request->input('payment_terms_days');
+
+        $account->update(['payment_terms_days' => $newDays]);
+
+        try {
+            AdminAuditLog::record(
+                'payment_terms_updated', 'billing', 'medium',
+                session('admin_auth.admin_id'), session('admin_auth.name'),
+                'account', $account->id, $account->id,
+                "Payment terms changed from Net {$previousDays} to Net {$newDays}",
+                ['previous_days' => $previousDays, 'new_days' => $newDays]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to audit payment terms change', ['error' => $e->getMessage()]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * PUT /api/admin/v1/accounts/{id}/overdue-enforcement
+     */
+    public function updateOverdueEnforcement(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'overdue_enforcement_mode' => 'required|string|in:hard,soft,none',
+            'overdue_grace_days' => 'required_if:overdue_enforcement_mode,soft|integer|min:0|max:90',
+            'overdue_email_frequency' => 'required|string|in:daily,every_3_days,weekly,fortnightly,none',
+        ]);
+
+        $account = Account::findOrFail($id);
+
+        $previousMode = $account->overdue_enforcement_mode ?? 'hard';
+        $previousGraceDays = $account->overdue_grace_days ?? 0;
+        $previousEmailFreq = $account->overdue_email_frequency ?? 'weekly';
+
+        $newMode = $request->input('overdue_enforcement_mode');
+        $newGraceDays = $newMode === 'soft' ? (int) $request->input('overdue_grace_days', 0) : 0;
+        $newEmailFreq = $request->input('overdue_email_frequency');
+
+        $account->update([
+            'overdue_enforcement_mode' => $newMode,
+            'overdue_grace_days' => $newGraceDays,
+            'overdue_email_frequency' => $newEmailFreq,
+        ]);
+
+        try {
+            AdminAuditLog::record(
+                'overdue_enforcement_updated', 'billing', 'medium',
+                session('admin_auth.admin_id'), session('admin_auth.name'),
+                'account', $account->id, $account->id,
+                "Overdue enforcement updated: mode={$newMode}, grace={$newGraceDays}d, emails={$newEmailFreq}",
+                [
+                    'previous' => ['mode' => $previousMode, 'grace_days' => $previousGraceDays, 'email_frequency' => $previousEmailFreq],
+                    'new' => ['mode' => $newMode, 'grace_days' => $newGraceDays, 'email_frequency' => $newEmailFreq],
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to audit overdue enforcement change', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true]);
     }

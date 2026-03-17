@@ -471,6 +471,83 @@
     color: #6c757d;
 }
 
+/* Overdue Enforcement Card */
+.enforcement-option {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    position: relative;
+}
+.enforcement-option:hover {
+    border-color: rgba(30, 58, 95, 0.4);
+    background: rgba(30, 58, 95, 0.03);
+}
+.enforcement-option.selected {
+    border-color: var(--admin-primary);
+    background: rgba(30, 58, 95, 0.06);
+}
+.enforcement-option .option-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.375rem;
+}
+.enforcement-option .option-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+.enforcement-option .option-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #333;
+}
+.enforcement-option .option-desc {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.4;
+    padding-left: 2.5rem;
+}
+.enforcement-option .option-check {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    color: var(--admin-primary);
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.enforcement-option.selected .option-check { opacity: 1; }
+.icon-hard { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+.icon-soft { background: rgba(255, 193, 7, 0.15); color: #856404; }
+.icon-none { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
+.grace-days-input {
+    display: none;
+    margin-top: 0.75rem;
+    padding-left: 2.5rem;
+}
+.grace-days-input.visible { display: block; }
+
+/* Payment Terms inline select */
+.payment-terms-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+}
+.payment-terms-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 @media (max-width: 768px) {
     .summary-metric {
         border-right: none;
@@ -647,9 +724,31 @@
                         <div class="inline-edit-helper">Credit limit is stored in HubSpot and will be synced.</div>
                         <div class="inline-edit-error" id="creditLimitError">Could not update HubSpot. No changes were saved.</div>
                     </div>
-                    <div class="billing-setting-row">
+                    <div class="billing-setting-row payment-terms-row" id="paymentTermsRow">
                         <span class="billing-setting-label">Payment Terms</span>
-                        <span class="billing-setting-value" id="settingPaymentTerms">Immediate</span>
+                        <div class="payment-terms-content">
+                            <div class="inline-edit-container">
+                                <span class="inline-edit-value" id="settingPaymentTerms">Immediate</span>
+                                <button type="button" class="inline-edit-btn" id="paymentTermsEditBtn">
+                                    <i class="fas fa-pencil-alt"></i> Edit
+                                </button>
+                            </div>
+                            <div class="inline-edit-input-group" id="paymentTermsInputGroup">
+                                <select class="form-select form-select-sm" id="paymentTermsSelect" style="width: 140px;">
+                                    <option value="15">Net 15</option>
+                                    <option value="20">Net 20</option>
+                                    <option value="30">Net 30</option>
+                                    <option value="40">Net 40</option>
+                                    <option value="60">Net 60</option>
+                                </select>
+                                <button type="button" class="inline-edit-save" id="paymentTermsSaveBtn">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button type="button" class="inline-edit-cancel" id="paymentTermsCancelBtn">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="billing-setting-row">
                         <span class="billing-setting-label">Currency</span>
@@ -694,6 +793,74 @@
                     </div>
                     <div class="mt-3 text-muted small">
                         <i class="fas fa-info-circle me-1"></i>Billing settings are synced with HubSpot.
+                    </div>
+                </div>
+            </div>
+
+            <div class="billing-card mt-3">
+                <div class="billing-card-header">
+                    <h6><i class="fas fa-gavel me-2"></i>Overdue Enforcement</h6>
+                </div>
+                <div class="billing-card-body">
+                    <p class="text-muted small mb-3">Controls what happens when invoices become overdue for this account.</p>
+                    
+                    <div class="d-flex flex-column gap-3" id="enforcementOptions">
+                        <div class="enforcement-option" data-mode="hard" onclick="selectEnforcement('hard')">
+                            <span class="option-check"><i class="fas fa-check-circle"></i></span>
+                            <div class="option-header">
+                                <div class="option-icon icon-hard"><i class="fas fa-ban"></i></div>
+                                <span class="option-title">Hard Enforcement</span>
+                            </div>
+                            <p class="option-desc">Account is <strong>suspended automatically</strong> the day after an invoice's due date passes.</p>
+                        </div>
+                        <div class="enforcement-option" data-mode="soft" onclick="selectEnforcement('soft')">
+                            <span class="option-check"><i class="fas fa-check-circle"></i></span>
+                            <div class="option-header">
+                                <div class="option-icon icon-soft"><i class="fas fa-clock"></i></div>
+                                <span class="option-title">Soft Enforcement</span>
+                            </div>
+                            <p class="option-desc">Account is suspended after the due date <strong>plus a grace period</strong>.</p>
+                            <div class="grace-days-input" id="graceDaysInput">
+                                <label class="form-label small fw-bold mb-1">Grace Period (days)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-sm" id="graceDaysValue" min="1" max="90" value="10" style="width: 80px;">
+                                    <span class="text-muted small" id="graceDaysSummary">e.g. Net 30 + 10 = suspended after 40 days</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="enforcement-option" data-mode="none" onclick="selectEnforcement('none')">
+                            <span class="option-check"><i class="fas fa-check-circle"></i></span>
+                            <div class="option-header">
+                                <div class="option-icon icon-none"><i class="fas fa-minus-circle"></i></div>
+                                <span class="option-title">No Enforcement</span>
+                            </div>
+                            <p class="option-desc">Overdue invoices are tracked but <strong>no automatic action</strong> is taken.</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+                    <h6 class="mb-2" style="font-size: 0.875rem; color: var(--admin-primary); font-weight: 600;">
+                        <i class="fas fa-envelope me-1"></i>Reminder Emails
+                    </h6>
+                    <p class="text-muted small mb-2">Automated email reminders sent when invoices are overdue.</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label small fw-bold mb-0">Frequency</label>
+                        <select class="form-select form-select-sm" id="emailFrequencySelect" style="width: 180px;">
+                            <option value="daily">Daily</option>
+                            <option value="every_3_days">Every 3 Days</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="fortnightly">Fortnightly</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+
+                    <div id="enforcementActions" class="mt-3" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-admin-primary" id="saveEnforcementBtn" onclick="saveEnforcement()">
+                            <i class="fas fa-check me-1"></i>Save Enforcement Settings
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="cancelEnforcement()">
+                            Cancel
+                        </button>
                     </div>
                 </div>
             </div>
@@ -972,6 +1139,32 @@ var AdminAccountBillingService = (function() {
                     if (!response.ok) throw new Error(data.error || 'Update status error: ' + response.status);
                     return data;
                 });
+            });
+        },
+
+        updatePaymentTerms: function(accountId, days) {
+            return fetch('/api/admin/v1/accounts/' + accountId + '/payment-terms', {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ payment_terms_days: days })
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Update payment terms error: ' + response.status);
+                return response.json();
+            });
+        },
+
+        updateOverdueEnforcement: function(accountId, mode, graceDays, emailFrequency) {
+            return fetch('/api/admin/v1/accounts/' + accountId + '/overdue-enforcement', {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({
+                    overdue_enforcement_mode: mode,
+                    overdue_grace_days: graceDays,
+                    overdue_email_frequency: emailFrequency
+                })
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Update enforcement error: ' + response.status);
+                return response.json();
             });
         }
     };
@@ -1342,6 +1535,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         initBillingTypeToggle(data.billingMode, data.name);
         initAccountStatusControl(data.status);
+        initPaymentTermsEdit(data.paymentTermsDays || 30);
+        initEnforcementControls(data.overdueEnforcementMode || 'hard', data.overdueGraceDays || 0, data.overdueEmailFrequency || 'weekly');
         
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.logAdminAction('ACCOUNT_BILLING_VIEWED', accountId, { accountName: data.name });
@@ -2225,6 +2420,157 @@ function executeStatusChange() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Change';
     });
+}
+
+// ───── Payment Terms Edit ─────
+var currentPaymentTermsDays = 30;
+
+function initPaymentTermsEdit(days) {
+    currentPaymentTermsDays = days || 30;
+    var editBtn = document.getElementById('paymentTermsEditBtn');
+    var inputGroup = document.getElementById('paymentTermsInputGroup');
+    var selectEl = document.getElementById('paymentTermsSelect');
+    var saveBtn = document.getElementById('paymentTermsSaveBtn');
+    var cancelBtn = document.getElementById('paymentTermsCancelBtn');
+
+    selectEl.value = String(currentPaymentTermsDays);
+
+    editBtn.addEventListener('click', function() {
+        editBtn.classList.add('hidden');
+        inputGroup.classList.add('active');
+        selectEl.value = String(currentPaymentTermsDays);
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        inputGroup.classList.remove('active');
+        editBtn.classList.remove('hidden');
+    });
+
+    saveBtn.addEventListener('click', function() {
+        var newDays = parseInt(selectEl.value, 10);
+        if (newDays === currentPaymentTermsDays) {
+            inputGroup.classList.remove('active');
+            editBtn.classList.remove('hidden');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        AdminAccountBillingService.updatePaymentTerms(accountId, newDays)
+            .then(function() {
+                currentPaymentTermsDays = newDays;
+                document.getElementById('settingPaymentTerms').textContent = 'Net ' + newDays;
+                inputGroup.classList.remove('active');
+                editBtn.classList.remove('hidden');
+                showToast('Payment terms updated to Net ' + newDays, 'success');
+                updateGraceDaysSummary();
+            })
+            .catch(function(err) {
+                showToast('Failed to update payment terms: ' + err.message, 'error');
+            })
+            .finally(function() {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+            });
+    });
+}
+
+// ───── Overdue Enforcement ─────
+var currentEnforcementMode = 'hard';
+var selectedEnforcementMode = 'hard';
+var currentGraceDays = 0;
+var currentEmailFrequency = 'weekly';
+
+function initEnforcementControls(mode, graceDays, emailFrequency) {
+    currentEnforcementMode = mode;
+    selectedEnforcementMode = mode;
+    currentGraceDays = graceDays;
+    currentEmailFrequency = emailFrequency;
+
+    document.querySelectorAll('.enforcement-option').forEach(function(el) {
+        el.classList.toggle('selected', el.dataset.mode === mode);
+    });
+
+    document.getElementById('graceDaysValue').value = graceDays || 10;
+    document.getElementById('emailFrequencySelect').value = emailFrequency;
+
+    var graceDaysInput = document.getElementById('graceDaysInput');
+    if (mode === 'soft') {
+        graceDaysInput.classList.add('visible');
+    } else {
+        graceDaysInput.classList.remove('visible');
+    }
+
+    updateGraceDaysSummary();
+
+    document.getElementById('graceDaysValue').addEventListener('input', function() {
+        updateGraceDaysSummary();
+        showEnforcementActions();
+    });
+
+    document.getElementById('emailFrequencySelect').addEventListener('change', function() {
+        showEnforcementActions();
+    });
+}
+
+function selectEnforcement(mode) {
+    selectedEnforcementMode = mode;
+    document.querySelectorAll('.enforcement-option').forEach(function(el) {
+        el.classList.toggle('selected', el.dataset.mode === mode);
+    });
+
+    var graceDaysInput = document.getElementById('graceDaysInput');
+    if (mode === 'soft') {
+        graceDaysInput.classList.add('visible');
+    } else {
+        graceDaysInput.classList.remove('visible');
+    }
+
+    updateGraceDaysSummary();
+    showEnforcementActions();
+}
+
+function updateGraceDaysSummary() {
+    var graceDays = parseInt(document.getElementById('graceDaysValue').value, 10) || 0;
+    var totalDays = currentPaymentTermsDays + graceDays;
+    document.getElementById('graceDaysSummary').textContent =
+        'e.g. Net ' + currentPaymentTermsDays + ' + ' + graceDays + ' = suspended after ' + totalDays + ' days';
+}
+
+function showEnforcementActions() {
+    document.getElementById('enforcementActions').style.display = 'block';
+}
+
+function cancelEnforcement() {
+    document.getElementById('enforcementActions').style.display = 'none';
+    initEnforcementControls(currentEnforcementMode, currentGraceDays, currentEmailFrequency);
+}
+
+function saveEnforcement() {
+    var mode = selectedEnforcementMode;
+    var graceDays = mode === 'soft' ? parseInt(document.getElementById('graceDaysValue').value, 10) || 0 : 0;
+    var emailFrequency = document.getElementById('emailFrequencySelect').value;
+
+    var btn = document.getElementById('saveEnforcementBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+    AdminAccountBillingService.updateOverdueEnforcement(accountId, mode, graceDays, emailFrequency)
+        .then(function() {
+            currentEnforcementMode = mode;
+            currentGraceDays = graceDays;
+            currentEmailFrequency = emailFrequency;
+            document.getElementById('enforcementActions').style.display = 'none';
+            showToast('Overdue enforcement settings saved', 'success');
+        })
+        .catch(function(err) {
+            showToast('Failed to save enforcement settings: ' + err.message, 'error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Save Enforcement Settings';
+        });
 }
 </script>
 @endpush

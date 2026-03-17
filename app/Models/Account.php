@@ -67,6 +67,29 @@ class Account extends Model
     const SPAM_FILTER_OFF = 'off';
     const SPAM_FILTER_MODES = [self::SPAM_FILTER_ENFORCED, self::SPAM_FILTER_MONITORING, self::SPAM_FILTER_OFF];
 
+    // Overdue enforcement modes
+    const OVERDUE_ENFORCEMENT_HARD = 'hard';
+    const OVERDUE_ENFORCEMENT_SOFT = 'soft';
+    const OVERDUE_ENFORCEMENT_NONE = 'none';
+    const OVERDUE_ENFORCEMENT_MODES = [self::OVERDUE_ENFORCEMENT_HARD, self::OVERDUE_ENFORCEMENT_SOFT, self::OVERDUE_ENFORCEMENT_NONE];
+
+    // Overdue reminder email frequencies
+    const OVERDUE_EMAIL_DAILY = 'daily';
+    const OVERDUE_EMAIL_EVERY_3_DAYS = 'every_3_days';
+    const OVERDUE_EMAIL_WEEKLY = 'weekly';
+    const OVERDUE_EMAIL_FORTNIGHTLY = 'fortnightly';
+    const OVERDUE_EMAIL_NONE = 'none';
+    const OVERDUE_EMAIL_FREQUENCIES = [
+        self::OVERDUE_EMAIL_DAILY,
+        self::OVERDUE_EMAIL_EVERY_3_DAYS,
+        self::OVERDUE_EMAIL_WEEKLY,
+        self::OVERDUE_EMAIL_FORTNIGHTLY,
+        self::OVERDUE_EMAIL_NONE,
+    ];
+
+    // Valid payment terms days
+    const PAYMENT_TERMS_OPTIONS = [15, 20, 30, 40, 60];
+
     // Valid status transitions
     const STATUS_TRANSITIONS = [
         self::STATUS_PENDING_VERIFICATION => [self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC, self::STATUS_CLOSED],
@@ -192,6 +215,10 @@ class Account extends Model
         'activated_at',
         'activated_by',
         'spam_filter_mode',
+        'overdue_enforcement_mode',
+        'overdue_grace_days',
+        'overdue_email_frequency',
+        'last_overdue_email_sent_at',
     ];
 
     protected $casts = [
@@ -223,6 +250,8 @@ class Account extends Model
         'credit_limit' => 'decimal:4',
         'platform_fee_monthly' => 'decimal:4',
         'payment_terms_days' => 'integer',
+        'overdue_grace_days' => 'integer',
+        'last_overdue_email_sent_at' => 'datetime',
     ];
 
     protected $hidden = [];
