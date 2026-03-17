@@ -405,7 +405,7 @@
 <div class="container-fluid purchase-messages-container">
     @php
         $currentUserRole = 'admin';
-        $vatApplicable = true;
+        $vatApplicable = $vatApplicable ?? true;
         $accountCurrency = 'GBP';
         $bespokePricing = ($productTier ?? 'starter') === 'bespoke';
     @endphp

@@ -2344,10 +2344,13 @@ class QuickSMSController extends Controller
         $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
         $productTier = $account ? $account->product_tier : 'starter';
 
+        $vatApplicable = $account ? (bool) $account->vat_registered : true;
+
         return view('quicksms.purchase.messages', [
             'page_title' => 'Purchase Messages',
             'account_id' => $accountId,
             'productTier' => $productTier,
+            'vatApplicable' => $vatApplicable,
         ]);
     }
 
