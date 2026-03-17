@@ -12,6 +12,25 @@ class AdminAuthenticate
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($this->isCustomerSession($request)) {
+            return $this->handleCustomerAccessAttempt($request);
+        }
+        
+        if (config('admin.ip_allowlist.enabled', false)) {
+            if (!$this->isIpAllowed($request->ip())) {
+                $this->logSecurityEvent('ADMIN_ACCESS_IP_BLOCKED', [
+                    'ip' => $request->ip(),
+                    'path' => $request->path(),
+                    'user_agent' => $request->userAgent()
+                ]);
+                
+                abort(403, 'Access denied from this IP address');
+            }
+        }
+        
+        // Dev auto-login disabled — use /admin/login to authenticate
+        // To re-enable, set ADMIN_DEV_AUTOLOGIN=true in environment
+        // SECURITY: Only allow in 'local' environment — never when debug=true alone (which could be enabled in prod by accident)
         if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
                 $devAdmin = AdminUser::where('role', 'super_admin')
@@ -31,22 +50,7 @@ class AdminAuthenticate
                     ]);
                     session()->put('admin_user_email', $devAdmin->email);
                 }
-            }
-        }
-
-        if ($this->isCustomerSession($request)) {
-            return $this->handleCustomerAccessAttempt($request);
-        }
-        
-        if (config('admin.ip_allowlist.enabled', false)) {
-            if (!$this->isIpAllowed($request->ip())) {
-                $this->logSecurityEvent('ADMIN_ACCESS_IP_BLOCKED', [
-                    'ip' => $request->ip(),
-                    'path' => $request->path(),
-                    'user_agent' => $request->userAgent()
-                ]);
-                
-                abort(403, 'Access denied from this IP address');
+                // If no DB user exists, do NOT create a fake session — redirect to login instead
             }
         }
         

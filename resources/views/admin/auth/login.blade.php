@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="robots" content="noindex, nofollow">
-    <title>QuickSMS | Admin Login</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+@extends('layouts.fullwidth')
+@section('title', 'Admin Login')
+@section('content')
 <style>
 :root {
     --admin-primary: #1e3a5f;
@@ -20,8 +10,6 @@
 
 body {
     background-color: #e8eef4 !important;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .auth-wrapper {
@@ -726,5 +714,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-</body>
-</html>
+@endsection

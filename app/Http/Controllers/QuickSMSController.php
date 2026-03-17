@@ -57,6 +57,7 @@ class QuickSMSController extends Controller
 
     public function login()
     {
+        // If already logged in, redirect to dashboard
         if (session('customer_logged_in')) {
             return redirect()->route('dashboard');
         }

@@ -13,27 +13,6 @@ class CustomerAuthenticate
     public function handle(Request $request, Closure $next): Response
     {
         if (!session('customer_logged_in') || !session('customer_user_id') || !session('customer_tenant_id')) {
-            if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
-                $devAdmin = \App\Models\AdminUser::where('role', 'super_admin')
-                    ->where('status', 'active')
-                    ->first();
-                if ($devAdmin) {
-                    session()->put('admin_auth', [
-                        'authenticated' => true,
-                        'mfa_verified' => true,
-                        'admin_id' => $devAdmin->id,
-                        'email' => $devAdmin->email,
-                        'name' => $devAdmin->full_name,
-                        'role' => $devAdmin->role,
-                        'hr_role' => $devAdmin->hr_role ?? 'none',
-                        'last_activity' => now()->timestamp,
-                        'ip_address' => $request->ip(),
-                    ]);
-                    session()->put('admin_user_email', $devAdmin->email);
-                    return response(view('admin.landing'), 200);
-                }
-            }
-
             if ($request->expectsJson()) {
                 return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
             }
