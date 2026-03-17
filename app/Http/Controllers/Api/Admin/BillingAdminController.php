@@ -850,7 +850,7 @@ class BillingAdminController extends Controller
 
     private function getAdminId(Request $request): string
     {
-        $adminId = session('admin_user_id') ?? session('admin_auth.id');
+        $adminId = session('admin_auth.admin_id') ?? session('admin_user_id');
         if (!$adminId) {
             throw new \RuntimeException('Admin identity could not be determined. Financial operations require authenticated admin.');
         }
