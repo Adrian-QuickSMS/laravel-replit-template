@@ -668,7 +668,7 @@
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                             <h5 class="mb-2">Creating invoice, please wait...</h5>
-                            <p class="text-muted mb-0">Processing your order with HubSpot</p>
+                            <p class="text-muted mb-0">Processing your order</p>
                         </div>
                         <div id="invoiceSuccess" class="d-none">
                             <div class="icon-wrapper mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(28, 187, 140, 0.15); display: flex; align-items: center; justify-content: center;">
@@ -1164,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderPricingBadges('enterprise');
             }
 
-            console.log('[Purchase] Loaded', Object.keys(state.products).length, 'products from HubSpot');
+            console.log('[Purchase] Loaded', Object.keys(state.products).length, 'products');
             
             updateAllCostInputs();
 
