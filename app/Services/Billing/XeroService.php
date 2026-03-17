@@ -218,6 +218,8 @@ class XeroService
                 $balance->save();
             }
 
+            $originalStatus = $invoice->status;
+
             $invoice->update([
                 'amount_paid' => $xeroTotal,
                 'amount_due' => '0',
@@ -241,7 +243,7 @@ class XeroService
 
             FinancialAuditLog::record(
                 'invoice_paid_via_xero', 'invoice', $invoice->id,
-                ['status' => 'sent'], ['status' => 'paid', 'amount' => $amountPaid],
+                ['status' => $originalStatus ?? 'sent'], ['status' => $invoice->status, 'amount' => $remainingToRecord],
                 null, 'webhook'
             );
         });
