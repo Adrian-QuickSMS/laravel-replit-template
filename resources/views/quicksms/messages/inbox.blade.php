@@ -1580,12 +1580,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var manageListsEl = document.getElementById('manageListsModal');
         var viewContactEl = document.getElementById('viewContactModal');
         
-        if (addContactEl) addContactModal = new bootstrap.Modal(addContactEl);
-        if (templateEl) templateModal = new bootstrap.Modal(templateEl);
-        if (comingSoonEl) comingSoonModal = new bootstrap.Modal(comingSoonEl);
-        if (manageTagsEl) manageTagsModal = new bootstrap.Modal(manageTagsEl);
-        if (manageListsEl) manageListsModal = new bootstrap.Modal(manageListsEl);
-        if (viewContactEl) viewContactModal = new bootstrap.Modal(viewContactEl);
+        if (addContactEl) addContactModal = bootstrap.Modal.getOrCreateInstance(addContactEl);
+        if (templateEl) templateModal = bootstrap.Modal.getOrCreateInstance(templateEl);
+        if (comingSoonEl) comingSoonModal = bootstrap.Modal.getOrCreateInstance(comingSoonEl);
+        if (manageTagsEl) manageTagsModal = bootstrap.Modal.getOrCreateInstance(manageTagsEl);
+        if (manageListsEl) manageListsModal = bootstrap.Modal.getOrCreateInstance(manageListsEl);
+        if (viewContactEl) viewContactModal = bootstrap.Modal.getOrCreateInstance(viewContactEl);
         console.log('[Inbox] Modals initialized');
     } catch (e) {
         console.error('[Inbox] Modal initialization error:', e);
@@ -2053,7 +2053,7 @@ function updateCharCount() {
 }
 
 function toggleEmojiPicker() {
-    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('emojiPickerModal'));
     loadRecentlyUsedEmojis();
     modal.show();
 }
@@ -2235,7 +2235,7 @@ function openAiAssistant() {
     }
     document.getElementById('aiResultSection').classList.add('d-none');
     document.getElementById('aiLoadingSection').classList.add('d-none');
-    var modal = new bootstrap.Modal(document.getElementById('aiAssistantModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('aiAssistantModal'));
     modal.show();
 }
 
@@ -2285,7 +2285,7 @@ function discardAiSuggestion() {
 }
 
 function openPersonalisationModal() {
-    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
     modal.show();
 }
 
