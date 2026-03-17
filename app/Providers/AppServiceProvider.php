@@ -36,11 +36,9 @@ class AppServiceProvider extends ServiceProvider
                 if ($account) {
                     $accountStatus = $account->status;
                     if (in_array($account->status, ['test_standard', 'test_dynamic'])) {
-                        $wallet = \App\Models\Billing\TestCreditWallet::where('account_id', $tenantId)
+                        $testCreditsRemaining = (int) \App\Models\Billing\TestCreditWallet::where('account_id', $tenantId)
                             ->where('expired', false)
-                            ->orderByDesc('created_at')
-                            ->first();
-                        $testCreditsRemaining = $wallet ? $wallet->credits_remaining : 0;
+                            ->sum('credits_remaining');
                     }
                 }
             }
