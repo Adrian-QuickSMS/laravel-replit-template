@@ -163,19 +163,24 @@ var rcsActiveTextField = null;
 var rcsChipEditors = {};
 
 function initRcsChipEditors() {
-    if (typeof BadgeChipEditor === 'undefined') return;
-    var descWrapper = document.getElementById('rcsDescription');
-    if (descWrapper && descWrapper.parentElement && !rcsChipEditors.description) {
-        rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descWrapper, {
+    if (typeof BadgeChipEditor === 'undefined') {
+        console.log('[RCS Wizard] BadgeChipEditor not loaded yet, skipping chip init');
+        return;
+    }
+    var descEl = document.getElementById('rcsDescription');
+    if (descEl && descEl.parentElement && !rcsChipEditors.description) {
+        rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descEl, {
             singleLine: true,
             onChange: function() { updateRcsDescriptionCount(); }
         });
+        console.log('[RCS Wizard] Description chip editor initialized:', !!rcsChipEditors.description);
     }
-    var bodyWrapper = document.getElementById('rcsTextBody');
-    if (bodyWrapper && bodyWrapper.parentElement && !rcsChipEditors.textBody) {
-        rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyWrapper, {
+    var bodyEl = document.getElementById('rcsTextBody');
+    if (bodyEl && bodyEl.parentElement && !rcsChipEditors.textBody) {
+        rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyEl, {
             onChange: function() { updateRcsTextBodyCount(); }
         });
+        console.log('[RCS Wizard] TextBody chip editor initialized:', !!rcsChipEditors.textBody);
     }
 }
 
@@ -238,13 +243,14 @@ function openRcsWizard() {
     
     hideRcsValidationErrors();
     
-    var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsWizardModal'));
     modal.show();
     
     var applyBtn = document.getElementById('rcsApplyContentBtn');
     if (applyBtn) applyBtn.disabled = false;
     
     setTimeout(function() {
+        initRcsChipEditors();
         initRcsCropEditor();
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
@@ -1095,7 +1101,7 @@ function rebuildCardTabs() {
                             deleteRcsCard(cardNum);
                         };
                     }
-                    var removeModal = new bootstrap.Modal(document.getElementById('rcsRemoveCardModal'));
+                    var removeModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsRemoveCardModal'));
                     removeModal.show();
                 };
             })(i);
@@ -1242,7 +1248,7 @@ function showRcsUnsavedChangesModal(pendingAction) {
             : '<strong>If you don\'t save:</strong> The image will render using the default (original URL and default presentation).';
     }
 
-    var modal = new bootstrap.Modal(document.getElementById('rcsUnsavedChangesModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsUnsavedChangesModal'));
     modal.show();
 }
 
@@ -2399,13 +2405,13 @@ function updateRcsTextBodyCount() {
 
 function openRcsPlaceholderPicker(field) {
     rcsActiveTextField = field;
-    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
     modal.show();
 }
 
 function openRcsUrlPlaceholderPicker(inputId) {
     rcsActiveTextField = inputId;
-    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
     modal.show();
 }
 
@@ -2429,7 +2435,7 @@ function getRcsTextElement(field) {
 
 function openRcsButtonFieldPlaceholder(fieldId) {
     rcsActiveTextField = fieldId;
-    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
     modal.show();
 }
 
@@ -2462,7 +2468,7 @@ function addRcsButton() {
     if (rcsButtons.length >= rcsMaxButtons) return;
     rcsEditingButtonIndex = -1;
     resetRcsButtonForm();
-    var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsButtonConfigModal'));
     modal.show();
 }
 
@@ -2498,7 +2504,7 @@ function editRcsButton(index) {
     updateRcsButtonUtmVisibility();
     updateRcsCallbackDataPreview();
     
-    var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsButtonConfigModal'));
     modal.show();
 }
 
