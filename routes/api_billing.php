@@ -61,6 +61,8 @@ Route::prefix('api/admin/v1')->middleware(['auth:admin', 'throttle:60,1'])->grou
     Route::get('/invoices', [$ctrl, 'invoices']);
     Route::post('/accounts/{id}/invoices/generate', [$ctrl, 'generateInvoice']);
     Route::post('/invoices/{id}/void', [$ctrl, 'voidInvoice']);
+    Route::post('/invoices/{id}/record-payment', [$ctrl, 'recordPayment']);
+    Route::get('/invoices/{id}/payments', [$ctrl, 'invoicePayments']);
 
     // Credit notes
     Route::post('/accounts/{id}/credit-notes', [$ctrl, 'issueCreditNote']);

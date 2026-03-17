@@ -762,6 +762,13 @@
                 <i class="fas fa-spinner fa-spin"></i> Loading...
             </div>
         </div>
+
+        <hr>
+
+        <h6 class="mb-3"><i class="fas fa-history me-2 text-admin-primary"></i>Payment History</h6>
+        <div id="drawerPaymentHistory">
+            <div class="text-muted small fst-italic">No payments recorded</div>
+        </div>
     </div>
     <div class="invoice-drawer-footer">
         <div class="d-flex flex-column gap-2">
@@ -772,6 +779,63 @@
                 <a href="#" class="btn btn-admin-primary flex-grow-1" id="viewAccountBtn">
                     <i class="fas fa-building me-1"></i> View Account
                 </a>
+            </div>
+            <button type="button" class="btn btn-success w-100 d-none" id="recordPaymentBtn">
+                <i class="fas fa-pound-sign me-1"></i> Record Payment
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary, #1e3a5f); color: #fff;">
+                <h5 class="modal-title" id="recordPaymentModalLabel">
+                    <i class="fas fa-pound-sign me-2"></i>Record Payment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="recordPaymentError" role="alert"></div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-muted mb-2">
+                        <span>Invoice: <strong id="rpInvoiceNumber"></strong></span>
+                        <span>Account: <strong id="rpAccountName"></strong></span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom">
+                        <span class="text-muted">Invoice Total: <strong id="rpInvoiceTotal"></strong></span>
+                        <span class="text-muted">Amount Due: <strong class="text-danger" id="rpAmountDue"></strong></span>
+                    </div>
+                </div>
+                <form id="recordPaymentForm" novalidate>
+                    <div class="mb-3">
+                        <label for="rpAmount" class="form-label fw-medium">Payment Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">&pound;</span>
+                            <input type="number" class="form-control" id="rpAmount" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-text">Enter the amount received. For partial payment, enter less than the amount due.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rpPaymentMethod" class="form-label fw-medium">Payment Method</label>
+                        <select class="form-select" id="rpPaymentMethod" required>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="stripe_dd">Direct Debit</option>
+                            <option value="stripe_checkout">Card Payment</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rpReference" class="form-label fw-medium">Reference <span class="text-muted fw-normal">(optional)</span></label>
+                        <input type="text" class="form-control" id="rpReference" placeholder="e.g. Bank ref, cheque number" maxlength="255">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmRecordPaymentBtn">
+                    <i class="fas fa-check me-1"></i> Record Payment
+                </button>
             </div>
         </div>
     </div>
@@ -960,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'issued': '<span class="status-badge status-issued">Issued</span>',
             'pending': '<span class="status-badge status-issued">Issued</span>',
             'paid': '<span class="status-badge status-paid">Paid</span>',
+            'partially_paid': '<span class="status-badge status-issued" style="background-color:#fff3cd;color:#856404;">Partially Paid</span>',
             'overdue': '<span class="status-badge status-overdue">Overdue</span>',
             'void': '<span class="status-badge status-void">Void</span>',
             'voided': '<span class="status-badge status-void">Void</span>',
@@ -1503,6 +1568,66 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         document.getElementById('viewAccountBtn').href = `/admin/accounts/${invoice.accountId}`;
+
+        const payableStatuses = ['issued', 'sent', 'overdue', 'partially_paid', 'draft', 'submitted_to_xero'];
+        const recordPaymentBtn = document.getElementById('recordPaymentBtn');
+        if (payableStatuses.includes(invoice.status) && invoice.balanceDue > 0) {
+            recordPaymentBtn.classList.remove('d-none');
+        } else {
+            recordPaymentBtn.classList.add('d-none');
+        }
+
+        loadPaymentHistory(invoice.id);
+    }
+
+    async function loadPaymentHistory(invoiceId) {
+        const container = document.getElementById('drawerPaymentHistory');
+        container.innerHTML = '<div class="text-center text-muted py-2"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+        try {
+            const response = await fetch(`/api/admin/v1/invoices/${invoiceId}/payments`);
+            const data = await response.json();
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                container.innerHTML = '<div class="text-muted small fst-italic">No payments recorded</div>';
+                return;
+            }
+
+            const methodLabels = {
+                'bank_transfer': 'Bank Transfer',
+                'stripe_checkout': 'Card Payment',
+                'stripe_dd': 'Direct Debit',
+                'stripe_auto_topup': 'Auto Top-Up',
+                'credit_note_application': 'Credit Note'
+            };
+
+            const sourceIcons = {
+                'admin_manual': '<span class="badge bg-info text-white" style="font-size:0.65rem">Admin</span>',
+                'xero_webhook': '<span class="badge bg-secondary text-white" style="font-size:0.65rem">Xero</span>',
+                'xero': '<span class="badge bg-secondary text-white" style="font-size:0.65rem">Xero</span>',
+                'stripe': '<span class="badge bg-primary text-white" style="font-size:0.65rem">Stripe</span>',
+            };
+
+            container.innerHTML = data.data.map(p => {
+                const paidDate = p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+                const method = methodLabels[p.payment_method] || p.payment_method;
+                const sourceTag = sourceIcons[p.source] || '';
+                const ref = p.reference ? `<div class="small text-muted">Ref: ${p.reference}</div>` : '';
+                return `
+                    <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom">
+                        <div>
+                            <div class="small fw-medium">${method} ${sourceTag}</div>
+                            <div class="small text-muted">${paidDate}</div>
+                            ${ref}
+                        </div>
+                        <div class="fw-medium text-success">${formatCurrency(p.amount, p.currency)}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading payment history:', error);
+            container.innerHTML = '<div class="text-muted small fst-italic">Unable to load payment history</div>';
+        }
     }
 
     function closeDrawer() {
@@ -1536,6 +1661,88 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('PDF not available for this invoice.');
         }
     });
+
+    document.getElementById('recordPaymentBtn').addEventListener('click', function() {
+        if (!currentDrawerInvoice) return;
+
+        const inv = currentDrawerInvoice;
+        document.getElementById('rpInvoiceNumber').textContent = inv.invoiceNumber;
+        document.getElementById('rpAccountName').textContent = inv.accountName;
+        document.getElementById('rpInvoiceTotal').textContent = formatCurrency(inv.total, inv.currency);
+        document.getElementById('rpAmountDue').textContent = formatCurrency(inv.balanceDue, inv.currency);
+        document.getElementById('rpAmount').value = inv.balanceDue.toFixed(2);
+        document.getElementById('rpAmount').max = inv.balanceDue;
+        document.getElementById('rpPaymentMethod').value = 'bank_transfer';
+        document.getElementById('rpReference').value = '';
+        document.getElementById('recordPaymentError').classList.add('d-none');
+
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('recordPaymentModal'));
+        modal.show();
+    });
+
+    document.getElementById('confirmRecordPaymentBtn').addEventListener('click', async function() {
+        if (!currentDrawerInvoice) return;
+
+        const btn = this;
+        const amount = parseFloat(document.getElementById('rpAmount').value);
+        const paymentMethod = document.getElementById('rpPaymentMethod').value;
+        const reference = document.getElementById('rpReference').value.trim();
+
+        if (!amount || amount <= 0) {
+            showRecordPaymentError('Please enter a valid payment amount.');
+            return;
+        }
+
+        if (amount > currentDrawerInvoice.balanceDue) {
+            showRecordPaymentError(`Amount cannot exceed the outstanding balance of ${formatCurrency(currentDrawerInvoice.balanceDue, currentDrawerInvoice.currency)}.`);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Recording...';
+
+        try {
+            const response = await fetch(`/api/admin/v1/invoices/${currentDrawerInvoice.id}/record-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ amount, payment_method: paymentMethod, reference: reference || null })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showRecordPaymentError(data.error || data.errors?.amount?.[0] || 'Failed to record payment.');
+                return;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('recordPaymentModal'));
+            modal.hide();
+
+            const invoiceId = currentDrawerInvoice.id;
+            await loadInvoices();
+
+            const updatedInvoice = invoicesData.find(inv => inv.id === invoiceId);
+            if (updatedInvoice) {
+                openDrawer(invoiceId);
+            }
+
+        } catch (error) {
+            console.error('Error recording payment:', error);
+            showRecordPaymentError('Network error. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> Record Payment';
+        }
+    });
+
+    function showRecordPaymentError(message) {
+        const el = document.getElementById('recordPaymentError');
+        el.textContent = message;
+        el.classList.remove('d-none');
+    }
 
     document.getElementById('selectAll').addEventListener('change', function() {
         const checked = this.checked;

@@ -153,42 +153,77 @@ class XeroService
     private function processInvoicePaid(Invoice $invoice, array $xeroData): void
     {
         DB::transaction(function () use ($invoice, $xeroData) {
-            $amountPaid = $xeroData['AmountPaid'] ?? $invoice->total;
+            $xeroPaymentId = $xeroData['Payments'][0]['PaymentID'] ?? null;
 
-            // Record payment
-            Payment::create([
-                'account_id' => $invoice->account_id,
-                'invoice_id' => $invoice->id,
-                'payment_method' => 'bank_transfer',
-                'xero_payment_id' => $xeroData['Payments'][0]['PaymentID'] ?? null,
-                'currency' => $invoice->currency,
-                'amount' => $amountPaid,
-                'status' => 'succeeded',
-                'paid_at' => now(),
-            ]);
+            if ($xeroPaymentId) {
+                $duplicate = Payment::where('xero_payment_id', $xeroPaymentId)->exists();
+                if ($duplicate) {
+                    Log::info('Xero webhook: duplicate payment skipped', [
+                        'invoice_id' => $invoice->id,
+                        'xero_payment_id' => $xeroPaymentId,
+                    ]);
+                    return;
+                }
+            }
 
-            // Create ledger entry
-            $this->ledgerService()->recordInvoicePayment(
-                $invoice->account_id,
-                (string)$amountPaid,
-                $invoice->currency,
-                "xero-payment-{$invoice->id}-" . now()->timestamp,
-                $invoice->id
-            );
+            if ($invoice->status === 'paid') {
+                Log::info('Xero webhook: invoice already paid locally, skipping', [
+                    'invoice_id' => $invoice->id,
+                ]);
+                return;
+            }
 
-            // Update invoice
+            $xeroTotal = $xeroData['AmountPaid'] ?? $invoice->total;
+
+            $existingPaidLocally = (string) Payment::where('invoice_id', $invoice->id)
+                ->where('status', 'succeeded')
+                ->sum('amount');
+
+            $remainingToRecord = bcsub((string) $xeroTotal, $existingPaidLocally, 4);
+
+            if (bccomp($remainingToRecord, '0.01', 4) < 0) {
+                Log::info('Xero webhook: local payments already cover Xero total, skipping payment creation', [
+                    'invoice_id' => $invoice->id,
+                    'xero_total' => $xeroTotal,
+                    'local_paid' => $existingPaidLocally,
+                ]);
+            } else {
+                Payment::create([
+                    'account_id' => $invoice->account_id,
+                    'invoice_id' => $invoice->id,
+                    'payment_method' => 'bank_transfer',
+                    'xero_payment_id' => $xeroPaymentId,
+                    'currency' => $invoice->currency,
+                    'amount' => $remainingToRecord,
+                    'status' => 'succeeded',
+                    'paid_at' => now(),
+                    'metadata' => ['source' => 'xero_webhook'],
+                ]);
+
+                $this->ledgerService()->recordInvoicePayment(
+                    $invoice->account_id,
+                    $remainingToRecord,
+                    $invoice->currency,
+                    "xero-payment-{$invoice->id}-" . ($xeroPaymentId ?? now()->timestamp),
+                    $invoice->id
+                );
+
+                $balance = AccountBalance::lockForAccount($invoice->account_id);
+                $balance->total_outstanding = bcsub($balance->total_outstanding, $remainingToRecord, 4);
+                if (bccomp($balance->total_outstanding, '0', 4) < 0) {
+                    $balance->balance = bcadd($balance->balance, bcmul($balance->total_outstanding, '-1', 4), 4);
+                    $balance->total_outstanding = '0';
+                }
+                $balance->recalculateEffectiveAvailable();
+                $balance->save();
+            }
+
             $invoice->update([
-                'amount_paid' => $amountPaid,
+                'amount_paid' => $xeroTotal,
                 'amount_due' => '0',
                 'status' => 'paid',
                 'paid_date' => now()->toDateString(),
             ]);
-
-            // Update account balance (reduce outstanding)
-            $balance = AccountBalance::lockForAccount($invoice->account_id);
-            $balance->total_outstanding = bcsub($balance->total_outstanding, (string)$amountPaid, 4);
-            $balance->recalculateEffectiveAvailable();
-            $balance->save();
 
             // Check if account should be reactivated
             $account = $invoice->account;

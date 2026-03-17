@@ -393,6 +393,160 @@ class BillingAdminController extends Controller
         return response()->json(['success' => true, 'data' => $invoice]);
     }
 
+    /**
+     * POST /api/admin/v1/invoices/{id}/record-payment
+     * Manually record a payment against an invoice (full or partial).
+     */
+    public function recordPayment(Request $request, string $id): JsonResponse
+    {
+        $invoice = \App\Models\Billing\Invoice::findOrFail($id);
+
+        if (in_array($invoice->status, ['paid', 'void', 'written_off'])) {
+            return response()->json([
+                'success' => false,
+                'error' => "Cannot record payment against a {$invoice->status} invoice.",
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:bank_transfer,stripe_checkout,stripe_dd',
+            'reference' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $amount = number_format((float) $request->input('amount'), 4, '.', '');
+        $amountDue = $invoice->amount_due;
+
+        if (bccomp($amount, $amountDue, 4) > 0) {
+            return response()->json([
+                'success' => false,
+                'error' => "Payment amount ({$amount}) exceeds amount due ({$amountDue}).",
+            ], 422);
+        }
+
+        $adminId = $this->getAdminId($request);
+        $adminName = session('admin_user_name', 'Admin');
+
+        $payment = DB::transaction(function () use ($invoice, $amount, $amountDue, $request, $adminId) {
+            $payment = \App\Models\Billing\Payment::create([
+                'account_id' => $invoice->account_id,
+                'invoice_id' => $invoice->id,
+                'payment_method' => $request->input('payment_method'),
+                'currency' => $invoice->currency,
+                'amount' => $amount,
+                'status' => 'succeeded',
+                'paid_at' => now(),
+                'metadata' => array_filter([
+                    'reference' => $request->input('reference'),
+                    'recorded_by' => $adminId,
+                    'source' => 'admin_manual',
+                ]),
+            ]);
+
+            $idempotencyKey = "admin-payment-{$payment->id}";
+            $this->ledgerService->recordInvoicePayment(
+                $invoice->account_id,
+                $amount,
+                $invoice->currency,
+                $idempotencyKey,
+                $invoice->id,
+                ['admin_id' => $adminId, 'reference' => $request->input('reference')]
+            );
+
+            $newAmountPaid = bcadd($invoice->amount_paid, $amount, 4);
+            $newAmountDue = bcsub($amountDue, $amount, 4);
+            $isFullyPaid = bccomp($newAmountDue, '0', 4) <= 0;
+
+            $invoice->update([
+                'amount_paid' => $newAmountPaid,
+                'amount_due' => $isFullyPaid ? '0' : $newAmountDue,
+                'status' => $isFullyPaid ? 'paid' : 'partially_paid',
+                'paid_date' => $isFullyPaid ? now()->toDateString() : $invoice->paid_date,
+            ]);
+
+            $balance = AccountBalance::lockForAccount($invoice->account_id);
+            $balance->total_outstanding = bcsub($balance->total_outstanding, $amount, 4);
+            if (bccomp($balance->total_outstanding, '0', 4) < 0) {
+                $balance->balance = bcadd($balance->balance, bcmul($balance->total_outstanding, '-1', 4), 4);
+                $balance->total_outstanding = '0';
+            }
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+
+            return $payment;
+        });
+
+        try {
+            \App\Models\AdminAuditLog::record(
+                action: 'invoice_payment_recorded',
+                category: 'billing',
+                severity: 'high',
+                adminUserId: $adminId,
+                adminUserName: $adminName,
+                targetType: 'invoice',
+                targetId: $invoice->id,
+                targetAccountId: $invoice->account_id,
+                details: "Recorded {$invoice->currency} {$amount} payment against invoice {$invoice->invoice_number}",
+                metadata: [
+                    'payment_id' => $payment->id,
+                    'amount' => $amount,
+                    'payment_method' => $request->input('payment_method'),
+                    'reference' => $request->input('reference'),
+                    'new_status' => $invoice->fresh()->status,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AdminBilling] Audit log failed for record-payment', ['error' => $e->getMessage()]);
+        }
+
+        $invoice->refresh();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'payment_id' => $payment->id,
+                'amount' => $amount,
+                'new_status' => $invoice->status,
+                'amount_paid' => $invoice->amount_paid,
+                'amount_due' => $invoice->amount_due,
+            ],
+        ]);
+    }
+
+    /**
+     * GET /api/admin/v1/invoices/{id}/payments
+     * Get payment history for an invoice.
+     */
+    public function invoicePayments(string $id): JsonResponse
+    {
+        $invoice = \App\Models\Billing\Invoice::findOrFail($id);
+
+        $payments = \App\Models\Billing\Payment::where('invoice_id', $id)
+            ->where('status', 'succeeded')
+            ->orderBy('paid_at', 'desc')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'amount' => (float) $p->amount,
+                    'currency' => $p->currency,
+                    'payment_method' => $p->payment_method,
+                    'reference' => $p->metadata['reference'] ?? null,
+                    'source' => $p->metadata['source'] ?? ($p->xero_payment_id ? 'xero' : ($p->stripe_payment_intent_id ? 'stripe' : 'unknown')),
+                    'paid_at' => $p->paid_at?->toIso8601String(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $payments,
+        ]);
+    }
+
     // ───── Credit Notes ─────
 
     /**
