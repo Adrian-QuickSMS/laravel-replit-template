@@ -475,6 +475,22 @@ class SenderIdApprovalController extends Controller
                     ? strlen($value) . ' characters — within the 3–11 character limit for alphanumeric SenderIDs.'
                     : strlen($value) . ' characters — must be between 3 and 11 characters.',
             ];
+
+            $strippedDigitCheck = preg_replace('/[\s.\-_]+/', '', $value);
+            if (strlen($strippedDigitCheck) > 0 && preg_match('/^[0-9]+$/', $strippedDigitCheck)) {
+                $hint = '';
+                if (preg_match('/^[678]\d{4}$/', $strippedDigitCheck)) {
+                    $hint = " Stripped value \"{$strippedDigitCheck}\" matches UK shortcode format.";
+                } elseif (preg_match('/^447\d{9}$/', $strippedDigitCheck)) {
+                    $hint = " Stripped value \"{$strippedDigitCheck}\" matches UK mobile number format.";
+                }
+                $results[] = [
+                    'name' => 'Numeric Disguise Detection',
+                    'pass' => false,
+                    'warn' => false,
+                    'message' => "WARNING — This alphanumeric SenderID contains only digits when separators are removed (\"{$strippedDigitCheck}\"). This may be an attempt to bypass shortcode/numeric classification.{$hint}",
+                ];
+            }
         } elseif ($isNumeric) {
             $fmtPass = (bool) preg_match('/^447\d{9}$/', $value);
             $results[] = [

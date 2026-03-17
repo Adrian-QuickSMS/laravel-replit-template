@@ -82,9 +82,17 @@ class SenderIdValidationService
             $errors[] = 'Alphanumeric SenderID may only contain letters, numbers, hyphens, underscores, ampersands, periods, and spaces.';
         }
 
-        // Must contain at least one letter (pure numeric would be a NUMERIC type)
-        if (preg_match('/^[0-9]+$/', $value)) {
-            $errors[] = 'Alphanumeric SenderID must contain at least one letter. Use Numeric type for number-only senders.';
+        // Strip separators (spaces, dots, hyphens, underscores) and check if underlying value is all digits
+        $stripped = preg_replace('/[\s.\-_]+/', '', $value);
+
+        if (strlen($stripped) > 0 && preg_match('/^[0-9]+$/', $stripped)) {
+            if (preg_match('/^[678]\d{4}$/', $stripped)) {
+                $errors[] = "This SenderID appears to be a shortcode ({$stripped}). Please use the Shortcode type instead of Alphanumeric.";
+            } elseif (preg_match('/^447\d{9}$/', $stripped)) {
+                $errors[] = "This SenderID appears to be a UK mobile number ({$stripped}). Please use the Numeric type instead of Alphanumeric.";
+            } else {
+                $errors[] = 'Alphanumeric SenderID must contain at least one letter. Use Numeric or Shortcode type for number-only senders.';
+            }
         }
 
         return $errors;
