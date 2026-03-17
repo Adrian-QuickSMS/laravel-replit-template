@@ -57,6 +57,10 @@ class QuickSMSController extends Controller
 
     public function login()
     {
+        if (config('admin.dev_autologin', false) && config('app.env') === 'local') {
+            return redirect('/admin');
+        }
+
         if (session('customer_logged_in')) {
             return redirect()->route('dashboard');
         }
