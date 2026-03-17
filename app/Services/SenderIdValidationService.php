@@ -64,7 +64,7 @@ class SenderIdValidationService
 
     /**
      * Alphanumeric SenderID validation
-     * Max 11 characters, A-Z a-z 0-9 - _ & space
+     * Max 11 characters, A-Z a-z 0-9 - _ & . space
      */
     protected function validateAlpha(string $value): array
     {
