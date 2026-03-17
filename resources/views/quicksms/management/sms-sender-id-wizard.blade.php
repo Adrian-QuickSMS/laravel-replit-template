@@ -340,6 +340,7 @@ button.btn-save-draft:hover {
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold">Brand / Business Name <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="inputBrand" 
+                                                   value="{{ $default_brand ?? '' }}"
                                                    placeholder="Your company or brand name" autocomplete="off">
                                             <small class="text-muted">The legal entity or brand this SenderID represents</small>
                                             <div class="invalid-feedback" id="brandError"></div>

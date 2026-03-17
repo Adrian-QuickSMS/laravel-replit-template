@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\AccountAuditLog;
 use App\Models\AdminNotification;
 use App\Models\Notification;
@@ -47,9 +48,16 @@ class SenderIdController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $account = Account::find(session('customer_tenant_id'));
+        $defaultBrand = '';
+        if ($account) {
+            $defaultBrand = !empty($account->trading_name) ? $account->trading_name : ($account->company_name ?? '');
+        }
+
         return view('quicksms.management.sms-sender-id', [
             'page_title' => 'SMS SenderID Registration',
             'sender_ids' => $senderIds,
+            'default_brand' => $defaultBrand,
         ]);
     }
 
@@ -62,9 +70,16 @@ class SenderIdController extends Controller
             ->active()
             ->get();
 
+        $account = Account::find(session('customer_tenant_id'));
+        $defaultBrand = '';
+        if ($account) {
+            $defaultBrand = !empty($account->trading_name) ? $account->trading_name : ($account->company_name ?? '');
+        }
+
         return view('quicksms.management.sms-sender-id-wizard', [
             'page_title' => 'Register SenderID',
             'sub_accounts' => $subAccounts,
+            'default_brand' => $defaultBrand,
         ]);
     }
 
