@@ -61,6 +61,12 @@ class Account extends Model
     // Default test credit allocation (fragments)
     const DEFAULT_TEST_CREDITS = 100;
 
+    // Spam filter modes
+    const SPAM_FILTER_ENFORCED = 'enforced';
+    const SPAM_FILTER_MONITORING = 'monitoring';
+    const SPAM_FILTER_OFF = 'off';
+    const SPAM_FILTER_MODES = [self::SPAM_FILTER_ENFORCED, self::SPAM_FILTER_MONITORING, self::SPAM_FILTER_OFF];
+
     // Valid status transitions
     const STATUS_TRANSITIONS = [
         self::STATUS_PENDING_VERIFICATION => [self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC, self::STATUS_CLOSED],
@@ -185,6 +191,7 @@ class Account extends Model
         'activation_complete',
         'activated_at',
         'activated_by',
+        'spam_filter_mode',
     ];
 
     protected $casts = [

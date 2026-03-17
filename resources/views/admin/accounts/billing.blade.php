@@ -546,6 +546,11 @@
                 <i class="fas fa-file-invoice-dollar me-2"></i>Billing
             </a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.accounts.settings', ['accountId' => $account_id]) }}">
+                <i class="fas fa-cog me-2"></i>Settings
+            </a>
+        </li>
     </ul>
 
     <div class="billing-summary-bar" id="billingSummaryBar">

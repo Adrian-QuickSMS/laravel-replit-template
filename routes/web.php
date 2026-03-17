@@ -563,6 +563,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/accounts/details/{accountId}', 'accountsDetails')->name('admin.accounts.details');
             Route::get('/accounts/{accountId}/structure', 'accountStructure')->name('admin.accounts.structure');
             Route::get('/accounts/{accountId}/billing', 'accountsBilling')->name('admin.accounts.billing');
+            Route::get('/accounts/{accountId}/settings', 'accountsSettings')->name('admin.accounts.settings');
             
             Route::get('/reporting/message-log', 'reportingMessageLog')->name('admin.reporting.message-log');
             Route::get('/reporting/client', 'reportingClient')->name('admin.reporting.client');
@@ -629,6 +630,9 @@ Route::prefix('admin')->group(function () {
             Route::put('/api/accounts/{accountId}/billing-mode', 'updateAccountBillingMode')->name('admin.api.accounts.billing-mode');
             Route::put('/api/accounts/{accountId}/credit-limit', 'updateAccountCreditLimit')->name('admin.api.accounts.credit-limit');
             Route::put('/api/accounts/{accountId}/status', 'updateAccountStatus')->name('admin.api.accounts.status');
+            Route::put('/api/accounts/{accountId}/status-override', 'adminUpdateAccountStatus')->name('admin.api.accounts.status-override');
+            Route::post('/api/accounts/{accountId}/test-credits', 'addTestCredits')->name('admin.api.accounts.test-credits');
+            Route::put('/api/accounts/{accountId}/spam-filter-mode', 'updateSpamFilterMode')->name('admin.api.accounts.spam-filter-mode');
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
             

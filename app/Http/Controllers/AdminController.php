@@ -19,6 +19,7 @@ use App\Models\RoutingCustomerOverride;
 use App\Models\Account;
 use App\Models\User;
 use App\Models\AccountAuditLog;
+use App\Models\AdminAuditLog;
 use App\Services\Audit\AuditContext;
 
 class AdminController extends Controller
@@ -615,6 +616,229 @@ class AdminController extends Controller
             'account_id' => $accountId,
             'account' => $account,
         ]);
+    }
+
+    public function accountsSettings($accountId)
+    {
+        $account = Account::findOrFail($accountId);
+
+        $testCreditWallets = \App\Models\Billing\TestCreditWallet::where('account_id', $accountId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $totalCreditsRemaining = $testCreditWallets->where('expired', false)->sum('credits_remaining');
+        $totalCreditsUsed = $testCreditWallets->sum('credits_used');
+        $totalCreditsAwarded = $testCreditWallets->sum('credits_total');
+
+        return view('admin.accounts.settings', [
+            'page_title' => 'Account Settings',
+            'account_id' => $accountId,
+            'account' => $account,
+            'testCreditWallets' => $testCreditWallets,
+            'totalCreditsRemaining' => $totalCreditsRemaining,
+            'totalCreditsUsed' => $totalCreditsUsed,
+            'totalCreditsAwarded' => $totalCreditsAwarded,
+        ]);
+    }
+
+    public function adminUpdateAccountStatus(Request $request, $accountId)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pending_verification,test_standard,test_dynamic,active_standard,active_dynamic,suspended,closed',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $newStatus = $request->input('status');
+        $previousStatus = $account->status;
+
+        if ($previousStatus === $newStatus) {
+            return response()->json(['success' => false, 'error' => 'Account is already in that status'], 422);
+        }
+
+        try {
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+            DB::transaction(function () use ($account, $newStatus, $previousStatus, $accountId, $request) {
+                $account->forceFill(['status' => $newStatus])->save();
+
+                if ($newStatus === Account::STATUS_SUSPENDED) {
+                    $account->forceFill(['suspended_at' => now()])->save();
+                } elseif ($newStatus === Account::STATUS_CLOSED) {
+                    $account->forceFill(['closed_at' => now()])->save();
+                }
+
+                $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+                $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+                AdminAuditLog::record(
+                    'ACCOUNT_STATUS_OVERRIDE',
+                    'account_management',
+                    'HIGH',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    "Admin override: status changed from '{$previousStatus}' to '{$newStatus}'" . ($request->input('reason') ? ". Reason: " . $request->input('reason') : ''),
+                    [
+                        'previous_status' => $previousStatus,
+                        'new_status' => $newStatus,
+                        'reason' => $request->input('reason'),
+                        'override' => true,
+                    ]
+                );
+            });
+        } catch (\Throwable $e) {
+            Log::error('Admin account status override failed', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to update account status.'], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'previousStatus' => $previousStatus,
+                'newStatus' => $newStatus,
+            ],
+        ]);
+    }
+
+    public function addTestCredits(Request $request, $accountId)
+    {
+        $request->validate([
+            'credits' => 'required|integer|min:1|max:100000',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $account = Account::findOrFail($accountId);
+
+        try {
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+            $credits = (int) $request->input('credits');
+
+            $result = DB::transaction(function () use ($accountId, $credits, $adminId, $adminUser, $request) {
+                $wallet = \App\Models\Billing\TestCreditWallet::create([
+                    'account_id' => $accountId,
+                    'credits_total' => $credits,
+                    'credits_used' => 0,
+                    'credits_remaining' => $credits,
+                    'awarded_by' => $adminId,
+                    'awarded_reason' => $request->input('reason'),
+                    'expired' => false,
+                ]);
+
+                try {
+                    AdminAuditLog::record(
+                        'TEST_CREDITS_ADDED',
+                        'account_management',
+                        'MEDIUM',
+                        $adminId,
+                        $adminUser,
+                        'account',
+                        $accountId,
+                        $accountId,
+                        "Added {$credits} test credits. Reason: " . $request->input('reason'),
+                        [
+                            'credits_added' => $credits,
+                            'wallet_id' => $wallet->id,
+                            'reason' => $request->input('reason'),
+                        ]
+                    );
+                } catch (\Throwable $auditEx) {
+                    Log::warning('Audit log failed for test credits', ['error' => $auditEx->getMessage()]);
+                }
+
+                return $wallet;
+            });
+
+            $totalRemaining = \App\Models\Billing\TestCreditWallet::where('account_id', $accountId)
+                ->where('expired', false)
+                ->sum('credits_remaining');
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'wallet_id' => $result->id,
+                    'credits_added' => $credits,
+                    'total_remaining' => $totalRemaining,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to add test credits', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to add test credits.'], 500);
+        }
+    }
+
+    public function updateSpamFilterMode(Request $request, $accountId)
+    {
+        $request->validate([
+            'spam_filter_mode' => 'required|string|in:enforced,monitoring,off',
+        ]);
+
+        $account = Account::findOrFail($accountId);
+        $previousMode = $account->spam_filter_mode ?? 'enforced';
+        $newMode = $request->input('spam_filter_mode');
+
+        if ($previousMode === $newMode) {
+            return response()->json(['success' => false, 'error' => 'Spam filter mode is already set to that value.'], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($account, $newMode) {
+                $account->update(['spam_filter_mode' => $newMode]);
+            });
+
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            try {
+                AdminAuditLog::record(
+                    'SPAM_FILTER_MODE_CHANGED',
+                    'account_management',
+                    'HIGH',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    "Spam filter mode changed from '{$previousMode}' to '{$newMode}'",
+                    [
+                        'previous_mode' => $previousMode,
+                        'new_mode' => $newMode,
+                    ]
+                );
+            } catch (\Throwable $auditEx) {
+                Log::warning('Audit log failed for spam filter mode change', ['error' => $auditEx->getMessage()]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'previous_mode' => $previousMode,
+                    'new_mode' => $newMode,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to update spam filter mode', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to update spam filter mode.'], 500);
+        }
     }
 
     public function reportingMessageLog()
