@@ -206,8 +206,17 @@ class ApiConnection extends Model
     // STATE MACHINE
     // =====================================================
 
-    public function suspend(string $reason, string $actorId, string $actorName = null): void
+    public function suspend(string $reason, string $actorId, string $actorName = null, string $suspendedByType = 'customer'): void
     {
+        if ($suspendedByType === 'admin' && $this->isSuspended()) {
+            $this->forceFill([
+                'suspended_by' => $actorName ?? $actorId,
+                'suspended_by_type' => 'admin',
+                'suspended_reason' => $reason,
+            ])->save();
+            return;
+        }
+
         if (!$this->isActive()) {
             throw new \LogicException('Only active connections can be suspended.');
         }
@@ -216,20 +225,31 @@ class ApiConnection extends Model
             'status' => 'suspended',
             'suspended_at' => now(),
             'suspended_by' => $actorName ?? $actorId,
+            'suspended_by_type' => $suspendedByType,
             'suspended_reason' => $reason,
         ])->save();
     }
 
-    public function reactivate(): void
+    public function isAdminSuspended(): bool
+    {
+        return $this->isSuspended() && $this->suspended_by_type === 'admin';
+    }
+
+    public function reactivate(string $actorType = 'customer'): void
     {
         if (!$this->isSuspended()) {
             throw new \LogicException('Only suspended connections can be reactivated.');
+        }
+
+        if ($actorType === 'customer' && $this->isAdminSuspended()) {
+            throw new \LogicException('This connection was suspended by an administrator. Only an admin can reactivate it.');
         }
 
         $this->forceFill([
             'status' => 'active',
             'suspended_at' => null,
             'suspended_by' => null,
+            'suspended_by_type' => null,
             'suspended_reason' => null,
         ])->save();
     }
@@ -380,6 +400,7 @@ class ApiConnection extends Model
             'created_at' => $this->created_at?->format('Y-m-d'),
             'updated_at' => $this->updated_at?->format('Y-m-d'),
             'suspended_at' => $this->suspended_at?->toIso8601String(),
+            'suspended_by_type' => $this->suspended_by_type,
             'suspended_reason' => $this->suspended_reason,
             'archived_at' => $this->archived_at?->toIso8601String(),
         ];

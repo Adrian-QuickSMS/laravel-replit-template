@@ -846,14 +846,16 @@ $(document).ready(function() {
         return env === 'live' ? 'badge-live-env' : 'badge-test';
     }
     
-    function getStatusBadgeClass(status) {
+    function getStatusBadgeClass(status, suspendedByType) {
         if (status === 'live' || status === 'active') return 'badge-live-status';
         if (status === 'archived') return 'badge-suspended';
+        if (status === 'suspended' && suspendedByType === 'admin') return 'badge-suspended-admin';
         return 'badge-suspended';
     }
     
-    function getStatusLabel(status) {
+    function getStatusLabel(status, suspendedByType) {
         if (status === 'live' || status === 'active') return 'Active';
+        if (status === 'suspended' && suspendedByType === 'admin') return 'Suspended';
         if (status === 'suspended') return 'Suspended';
         if (status === 'archived') return 'Archived';
         if (status === 'draft') return 'Draft';
@@ -1043,8 +1045,8 @@ $(document).ready(function() {
             
             html += '<td>' + conn.authType + '</td>';
             
-            html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + 
-                    getStatusLabel(conn.status) + '</span></td>';
+            html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(conn.status, conn.suspended_by_type) + '">' + 
+                    getStatusLabel(conn.status, conn.suspended_by_type) + '</span></td>';
             
             html += '<td>' + (conn.createdDate ? formatDate(conn.createdDate) : '-') + '</td>';
             
@@ -1072,7 +1074,7 @@ $(document).ready(function() {
                 html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
             }
             
-            if (conn.status === 'suspended') {
+            if (conn.status === 'suspended' && conn.suspended_by_type !== 'admin') {
                 html += '<li><hr class="dropdown-divider"></li>';
                 html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
             }
@@ -1081,7 +1083,7 @@ $(document).ready(function() {
                 html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(\'' + conn.id + '\'); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
             }
             
-            if (conn.status === 'suspended' && !conn.archived) {
+            if (conn.status === 'suspended' && !conn.archived && conn.suspended_by_type !== 'admin') {
                 html += '<li><hr class="dropdown-divider"></li>';
                 html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive API</a></li>';
             }
@@ -1265,14 +1267,14 @@ $(document).ready(function() {
         var envLabel = conn.environment === 'live' ? 'Live' : 'Test';
         $('#drawerEnvBadge').removeClass().addClass('badge rounded-pill ' + getEnvironmentBadgeClass(conn.environment)).text(envLabel);
         
-        var statusLabel = getStatusLabel(conn.status);
-        $('#drawerStatusBadge').removeClass().addClass('badge rounded-pill ' + getStatusBadgeClass(conn.status)).text(statusLabel);
+        var statusLabel = getStatusLabel(conn.status, conn.suspended_by_type);
+        $('#drawerStatusBadge').removeClass().addClass('badge rounded-pill ' + getStatusBadgeClass(conn.status, conn.suspended_by_type)).text(statusLabel);
         
         $('#drawerApiNameDetail').text(conn.name);
         $('#drawerSubAccount').text(conn.subAccount);
         $('#drawerType').text(typeLabel);
         $('#drawerEnvironment').text(envLabel);
-        $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + getStatusLabel(conn.status) + '</span>');
+        $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status, conn.suspended_by_type) + '">' + getStatusLabel(conn.status, conn.suspended_by_type) + '</span>');
         
         $('#drawerAuthType').text(conn.authType);
         var maskedCred = conn.credentialDisplay || (conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••');
@@ -1738,7 +1740,8 @@ $(document).ready(function() {
             rate_limit_per_minute: c.rate_limit_per_minute,
             capabilities: c.capabilities,
             created_by: c.created_by,
-            suspended_reason: c.suspended_reason
+            suspended_reason: c.suspended_reason,
+            suspended_by_type: c.suspended_by_type
         };
     }
     

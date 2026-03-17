@@ -197,7 +197,8 @@ class AdminApiConnectionController extends Controller
                 $connection->suspend(
                     $request->input('reason', 'Suspended by admin'),
                     $this->actorId(),
-                    $this->actorName()
+                    $this->actorName(),
+                    'admin'
                 );
 
                 ApiConnectionAuditEvent::record(
@@ -222,7 +223,7 @@ class AdminApiConnectionController extends Controller
 
         try {
             $this->withTenantContext($connection->account_id, function () use ($connection) {
-                $connection->reactivate();
+                $connection->reactivate('admin');
 
                 ApiConnectionAuditEvent::record(
                     $connection, 'reactivated', 'admin',
