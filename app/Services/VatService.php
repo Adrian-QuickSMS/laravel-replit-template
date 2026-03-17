@@ -2,9 +2,16 @@
 
 namespace App\Services;
 
+use App\Models\Account;
+
 class VatService
 {
     private const VAT_RATE = 0.20;
+
+    public function isVatApplicableForAccount(Account $account): bool
+    {
+        return (bool) $account->vat_registered && !$account->vat_reverse_charges;
+    }
 
     public function calculateVat(float $netAmount, bool $vatApplicable): array
     {

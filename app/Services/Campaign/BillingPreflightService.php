@@ -349,7 +349,7 @@ class BillingPreflightService
         $pricingSnapshot = $this->buildPricingSnapshot($account, $billableProductType, $estimate->perCountryCosts);
 
         // Calculate VAT
-        $vatRate = $account->vat_registered ? '20.00' : '0.00';
+        $vatRate = ($account->vat_registered && !$account->vat_reverse_charges) ? '20.00' : '0.00';
         $vatAmount = bcmul($estimate->totalCost, bcdiv($vatRate, '100', 6), 4);
         $costIncVat = bcadd($estimate->totalCost, $vatAmount, 4);
 

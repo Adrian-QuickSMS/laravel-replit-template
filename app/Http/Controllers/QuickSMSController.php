@@ -713,7 +713,7 @@ class QuickSMSController extends Controller
                 return ['vat_applicable' => true, 'vat_rate' => 20];
             }
 
-            return ['vat_applicable' => true, 'vat_rate' => 20];
+            return ['vat_applicable' => false, 'vat_rate' => 0];
         } catch (\Throwable $e) {
             return $defaults;
         }
@@ -2344,7 +2344,8 @@ class QuickSMSController extends Controller
         $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
         $productTier = $account ? $account->product_tier : 'starter';
 
-        $vatApplicable = $account ? (bool) $account->vat_registered : true;
+        $vatStatus = $this->getAccountVatStatus();
+        $vatApplicable = $vatStatus['vat_applicable'];
 
         return view('quicksms.purchase.messages', [
             'page_title' => 'Purchase Messages',

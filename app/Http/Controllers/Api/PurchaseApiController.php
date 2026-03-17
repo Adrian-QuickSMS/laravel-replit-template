@@ -332,11 +332,11 @@ class PurchaseApiController extends Controller
         $accountId = session('customer_tenant_id');
         if ($accountId) {
             $account = Account::withoutGlobalScopes()->find($accountId);
-            if ($account && isset($account->vat_registered)) {
-                return (bool) $account->vat_registered;
+            if ($account) {
+                return $account->vat_registered && !$account->vat_reverse_charges;
             }
         }
-        return true;
+        return false;
     }
 
     private function getAccountCurrency(): string
