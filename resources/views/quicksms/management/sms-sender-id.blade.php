@@ -4,6 +4,12 @@
 
 @push('styles')
 <style>
+#senderIdWizardModal:not(.show),
+#suspendModal:not(.show),
+#archiveModal:not(.show),
+#submissionConfirmModal:not(.show) {
+    display: none !important;
+}
 .breadcrumb {
     background: transparent;
     padding: 0;
@@ -1442,7 +1448,7 @@ $(document).ready(function() {
         updateWizardUI();
         
         if (!senderIdWizardModal) {
-            senderIdWizardModal = new bootstrap.Modal(document.getElementById('senderIdWizardModal'));
+            senderIdWizardModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('senderIdWizardModal'));
         }
         senderIdWizardModal.show();
     }
@@ -1947,7 +1953,7 @@ $(document).ready(function() {
 
     function showSubmissionConfirmation(senderId) {
         $('#submissionSenderId').text(senderId);
-        new bootstrap.Modal($('#submissionConfirmModal')[0]).show();
+        bootstrap.Modal.getOrCreateInstance($('#submissionConfirmModal')[0]).show();
     }
 
     $(document).on('click', '.btn-view-details', function(e) {

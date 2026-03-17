@@ -1541,7 +1541,7 @@ function showConfirmModal(options) {
         warningEl.style.display = 'none';
     }
 
-    new bootstrap.Modal(modal).show();
+    bootstrap.Modal.getOrCreateInstance(modal).show();
 }
 
 function renderCommentThread(comments) {
@@ -2003,7 +2003,9 @@ function showAdminActionsModal() {
 
 {{-- Admin Actions Modal --}}
 <style>
-#adminActionsModal:not(.show) {
+#adminActionsModal:not(.show),
+#confirmActionModal:not(.show),
+#rejectModal:not(.show) {
     display: none !important;
 }
 .admin-action-btn {
