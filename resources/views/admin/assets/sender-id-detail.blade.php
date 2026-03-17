@@ -565,18 +565,17 @@ html, body {
             </div>
             @php
                 $senderIdVersions = [
-                    ['id' => 'v2', 'label' => 'Version 2 (Current)', 'date' => '20 Jan 2026, 10:15', 'status' => 'submitted'],
-                    ['id' => 'v1', 'label' => 'Version 1', 'date' => '15 Jan 2026, 14:30', 'status' => 'returned'],
+                    ['id' => 'v1', 'label' => 'Version 1 (Current)', 'date' => '', 'status' => 'loading'],
                 ];
             @endphp
             @include('partials.admin.version-history-dropdown', [
-                'currentVersion' => 'v2',
-                'submissionId' => 'SID-001',
+                'currentVersion' => 'v1',
+                'submissionId' => '',
                 'submissionType' => 'sender-id',
                 'versions' => $senderIdVersions
             ])
             @include('partials.admin.compare-versions', [
-                'submissionId' => 'SID-001',
+                'submissionId' => '',
                 'submissionType' => 'sender-id',
                 'versions' => $senderIdVersions
             ])
@@ -1022,6 +1021,8 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
         contextInfo.innerHTML = '<div class="context-item"><i class="fas fa-building"></i><span class="context-label">Account:</span><span class="context-value">' + escapeHtml(accountName) + ' (' + escapeHtml(accountNum) + ')</span></div>' +
             '<div class="context-item"><i class="fas fa-user"></i><span class="context-label">Created By:</span><span class="context-value">' + escapeHtml(data.created_by || 'N/A') + '</span></div>';
     }
+
+    updateVersionHistoryFromData(data, statusHistory);
 
     if (spoofingCheck) {
         renderSpoofingCheck(spoofingCheck);
@@ -1882,6 +1883,53 @@ function sendCustomerMessage() {
     
     textarea.value = '';
     showToast('Message sent to customer.', 'success');
+}
+
+function updateVersionHistoryFromData(data, statusHistory) {
+    var version = data.version || 1;
+    var currentVersionId = 'v' + version;
+
+    var versionBadge = document.querySelector('.version-history-btn .version-badge');
+    if (versionBadge) {
+        versionBadge.textContent = currentVersionId;
+    }
+
+    var statusMap = {
+        'draft': 'submitted',
+        'submitted': 'submitted',
+        'in_review': 'submitted',
+        'pending_info': 'returned',
+        'info_provided': 'submitted',
+        'approved': 'approved',
+        'rejected': 'rejected',
+        'suspended': 'rejected',
+        'revoked': 'rejected'
+    };
+
+    var versionList = document.querySelector('.version-history-list');
+    if (!versionList) return;
+
+    var formatDate = function(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr);
+        return d.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    var currentStatus = data.workflow_status || 'submitted';
+    var submittedDate = formatDate(data.submitted_at || data.created_at);
+    var displayStatus = statusMap[currentStatus] || 'submitted';
+
+    var html = '';
+    html += '<div class="version-history-item active">';
+    html += '<div class="version-info">';
+    html += '<div class="version-label">Version ' + version + ' (Current) <span class="current-indicator">Current</span></div>';
+    html += '<div class="version-date">' + escapeHtml(submittedDate) + '</div>';
+    html += '</div>';
+    html += '<span class="version-status ' + escapeHtml(displayStatus) + '">' + escapeHtml(currentStatus.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); })) + '</span>';
+    html += '<i class="fas fa-check check-icon ms-2"></i>';
+    html += '</div>';
+
+    versionList.innerHTML = html;
 }
 
 function showAdminActionsModal() {
