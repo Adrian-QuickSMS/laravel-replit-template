@@ -674,47 +674,9 @@ html, body {
                     <i class="fas fa-shield-alt"></i> Automated Validation Results
                 </div>
                 <div class="detail-card-body">
-                    <div class="validation-item pass">
-                        <div class="validation-icon"><i class="fas fa-check"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">Character Rules</div>
-                            <div class="validation-detail">Only alphanumeric characters (A-Z, 0-9) detected. No special characters or spaces.</div>
-                        </div>
-                    </div>
-                    <div class="validation-item pass">
-                        <div class="validation-icon"><i class="fas fa-check"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">Length Rules</div>
-                            <div class="validation-detail">8 characters - within the 3-11 character limit for alphanumeric SenderIDs.</div>
-                        </div>
-                    </div>
-                    <div class="validation-item pass">
-                        <div class="validation-icon"><i class="fas fa-check"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">UK Shortcode Rules</div>
-                            <div class="validation-detail">Not applicable - this is an alphanumeric SenderID, not a shortcode.</div>
-                        </div>
-                    </div>
-                    <div class="validation-item pass">
-                        <div class="validation-icon"><i class="fas fa-check"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">Numeric Normalisation</div>
-                            <div class="validation-detail">No leading zeros or numeric-only patterns detected.</div>
-                        </div>
-                    </div>
-                    <div class="validation-item pass">
-                        <div class="validation-icon"><i class="fas fa-check"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">Restricted Keyword Detection</div>
-                            <div class="validation-detail">No restricted keywords (HMRC, NHS, GOV, Police, etc.) detected.</div>
-                        </div>
-                    </div>
-                    <div class="validation-item warn">
-                        <div class="validation-icon"><i class="fas fa-exclamation"></i></div>
-                        <div class="validation-content">
-                            <div class="validation-title">Brand Mismatch Warning</div>
-                            <div class="validation-detail">SenderID contains "BANK" - verify business is authorised to use banking-related terminology. Recommend BrandAssure verification.</div>
-                        </div>
+                    <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 0.5rem;">Loading validation results...</p>
                     </div>
                 </div>
             </div>

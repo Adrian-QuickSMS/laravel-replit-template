@@ -91,8 +91,10 @@ class SenderIdApprovalController extends Controller
             return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
         }
 
-        // Run anti-spoofing check for admin context
-        $spoofingCheck = $this->validationService->checkAntiSpoofing($senderId->sender_id_value);
+        $spoofingRaw = $this->validationService->checkAntiSpoofing($senderId->sender_id_value);
+        $senderType = $senderId->sender_type ?? SenderId::TYPE_ALPHA;
+        $typeValidation = $this->validationService->validate($senderId->sender_id_value, $senderType);
+        $spoofingCheck = $this->buildValidationResults($senderId, $typeValidation, $spoofingRaw);
 
         $accountData = $senderId->account?->only(['id', 'company_name', 'account_number', 'status']);
         if ($accountData && $senderId->account) {
@@ -381,5 +383,130 @@ class SenderIdApprovalController extends Controller
         } catch (\Exception $e) {
             Log::error('[SenderIdApproval] Failed to log governance event: ' . $e->getMessage());
         }
+    }
+
+    protected function buildValidationResults(SenderId $senderId, array $typeValidation, array $spoofingRaw): array
+    {
+        $results = [];
+        $value = $senderId->sender_id_value;
+        $type = strtoupper($senderId->sender_type ?? SenderId::TYPE_ALPHA);
+        $isAlpha = $type === SenderId::TYPE_ALPHA;
+        $isNumeric = $type === SenderId::TYPE_NUMERIC;
+        $isShortcode = $type === SenderId::TYPE_SHORTCODE;
+
+        if ($isAlpha) {
+            $charPass = (bool) preg_match('/^[A-Za-z0-9\-_& ]+$/', $value);
+            $results[] = [
+                'name' => 'Character Rules',
+                'pass' => $charPass,
+                'warn' => false,
+                'message' => $charPass
+                    ? 'Only allowed characters (A-Z, a-z, 0-9, -, _, &, space) detected.'
+                    : 'Contains disallowed characters for an alphanumeric SenderID.',
+            ];
+
+            $lenPass = strlen($value) >= 3 && strlen($value) <= 11;
+            $results[] = [
+                'name' => 'Length Rules',
+                'pass' => $lenPass,
+                'warn' => false,
+                'message' => $lenPass
+                    ? strlen($value) . ' characters — within the 3–11 character limit for alphanumeric SenderIDs.'
+                    : strlen($value) . ' characters — must be between 3 and 11 characters.',
+            ];
+        } elseif ($isNumeric) {
+            $fmtPass = (bool) preg_match('/^447\d{9}$/', $value);
+            $results[] = [
+                'name' => 'UK VMN Format',
+                'pass' => $fmtPass,
+                'warn' => false,
+                'message' => $fmtPass
+                    ? 'Valid UK international mobile number format (447xxxxxxxxx).'
+                    : 'Must be exactly 12 digits starting with 447.',
+            ];
+        } elseif ($isShortcode) {
+            $scPass = (bool) preg_match('/^[678]\d{4}$/', $value);
+            $results[] = [
+                'name' => 'UK Shortcode Format',
+                'pass' => $scPass,
+                'warn' => false,
+                'message' => $scPass
+                    ? 'Valid 5-digit UK shortcode starting with 6, 7, or 8.'
+                    : 'Must be exactly 5 digits starting with 6, 7, or 8.',
+            ];
+        }
+
+        if ($isAlpha) {
+            $spoofPassed = $spoofingRaw['passed'] ?? true;
+            $action = $spoofingRaw['action'] ?? 'allow';
+            $matchedRule = $spoofingRaw['matched_rule'] ?? null;
+            $normalised = $spoofingRaw['normalised'] ?? $value;
+
+            if (!$spoofPassed && $action === 'block') {
+                $ruleName = $matchedRule['name'] ?? $matchedRule['pattern'] ?? $value;
+                $results[] = [
+                    'name' => 'Anti-Spoofing Check',
+                    'pass' => false,
+                    'warn' => false,
+                    'message' => "BLOCKED — \"{$value}\" matched restricted pattern \"{$ruleName}\". This SenderID impersonates a protected brand/organisation and cannot be approved.",
+                ];
+            } elseif (!$spoofPassed && $action === 'quarantine') {
+                $ruleName = $matchedRule['name'] ?? $matchedRule['pattern'] ?? $value;
+                $results[] = [
+                    'name' => 'Anti-Spoofing Check',
+                    'pass' => false,
+                    'warn' => true,
+                    'message' => "QUARANTINED — \"{$value}\" matched pattern \"{$ruleName}\". Requires manual brand verification before approval.",
+                ];
+            } else {
+                $results[] = [
+                    'name' => 'Anti-Spoofing Check',
+                    'pass' => true,
+                    'warn' => false,
+                    'message' => 'No restricted or protected brand patterns detected.',
+                ];
+            }
+
+            $restricted = ['HMRC', 'NHS', 'GOV', 'GOVUK', 'POLICE', 'DVLA', 'DWP', 'HMCTS', 'OFCOM', 'FCA', 'HSBC', 'BARCLAYS', 'LLOYDS', 'NATWEST', 'SANTANDER', 'HALIFAX', 'NATIONWIDE', 'MONZO', 'STARLING', 'REVOLUT'];
+            $upperVal = strtoupper($value);
+            $matchedKeyword = null;
+            foreach ($restricted as $kw) {
+                if (str_contains($upperVal, $kw)) {
+                    $matchedKeyword = $kw;
+                    break;
+                }
+            }
+
+            if ($matchedKeyword) {
+                $category = in_array($matchedKeyword, ['HMRC', 'NHS', 'GOV', 'GOVUK', 'POLICE', 'DVLA', 'DWP', 'HMCTS', 'OFCOM', 'FCA'])
+                    ? 'government/regulatory'
+                    : 'financial institution';
+                $results[] = [
+                    'name' => 'Restricted Keyword Detection',
+                    'pass' => false,
+                    'warn' => false,
+                    'message' => "SenderID contains \"{$matchedKeyword}\" — a protected {$category} brand. Submitter must provide proof of authorisation.",
+                ];
+            } else {
+                $results[] = [
+                    'name' => 'Restricted Keyword Detection',
+                    'pass' => true,
+                    'warn' => false,
+                    'message' => 'No restricted keywords (HMRC, NHS, GOV, Police, major banks, etc.) detected.',
+                ];
+            }
+        }
+
+        $allPassed = collect($results)->every(fn($r) => $r['pass']);
+        $action = $allPassed ? 'allow' : ($spoofingRaw['action'] ?? 'flag');
+
+        return [
+            'passed' => $allPassed,
+            'action' => $action,
+            'matched_rule' => $spoofingRaw['matched_rule'] ?? null,
+            'normalised' => $spoofingRaw['normalised'] ?? $value,
+            'mapping_hits' => $spoofingRaw['mapping_hits'] ?? [],
+            'results' => $results,
+        ];
     }
 }
