@@ -1609,6 +1609,9 @@ document.addEventListener('DOMContentLoaded', function() {
         window.inboxChipEditor = BadgeChipEditor.initFromTextarea('#replyMessage', {
             onChange: function() { updateCharCount(); }
         });
+        console.log('[Inbox] Chip editor initialized:', !!window.inboxChipEditor);
+    } else {
+        console.warn('[Inbox] BadgeChipEditor not available');
     }
     
     // ========================================
@@ -2226,7 +2229,7 @@ function applyTemplate() {
 }
 
 function openAiAssistant() {
-    var content = document.getElementById('replyMessage').value.trim();
+    var content = (window.inboxChipEditor ? window.inboxChipEditor.getValue() : document.getElementById('replyMessage').value).trim();
     var displayEl = document.getElementById('aiCurrentContent');
     if (content) {
         displayEl.innerHTML = '<p class="mb-0">' + escapeHtml(content) + '</p>';
@@ -2240,7 +2243,7 @@ function openAiAssistant() {
 }
 
 function aiImprove(action) {
-    var content = document.getElementById('replyMessage').value.trim();
+    var content = (window.inboxChipEditor ? window.inboxChipEditor.getValue() : document.getElementById('replyMessage').value).trim();
     if (!content) {
         alert('Please enter some message content first.');
         return;
@@ -2638,7 +2641,7 @@ function sendReply() {
     }
     
     // Handle SMS/Basic RCS text message
-    var message = document.getElementById('replyMessage').value.trim();
+    var message = (window.inboxChipEditor ? window.inboxChipEditor.getValue() : document.getElementById('replyMessage').value).trim();
     if (!message) return;
     
     var chatArea = document.getElementById('chatArea');

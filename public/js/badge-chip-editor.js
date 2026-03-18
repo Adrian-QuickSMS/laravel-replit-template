@@ -318,7 +318,7 @@
     };
 
     BadgeChipEditor.prototype.getValue = function() {
-        return this._extractRaw(this.el);
+        return this._extractRaw(this.el).replace(/\u200B/g, '');
     };
 
     BadgeChipEditor.prototype._extractRaw = function(node) {
@@ -472,43 +472,33 @@
             }
         }
         var regex = /\{\{[^}]+\}\}/g;
+        var converted = false;
         for (var i = 0; i < textNodes.length; i++) {
             var tNode = textNodes[i];
             var text = tNode.textContent;
-            if (!regex.test(text)) continue;
+            if (!regex.test(text)) { regex.lastIndex = 0; continue; }
             regex.lastIndex = 0;
 
-            var sel = window.getSelection();
-            var caretOffset = -1;
-            if (sel.rangeCount) {
-                var r = sel.getRangeAt(0);
-                if (r.startContainer === tNode) {
-                    caretOffset = r.startOffset;
-                }
-            }
-
             var frag = this._parseAndRender(text);
+            var zwsp = document.createTextNode('\u200B');
+            frag.appendChild(zwsp);
+
             var parent = tNode.parentNode;
             parent.insertBefore(frag, tNode);
             parent.removeChild(tNode);
+            converted = true;
 
-            if (caretOffset >= 0) {
-                try {
-                    var newWalker = document.createTreeWalker(this.el, NodeFilter.SHOW_TEXT, null, false);
-                    var lastTextNode = null;
-                    while ((node = newWalker.nextNode())) lastTextNode = node;
-                    if (lastTextNode) {
-                        var newRange = document.createRange();
-                        var pos = Math.min(caretOffset, lastTextNode.textContent.length);
-                        newRange.setStart(lastTextNode, pos);
-                        newRange.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(newRange);
-                    }
-                } catch (e) {}
-            }
+            try {
+                var sel = window.getSelection();
+                var newRange = document.createRange();
+                newRange.setStartAfter(zwsp);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            } catch (e) {}
             break;
         }
+        return converted;
     };
 
     BadgeChipEditor.prototype.focus = function() {
