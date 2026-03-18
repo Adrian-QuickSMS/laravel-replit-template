@@ -254,7 +254,7 @@
         chip.setAttribute('data-type', chipType);
 
         if (type === 'link') {
-            chip.innerHTML = '<span class="bce-chip-icon">&#x1F517;</span>' + this._escapeHtml(rawValue);
+            chip.innerHTML = '<span class="bce-chip-icon">\uD83D\uDD17</span><span class="bce-chip-label">' + this._escapeHtml(rawValue) + '</span>';
         } else {
             var label = rawValue.replace(/^\{\{|\}\}$/g, '').trim();
             chip.innerHTML = '<span class="bce-chip-label">' + this._escapeHtml(label) + '</span>';
@@ -262,7 +262,7 @@
 
         var x = document.createElement('span');
         x.className = 'bce-chip-x';
-        x.innerHTML = '&#x2715;';
+        x.textContent = '\u00D7';
         x.addEventListener('mousedown', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -282,7 +282,6 @@
 
     BadgeChipEditor.prototype._parseAndRender = function(rawText) {
         var frag = document.createDocumentFragment();
-        var combined = [];
 
         var text = rawText;
         var lastIndex = 0;
@@ -377,9 +376,43 @@
         return false;
     };
 
+    BadgeChipEditor.prototype._suspendModalFocusTraps = function() {
+        var traps = [];
+        var modals = document.querySelectorAll('.modal.show[data-bs-focus="true"], .modal.show:not([data-bs-focus="false"])');
+        modals.forEach(function(m) {
+            var current = m.getAttribute('data-bs-focus');
+            if (current !== 'false') {
+                traps.push({ el: m, original: current });
+                m.setAttribute('data-bs-focus', 'false');
+                var inst = bootstrap && bootstrap.Modal && bootstrap.Modal.getInstance(m);
+                if (inst && inst._focustrap && inst._focustrap.deactivate) {
+                    inst._focustrap.deactivate();
+                }
+            }
+        });
+        return traps;
+    };
+
+    BadgeChipEditor.prototype._restoreModalFocusTraps = function(traps) {
+        traps.forEach(function(t) {
+            if (t.original === null) {
+                t.el.removeAttribute('data-bs-focus');
+            } else {
+                t.el.setAttribute('data-bs-focus', t.original || 'true');
+            }
+        });
+    };
+
     BadgeChipEditor.prototype.insertAtCursor = function(text) {
         var frag = this._parseAndRender(text);
-        var lastNode = frag.lastChild;
+        var nodes = [];
+        while (frag.firstChild) {
+            nodes.push(frag.firstChild);
+            frag.removeChild(frag.firstChild);
+        }
+        if (nodes.length === 0) return;
+
+        var traps = this._suspendModalFocusTraps();
         var inserted = false;
 
         var savedRange = this._savedRange;
@@ -391,15 +424,10 @@
                 if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
                     var range = sel.getRangeAt(0);
                     range.deleteContents();
-                    range.insertNode(frag);
-                    inserted = true;
-                    if (lastNode) {
-                        var newRange = document.createRange();
-                        newRange.setStartAfter(lastNode);
-                        newRange.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(newRange);
+                    for (var i = 0; i < nodes.length; i++) {
+                        range.insertNode(nodes[nodes.length - 1 - i]);
                     }
+                    inserted = true;
                 }
             } catch (e) {
                 inserted = false;
@@ -413,15 +441,10 @@
                 if (sel.rangeCount && this.el.contains(sel.anchorNode)) {
                     var range = sel.getRangeAt(0);
                     range.deleteContents();
-                    range.insertNode(frag);
-                    inserted = true;
-                    if (lastNode) {
-                        var newRange = document.createRange();
-                        newRange.setStartAfter(lastNode);
-                        newRange.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(newRange);
+                    for (var i = 0; i < nodes.length; i++) {
+                        range.insertNode(nodes[nodes.length - 1 - i]);
                     }
+                    inserted = true;
                 }
             } catch (e) {
                 inserted = false;
@@ -429,8 +452,28 @@
         }
 
         if (!inserted) {
-            this.el.appendChild(frag);
+            for (var i = 0; i < nodes.length; i++) {
+                this.el.appendChild(nodes[i]);
+            }
+            inserted = true;
         }
+
+        var lastNode = nodes[nodes.length - 1];
+        var zwsp = document.createTextNode('\u200B');
+        if (lastNode && lastNode.parentNode) {
+            lastNode.parentNode.insertBefore(zwsp, lastNode.nextSibling);
+        }
+
+        try {
+            var sel = window.getSelection();
+            var newRange = document.createRange();
+            newRange.setStartAfter(zwsp);
+            newRange.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+        } catch (e) {}
+
+        this._restoreModalFocusTraps(traps);
 
         this._savedRange = null;
         this._syncToHidden();
@@ -475,7 +518,8 @@
         for (var i = 0; i < textNodes.length; i++) {
             var tNode = textNodes[i];
             var text = tNode.textContent;
-            if (!regex.test(text)) { regex.lastIndex = 0; continue; }
+            regex.lastIndex = 0;
+            if (!regex.test(text)) { continue; }
             regex.lastIndex = 0;
 
             var frag = this._parseAndRender(text);

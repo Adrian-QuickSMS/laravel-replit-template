@@ -2429,7 +2429,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260210d"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260318c"></script>
 <script>
 var tplBasicRcsPreviewMode = 'rcs';
 var tplRichRcsPreviewMode = 'rcs';
