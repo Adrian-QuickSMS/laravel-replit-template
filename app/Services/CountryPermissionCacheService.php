@@ -67,14 +67,14 @@ class CountryPermissionCacheService
                 $this->l1[$l1Key] = $cached;
                 return $cached;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('[CountryPermissionCache] Redis read failed, falling through to DB: ' . $e->getMessage());
         }
 
         // L3: PostgreSQL
         try {
             $permissions = $this->resolveFromDatabase($accountId, $subAccountId);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // DB failed — return empty for this request but do NOT cache the failure
             Log::error('[CountryPermissionCache] Database resolution failed, returning empty (not cached): ' . $e->getMessage());
             return [];
@@ -83,7 +83,7 @@ class CountryPermissionCacheService
         // Populate L2 (best-effort) + L1
         try {
             Cache::store('redis')->put($l2Key, $permissions, self::L2_TTL_SECONDS);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('[CountryPermissionCache] Redis write failed: ' . $e->getMessage());
         }
         $this->l1[$l1Key] = $permissions;
@@ -113,7 +113,7 @@ class CountryPermissionCacheService
                 // Invalidate all sub-account caches for this account
                 $this->invalidateAllSubAccounts($accountId);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('[CountryPermissionCache] Redis invalidation failed: ' . $e->getMessage());
         }
     }
@@ -137,7 +137,7 @@ class CountryPermissionCacheService
                     $redis->del(...$keys);
                 }
             } while ($cursor);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('[CountryPermissionCache] Failed to flush all keys: ' . $e->getMessage());
         }
     }
@@ -150,7 +150,11 @@ class CountryPermissionCacheService
         // Warm account-level
         $permissions = $this->resolveFromDatabase($accountId, null);
         $l1Key = $accountId . ':_';
-        Cache::store('redis')->put(self::L2_PREFIX . $l1Key, $permissions, self::L2_TTL_SECONDS);
+        try {
+            Cache::store('redis')->put(self::L2_PREFIX . $l1Key, $permissions, self::L2_TTL_SECONDS);
+        } catch (\Throwable $e) {
+            Log::warning('[CountryPermissionCache] Redis warm failed: ' . $e->getMessage());
+        }
         $this->l1[$l1Key] = $permissions;
 
         // Warm sub-accounts
@@ -162,7 +166,11 @@ class CountryPermissionCacheService
         foreach ($subAccountIds as $subAccountId) {
             $permissions = $this->resolveFromDatabase($accountId, $subAccountId);
             $key = $accountId . ':' . $subAccountId;
-            Cache::store('redis')->put(self::L2_PREFIX . $key, $permissions, self::L2_TTL_SECONDS);
+            try {
+                Cache::store('redis')->put(self::L2_PREFIX . $key, $permissions, self::L2_TTL_SECONDS);
+            } catch (\Throwable $e) {
+                Log::warning('[CountryPermissionCache] Redis warm failed: ' . $e->getMessage());
+            }
             $this->l1[$key] = $permissions;
         }
     }
@@ -230,7 +238,7 @@ class CountryPermissionCacheService
                 unset($this->l1[$l1Key]);
                 Cache::store('redis')->forget(self::L2_PREFIX . $l1Key);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('[CountryPermissionCache] Failed to invalidate sub-account caches: ' . $e->getMessage());
         }
     }
