@@ -265,6 +265,10 @@
     background: #fef3c7;
     color: #92400e;
 }
+.status-badge.restricted {
+    background: #fef3c7;
+    color: #92400e;
+}
 .status-badge.pending {
     background: #fef3c7;
     color: #92400e;
@@ -3331,16 +3335,23 @@ function initCountryControls() {
     var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
     
     Promise.all([
-        fetch('/admin/api/country-controls', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) { return r.json(); }),
-        fetch('/admin/api/governance/country-requests', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) { return r.json(); })
+        fetch('/admin/api/country-controls', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) {
+            if (!r.ok) throw new Error('Country controls API returned ' + r.status + ' ' + r.statusText);
+            return r.json();
+        }),
+        fetch('/admin/api/governance/country-requests', { headers: { 'X-CSRF-TOKEN': csrfToken } }).then(function(r) {
+            if (!r.ok) throw new Error('Country requests API returned ' + r.status + ' ' + r.statusText);
+            return r.json();
+        })
     ])
     .then(function(results) {
         var countryData = results[0];
         var requestData = results[1];
-        
-        if (countryData.success) {
+
+        if (countryData.success && Array.isArray(countryData.countries)) {
             countries = countryData.countries;
         } else {
+            console.warn('[CountryControls] API returned success=false or invalid countries data:', countryData);
             countries = [];
         }
         
@@ -3389,10 +3400,18 @@ function initCountryControls() {
         console.error('[CountryControls] Failed to load data:', err);
         countries = [];
         countryRequests = [];
+
+        var tbody = document.getElementById('countryTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:#dc2626;">' +
+                '<i class="fas fa-exclamation-triangle" style="margin-right:0.5rem;"></i>' +
+                'Failed to load country data. Please check database migrations have been run and refresh the page.' +
+                '</td></tr>';
+        }
+
         if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
             window.SharedPolicyStore.initialize();
         }
-        renderCountryTable();
         renderRequestsList();
         bindEvents();
         updateReviewStats();
@@ -4380,12 +4399,13 @@ function renderCountryTable() {
     filtered.forEach(function(country) {
         var row = document.createElement('tr');
         
-        var statusLabel = country.status === 'allowed' ? 'Allowed' : 'Blocked';
-        var statusClass = country.status === 'allowed' ? 'allowed' : 'blocked';
-        var statusIcon = country.status === 'allowed' ? 'fa-check-circle' : 'fa-ban';
-        var statusTooltip = country.status === 'allowed' ? 
-            'Any customer can send without approval' : 
-            'No customer can send unless explicit account override exists';
+        var statusLabel = country.status === 'allowed' ? 'Allowed' : (country.status === 'restricted' ? 'Restricted' : 'Blocked');
+        var statusClass = country.status === 'allowed' ? 'allowed' : (country.status === 'restricted' ? 'restricted' : 'blocked');
+        var statusIcon = country.status === 'allowed' ? 'fa-check-circle' : (country.status === 'restricted' ? 'fa-exclamation-circle' : 'fa-ban');
+        var statusTooltip = country.status === 'allowed' ?
+            'Any customer can send without approval' :
+            (country.status === 'restricted' ? 'Customers must request approval to send to this country' :
+            'No customer can send unless explicit account override exists');
 
         var overridesHtml = country.overrides > 0 ? 
             '<span class="overrides-badge" onclick="viewOverrides(\'' + country.code + '\')" title="Click to view account overrides">' +
