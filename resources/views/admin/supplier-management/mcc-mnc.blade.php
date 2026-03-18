@@ -1559,10 +1559,11 @@ function populateMappingDropdowns() {
             ? '<option value="">— Not mapped (auto-detected) —</option>'
             : '<option value="">— Select column —</option>';
         importState.headers.forEach((h, i) => {
+            var headerVal = (h == null) ? ('Column ' + (i + 1)) : String(h);
             const opt = document.createElement('option');
             opt.value = i;
-            opt.textContent = h;
-            const lower = h.toLowerCase().trim();
+            opt.textContent = headerVal;
+            const lower = headerVal.toLowerCase().trim();
             if (field.keywords.some(k => lower === k || lower.replace(/[\s_-]/g,'') === k.replace(/[\s_-]/g,''))) {
                 opt.selected = true;
             }
@@ -2049,15 +2050,17 @@ function populateUkColumnMapping() {
         sel.innerHTML = existingOpts;
 
         headers.forEach((h, i) => {
+            var hVal = (h == null) ? ('Column ' + (i + 1)) : String(h);
             const opt = document.createElement('option');
             opt.value = i;
-            opt.textContent = h;
+            opt.textContent = hVal;
             sel.appendChild(opt);
         });
 
         const keys = autoMatchKeys[selId] || [];
         for (let i = 0; i < headers.length; i++) {
-            const hLower = headers[i].toLowerCase();
+            var hStr = (headers[i] == null) ? '' : String(headers[i]);
+            const hLower = hStr.toLowerCase();
             if (keys.some(k => hLower.includes(k))) {
                 sel.value = i;
                 break;

@@ -233,9 +233,13 @@ class MccMncController extends Controller
 
         session(["import_{$importId}" => ['path' => $path, 'ext' => $ext]]);
 
+        $cleanHeaders = array_map(function($h, $i) {
+            return ($h === null || $h === '') ? ('Column ' . ($i + 1)) : (string) $h;
+        }, $headers, array_keys($headers));
+
         return response()->json([
             'success' => true,
-            'headers' => $headers,
+            'headers' => array_values($cleanHeaders),
             'preview' => array_slice($rows, 0, 10),
             'totalRows' => count($rows),
             'importId' => $importId,
