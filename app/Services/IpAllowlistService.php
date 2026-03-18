@@ -21,6 +21,9 @@ class IpAllowlistService
     private const CACHE_TTL = 60; // seconds
     private const CACHE_PREFIX = 'ip_allowlist:';
 
+    /** @var array<string, bool> Request-scoped enabled/disabled cache */
+    private array $enabledCache = [];
+
     /**
      * Check if an IP is allowed for a given account.
      * Returns true if: allowlist is disabled, OR IP matches an active entry.
@@ -59,11 +62,17 @@ class IpAllowlistService
 
     /**
      * Check if IP allowlist is enabled for an account.
+     * Cached per-request (service is scoped) to avoid repeated DB queries
+     * since this runs on every authenticated request via middleware.
      */
     public function isEnabled(string $accountId): bool
     {
-        $settings = AccountSettings::withoutGlobalScopes()->find($accountId);
-        return $settings && $settings->ip_allowlist_enabled;
+        if (!isset($this->enabledCache[$accountId])) {
+            $settings = AccountSettings::withoutGlobalScopes()->find($accountId);
+            $this->enabledCache[$accountId] = $settings && $settings->ip_allowlist_enabled;
+        }
+
+        return $this->enabledCache[$accountId];
     }
 
     /**
@@ -304,5 +313,6 @@ class IpAllowlistService
     public function invalidateCache(string $accountId): void
     {
         Cache::forget(self::CACHE_PREFIX . $accountId);
+        unset($this->enabledCache[$accountId]);
     }
 }

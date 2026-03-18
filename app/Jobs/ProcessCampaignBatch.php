@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
+use App\Models\HeldMessage;
 use App\Services\Campaign\CampaignService;
 use App\Services\Campaign\DeliveryService;
 use Illuminate\Bus\Queueable;
@@ -141,6 +142,10 @@ class ProcessCampaignBatch implements ShouldQueue
 
     /**
      * Check if all batches are done and complete the campaign.
+     *
+     * Prevents completion while held_messages exist for this campaign
+     * (out-of-hours hold). The release scheduler will reset held recipients
+     * to 'pending' and dispatch a new batch when the window opens.
      */
     private function checkCampaignCompletion(Campaign $campaign, CampaignService $campaignService): void
     {
@@ -157,6 +162,22 @@ class ProcessCampaignBatch implements ShouldQueue
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_SENT)
             ->count();
+
+        // Don't complete if there are held messages waiting for the OOH window to open.
+        // The release scheduler will reset these to 'pending' and dispatch a new batch.
+        $heldMessages = HeldMessage::withoutGlobalScopes()
+            ->where('campaign_id', $campaign->id)
+            ->where('status', 'held')
+            ->count();
+
+        if ($heldMessages > 0) {
+            Log::info('[ProcessCampaignBatch] Campaign has held messages, deferring completion', [
+                'campaign_id' => $campaign->id,
+                'held_count' => $heldMessages,
+                'remaining_pending' => $remainingPending,
+            ]);
+            return;
+        }
 
         if ($remainingPending === 0 && $awaitingDlr === 0) {
             $campaignService->complete($campaign);

@@ -191,21 +191,21 @@ class OutOfHoursService
     /**
      * Dispatch a released held message back into the sending pipeline.
      *
-     * Campaign messages: reset campaign_recipient to 'pending' so the existing
-     * ProcessCampaignBatch job picks them up. We dispatch a new batch job to
-     * ensure they're processed promptly.
+     * Campaign messages: reset campaign_recipient to 'pending' and dispatch
+     * ProcessCampaignBatch. The campaign stays in 'sending' because
+     * checkCampaignCompletion() defers completion while held_messages exist.
+     * No campaign status manipulation needed.
      *
      * Non-campaign messages: dispatch via SendHeldMessage queue job.
      */
     private function dispatchReleasedMessage(HeldMessage $message): void
     {
         if ($message->campaign_id && $message->campaign_recipient_id) {
-            // Campaign message — reset recipient to pending for re-processing
             $recipient = \App\Models\CampaignRecipient::withoutGlobalScopes()
                 ->find($message->campaign_recipient_id);
 
             if ($recipient) {
-                // Reset to pending — this is a valid status in the CHECK constraint
+                // Reset to pending — valid CHECK constraint value
                 DB::table('campaign_recipients')
                     ->where('id', $recipient->id)
                     ->update([
@@ -214,22 +214,21 @@ class OutOfHoursService
                         'failure_code' => null,
                     ]);
 
-                // Dispatch a new batch job to process the released recipients.
-                // Include 'completed' — the campaign may have finished while messages were held.
-                // If campaign was cancelled/archived, don't re-send.
+                // Dispatch batch job. Campaign should still be in 'sending' because
+                // checkCampaignCompletion() defers while held_messages exist.
+                // If campaign was cancelled/archived/failed, don't re-send.
                 $campaign = \App\Models\Campaign::withoutGlobalScopes()->find($message->campaign_id);
-                if ($campaign && in_array($campaign->status, ['sending', 'queued', 'completed'])) {
-                    // Reset campaign to 'sending' if it was completed so the batch processor runs
-                    if ($campaign->status === 'completed') {
-                        DB::table('campaigns')
-                            ->where('id', $campaign->id)
-                            ->update(['status' => 'sending', 'updated_at' => now()]);
-                    }
-
+                if ($campaign && in_array($campaign->status, ['sending', 'queued'])) {
                     \App\Jobs\ProcessCampaignBatch::dispatch(
                         $campaign->id,
-                        $recipient->batch_number ?? 1
+                        $recipient->batch_number ?? 0
                     );
+                } elseif ($campaign) {
+                    Log::warning('[OutOfHoursService] Campaign not in sendable state, skipping release', [
+                        'campaign_id' => $campaign->id,
+                        'status' => $campaign->status,
+                        'recipient_id' => $recipient->id,
+                    ]);
                 }
 
                 Log::info('[OutOfHoursService] Released campaign recipient', [
