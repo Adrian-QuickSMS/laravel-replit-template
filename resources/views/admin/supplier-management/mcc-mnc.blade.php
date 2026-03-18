@@ -1662,7 +1662,7 @@ function runImport() {
     setNextEnabled(false);
     document.getElementById('btnBack').style.display = 'none';
 
-    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     fetch('/admin/supplier-management/mcc-mnc/import', {
         method: 'POST',
         headers: {
@@ -1670,10 +1670,15 @@ function runImport() {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         },
-        body: JSON.stringify({ importId: importState.importId, mapping })
+        body: JSON.stringify({ importId: importState.importId, mapping: mapping })
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) {
+        if (!r.ok) {
+            return r.text().then(function(t) { throw new Error('Server error (' + r.status + '): ' + t.substring(0, 200)); });
+        }
+        return r.json();
+    })
+    .then(function(data) {
         document.getElementById('importProgress').classList.add('d-none');
         document.getElementById('importResults').classList.remove('d-none');
         if (data.success) {
@@ -1702,17 +1707,18 @@ function runImport() {
             document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
         }
     })
-    .catch(err => {
+    .catch(function(err) {
+        console.error('[MCC Import] Import failed:', err.message);
         document.getElementById('importProgress').classList.add('d-none');
         document.getElementById('importResults').classList.remove('d-none');
         document.getElementById('resultCreated').textContent = '0';
         document.getElementById('resultUpdated').textContent = '0';
         document.getElementById('resultErrors').textContent = '1';
         document.getElementById('errorDetails').classList.remove('d-none');
-        document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>Network error. Please check your connection and try again.</td></tr>`;
+        document.getElementById('errorTableBody').innerHTML = '<tr><td>-</td><td>' + (err.message || 'Network error. Please check your connection and try again.') + '</td></tr>';
         document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
         setNextEnabled(true);
-        document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
+        document.getElementById('btnNext').onclick = function() { resetImportWizard(); };
     });
 }
 
@@ -1978,16 +1984,22 @@ function handleUkFile(input) {
     const formData = new FormData();
     formData.append('file', file);
 
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     fetch('/admin/supplier-management/uk-prefixes/parse-file', {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
         body: formData
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) {
+        if (!r.ok) {
+            return r.text().then(function(t) { throw new Error('Server error (' + r.status + '): ' + t.substring(0, 200)); });
+        }
+        return r.json();
+    })
+    .then(function(data) {
         document.getElementById('ukUploadSpinner').classList.add('d-none');
         if (!data.success) {
-            document.getElementById('ukUploadError').textContent = data.message;
+            document.getElementById('ukUploadError').textContent = data.message || 'File parsing failed.';
             document.getElementById('ukUploadError').classList.remove('d-none');
             document.getElementById('ukDropZone').classList.remove('d-none');
             return;
@@ -1998,13 +2010,14 @@ function handleUkFile(input) {
         ukImportState.importId = data.importId;
 
         document.getElementById('ukFileName').textContent = data.fileName;
-        document.getElementById('ukRowCount').textContent = `${data.totalRows} data rows`;
+        document.getElementById('ukRowCount').textContent = data.totalRows + ' data rows';
         document.getElementById('ukFileInfo').classList.remove('d-none');
         document.getElementById('ukBtnNext').disabled = false;
     })
-    .catch(err => {
+    .catch(function(err) {
+        console.error('[UK Import] Upload failed:', err.message);
         document.getElementById('ukUploadSpinner').classList.add('d-none');
-        document.getElementById('ukUploadError').textContent = 'Error uploading file';
+        document.getElementById('ukUploadError').textContent = 'Error uploading file: ' + (err.message || 'Unknown error');
         document.getElementById('ukUploadError').classList.remove('d-none');
         document.getElementById('ukDropZone').classList.remove('d-none');
     });
@@ -2098,29 +2111,35 @@ function runUkImport() {
     const dateVal = document.getElementById('ukMapAllocationDate').value;
     if (dateVal !== '') mapping.allocation_date = parseInt(dateVal);
 
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     fetch('/admin/supplier-management/uk-prefixes/import', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ importId: ukImportState.importId, mapping })
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        body: JSON.stringify({ importId: ukImportState.importId, mapping: mapping })
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) {
+        if (!r.ok) {
+            return r.text().then(function(t) { throw new Error('Server error (' + r.status + '): ' + t.substring(0, 200)); });
+        }
+        return r.json();
+    })
+    .then(function(data) {
         document.getElementById('ukImportProgress').classList.add('d-none');
         document.getElementById('ukImportResults').classList.remove('d-none');
 
         if (data.success) {
             document.getElementById('ukResultCreated').textContent = data.imported;
             document.getElementById('ukResultUpdated').textContent = data.updated;
-            const errCount = data.totalErrors || data.errors.length;
+            var errCount = data.totalErrors || (data.errors ? data.errors.length : 0);
             document.getElementById('ukResultErrors').textContent = errCount;
 
             if (errCount > 0 && data.errors && data.errors.length > 0) {
                 document.getElementById('ukErrorDetails').classList.remove('d-none');
-                const errorItems = data.errors.slice(0, 20).map(e => `<div class="text-danger mb-1">Row ${e.row}: ${e.error}</div>`).join('');
-                document.getElementById('ukErrorList').innerHTML = errorItems;
+                var errItems = data.errors.slice(0, 20).map(function(e) { return '<div class="text-danger mb-1">Row ' + e.row + ': ' + e.error + '</div>'; }).join('');
+                document.getElementById('ukErrorList').innerHTML = errItems;
                 if (errCount > 20) {
                     document.getElementById('ukSkippedInfo').classList.remove('d-none');
-                    document.getElementById('ukSkippedText').textContent = `Showing 20 of ${errCount} errors. Most are similar — rows with empty number blocks or very short prefixes were skipped.`;
+                    document.getElementById('ukSkippedText').textContent = 'Showing 20 of ' + errCount + ' errors. Most are similar — rows with empty number blocks or very short prefixes were skipped.';
                 }
             } else {
                 document.getElementById('ukErrorDetails').classList.add('d-none');
@@ -2138,10 +2157,13 @@ function runUkImport() {
             document.getElementById('ukResultErrors').textContent = data.message || 'Error';
         }
     })
-    .catch(err => {
+    .catch(function(err) {
+        console.error('[UK Import] Import failed:', err.message);
         document.getElementById('ukImportProgress').classList.add('d-none');
         document.getElementById('ukImportResults').classList.remove('d-none');
-        document.getElementById('ukResultErrors').textContent = 'Network error';
+        document.getElementById('ukResultCreated').textContent = '0';
+        document.getElementById('ukResultUpdated').textContent = '0';
+        document.getElementById('ukResultErrors').textContent = err.message || 'Network error';
     });
 }
 
