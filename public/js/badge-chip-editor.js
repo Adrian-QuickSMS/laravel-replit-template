@@ -254,16 +254,15 @@
         chip.setAttribute('data-type', chipType);
 
         if (type === 'link') {
-            chip.innerHTML = '<span class="bce-chip-icon">&#128279;</span>' + this._escapeHtml(rawValue);
+            chip.innerHTML = '<span class="bce-chip-icon">&#x1F517;</span>' + this._escapeHtml(rawValue);
         } else {
             var label = rawValue.replace(/^\{\{|\}\}$/g, '').trim();
-            var icon = chipType === 'custom' ? '&#128196;' : '&#128100;';
-            chip.innerHTML = '<span class="bce-chip-icon">' + icon + '</span>' + this._escapeHtml(label);
+            chip.innerHTML = '<span class="bce-chip-label">' + this._escapeHtml(label) + '</span>';
         }
 
         var x = document.createElement('span');
         x.className = 'bce-chip-x';
-        x.innerHTML = '&times;';
+        x.innerHTML = '&#x2715;';
         x.addEventListener('mousedown', function(e) {
             e.preventDefault();
             e.stopPropagation();

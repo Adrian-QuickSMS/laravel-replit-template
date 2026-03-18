@@ -33,14 +33,15 @@
 .bce-chip {
     display: inline-flex;
     align-items: center;
-    background: #dce8f5;
+    gap: 4px;
+    background: linear-gradient(135deg, #e8eef6 0%, #dce8f5 100%);
     color: #2c5282;
-    border-radius: 999px;
-    padding: 1px 10px;
+    border-radius: 4px;
+    padding: 2px 8px;
     font-size: 0.82em;
-    font-weight: 500;
+    font-weight: 600;
     font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
-    line-height: 1.6;
+    line-height: 1.5;
     margin: 0 2px;
     vertical-align: middle;
     user-select: all;
@@ -51,54 +52,74 @@
     border: 1px solid #b8d4f0;
     transition: background 0.15s, border-color 0.15s;
     position: relative;
-    z-index: 1;
+}
+
+.bce-chip::before {
+    content: '{{';
+    font-weight: 700;
+    opacity: 0.5;
+    font-size: 0.85em;
+}
+
+.bce-chip::after {
+    content: '';
 }
 
 .bce-chip:hover {
-    background: #c5d9f0;
+    background: linear-gradient(135deg, #d4e2f3 0%, #c5d9f0 100%);
     border-color: #93bce0;
 }
 
 .bce-chip--custom,
 .bce-chip[data-type="custom"] {
-    background: #f0ebf8;
+    background: linear-gradient(135deg, #f5f0fb 0%, #ede4f7 100%);
     color: #5a3d8a;
     border-color: #e0d4f0;
 }
 
 .bce-chip--custom:hover,
 .bce-chip[data-type="custom"]:hover {
-    background: #e4dcf2;
+    background: linear-gradient(135deg, #ebe3f5 0%, #e4dcf2 100%);
     border-color: #c9b8e4;
 }
 
 .bce-chip[data-type="link"] {
-    background: #d4edda;
+    background: linear-gradient(135deg, #e0f3e5 0%, #d4edda 100%);
     color: #155724;
     border-color: #b1dfbb;
 }
 
 .bce-chip[data-type="link"]:hover {
-    background: #bee5c7;
+    background: linear-gradient(135deg, #cfe9d6 0%, #bee5c7 100%);
     border-color: #8fd4a0;
 }
 
+.bce-chip[data-type="link"]::before {
+    content: '';
+}
+
 .bce-chip .bce-chip-icon {
-    margin-right: 4px;
-    font-size: 0.78em;
+    margin-right: 2px;
+    font-size: 0.85em;
     opacity: 0.7;
 }
 
+.bce-chip .bce-chip-label {
+    font-weight: 600;
+}
+
 .bce-chip .bce-chip-x {
-    margin-left: 5px;
-    font-size: 0.72em;
-    opacity: 0.5;
+    font-size: 0.7em;
+    opacity: 0.4;
     cursor: pointer;
     line-height: 1;
+    font-weight: 400;
+    margin-left: 2px;
 }
 
 .bce-chip .bce-chip-x:hover {
     opacity: 1;
+    color: #c53030;
 }
 
 .bce-editor--single-line {
