@@ -2443,6 +2443,74 @@ function openRcsPlaceholderPicker(field) {
     rcsActiveTextField = field;
     var modalEl = document.getElementById('rcsPersonalisationModal') || document.getElementById('personalisationModal');
     if (!modalEl) return;
+
+    var rcsCbSection = document.getElementById('rcsContactBookFieldsSection');
+    var rcsCsvSection = document.getElementById('rcsCsvFieldsSection');
+    var rcsCsvBtnContainer = document.getElementById('rcsCsvFieldButtons');
+
+    if (rcsCsvSection && rcsCsvBtnContainer) {
+        var hasCb = (typeof hasContactBookRecipients === 'function') ? hasContactBookRecipients() : false;
+        var hasCsv = (typeof hasFileUploadRecipients === 'function') ? hasFileUploadRecipients() : false;
+        var hasManual = (typeof hasManualRecipients === 'function') ? hasManualRecipients() : false;
+
+        if (rcsCbSection) {
+            if (hasCsv && !hasCb && !hasManual) {
+                rcsCbSection.classList.add('d-none');
+            } else {
+                rcsCbSection.classList.remove('d-none');
+            }
+        }
+
+        if (hasCsv && typeof recipientState !== 'undefined' && recipientState.files && recipientState.files.length > 0) {
+            var builtInMap = { 'mobile': 'mobile_number', 'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email' };
+            var builtInFields = ['first_name', 'last_name', 'full_name', 'mobile_number', 'email'];
+            var allFileFields = [];
+            recipientState.files.forEach(function(file) {
+                var fileFields = [];
+                if (file.columnMapping) {
+                    Object.keys(file.columnMapping).forEach(function(key) {
+                        var mapped = builtInMap[key];
+                        if (mapped && fileFields.indexOf(mapped) === -1) fileFields.push(mapped);
+                    });
+                    if (fileFields.indexOf('first_name') !== -1 && fileFields.indexOf('last_name') !== -1 && fileFields.indexOf('full_name') === -1) {
+                        fileFields.push('full_name');
+                    }
+                }
+                if (file.customFields) {
+                    file.customFields.forEach(function(cf) {
+                        if (fileFields.indexOf(cf) === -1) fileFields.push(cf);
+                    });
+                }
+                allFileFields.push(fileFields);
+            });
+
+            var intersection = allFileFields[0] ? allFileFields[0].slice() : [];
+            for (var i = 1; i < allFileFields.length; i++) {
+                intersection = intersection.filter(function(f) {
+                    return allFileFields[i].indexOf(f) !== -1;
+                });
+            }
+
+            if (intersection.length > 0) {
+                rcsCsvSection.classList.remove('d-none');
+                var html = '';
+                intersection.forEach(function(fieldName) {
+                    var isBuiltIn = builtInFields.indexOf(fieldName) !== -1;
+                    var btnClass = isBuiltIn ? 'btn btn-outline-primary btn-sm' : 'btn btn-outline-secondary btn-sm';
+                    var escapedAttr = fieldName.replace(/'/g, "\\'");
+                    html += '<button type="button" class="' + btnClass + '" onclick="insertRcsPlaceholder(\'' + escapedAttr + '\')">' + '{{' + fieldName + '}}' + '</button>';
+                });
+                rcsCsvBtnContainer.innerHTML = html;
+            } else {
+                rcsCsvSection.classList.add('d-none');
+                rcsCsvBtnContainer.innerHTML = '';
+            }
+        } else {
+            rcsCsvSection.classList.add('d-none');
+            rcsCsvBtnContainer.innerHTML = '';
+        }
+    }
+
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 

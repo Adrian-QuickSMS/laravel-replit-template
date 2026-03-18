@@ -417,7 +417,7 @@ function toggleRcsMobilePreview() {
             </div>
             <div class="modal-body">
                 <p class="text-muted mb-3">Click a field to insert it at the cursor position.</p>
-                <div class="mb-3">
+                <div class="mb-3" id="rcsContactBookFieldsSection">
                     <h6 class="text-muted mb-2">Contact Fields</h6>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('first_name')">@{{first_name}}</button>
@@ -426,6 +426,10 @@ function toggleRcsMobilePreview() {
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('mobile_number')">@{{mobile_number}}</button>
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('email')">@{{email}}</button>
                     </div>
+                </div>
+                <div class="mb-3 d-none" id="rcsCsvFieldsSection">
+                    <h6 class="text-muted mb-2">File Upload Fields</h6>
+                    <div class="d-flex flex-wrap gap-2" id="rcsCsvFieldButtons"></div>
                 </div>
             </div>
             <div class="modal-footer py-2">

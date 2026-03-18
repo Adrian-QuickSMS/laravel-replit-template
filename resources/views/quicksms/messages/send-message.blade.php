@@ -2567,7 +2567,7 @@ function openPersonalisationModal() {
         hintSection.style.display = hasCsv ? 'none' : '';
     }
 
-    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
     modal.show();
 }
 
