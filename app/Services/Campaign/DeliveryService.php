@@ -350,6 +350,10 @@ class DeliveryService
                 ],
             ]);
 
+            // Note: no campaign counter increment here. Held messages are transient —
+            // when released, they reset to 'pending' and flow through sendRecipient() again,
+            // which will increment sent_count/failed_count as appropriate.
+
             Log::info('[DeliveryService] Message held for out-of-hours', [
                 'campaign_id' => $campaign->id,
                 'recipient_id' => $recipient->id,

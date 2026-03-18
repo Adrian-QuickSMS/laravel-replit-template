@@ -174,7 +174,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->post('/api/sub-ac
 // =====================================================
 // Sub-Account Management API
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/sub-accounts')->controller(\App\Http\Controllers\SubAccountController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/sub-accounts')->controller(\App\Http\Controllers\SubAccountController::class)->group(function () {
     Route::get('/', 'index')->name('api.sub-accounts.index');
     Route::post('/', 'store')->middleware('permission:manage_sub_accounts')->name('api.sub-accounts.store');
     Route::get('/{id}', 'show')->name('api.sub-accounts.show');
@@ -188,7 +188,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/sub-accounts'
 // =====================================================
 // User Management API
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/users')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/users')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
     Route::get('/', 'index')->name('api.users.index');
     Route::get('/roles', 'roles')->name('api.users.roles');
     Route::get('/{id}', 'show')->name('api.users.show');
@@ -201,7 +201,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/users')->cont
 // =====================================================
 // User Invitations API
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:30,1'])->prefix('api/invitations')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:30,1'])->prefix('api/invitations')->controller(\App\Http\Controllers\UserManagementController::class)->group(function () {
     Route::get('/', 'listInvitations')->name('api.invitations.index');
     Route::post('/', 'invite')->middleware('permission:manage_users')->name('api.invitations.store');
     Route::put('/{id}/revoke', 'revokeInvitation')->middleware('permission:manage_users')->name('api.invitations.revoke');
@@ -213,7 +213,7 @@ Route::post('/invitation/accept', [\App\Http\Controllers\UserManagementControlle
     ->name('invitation.accept');
 
 // RCS Agent Registration — Customer Portal API
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
     Route::get('/', 'list')->name('api.rcs-agents.list');
     Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
     Route::post('/', 'store')->name('api.rcs-agents.store');
@@ -226,7 +226,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/rcs-agents')-
 });
 
 // Contact Book API — must be in web.php (not api.php) so session auth works
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/contacts')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsIndex'])->name('api.contacts.index');
     Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsStore'])->name('api.contacts.store');
     Route::get('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsShow'])->name('api.contacts.show');
@@ -246,14 +246,14 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->g
     Route::post('/{id}/reveal-msisdn', [\App\Http\Controllers\Api\ContactBookApiController::class, 'revealMsisdn'])->name('api.contacts.reveal-msisdn');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/tags')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/tags')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsIndex'])->name('api.tags.index');
     Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsStore'])->name('api.tags.store');
     Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsUpdate'])->name('api.tags.update');
     Route::delete('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsDestroy'])->name('api.tags.destroy');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contact-lists')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/contact-lists')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsIndex'])->name('api.contact-lists.index');
     Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsStore'])->name('api.contact-lists.store');
     Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsUpdate'])->name('api.contact-lists.update');
@@ -262,7 +262,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contact-lists
     Route::delete('/{id}/members', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsRemoveMembers'])->name('api.contact-lists.remove-members');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/opt-out-lists')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/opt-out-lists')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsIndex'])->name('api.opt-out-lists.index');
     Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsStore'])->name('api.opt-out-lists.store');
     Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsUpdate'])->name('api.opt-out-lists.update');
@@ -271,9 +271,9 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/opt-out-lists
     Route::post('/{id}/records', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsStore'])->name('api.opt-out-records.store');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->delete('/api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->delete('/api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
     Route::get('/conversations', 'apiConversations')->name('api.inbox.conversations');
     Route::get('/conversations/{id}/messages', 'apiMessages')->name('api.inbox.messages');
     Route::post('/conversations/{id}/reply', 'apiSendReply')->name('api.inbox.reply');
@@ -294,7 +294,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/notif
 });
 
 // API Connections — customer portal (session-based auth)
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/api-connections')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/api-connections')
     ->controller(\App\Http\Controllers\Api\ApiConnectionController::class)->group(function () {
     Route::get('/', 'index')->name('api.api-connections.index');
     Route::post('/', 'store')->name('api.api-connections.store');
@@ -341,7 +341,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/purch
 // =====================================================
 // Numbers Module API (session-based auth)
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/numbers')
     ->controller(\App\Http\Controllers\Api\NumberApiController::class)->group(function () {
     // Numbers Library
     Route::get('/', 'index')->name('api.numbers.index');
@@ -380,7 +380,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
 // =====================================================
 // Campaign / Send Message API (session-based auth)
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/campaigns')
     ->controller(\App\Http\Controllers\Api\CampaignApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.campaigns.index');
     Route::post('/', 'store')->name('api.campaigns.store');
@@ -430,7 +430,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
 });
 
 // Message Template API (session-based auth)
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templates')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/message-templates')
     ->controller(\App\Http\Controllers\Api\MessageTemplateApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.message-templates.index');
     Route::post('/', 'store')->name('api.message-templates.store');
@@ -453,7 +453,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
 // =====================================================
 // Email-to-SMS API (Customer Portal)
 // =====================================================
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/email-to-sms')
     ->controller(\App\Http\Controllers\Api\EmailToSmsController::class)->group(function () {
     // Overview (unified standard + contact list listing)
     Route::get('/overview', 'overview')->name('api.email-to-sms.overview');
@@ -494,7 +494,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms'
     Route::post('/contact-list-setups/{id}/unarchive', 'unarchive')->name('api.email-to-sms.contact-list-setups.unarchive');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms/reporting-groups')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/email-to-sms/reporting-groups')
     ->controller(\App\Http\Controllers\Api\EmailToSmsReportingGroupController::class)->group(function () {
     Route::get('/', 'index')->name('api.email-to-sms.reporting-groups.index');
     Route::post('/', 'store')->name('api.email-to-sms.reporting-groups.store');
@@ -505,7 +505,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms/
     Route::post('/{id}/unarchive', 'unarchive')->name('api.email-to-sms.reporting-groups.unarchive');
 });
 
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/audit-logs')
     ->controller(\App\Http\Controllers\Api\AuditLogApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.audit-logs.index');
     Route::get('/modules', 'modules')->name('api.audit-logs.modules');

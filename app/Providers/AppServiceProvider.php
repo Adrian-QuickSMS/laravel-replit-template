@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(AntiFloodService::class);
         $this->app->scoped(OutOfHoursService::class);
         $this->app->scoped(DataMaskingService::class);
-        $this->app->singleton(IpAllowlistService::class);
+        $this->app->scoped(IpAllowlistService::class);
     }
 
     /**

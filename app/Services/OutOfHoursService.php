@@ -214,9 +214,18 @@ class OutOfHoursService
                         'failure_code' => null,
                     ]);
 
-                // Dispatch a new batch job to process the released recipients
+                // Dispatch a new batch job to process the released recipients.
+                // Include 'completed' — the campaign may have finished while messages were held.
+                // If campaign was cancelled/archived, don't re-send.
                 $campaign = \App\Models\Campaign::withoutGlobalScopes()->find($message->campaign_id);
-                if ($campaign && in_array($campaign->status, ['sending', 'queued'])) {
+                if ($campaign && in_array($campaign->status, ['sending', 'queued', 'completed'])) {
+                    // Reset campaign to 'sending' if it was completed so the batch processor runs
+                    if ($campaign->status === 'completed') {
+                        DB::table('campaigns')
+                            ->where('id', $campaign->id)
+                            ->update(['status' => 'sending', 'updated_at' => now()]);
+                    }
+
                     \App\Jobs\ProcessCampaignBatch::dispatch(
                         $campaign->id,
                         $recipient->batch_number ?? 1
@@ -245,14 +254,5 @@ class OutOfHoursService
         }
 
         return $this->settingsCache[$accountId];
-    }
-
-    /**
-     * Clear the in-process settings cache.
-     * Called after settings are updated to prevent stale reads.
-     */
-    public function clearSettingsCache(): void
-    {
-        $this->settingsCache = [];
     }
 }

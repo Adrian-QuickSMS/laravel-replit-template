@@ -185,13 +185,4 @@ class AntiFloodService
             ->where('expires_at', '<', now())
             ->delete();
     }
-
-    /**
-     * Clear the in-process settings cache.
-     * Called after settings are updated to prevent stale reads.
-     */
-    public function clearSettingsCache(): void
-    {
-        $this->settingsCache = [];
-    }
 }
