@@ -2455,9 +2455,18 @@ function openRcsUrlPlaceholderPicker(inputId) {
 
 function openRcsEmojiPicker(field) {
     rcsActiveTextField = field;
-    var el = getRcsTextElement(field);
-    if (window.smsEmojiPicker && el) {
-        window.smsEmojiPicker.openFor(el);
+    if (!window.smsEmojiPicker) return;
+
+    var chipEditor = null;
+    if (field === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+    if (field === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+
+    if (chipEditor) {
+        window.smsEmojiPicker._activeTextarea = null;
+        window.smsEmojiPicker.open();
+    } else {
+        var el = getRcsTextElement(field);
+        if (el) window.smsEmojiPicker.openFor(el);
     }
 }
 

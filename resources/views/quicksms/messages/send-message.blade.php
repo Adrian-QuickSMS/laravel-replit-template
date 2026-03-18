@@ -1416,7 +1416,20 @@ document.addEventListener('DOMContentLoaded', function() {
     window.smsEmojiPicker = new QSEmojiPicker({
         triggerEl: document.getElementById('emojiPickerBtn'),
         textareaEl: document.getElementById('smsContent'),
-        onInsert: function() {
+        onInsert: function(emoji) {
+            if (typeof rcsActiveTextField !== 'undefined' && rcsActiveTextField) {
+                var chipEditor = null;
+                if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+                if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+                if (chipEditor) {
+                    chipEditor.insertAtCursor(emoji);
+                }
+                if (rcsActiveTextField === 'description' && typeof updateRcsDescriptionCount === 'function') updateRcsDescriptionCount();
+                if (rcsActiveTextField === 'textBody' && typeof updateRcsTextBodyCount === 'function') updateRcsTextBodyCount();
+                if (rcsActiveTextField === 'rcsButtonLabel' && typeof updateRcsButtonLabelCount === 'function') updateRcsButtonLabelCount();
+                rcsActiveTextField = null;
+                return;
+            }
             if (window.smsChipEditor) {
                 var ta = document.getElementById('smsContent');
                 window.smsChipEditor.setValue(ta.value);
@@ -3425,7 +3438,13 @@ function insertRcsPlaceholder(field) {
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
     if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
     
-    bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
+    ['rcsPersonalisationModal', 'personalisationModal'].forEach(function(id) {
+        var modalEl = document.getElementById(id);
+        if (modalEl) {
+            var inst = bootstrap.Modal.getInstance(modalEl);
+            if (inst) inst.hide();
+        }
+    });
     rcsActiveTextField = null;
 }
 

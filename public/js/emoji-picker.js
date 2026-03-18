@@ -602,7 +602,7 @@
 
     QSEmojiPicker.prototype._insertEmoji = function (emoji) {
         var ta = this._activeTextarea;
-        if (ta) {
+        if (ta && typeof ta.value === 'string') {
             var start = ta.selectionStart || 0;
             var end = ta.selectionEnd || 0;
             var val = ta.value;
@@ -611,7 +611,6 @@
             ta.selectionStart = newPos;
             ta.selectionEnd = newPos;
             ta.focus();
-            // Trigger input event so char counters update
             ta.dispatchEvent(new Event('input', { bubbles: true }));
         }
         this._saveRecent(emoji);

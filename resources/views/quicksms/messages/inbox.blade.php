@@ -2335,7 +2335,13 @@ function insertRcsPlaceholder(field) {
     if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
 
-    bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
+    ['rcsPersonalisationModal', 'personalisationModal'].forEach(function(id) {
+        var modalEl = document.getElementById(id);
+        if (modalEl) {
+            var inst = bootstrap.Modal.getInstance(modalEl);
+            if (inst) inst.hide();
+        }
+    });
     rcsActiveTextField = null;
 }
 
