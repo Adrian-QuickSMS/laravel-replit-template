@@ -41,8 +41,8 @@
     font-weight: 500;
     font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
     line-height: 1.6;
-    margin: 0 1px;
-    vertical-align: baseline;
+    margin: 0 2px;
+    vertical-align: middle;
     user-select: all;
     -webkit-user-select: all;
     -moz-user-select: all;
@@ -50,6 +50,8 @@
     white-space: nowrap;
     border: 1px solid #b8d4f0;
     transition: background 0.15s, border-color 0.15s;
+    position: relative;
+    z-index: 1;
 }
 
 .bce-chip:hover {
@@ -103,11 +105,18 @@
     min-height: auto !important;
     white-space: nowrap;
     overflow-x: auto;
-    overflow-y: hidden;
-    padding: 0.25rem 0.5rem;
+    overflow-y: visible;
+    padding: 0.35rem 0.5rem;
     font-size: 0.82rem;
+    line-height: 1.8;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
+}
+
+.bce-editor--single-line .bce-chip {
+    vertical-align: middle;
+    margin: 0 2px;
+    line-height: 1.4;
 }
 
 .bce-wrapper-active {
