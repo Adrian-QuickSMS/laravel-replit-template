@@ -2313,37 +2313,7 @@ function insertPlaceholder(field) {
     bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
 }
 
-function insertRcsPlaceholder(field) {
-    var placeholder = '{{' + field + '}}';
-    var chipEditor = null;
-    if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
-    if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
-
-    if (chipEditor) {
-        chipEditor.insertAtCursor(placeholder);
-    } else {
-        var el = getRcsTextElement(rcsActiveTextField);
-        if (!el) return;
-        var start = el.selectionStart;
-        var end = el.selectionEnd;
-        var text = el.value;
-        el.value = text.substring(0, start) + placeholder + text.substring(end);
-        el.selectionStart = el.selectionEnd = start + placeholder.length;
-        el.focus();
-    }
-
-    if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
-    if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
-
-    ['rcsPersonalisationModal', 'personalisationModal'].forEach(function(id) {
-        var modalEl = document.getElementById(id);
-        if (modalEl) {
-            var inst = bootstrap.Modal.getInstance(modalEl);
-            if (inst) inst.hide();
-        }
-    });
-    rcsActiveTextField = null;
-}
+// insertRcsPlaceholder provided by shared rcs-wizard.js (not inline — Blade processes {{ }} syntax)
 
 // ========================================
 // FILTER SYSTEM - Core Functions
