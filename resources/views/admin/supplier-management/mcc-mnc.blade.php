@@ -1099,7 +1099,7 @@ function openAddMccMncModal() {
     rowsContainer.innerHTML = '';
     addMccMncRow();
     updateMccMncSummary();
-    new bootstrap.Modal(document.getElementById('addMccMncModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('addMccMncModal')).show();
 }
 
 function addMccMncRow() {
@@ -1269,7 +1269,7 @@ function editNetwork(networkId) {
             document.getElementById('editNewMncRows').innerHTML = '';
             document.getElementById('editMncFeedback').style.display = 'none';
 
-            new bootstrap.Modal(document.getElementById('editMccMncModal')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editMccMncModal')).show();
         });
 }
 
@@ -1370,7 +1370,7 @@ let importState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '
 
 function openImportModal() {
     resetImportWizard();
-    new bootstrap.Modal(document.getElementById('importModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show();
 }
 
 function resetImportWizard() {
@@ -1457,6 +1457,7 @@ function formatBytes(bytes) {
 
 function uploadFile(file) {
     document.getElementById('uploadSpinner').classList.remove('d-none');
+    document.getElementById('uploadError').classList.add('d-none');
     document.getElementById('btnNext').disabled = true;
     const formData = new FormData();
     formData.append('file', file);
@@ -1466,11 +1467,16 @@ function uploadFile(file) {
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: formData
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) {
+            return r.text().then(t => { throw new Error('Server error (' + r.status + '): ' + (t.substring(0, 200))); });
+        }
+        return r.json();
+    })
     .then(data => {
         document.getElementById('uploadSpinner').classList.add('d-none');
         if (!data.success) {
-            document.getElementById('uploadError').textContent = data.message;
+            document.getElementById('uploadError').textContent = data.message || 'File parsing failed.';
             document.getElementById('uploadError').classList.remove('d-none');
             return;
         }
@@ -1482,7 +1488,7 @@ function uploadFile(file) {
     })
     .catch(err => {
         document.getElementById('uploadSpinner').classList.add('d-none');
-        document.getElementById('uploadError').textContent = 'Failed to upload file. Please try again.';
+        document.getElementById('uploadError').textContent = 'Failed to upload file: ' + (err.message || 'Unknown error');
         document.getElementById('uploadError').classList.remove('d-none');
     });
 }
@@ -1809,7 +1815,7 @@ function openMapModal(cpName, prefixId) {
 
     document.getElementById('newNetworkName').value = '';
     document.getElementById('newNetworkMnc').value = '';
-    new bootstrap.Modal(document.getElementById('mapNetworkModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('mapNetworkModal')).show();
 }
 
 function confirmBulkMap() {
@@ -1861,7 +1867,7 @@ function createAndMapNetwork() {
 
 function openUkPrefixImportModal() {
     resetUkImport();
-    new bootstrap.Modal(document.getElementById('ukImportModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('ukImportModal')).show();
 }
 
 function resetUkImport() {
