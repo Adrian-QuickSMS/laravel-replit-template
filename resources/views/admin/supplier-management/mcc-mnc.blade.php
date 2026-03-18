@@ -1456,24 +1456,33 @@ function formatBytes(bytes) {
 }
 
 function uploadFile(file) {
+    console.log('[MCC Import] uploadFile called, file:', file.name, file.size);
     document.getElementById('uploadSpinner').classList.remove('d-none');
     document.getElementById('uploadError').classList.add('d-none');
     document.getElementById('btnNext').disabled = true;
     const formData = new FormData();
     formData.append('file', file);
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+    console.log('[MCC Import] POST /admin/supplier-management/mcc-mnc/parse-file, CSRF token length:', csrfToken.length);
+
     fetch('/admin/supplier-management/mcc-mnc/parse-file', {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
         body: formData
     })
     .then(r => {
+        console.log('[MCC Import] Response status:', r.status, r.statusText);
         if (!r.ok) {
             return r.text().then(t => { throw new Error('Server error (' + r.status + '): ' + (t.substring(0, 200))); });
         }
         return r.json();
     })
     .then(data => {
+        console.log('[MCC Import] Parse result:', data.success, 'headers:', data.headers?.length, 'rows:', data.totalRows);
         document.getElementById('uploadSpinner').classList.add('d-none');
         if (!data.success) {
             document.getElementById('uploadError').textContent = data.message || 'File parsing failed.';
@@ -1485,8 +1494,10 @@ function uploadFile(file) {
         importState.totalRows = data.totalRows;
         importState.importId = data.importId;
         document.getElementById('btnNext').disabled = false;
+        console.log('[MCC Import] Next button enabled');
     })
     .catch(err => {
+        console.error('[MCC Import] Upload failed:', err.message);
         document.getElementById('uploadSpinner').classList.add('d-none');
         document.getElementById('uploadError').textContent = 'Failed to upload file: ' + (err.message || 'Unknown error');
         document.getElementById('uploadError').classList.remove('d-none');
@@ -1558,8 +1569,9 @@ function getMappingValues() {
 }
 
 function wizardNext() {
+    console.log('[MCC Import] wizardNext called, step:', importState.step, 'headers:', importState.headers?.length);
     if (importState.step === 1) {
-        if (!importState.headers.length) return;
+        if (!importState.headers.length) { console.warn('[MCC Import] No headers, aborting'); return; }
         populateMappingDropdowns();
         showStep(2);
         document.getElementById('btnNext').disabled = false;
