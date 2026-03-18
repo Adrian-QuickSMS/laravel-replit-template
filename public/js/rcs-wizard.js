@@ -183,29 +183,19 @@ function resetRcsChipEditors() {
 }
 
 function initRcsChipEditors() {
-    if (typeof BadgeChipEditor === 'undefined') {
-        console.log('[RCS Wizard] BadgeChipEditor not loaded yet, skipping chip init');
-        return;
-    }
+    if (typeof BadgeChipEditor === 'undefined') return;
     var descEl = document.getElementById('rcsDescription');
     if (descEl && descEl.parentElement && !rcsChipEditors.description) {
-        console.log('[RCS Wizard] Desc el tag:', descEl.tagName, 'parent tag:', descEl.parentElement.tagName, 'parent classes:', descEl.parentElement.className);
         rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descEl, {
             singleLine: true,
             onChange: function() { updateRcsDescriptionCount(); }
         });
-        console.log('[RCS Wizard] Description chip editor initialized:', !!rcsChipEditors.description, 'has el:', !!(rcsChipEditors.description && rcsChipEditors.description.el), 'el visible:', rcsChipEditors.description && rcsChipEditors.description.el ? rcsChipEditors.description.el.offsetHeight : 'N/A');
-        if (rcsChipEditors.description && rcsChipEditors.description.el) {
-            console.log('[RCS Wizard] Desc chip editor el HTML:', rcsChipEditors.description.el.outerHTML.substring(0, 200));
-            console.log('[RCS Wizard] Desc input display:', descEl.style.display, 'hidden:', descEl.offsetHeight === 0);
-        }
     }
     var bodyEl = document.getElementById('rcsTextBody');
     if (bodyEl && bodyEl.parentElement && !rcsChipEditors.textBody) {
         rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyEl, {
             onChange: function() { updateRcsTextBodyCount(); }
         });
-        console.log('[RCS Wizard] TextBody chip editor initialized:', !!rcsChipEditors.textBody, 'has el:', !!(rcsChipEditors.textBody && rcsChipEditors.textBody.el));
     }
 }
 
@@ -256,6 +246,8 @@ function initializeRcsCard(cardNum) {
     return rcsCardsData[cardNum];
 }
 
+var rcsWizardPendingInit = false;
+
 function openRcsWizard() {
     if (!rcsPersistentPayload && Object.keys(rcsCardsData).length === 0) {
         var hasStoredDraft = loadRcsFromStorage();
@@ -268,23 +260,27 @@ function openRcsWizard() {
     
     hideRcsValidationErrors();
     
-    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsWizardModal'));
-    modal.show();
-    
     var applyBtn = document.getElementById('rcsApplyContentBtn');
     if (applyBtn) applyBtn.disabled = false;
     
-    setTimeout(function() {
-        resetRcsChipEditors();
-        initRcsChipEditors();
-        initRcsCropEditor();
-        initializeMessageTypeUI();
-        updateCarouselOrientationWarning();
-        updateRcsWizardPreview();
-        loadCardData(rcsCurrentCard);
-        var configCol = document.getElementById('rcsConfigColumn');
-        if (configCol) configCol.focus();
-    }, 200);
+    rcsWizardPendingInit = true;
+    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rcsWizardModal'));
+    modal.show();
+}
+
+function onRcsWizardShown() {
+    if (!rcsWizardPendingInit) return;
+    rcsWizardPendingInit = false;
+    
+    resetRcsChipEditors();
+    initRcsChipEditors();
+    initRcsCropEditor();
+    initializeMessageTypeUI();
+    updateCarouselOrientationWarning();
+    updateRcsWizardPreview();
+    loadCardData(rcsCurrentCard);
+    var configCol = document.getElementById('rcsConfigColumn');
+    if (configCol) configCol.focus();
 }
 
 function initializeMessageTypeUI() {
@@ -3439,31 +3435,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Footer button handlers - using addEventListener for reliable event binding
     var cancelBtn = document.getElementById('rcsWizardCancelBtn');
     if (cancelBtn) {
-        console.log('[RCS Wizard] Cancel button found, binding event');
         cancelBtn.addEventListener('click', function(e) {
-            console.log('[RCS Wizard] Cancel button clicked');
             e.preventDefault();
             e.stopPropagation();
             handleRcsWizardClose();
         });
-    } else {
-        console.log('[RCS Wizard] Cancel button not found');
     }
     
     var applyBtn = document.getElementById('rcsApplyContentBtn');
     if (applyBtn) {
-        console.log('[RCS Wizard] Apply button found, binding event');
         applyBtn.addEventListener('click', function(e) {
-            console.log('[RCS Wizard] Apply button clicked');
             e.preventDefault();
             e.stopPropagation();
             handleRcsApplyContent();
         });
-    } else {
-        console.log('[RCS Wizard] Apply button not found');
     }
-    
-    console.log('[RCS Wizard] DOMContentLoaded complete');
 });
 
 /**

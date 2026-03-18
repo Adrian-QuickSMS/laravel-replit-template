@@ -368,8 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var rcsModal = document.getElementById('rcsWizardModal');
     if (rcsModal) {
         rcsModal.addEventListener('shown.bs.modal', function() {
-            var configCol = document.getElementById('rcsConfigColumn');
-            if (configCol) configCol.focus();
+            if (typeof onRcsWizardShown === 'function') onRcsWizardShown();
         });
         rcsModal.addEventListener('hidden.bs.modal', function() {
             var previewCol = document.getElementById('rcsPreviewColumn');

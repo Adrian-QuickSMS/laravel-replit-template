@@ -477,7 +477,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260318d"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260318e"></script>
 <script>
 var composerMode = 'template';
 var rcsWizardCallback = null;
