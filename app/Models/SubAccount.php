@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Events\Alerting\SubAccountSpendCapBreached;
+use App\Events\Alerting\SubAccountSpendCapApproaching;
+use App\Events\Alerting\SubAccountVolumeCapBreached;
+use App\Events\Alerting\SubAccountVolumeCapApproaching;
+use App\Events\Alerting\SubAccountDailyLimitBreached;
+use App\Events\Alerting\SubAccountDailyLimitApproaching;
 
 /**
  * GREEN SIDE: Sub-Account (Account Hierarchy: Account > Sub-Account > User)
@@ -40,6 +46,9 @@ class SubAccount extends Model
     const ENFORCEMENT_WARN = 'warn';
     const ENFORCEMENT_BLOCK = 'block';
     const ENFORCEMENT_APPROVAL = 'approval';
+
+    // Approaching-limit threshold (shared across all cap checks)
+    const APPROACHING_THRESHOLD = 0.8;
 
     protected $fillable = [
         'account_id',
@@ -266,15 +275,13 @@ class SubAccount extends Model
 
     public function isApproachingLimits(): bool
     {
-        $threshold = 0.8;
-
-        if ($this->monthly_spending_cap !== null && (float)$this->monthly_spend_used >= (float)$this->monthly_spending_cap * $threshold) {
+        if ($this->monthly_spending_cap !== null && (float)$this->monthly_spend_used >= (float)$this->monthly_spending_cap * self::APPROACHING_THRESHOLD) {
             return true;
         }
-        if ($this->monthly_message_cap !== null && $this->monthly_messages_used >= $this->monthly_message_cap * $threshold) {
+        if ($this->monthly_message_cap !== null && $this->monthly_messages_used >= $this->monthly_message_cap * self::APPROACHING_THRESHOLD) {
             return true;
         }
-        if ($this->daily_send_limit !== null && $this->daily_sends_used >= $this->daily_send_limit * $threshold) {
+        if ($this->daily_send_limit !== null && $this->daily_sends_used >= $this->daily_send_limit * self::APPROACHING_THRESHOLD) {
             return true;
         }
 
@@ -309,15 +316,19 @@ class SubAccount extends Model
     // =====================================================
 
     /**
-     * TODO: Developer — connect this to actual message delivery pipeline.
-     * This method should be called after each message is sent to update
-     * aggregated usage counters. Currently a placeholder.
+     * Record a sent message and update usage counters atomically.
+     * Fires sub-account alerting events when caps are approached or breached.
      *
      * @param int $messageParts Number of message parts/fragments sent
      * @param float $cost Cost of the message in account currency
      */
     public function recordMessageSent(int $messageParts, float $cost): void
     {
+        // Snapshot pre-update state for alert transition detection.
+        // Captures both breached and approaching states so we only fire
+        // events on the exact transition, not on every subsequent message.
+        $prevState = $this->snapshotAlertState();
+
         $today = today()->toDateString();
         $monthStart = today()->startOfMonth()->toDateString();
 
@@ -337,6 +348,192 @@ class SubAccount extends Model
                 monthly_usage_reset_date = ?
             WHERE id = ?
         ", [$today, $today, $monthStart, $cost, $cost, $monthStart, $messageParts, $messageParts, $monthStart, $this->id]);
+
+        // Refresh from primary connection to get accurate post-update values
+        // (avoids stale reads from read replicas)
+        $fresh = static::withoutGlobalScopes()
+            ->on(DB::getDefaultConnection())
+            ->find($this->id);
+
+        if ($fresh) {
+            $this->setRawAttributes($fresh->getAttributes());
+            $this->syncOriginal();
+        }
+
+        // Fire alerting events for sub-account caps
+        $this->evaluateSubAccountAlerts($prevState);
+    }
+
+    /**
+     * Snapshot the current alert-relevant state for transition detection.
+     */
+    private function snapshotAlertState(): array
+    {
+        $t = self::APPROACHING_THRESHOLD;
+
+        return [
+            'spend_exceeded' => $this->isSpendingCapExceeded(),
+            'spend_approaching' => $this->monthly_spending_cap !== null
+                && !$this->isSpendingCapExceeded()
+                && (float) $this->monthly_spending_cap > 0
+                && (float) $this->monthly_spend_used >= (float) $this->monthly_spending_cap * $t,
+
+            'message_exceeded' => $this->isMessageCapExceeded(),
+            'message_approaching' => $this->monthly_message_cap !== null
+                && !$this->isMessageCapExceeded()
+                && (int) $this->monthly_message_cap > 0
+                && (int) $this->monthly_messages_used >= (int) $this->monthly_message_cap * $t,
+
+            'daily_exceeded' => $this->isDailyLimitExceeded(),
+            'daily_approaching' => $this->daily_send_limit !== null
+                && !$this->isDailyLimitExceeded()
+                && (int) $this->daily_send_limit > 0
+                && (int) $this->daily_sends_used >= (int) $this->daily_send_limit * $t,
+        ];
+    }
+
+    /**
+     * Evaluate and fire sub-account cap/limit alert events.
+     * Only fires events on state transitions (not-approaching -> approaching,
+     * not-breached -> breached) to prevent event storms.
+     */
+    private function evaluateSubAccountAlerts(array $prevState): void
+    {
+        $t = self::APPROACHING_THRESHOLD;
+
+        // --- Monthly Spend Cap ---
+        if ($this->monthly_spending_cap !== null) {
+            $spendUsed = (float) $this->monthly_spend_used;
+            $spendCap = (float) $this->monthly_spending_cap;
+
+            if ($this->isSpendingCapExceeded() && !$prevState['spend_exceeded']) {
+                Log::info('[SubAccountAlert] Spend cap breached', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'spend_used' => $spendUsed,
+                    'spend_cap' => $spendCap,
+                    'hard_stopped' => (bool) $this->hard_stop_enabled,
+                ]);
+                SubAccountSpendCapBreached::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $spendUsed,
+                    $spendCap,
+                    (bool) $this->hard_stop_enabled,
+                    $this->hard_stop_enabled ? 'critical' : 'warning',
+                );
+            } elseif (
+                !$this->isSpendingCapExceeded()
+                && $spendCap > 0
+                && $spendUsed >= $spendCap * $t
+                && !$prevState['spend_approaching']
+            ) {
+                Log::info('[SubAccountAlert] Approaching spend cap', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'spend_used' => $spendUsed,
+                    'spend_cap' => $spendCap,
+                    'percentage' => round(($spendUsed / $spendCap) * 100, 1),
+                ]);
+                SubAccountSpendCapApproaching::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $spendUsed,
+                    $spendCap,
+                );
+            }
+        }
+
+        // --- Monthly Message Cap ---
+        if ($this->monthly_message_cap !== null) {
+            $messagesUsed = (int) $this->monthly_messages_used;
+            $messageCap = (int) $this->monthly_message_cap;
+
+            if ($this->isMessageCapExceeded() && !$prevState['message_exceeded']) {
+                Log::info('[SubAccountAlert] Message cap breached', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'messages_used' => $messagesUsed,
+                    'message_cap' => $messageCap,
+                    'hard_stopped' => (bool) $this->hard_stop_enabled,
+                ]);
+                SubAccountVolumeCapBreached::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $messagesUsed,
+                    $messageCap,
+                    (bool) $this->hard_stop_enabled,
+                    $this->hard_stop_enabled ? 'critical' : 'warning',
+                );
+            } elseif (
+                !$this->isMessageCapExceeded()
+                && $messageCap > 0
+                && $messagesUsed >= $messageCap * $t
+                && !$prevState['message_approaching']
+            ) {
+                Log::info('[SubAccountAlert] Approaching message cap', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'messages_used' => $messagesUsed,
+                    'message_cap' => $messageCap,
+                    'percentage' => round(($messagesUsed / $messageCap) * 100, 1),
+                ]);
+                SubAccountVolumeCapApproaching::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $messagesUsed,
+                    $messageCap,
+                );
+            }
+        }
+
+        // --- Daily Send Limit ---
+        if ($this->daily_send_limit !== null) {
+            $dailyUsed = (int) $this->daily_sends_used;
+            $dailyLimit = (int) $this->daily_send_limit;
+
+            if ($this->isDailyLimitExceeded() && !$prevState['daily_exceeded']) {
+                Log::info('[SubAccountAlert] Daily limit breached', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'daily_used' => $dailyUsed,
+                    'daily_limit' => $dailyLimit,
+                    'hard_stopped' => (bool) $this->hard_stop_enabled,
+                ]);
+                SubAccountDailyLimitBreached::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $dailyUsed,
+                    $dailyLimit,
+                    (bool) $this->hard_stop_enabled,
+                );
+            } elseif (
+                !$this->isDailyLimitExceeded()
+                && $dailyLimit > 0
+                && $dailyUsed >= $dailyLimit * $t
+                && !$prevState['daily_approaching']
+            ) {
+                Log::info('[SubAccountAlert] Approaching daily limit', [
+                    'sub_account_id' => $this->id,
+                    'account_id' => $this->account_id,
+                    'daily_used' => $dailyUsed,
+                    'daily_limit' => $dailyLimit,
+                    'percentage' => round(($dailyUsed / $dailyLimit) * 100, 1),
+                ]);
+                SubAccountDailyLimitApproaching::dispatch(
+                    $this->account_id,
+                    $this->id,
+                    $this->name,
+                    $dailyUsed,
+                    $dailyLimit,
+                );
+            }
+        }
     }
 
     // =====================================================
