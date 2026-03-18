@@ -33,7 +33,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/signup/security', 'signupSecurity')->name('auth.security');
 });
 
-Route::middleware('customer.auth')->controller(QuickSMSController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickSMSController::class)->group(function () {
     Route::get('/', 'dashboard')->name('dashboard');
     
     Route::get('/messages', 'messages')->name('messages');
@@ -113,6 +113,20 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::post('/account/security/country-request', 'submitCountryRequest')->name('account.security.country-request');
     Route::get('/api/country-permissions', 'getCountryPermissions')->name('api.country-permissions');
     Route::post('/api/country-permissions/check', 'checkCountryPermission')->name('api.country-permissions.check');
+
+    // Security Settings API — RESTful endpoints (require manage_security permission)
+    Route::prefix('api/account/security')->middleware('permission:manage_security')->controller(\App\Http\Controllers\SecuritySettingsController::class)->group(function () {
+        Route::get('/settings', 'index')->name('api.security.settings');
+        Route::put('/retention', 'updateRetention')->name('api.security.retention');
+        Route::put('/masking', 'updateMasking')->name('api.security.masking');
+        Route::put('/anti-flood', 'updateAntiFlood')->name('api.security.anti-flood');
+        Route::put('/out-of-hours', 'updateOutOfHours')->name('api.security.out-of-hours');
+        Route::get('/ip-allowlist', 'listIps')->name('api.security.ip-allowlist.list');
+        Route::post('/ip-allowlist', 'addIp')->name('api.security.ip-allowlist.add');
+        Route::delete('/ip-allowlist/{id}', 'removeIp')->name('api.security.ip-allowlist.remove');
+        Route::put('/ip-allowlist/toggle', 'toggleIpAllowlist')->name('api.security.ip-allowlist.toggle');
+        Route::get('/ip-allowlist/current-ip', 'getCurrentIp')->name('api.security.ip-allowlist.current-ip');
+    });
 
     Route::get('/support', 'support')->name('support');
     Route::get('/support/dashboard', 'supportDashboard')->name('support.dashboard');

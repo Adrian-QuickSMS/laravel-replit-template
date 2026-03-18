@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
         'customer.auth' => \App\Http\Middleware\CustomerAuthenticate::class,
         'api.connection' => \App\Http\Middleware\ApiKeyAuthenticate::class,
         'permission' => \App\Http\Middleware\CheckPermission::class,
+        'customer.ip_allowlist' => \App\Http\Middleware\CustomerIpAllowlist::class,
     ];
 }

@@ -17,6 +17,19 @@ class Kernel extends ConsoleKernel
             ->at('03:00')
             ->withoutOverlapping()
             ->onOneServer();
+
+        // Release held messages every minute (out-of-hours restriction)
+        $schedule->command('message:release-held')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        // Purge expired message data daily at 02:00
+        $schedule->command('message:purge-expired')
+            ->daily()
+            ->at('02:00')
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     /**

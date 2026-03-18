@@ -47,6 +47,18 @@ class AccountSettings extends Model
         'api_rate_limit_override',
         'approved_test_numbers',
         'test_numbers_ever_used',
+        // Security settings
+        'message_retention_days',
+        'data_masking_config',
+        'owner_bypass_masking',
+        'anti_flood_enabled',
+        'anti_flood_window_hours',
+        'anti_flood_mode',
+        'out_of_hours_enabled',
+        'out_of_hours_start',
+        'out_of_hours_end',
+        'out_of_hours_action',
+        'ip_allowlist_enabled',
     ];
 
     protected $casts = [
@@ -63,6 +75,14 @@ class AccountSettings extends Model
         'test_numbers_ever_used' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        // Security settings
+        'message_retention_days' => 'integer',
+        'data_masking_config' => 'array',
+        'owner_bypass_masking' => 'boolean',
+        'anti_flood_enabled' => 'boolean',
+        'anti_flood_window_hours' => 'integer',
+        'out_of_hours_enabled' => 'boolean',
+        'ip_allowlist_enabled' => 'boolean',
     ];
 
     protected $hidden = [
@@ -219,6 +239,17 @@ class AccountSettings extends Model
                 'session_timeout_minutes' => $this->session_timeout_minutes,
                 'require_mfa' => $this->require_mfa,
                 'allow_api_access' => $this->allow_api_access,
+                'message_retention_days' => $this->message_retention_days ?? 180,
+                'data_masking_config' => $this->data_masking_config ?? [],
+                'owner_bypass_masking' => $this->owner_bypass_masking ?? true,
+                'anti_flood_enabled' => $this->anti_flood_enabled ?? false,
+                'anti_flood_mode' => $this->anti_flood_mode ?? 'off',
+                'anti_flood_window_hours' => $this->anti_flood_window_hours ?? 2,
+                'out_of_hours_enabled' => $this->out_of_hours_enabled ?? false,
+                'out_of_hours_start' => $this->out_of_hours_start ?? '21:00',
+                'out_of_hours_end' => $this->out_of_hours_end ?? '08:00',
+                'out_of_hours_action' => $this->out_of_hours_action ?? 'reject',
+                'ip_allowlist_enabled' => $this->ip_allowlist_enabled ?? false,
             ],
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

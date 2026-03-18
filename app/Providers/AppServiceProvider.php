@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Services\AntiFloodService;
 use App\Services\CountryPermissionCacheService;
 use App\Services\CountryPermissionCheckService;
+use App\Services\DataMaskingService;
+use App\Services\IpAllowlistService;
+use App\Services\OutOfHoursService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,6 +22,12 @@ class AppServiceProvider extends ServiceProvider
         // persists for the lifetime of the request.
         $this->app->singleton(CountryPermissionCacheService::class);
         $this->app->singleton(CountryPermissionCheckService::class);
+
+        // Security settings services — singletons for in-process caching
+        $this->app->singleton(AntiFloodService::class);
+        $this->app->singleton(OutOfHoursService::class);
+        $this->app->singleton(DataMaskingService::class);
+        $this->app->singleton(IpAllowlistService::class);
     }
 
     /**

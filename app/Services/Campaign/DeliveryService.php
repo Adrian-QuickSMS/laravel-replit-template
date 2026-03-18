@@ -13,9 +13,11 @@ use App\Models\Gateway;
 use App\Models\MessageLog;
 use App\Models\RoutingRule;
 use App\Models\Billing\CampaignEstimateSnapshot;
+use App\Services\AntiFloodService;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
 use App\Services\Numbers\NumberService;
+use App\Services\OutOfHoursService;
 use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -46,6 +48,8 @@ class DeliveryService
         private PricingEngine $pricingEngine,
         private BalanceService $balanceService,
         private TestModeEnforcementService $testModeEnforcement,
+        private AntiFloodService $antiFloodService,
+        private OutOfHoursService $outOfHoursService,
     ) {}
 
     /**
@@ -68,6 +72,34 @@ class DeliveryService
     public function sendRecipient(Campaign $campaign, CampaignRecipient $recipient): bool
     {
         try {
+            // Step 0a: Out-of-hours check — pure in-memory, sub-1ms
+            $oohResult = $this->outOfHoursService->check($campaign->account_id);
+            if (!$oohResult->allowed) {
+                if ($oohResult->action === 'hold') {
+                    // Hold the message for later release
+                    $this->holdCampaignMessage($campaign, $recipient, $oohResult);
+                    return false; // Not failed — held
+                }
+                // Reject mode
+                $recipient->markFailed($oohResult->reason, 'OUT_OF_HOURS');
+                $this->incrementCampaignCounter($campaign, 'failed_count');
+                return false;
+            }
+
+            // Step 0b: Anti-flood duplicate check — Redis, sub-1ms
+            $messageContent = $recipient->resolved_content ?? $campaign->message_content ?? '';
+            $floodResult = $this->antiFloodService->check(
+                $campaign->account_id,
+                $recipient->mobile_number,
+                $messageContent,
+                'CAMPAIGNS'
+            );
+            if (!$floodResult->allowed) {
+                $recipient->markFailed($floodResult->reason, 'ANTI_FLOOD');
+                $this->incrementCampaignCounter($campaign, 'failed_count');
+                return false;
+            }
+
             // Step 1: Resolve the gateway to use via routing rules
             $selectedGateway = $this->selectGateway($campaign->type, $recipient->country_iso);
 
@@ -153,6 +185,15 @@ class DeliveryService
             if ($senderValue && preg_match('/^\+?\d{7,15}$/', $senderValue)) {
                 NumberService::touchLastUsedByNumber($senderValue);
             }
+
+            // Step 10: Record send for anti-flood tracking
+            $this->antiFloodService->recordSend(
+                $campaign->account_id,
+                $recipient->mobile_number,
+                $messageContent,
+                'CAMPAIGNS',
+                $senderValue
+            );
 
             return true;
 
@@ -261,6 +302,63 @@ class DeliveryService
         }
 
         return true;
+    }
+
+    // =====================================================
+    // OUT-OF-HOURS HOLD
+    // =====================================================
+
+    /**
+     * Hold a campaign message for later release when the out-of-hours window opens.
+     * Marks the campaign recipient as 'held' and creates a held_messages record.
+     */
+    private function holdCampaignMessage(Campaign $campaign, CampaignRecipient $recipient, \App\Services\OutOfHoursResult $oohResult): void
+    {
+        try {
+            // Update recipient status to held
+            $recipient->update([
+                'status' => 'held',
+                'failure_reason' => 'Out-of-hours hold',
+                'failure_code' => 'OUT_OF_HOURS_HELD',
+            ]);
+
+            // Create held_messages record for the release scheduler
+            \App\Models\HeldMessage::withoutGlobalScopes()->create([
+                'tenant_id' => $campaign->account_id,
+                'recipient_number' => $recipient->mobile_number,
+                'message_content' => $recipient->resolved_content ?? $campaign->message_content ?? '',
+                'sender_id' => $campaign->getSenderDisplayName() ?? '',
+                'message_type' => $campaign->type,
+                'origin' => 'campaign',
+                'campaign_id' => $campaign->id,
+                'campaign_recipient_id' => $recipient->id,
+                'sub_account_id' => $campaign->sub_account_id,
+                'user_id' => $campaign->created_by,
+                'held_reason' => 'out_of_hours',
+                'release_after' => $oohResult->releaseAfter,
+                'status' => 'held',
+                'metadata' => [
+                    'encoding' => $campaign->encoding,
+                    'fragments' => $recipient->segments,
+                    'country_iso' => $recipient->country_iso,
+                ],
+            ]);
+
+            Log::info('[DeliveryService] Message held for out-of-hours', [
+                'campaign_id' => $campaign->id,
+                'recipient_id' => $recipient->id,
+                'release_after' => $oohResult->releaseAfter->toIso8601String(),
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('[DeliveryService] Failed to hold message, marking as failed', [
+                'campaign_id' => $campaign->id,
+                'recipient_id' => $recipient->id,
+                'error' => $e->getMessage(),
+            ]);
+            $recipient->markFailed('Failed to hold message: ' . $e->getMessage(), 'HOLD_FAILED');
+            $this->incrementCampaignCounter($campaign, 'failed_count');
+        }
     }
 
     // =====================================================
