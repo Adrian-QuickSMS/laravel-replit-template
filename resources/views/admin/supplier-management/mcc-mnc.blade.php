@@ -1081,7 +1081,7 @@
                 </button>
                 <div class="flex-grow-1"></div>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetImportWizard()">Cancel</button>
-                <button type="button" class="btn btn-admin-primary" id="btnNext" onclick="wizardNext()" disabled>
+                <button type="button" class="btn btn-admin-primary" id="btnNext" onclick="wizardNext()">
                     Next <i class="fas fa-arrow-right ms-1"></i>
                 </button>
             </div>
@@ -1384,8 +1384,20 @@ function resetImportWizard() {
     document.getElementById('importProgress').classList.add('d-none');
     document.getElementById('previewSection').classList.remove('d-none');
     document.getElementById('importFile').value = '';
-    document.getElementById('btnNext').disabled = true;
+    setNextEnabled(false);
     document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
+}
+
+function setNextEnabled(enabled) {
+    var btn = document.getElementById('btnNext');
+    if (enabled) {
+        btn.classList.remove('disabled');
+        btn.style.opacity = '1';
+    } else {
+        btn.classList.add('disabled');
+        btn.style.opacity = '0.5';
+    }
+    btn.dataset.enabled = enabled ? 'true' : 'false';
 }
 
 function showStep(step) {
@@ -1445,7 +1457,7 @@ function clearFile() {
     fileInput.value = '';
     document.getElementById('fileInfo').classList.add('d-none');
     document.getElementById('dropZone').classList.remove('d-none');
-    document.getElementById('btnNext').disabled = true;
+    setNextEnabled(false);
     importState.headers = [];
 }
 
@@ -1459,7 +1471,7 @@ function uploadFile(file) {
     console.log('[MCC Import] uploadFile called, file:', file.name, file.size);
     document.getElementById('uploadSpinner').classList.remove('d-none');
     document.getElementById('uploadError').classList.add('d-none');
-    document.getElementById('btnNext').disabled = true;
+    setNextEnabled(false);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -1493,14 +1505,16 @@ function uploadFile(file) {
         importState.preview = data.preview;
         importState.totalRows = data.totalRows;
         importState.importId = data.importId;
-        document.getElementById('btnNext').disabled = false;
+        setNextEnabled(true);
         console.log('[MCC Import] Next button enabled');
     })
     .catch(err => {
         console.error('[MCC Import] Upload failed:', err.message);
         document.getElementById('uploadSpinner').classList.add('d-none');
-        document.getElementById('uploadError').textContent = 'Failed to upload file: ' + (err.message || 'Unknown error');
+        var errMsg = 'Failed to upload file: ' + (err.message || 'Unknown error');
+        document.getElementById('uploadError').textContent = errMsg;
         document.getElementById('uploadError').classList.remove('d-none');
+        alert('File upload failed: ' + (err.message || 'Unknown error. Please try again.'));
     });
 }
 
@@ -1569,12 +1583,18 @@ function getMappingValues() {
 }
 
 function wizardNext() {
-    console.log('[MCC Import] wizardNext called, step:', importState.step, 'headers:', importState.headers?.length);
+    console.log('[MCC Import] wizardNext called, step:', importState.step, 'headers:', importState.headers?.length, 'enabled:', document.getElementById('btnNext').dataset.enabled);
+    if (document.getElementById('btnNext').dataset.enabled !== 'true') {
+        if (importState.step === 1 && !importState.headers.length) {
+            alert('Please upload a file first. If you already selected a file, the upload may still be processing — check for a spinning indicator.');
+        }
+        return;
+    }
     if (importState.step === 1) {
         if (!importState.headers.length) { console.warn('[MCC Import] No headers, aborting'); return; }
         populateMappingDropdowns();
         showStep(2);
-        document.getElementById('btnNext').disabled = false;
+        setNextEnabled(true);
     } else if (importState.step === 2) {
         const required = ['mapMcc','mapMnc','mapCountryName','mapCountryIso','mapNetworkName'];
         const missing = required.filter(id => document.getElementById(id).value === '');
@@ -1600,14 +1620,16 @@ function runImport() {
     const mapping = getMappingValues();
     document.getElementById('previewSection').classList.add('d-none');
     document.getElementById('importProgress').classList.remove('d-none');
-    document.getElementById('btnNext').disabled = true;
+    setNextEnabled(false);
     document.getElementById('btnBack').style.display = 'none';
 
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
     fetch('/admin/supplier-management/mcc-mnc/import', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
         },
         body: JSON.stringify({ importId: importState.importId, mapping })
     })
@@ -1628,7 +1650,7 @@ function runImport() {
                 });
             }
             document.getElementById('btnNext').innerHTML = '<i class="fas fa-check me-1"></i>Done';
-            document.getElementById('btnNext').disabled = false;
+            setNextEnabled(true);
             document.getElementById('btnNext').onclick = () => location.reload();
         } else {
             document.getElementById('resultCreated').textContent = '0';
@@ -1637,7 +1659,7 @@ function runImport() {
             document.getElementById('errorDetails').classList.remove('d-none');
             document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>${data.message || 'Unknown error occurred'}</td></tr>`;
             document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
-            document.getElementById('btnNext').disabled = false;
+            setNextEnabled(true);
             document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
         }
     })
@@ -1650,7 +1672,7 @@ function runImport() {
         document.getElementById('errorDetails').classList.remove('d-none');
         document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>Network error. Please check your connection and try again.</td></tr>`;
         document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
-        document.getElementById('btnNext').disabled = false;
+        setNextEnabled(true);
         document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
     });
 }
