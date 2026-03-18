@@ -183,19 +183,29 @@ function resetRcsChipEditors() {
 }
 
 function initRcsChipEditors() {
-    if (typeof BadgeChipEditor === 'undefined') return;
+    if (typeof BadgeChipEditor === 'undefined') {
+        console.error('[RCS ChipEditor] BadgeChipEditor class not found');
+        return;
+    }
     var descEl = document.getElementById('rcsDescription');
+    console.log('[RCS ChipEditor] descEl:', !!descEl, 'parent:', descEl ? descEl.parentElement.tagName : 'N/A', 'existing:', !!rcsChipEditors.description);
     if (descEl && descEl.parentElement && !rcsChipEditors.description) {
         rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descEl, {
             singleLine: true,
             onChange: function() { updateRcsDescriptionCount(); }
         });
+        var ed = rcsChipEditors.description;
+        console.log('[RCS ChipEditor] desc result:', !!ed, 'hasEl:', !!(ed && ed.el), 'elInDOM:', !!(ed && ed.el && ed.el.parentNode), 'hiddenInput:', !!(ed && ed.hiddenTextarea), 'inputHidden:', descEl.style.display);
+        if (ed && ed.el) {
+            console.log('[RCS ChipEditor] desc el classes:', ed.el.className, 'height:', ed.el.offsetHeight, 'parent classes:', ed.el.parentElement.className);
+        }
     }
     var bodyEl = document.getElementById('rcsTextBody');
     if (bodyEl && bodyEl.parentElement && !rcsChipEditors.textBody) {
         rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyEl, {
             onChange: function() { updateRcsTextBodyCount(); }
         });
+        console.log('[RCS ChipEditor] body result:', !!rcsChipEditors.textBody, 'hasEl:', !!(rcsChipEditors.textBody && rcsChipEditors.textBody.el));
     }
 }
 
@@ -269,6 +279,7 @@ function openRcsWizard() {
 }
 
 function onRcsWizardShown() {
+    console.log('[RCS ChipEditor] onRcsWizardShown called, pendingInit:', rcsWizardPendingInit);
     if (!rcsWizardPendingInit) return;
     rcsWizardPendingInit = false;
     
