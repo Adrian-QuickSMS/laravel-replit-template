@@ -1391,11 +1391,11 @@ function resetImportWizard() {
 function setNextEnabled(enabled) {
     var btn = document.getElementById('btnNext');
     if (enabled) {
-        btn.classList.remove('disabled');
         btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
     } else {
-        btn.classList.add('disabled');
         btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
     }
     btn.dataset.enabled = enabled ? 'true' : 'false';
 }
