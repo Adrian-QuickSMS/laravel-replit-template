@@ -56,8 +56,9 @@ class CustomerIpAllowlist
             // Audit failure must not block the response
         }
 
-        // Flush session to force re-login
-        $request->session()->flush();
+        // Invalidate session (regenerates ID to prevent session fixation) and force re-login
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         if ($request->expectsJson()) {
             return response()->json([

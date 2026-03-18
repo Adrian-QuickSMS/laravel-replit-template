@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Crypt;
 
 /**
  * GREEN SIDE: Held messages — messages blocked by out-of-hours restrictions.
@@ -55,6 +56,13 @@ class HeldMessage extends Model
     {
         parent::boot();
 
+        // Encrypt message_content on save (matching InboxMessage pattern)
+        static::saving(function (self $msg) {
+            if ($msg->isDirty('message_content') && $msg->message_content !== null) {
+                $msg->message_content = Crypt::encryptString($msg->message_content);
+            }
+        });
+
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = session('customer_tenant_id')
                 ?? config('app.current_tenant_id');
@@ -75,6 +83,21 @@ class HeldMessage extends Model
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class, 'campaign_id');
+    }
+
+    /**
+     * Decrypt message content for reading. Returns raw value if decryption fails.
+     */
+    public function getDecryptedContentAttribute(): ?string
+    {
+        if ($this->message_content) {
+            try {
+                return Crypt::decryptString($this->message_content);
+            } catch (\Exception $e) {
+                return $this->message_content;
+            }
+        }
+        return null;
     }
 
     public function scopeHeld(Builder $query): Builder

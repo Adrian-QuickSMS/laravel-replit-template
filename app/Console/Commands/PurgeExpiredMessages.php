@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Soft-purges message logs beyond the configured retention period.
@@ -32,6 +33,25 @@ class PurgeExpiredMessages extends Command
         $this->info($dryRun ? '[DRY RUN] Scanning for purgeable messages...' : 'Starting message purge...');
 
         try {
+            // Guard: message_logs table may not exist yet (migration pending)
+            if (!Schema::hasTable('message_logs')) {
+                $this->warn('message_logs table does not exist — skipping message purge.');
+                Log::warning('[PurgeExpiredMessages] message_logs table does not exist, skipping.');
+
+                // Still clean dedup log if it exists
+                $dedupCleaned = 0;
+                if (Schema::hasTable('message_dedup_log')) {
+                    $dedupCleaned = DB::table('message_dedup_log')
+                        ->where('expires_at', '<', now())
+                        ->delete();
+                    if ($dedupCleaned > 0) {
+                        $this->info("  Cleaned {$dedupCleaned} expired dedup log entries");
+                    }
+                }
+
+                return Command::SUCCESS;
+            }
+
             // Get all accounts with their retention settings
             // Default retention is 180 days (6 months) for accounts that haven't set one
             $accounts = DB::table('account_settings')
@@ -109,9 +129,14 @@ class PurgeExpiredMessages extends Command
             }
 
             // Clean up expired dedup log entries
-            $dedupCleaned = DB::table('message_dedup_log')
-                ->where('expires_at', '<', now())
-                ->delete();
+            $dedupCleaned = 0;
+            if (!Schema::hasTable('message_dedup_log')) {
+                $this->warn('message_dedup_log table does not exist — skipping dedup cleanup.');
+            } else {
+                $dedupCleaned = DB::table('message_dedup_log')
+                    ->where('expires_at', '<', now())
+                    ->delete();
+            }
 
             if ($dedupCleaned > 0) {
                 $this->info("  Cleaned {$dedupCleaned} expired dedup log entries");

@@ -67,12 +67,12 @@ class SendHeldMessage implements ShouldQueue
                 return;
             }
 
-            // TODO: Dispatch through the appropriate gateway based on origin.
-            // This integration point depends on the single-message send service
-            // which varies by origin (API, email-to-SMS, portal single send).
-            // For now, mark as released and log for the sending pipeline to handle.
+            // Gateway dispatch not yet implemented — mark as failed so the message
+            // is not silently lost. Once a single-message send service exists,
+            // wire it here based on $message->origin (api, email_to_sms, portal).
+            $message->update(['status' => 'failed']);
 
-            Log::info('[SendHeldMessage] Message released for delivery', [
+            Log::error('[SendHeldMessage] Gateway dispatch not implemented — message marked as failed', [
                 'id' => $message->id,
                 'tenant_id' => $message->tenant_id,
                 'recipient' => substr($message->recipient_number, 0, 6) . '***',

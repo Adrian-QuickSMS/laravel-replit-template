@@ -407,6 +407,22 @@ class SecuritySettingsController extends Controller
             return response()->json(['status' => 'error', 'message' => 'IP entry not found'], 404);
         }
 
+        // Lockout protection: prevent removing the last active IP while allowlist is enabled
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if ($settings && $settings->ip_allowlist_enabled) {
+            $activeCount = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+                ->where('tenant_id', $accountId)
+                ->where('status', 'active')
+                ->count();
+
+            if ($activeCount <= 1) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot remove the last IP while allowlist is enabled. Disable the allowlist first.',
+                ], 409);
+            }
+        }
+
         $this->ipAllowlistService->removeIp($accountId, $id);
 
         $this->auditLog($accountId, $userId, 'ip_allowlist_removed',
