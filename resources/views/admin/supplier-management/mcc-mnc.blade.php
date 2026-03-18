@@ -1200,7 +1200,7 @@ function submitAddMccMnc() {
         entries: entries
     };
 
-    fetch('{{ route('admin.mcc-mnc.store') }}', {
+    fetch('/admin/supplier-management/mcc-mnc', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1462,7 +1462,7 @@ function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('{{ route('admin.mcc-mnc.parse-file') }}', {
+    fetch('/admin/supplier-management/mcc-mnc/parse-file', {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: formData
@@ -1591,7 +1591,7 @@ function runImport() {
     document.getElementById('btnNext').disabled = true;
     document.getElementById('btnBack').style.display = 'none';
 
-    fetch('{{ route('admin.mcc-mnc.import') }}', {
+    fetch('/admin/supplier-management/mcc-mnc/import', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1655,7 +1655,7 @@ function applyMccFilters() {
     if (status) params.set('status', status);
     if (search) params.set('search', search);
 
-    window.location.href = '{{ route('admin.mcc-mnc.index') }}' + (params.toString() ? '?' + params.toString() : '');
+    window.location.href = '/admin/supplier-management/mcc-mnc' + (params.toString() ? '?' + params.toString() : '');
 }
 
 function switchTab(tabId, el) {
@@ -1692,7 +1692,7 @@ function loadUkPrefixes(page) {
     const cp = document.getElementById('ukFilterCp').value;
     const search = document.getElementById('ukSearchPrefix').value;
 
-    let url = `{{ route('admin.uk-prefixes.index') }}?page=${ukCurrentPage}`;
+    let url = `/admin/supplier-management/uk-prefixes?page=${ukCurrentPage}`;
     if (match) url += `&match_status=${encodeURIComponent(match)}`;
     if (cp) url += `&cp_name=${encodeURIComponent(cp)}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
@@ -1823,7 +1823,7 @@ function confirmBulkMap() {
     const mccMncId = document.getElementById('mapNetworkSelect').value;
     if (!mccMncId) { alert('Please select a network'); return; }
 
-    fetch('{{ route('admin.uk-prefixes.bulk-confirm') }}', {
+    fetch('/admin/supplier-management/uk-prefixes/bulk-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ cp_name: cpName, mcc_mnc_id: parseInt(mccMncId) })
@@ -1847,7 +1847,7 @@ function createAndMapNetwork() {
 
     if (!name || !mcc || !mnc) { alert('Please fill in all fields'); return; }
 
-    fetch('{{ route('admin.uk-prefixes.create-and-map') }}', {
+    fetch('/admin/supplier-management/uk-prefixes/create-and-map', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ network_name: name, mcc: mcc, mnc: mnc, network_type: 'mobile', cp_name: cpName })
@@ -1905,7 +1905,7 @@ function handleUkFile(input) {
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('{{ route('admin.uk-prefixes.parse-file') }}', {
+    fetch('/admin/supplier-management/uk-prefixes/parse-file', {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: formData
@@ -2023,7 +2023,7 @@ function runUkImport() {
     const dateVal = document.getElementById('ukMapAllocationDate').value;
     if (dateVal !== '') mapping.allocation_date = parseInt(dateVal);
 
-    fetch('{{ route('admin.uk-prefixes.import') }}', {
+    fetch('/admin/supplier-management/uk-prefixes/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ importId: ukImportState.importId, mapping })
@@ -2116,7 +2116,7 @@ function showReviewStep() {
 function bulkConfirmCp(cpName, mccMncId, btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Confirming...';
-    fetch('{{ route('admin.uk-prefixes.bulk-confirm') }}', {
+    fetch('/admin/supplier-management/uk-prefixes/bulk-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ cp_name: cpName, mcc_mnc_id: mccMncId })
