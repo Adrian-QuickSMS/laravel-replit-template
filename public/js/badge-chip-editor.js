@@ -254,7 +254,7 @@
         chip.setAttribute('data-type', chipType);
 
         if (type === 'link') {
-            chip.innerHTML = '<span class="bce-chip-icon">\uD83D\uDD17</span><span class="bce-chip-label">' + this._escapeHtml(rawValue) + '</span>';
+            chip.innerHTML = '<span class="bce-chip-label">' + this._escapeHtml(rawValue) + '</span>';
         } else {
             var label = rawValue.replace(/^\{\{|\}\}$/g, '').trim();
             chip.innerHTML = '<span class="bce-chip-label">' + this._escapeHtml(label) + '</span>';
@@ -262,7 +262,7 @@
 
         var x = document.createElement('span');
         x.className = 'bce-chip-x';
-        x.textContent = '\u00D7';
+        x.textContent = '\u2715';
         x.addEventListener('mousedown', function(e) {
             e.preventDefault();
             e.stopPropagation();

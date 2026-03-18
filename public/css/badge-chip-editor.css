@@ -98,12 +98,6 @@
     content: '' !important;
 }
 
-.bce-chip .bce-chip-icon {
-    margin-right: 2px;
-    font-size: 0.85em;
-    opacity: 0.7;
-}
-
 .bce-chip .bce-chip-label {
     font-weight: 600 !important;
 }
