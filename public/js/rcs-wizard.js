@@ -2441,14 +2441,14 @@ function updateRcsTextBodyCount() {
 
 function openRcsPlaceholderPicker(field) {
     rcsActiveTextField = field;
-    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    var modalEl = document.getElementById('rcsPersonalisationModal') || document.getElementById('personalisationModal');
     if (!modalEl) return;
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function openRcsUrlPlaceholderPicker(inputId) {
     rcsActiveTextField = inputId;
-    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    var modalEl = document.getElementById('rcsPersonalisationModal') || document.getElementById('personalisationModal');
     if (!modalEl) return;
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
@@ -2473,7 +2473,7 @@ function getRcsTextElement(field) {
 
 function openRcsButtonFieldPlaceholder(fieldId) {
     rcsActiveTextField = fieldId;
-    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    var modalEl = document.getElementById('rcsPersonalisationModal') || document.getElementById('personalisationModal');
     if (!modalEl) return;
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
