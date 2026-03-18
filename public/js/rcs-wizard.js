@@ -189,18 +189,23 @@ function initRcsChipEditors() {
     }
     var descEl = document.getElementById('rcsDescription');
     if (descEl && descEl.parentElement && !rcsChipEditors.description) {
+        console.log('[RCS Wizard] Desc el tag:', descEl.tagName, 'parent tag:', descEl.parentElement.tagName, 'parent classes:', descEl.parentElement.className);
         rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descEl, {
             singleLine: true,
             onChange: function() { updateRcsDescriptionCount(); }
         });
-        console.log('[RCS Wizard] Description chip editor initialized:', !!rcsChipEditors.description);
+        console.log('[RCS Wizard] Description chip editor initialized:', !!rcsChipEditors.description, 'has el:', !!(rcsChipEditors.description && rcsChipEditors.description.el), 'el visible:', rcsChipEditors.description && rcsChipEditors.description.el ? rcsChipEditors.description.el.offsetHeight : 'N/A');
+        if (rcsChipEditors.description && rcsChipEditors.description.el) {
+            console.log('[RCS Wizard] Desc chip editor el HTML:', rcsChipEditors.description.el.outerHTML.substring(0, 200));
+            console.log('[RCS Wizard] Desc input display:', descEl.style.display, 'hidden:', descEl.offsetHeight === 0);
+        }
     }
     var bodyEl = document.getElementById('rcsTextBody');
     if (bodyEl && bodyEl.parentElement && !rcsChipEditors.textBody) {
         rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyEl, {
             onChange: function() { updateRcsTextBodyCount(); }
         });
-        console.log('[RCS Wizard] TextBody chip editor initialized:', !!rcsChipEditors.textBody);
+        console.log('[RCS Wizard] TextBody chip editor initialized:', !!rcsChipEditors.textBody, 'has el:', !!(rcsChipEditors.textBody && rcsChipEditors.textBody.el));
     }
 }
 
