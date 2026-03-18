@@ -19,6 +19,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('account_settings')) {
+            return; // Table created by earlier migration; skip if not yet run
+        }
+
         // Message Data Retention
         if (!Schema::hasColumn('account_settings', 'message_retention_days')) {
             Schema::table('account_settings', function (Blueprint $table) {

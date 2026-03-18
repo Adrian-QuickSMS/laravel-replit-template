@@ -162,17 +162,36 @@ class IpAllowlistService
      */
     public function toggleEnabled(string $accountId, bool $enabled, ?string $callerIp = null, ?string $userId = null): void
     {
-        if ($enabled && $callerIp) {
+        if ($enabled && $callerIp && $callerIp !== '') {
             // Safety: ensure caller's IP is in the allowlist before enabling
-            $hasCallerIp = AccountIpAllowlist::withoutGlobalScopes()
+            $activeEntries = AccountIpAllowlist::withoutGlobalScopes()
                 ->where('tenant_id', $accountId)
                 ->where('status', 'active')
-                ->get()
-                ->contains(fn($entry) => $this->ipMatchesEntry($callerIp, $entry->ip_address));
+                ->pluck('ip_address')
+                ->toArray();
+
+            $hasCallerIp = false;
+            foreach ($activeEntries as $entry) {
+                if ($this->ipMatchesEntry($callerIp, $entry)) {
+                    $hasCallerIp = true;
+                    break;
+                }
+            }
 
             if (!$hasCallerIp) {
-                // Auto-add the caller's IP
-                $this->addIp($accountId, $callerIp, 'Auto-added (enabling allowlist)', $userId ?? 'system');
+                // Check if IP exists as disabled — re-enable it
+                $existing = AccountIpAllowlist::withoutGlobalScopes()
+                    ->where('tenant_id', $accountId)
+                    ->where('ip_address', $callerIp)
+                    ->first();
+
+                if ($existing && $existing->status === 'disabled') {
+                    $existing->update(['status' => 'active']);
+                    $this->invalidateCache($accountId);
+                } elseif (!$existing) {
+                    $this->addIp($accountId, $callerIp, 'Auto-added (enabling allowlist)', $userId ?? 'system');
+                }
+                // If it already exists as active, no action needed (already covered)
             }
         }
 
@@ -237,6 +256,11 @@ class IpAllowlistService
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ipLong = ip2long($ip);
             $subnetLong = ip2long($subnet);
+
+            if ($ipLong === false || $subnetLong === false) {
+                return false;
+            }
+
             $maskLong = -1 << (32 - (int)$mask);
 
             return ($ipLong & $maskLong) === ($subnetLong & $maskLong);

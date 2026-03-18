@@ -115,7 +115,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickS
     Route::post('/api/country-permissions/check', 'checkCountryPermission')->name('api.country-permissions.check');
 
     // Security Settings API — RESTful endpoints (require manage_security permission)
-    Route::prefix('api/account/security')->middleware('permission:manage_security')->controller(\App\Http\Controllers\SecuritySettingsController::class)->group(function () {
+    Route::prefix('api/account/security')->middleware(['permission:manage_security', 'throttle:30,1'])->controller(\App\Http\Controllers\SecuritySettingsController::class)->group(function () {
         Route::get('/settings', 'index')->name('api.security.settings');
         Route::put('/retention', 'updateRetention')->name('api.security.retention');
         Route::put('/masking', 'updateMasking')->name('api.security.masking');
@@ -138,7 +138,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickS
 });
 
 // Flow Builder routes
-Route::middleware('customer.auth')->prefix('flows')->controller(\App\Http\Controllers\FlowBuilderController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('flows')->controller(\App\Http\Controllers\FlowBuilderController::class)->group(function () {
     Route::get('/', 'index')->name('flows.index');
     Route::get('/builder/{id?}', 'builder')->name('flows.builder');
     Route::post('/', 'store')->name('flows.store');
@@ -150,14 +150,14 @@ Route::middleware('customer.auth')->prefix('flows')->controller(\App\Http\Contro
 });
 
 // API Credentials vault (for webhook/API nodes in Flow Builder)
-Route::middleware('customer.auth')->prefix('api-credentials')->controller(\App\Http\Controllers\ApiCredentialController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api-credentials')->controller(\App\Http\Controllers\ApiCredentialController::class)->group(function () {
     Route::get('/', 'index')->name('api-credentials.index');
     Route::post('/', 'store')->middleware('permission:manage_api_credentials')->name('api-credentials.store');
     Route::put('/{id}', 'update')->middleware('permission:manage_api_credentials')->name('api-credentials.update');
     Route::delete('/{id}', 'destroy')->middleware('permission:manage_api_credentials')->name('api-credentials.destroy');
 });
 
-Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
     Route::get('/approved', 'approved')->name('api.sender-ids.approved');
     Route::post('/validate', 'validateSenderId')->name('api.sender-ids.validate');
     Route::post('/', 'store')->name('api.sender-ids.store');
@@ -169,7 +169,7 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
     Route::post('/{uuid}/resubmit', 'resubmit')->name('api.sender-ids.resubmit');
 });
 
-Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
 // =====================================================
 // Sub-Account Management API
@@ -287,7 +287,7 @@ Route::post('/webhook/inbound/{gateway}', [\App\Http\Controllers\Api\InboundWebh
     ->name('webhook.inbound')
     ->middleware('throttle:300,1');
 
-Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
     Route::get('/', 'index')->name('api.notifications.index');
     Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');
     Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
@@ -307,7 +307,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/api-connectio
     Route::post('/{id}/change-password', 'changePassword')->name('api.api-connections.change-password');
 });
 
-Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
     Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
     Route::post('/proxy-image', 'proxyImage')->name('api.rcs.assets.proxy-image');
@@ -315,9 +315,9 @@ Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAsse
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });
 
-Route::middleware('customer.auth')->get('/api/account/pricing', [QuickSMSController::class, 'accountPricingApi'])->name('api.account.pricing');
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->get('/api/account/pricing', [QuickSMSController::class, 'accountPricingApi'])->name('api.account.pricing');
 
-Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceApiController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/invoices')->controller(InvoiceApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.invoices.index');
     Route::get('/account-summary', 'accountSummary')->name('api.invoices.account-summary');
     Route::get('/{invoiceId}', 'show')->name('api.invoices.show');
@@ -325,7 +325,7 @@ Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceAp
     Route::post('/{invoiceId}/create-checkout-session', 'createCheckoutSession')->name('api.invoices.checkout');
 });
 
-Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/purchase')->group(function () {
     Route::get('/products', [PurchaseApiController::class, 'getProducts'])->name('api.purchase.products');
     Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder'])->name('api.purchase.calculate');
     Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice'])->name('api.purchase.invoice');
@@ -513,7 +513,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/audit-logs')
 });
 
 // Reporting Dashboard API (session-based auth, moved from routes/api.php)
-Route::middleware('customer.auth')->prefix('api/reporting/dashboard')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/reporting/dashboard')->group(function () {
     Route::get('/', [ReportingDashboardApiController::class, 'index']);
     Route::get('/kpis', [ReportingDashboardApiController::class, 'kpis']);
     Route::get('/volume', [ReportingDashboardApiController::class, 'volumeOverTime']);
@@ -528,7 +528,7 @@ Route::middleware('customer.auth')->prefix('api/reporting/dashboard')->group(fun
 });
 
 // Billing API (session-based auth, moved from routes/api.php)
-Route::middleware('customer.auth')->prefix('api/billing')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/billing')->group(function () {
     Route::get('/data', [BillingApiController::class, 'getData']);
     Route::get('/export', [BillingApiController::class, 'export']);
     Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
@@ -537,12 +537,12 @@ Route::middleware('customer.auth')->prefix('api/billing')->group(function () {
 });
 
 // Top-Up API (session-based auth, moved from routes/api.php)
-Route::middleware('customer.auth')->prefix('api/topup')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/topup')->group(function () {
     Route::post('/create-checkout-session', [TopUpApiController::class, 'createCheckoutSession']);
 });
 
 // Account API (session-based auth, moved from routes/api.php)
-Route::middleware('customer.auth')->prefix('api/account')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/account')->group(function () {
     Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });

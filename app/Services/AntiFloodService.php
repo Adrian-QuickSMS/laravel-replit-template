@@ -28,6 +28,9 @@ class AntiFloodService
 {
     private const REDIS_PREFIX = 'antiflood:';
 
+    /** @var array<string, AccountSettings|null> Request-scoped settings cache */
+    private array $settingsCache = [];
+
     /**
      * Check if a message is a duplicate (same content + same recipient within window).
      *
@@ -165,13 +168,11 @@ class AntiFloodService
      */
     private function getSettings(string $accountId): ?AccountSettings
     {
-        static $cache = [];
-
-        if (!isset($cache[$accountId])) {
-            $cache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!isset($this->settingsCache[$accountId])) {
+            $this->settingsCache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
         }
 
-        return $cache[$accountId];
+        return $this->settingsCache[$accountId];
     }
 
     /**
@@ -184,32 +185,13 @@ class AntiFloodService
             ->where('expires_at', '<', now())
             ->delete();
     }
-}
 
-/**
- * Value object for anti-flood check results.
- */
-class AntiFloodResult
-{
-    public function __construct(
-        public readonly bool $allowed,
-        public readonly bool $isDuplicate,
-        public readonly bool $monitored,
-        public readonly ?string $reason = null,
-    ) {}
-
-    public static function allowed(): self
+    /**
+     * Clear the in-process settings cache.
+     * Called after settings are updated to prevent stale reads.
+     */
+    public function clearSettingsCache(): void
     {
-        return new self(allowed: true, isDuplicate: false, monitored: false);
-    }
-
-    public static function blocked(string $reason): self
-    {
-        return new self(allowed: false, isDuplicate: true, monitored: false, reason: $reason);
-    }
-
-    public static function monitored(): self
-    {
-        return new self(allowed: true, isDuplicate: true, monitored: true);
+        $this->settingsCache = [];
     }
 }

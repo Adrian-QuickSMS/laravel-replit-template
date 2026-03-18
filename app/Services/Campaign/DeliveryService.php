@@ -17,6 +17,7 @@ use App\Services\AntiFloodService;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
 use App\Services\Numbers\NumberService;
+use App\Services\OutOfHoursResult;
 use App\Services\OutOfHoursService;
 use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
@@ -310,15 +311,20 @@ class DeliveryService
 
     /**
      * Hold a campaign message for later release when the out-of-hours window opens.
-     * Marks the campaign recipient as 'held' and creates a held_messages record.
+     *
+     * Does NOT modify campaign_recipients.status (which has a CHECK constraint).
+     * Instead, marks recipient as 'skipped' (valid status) and creates a
+     * held_messages record. The release scheduler will reset to 'pending'
+     * and dispatch a new batch job when the window opens.
      */
-    private function holdCampaignMessage(Campaign $campaign, CampaignRecipient $recipient, \App\Services\OutOfHoursResult $oohResult): void
+    private function holdCampaignMessage(Campaign $campaign, CampaignRecipient $recipient, OutOfHoursResult $oohResult): void
     {
         try {
-            // Update recipient status to held
+            // Mark as skipped with a clear code — this is a valid CHECK constraint value.
+            // The held_messages record tracks the actual hold state and release time.
             $recipient->update([
-                'status' => 'held',
-                'failure_reason' => 'Out-of-hours hold',
+                'status' => CampaignRecipient::STATUS_SKIPPED,
+                'failure_reason' => 'Held: out-of-hours restriction',
                 'failure_code' => 'OUT_OF_HOURS_HELD',
             ]);
 

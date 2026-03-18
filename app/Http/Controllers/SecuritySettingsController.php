@@ -8,6 +8,7 @@ use App\Models\AccountSettings;
 use App\Services\IpAllowlistService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -116,9 +117,14 @@ class SecuritySettingsController extends Controller
         }
 
         $oldValue = $settings->message_retention_days;
-        $newValue = $request->input('message_retention_days');
+        $newValue = (int) $request->input('message_retention_days');
 
-        $settings->update(['message_retention_days' => $newValue]);
+        DB::table('account_settings')
+            ->where('account_id', $accountId)
+            ->update([
+                'message_retention_days' => $newValue,
+                'updated_at' => now(),
+            ]);
 
         $this->auditLog($accountId, $userId, 'retention_policy_changed', "Retention changed from {$oldValue} to {$newValue} days", [
             'old_value' => $oldValue,
@@ -170,7 +176,7 @@ class SecuritySettingsController extends Controller
         }
 
         // Use raw SQL for JSONB column
-        \Illuminate\Support\Facades\DB::table('account_settings')
+        DB::table('account_settings')
             ->where('account_id', $accountId)
             ->update([
                 'data_masking_config' => json_encode($maskingConfig),
@@ -224,7 +230,7 @@ class SecuritySettingsController extends Controller
             $mode = 'off';
         }
 
-        \Illuminate\Support\Facades\DB::table('account_settings')
+        DB::table('account_settings')
             ->where('account_id', $accountId)
             ->update([
                 'anti_flood_enabled' => $enabled,
@@ -286,7 +292,7 @@ class SecuritySettingsController extends Controller
             ], 422);
         }
 
-        \Illuminate\Support\Facades\DB::table('account_settings')
+        DB::table('account_settings')
             ->where('account_id', $accountId)
             ->update([
                 'out_of_hours_enabled' => $enabled,

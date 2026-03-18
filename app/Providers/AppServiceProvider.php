@@ -23,10 +23,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CountryPermissionCacheService::class);
         $this->app->singleton(CountryPermissionCheckService::class);
 
-        // Security settings services — singletons for in-process caching
-        $this->app->singleton(AntiFloodService::class);
-        $this->app->singleton(OutOfHoursService::class);
-        $this->app->singleton(DataMaskingService::class);
+        // Security settings services — scoped (auto-cleared between requests in
+        // Octane/queue workers; acts like singleton in standard FPM requests).
+        // Uses instance-level caching instead of static for clean request isolation.
+        $this->app->scoped(AntiFloodService::class);
+        $this->app->scoped(OutOfHoursService::class);
+        $this->app->scoped(DataMaskingService::class);
         $this->app->singleton(IpAllowlistService::class);
     }
 

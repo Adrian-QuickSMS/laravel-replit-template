@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AccountSettings;
 use App\Models\HeldMessage;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -24,6 +25,9 @@ use Illuminate\Support\Facades\Log;
  */
 class OutOfHoursService
 {
+    /** @var array<string, AccountSettings|null> Request-scoped settings cache */
+    private array $settingsCache = [];
+
     /**
      * Check if sending is currently allowed for this account.
      *
@@ -43,6 +47,11 @@ class OutOfHoursService
 
             $startTime = $settings->out_of_hours_start ?: '21:00';
             $endTime = $settings->out_of_hours_end ?: '08:00';
+
+            // Defence-in-depth: reject invalid config
+            if ($startTime === $endTime) {
+                return OutOfHoursResult::allowed();
+            }
 
             if (!$this->isWithinRestrictedWindow($now, $startTime, $endTime)) {
                 return OutOfHoursResult::allowed();
@@ -83,16 +92,22 @@ class OutOfHoursService
      * Release held messages whose window has opened.
      * Called by the scheduled command.
      *
+     * For campaign messages: resets the campaign_recipient to 'pending' and
+     * dispatches a new ProcessCampaignBatch job to re-process them.
+     * For non-campaign messages: dispatches a SendHeldMessage job.
+     *
      * @return int Number of messages released
      */
     public function releaseEligibleMessages(): int
     {
         $released = 0;
 
-        $messages = HeldMessage::where('status', 'held')
+        // Use withoutGlobalScopes — this runs from a scheduled command with no tenant context
+        $messages = HeldMessage::withoutGlobalScopes()
+            ->where('status', 'held')
             ->where('release_after', '<=', now())
             ->orderBy('release_after')
-            ->limit(1000) // Process in batches
+            ->limit(1000)
             ->get();
 
         foreach ($messages as $message) {
@@ -175,15 +190,39 @@ class OutOfHoursService
 
     /**
      * Dispatch a released held message back into the sending pipeline.
+     *
+     * Campaign messages: reset campaign_recipient to 'pending' so the existing
+     * ProcessCampaignBatch job picks them up. We dispatch a new batch job to
+     * ensure they're processed promptly.
+     *
+     * Non-campaign messages: dispatch via SendHeldMessage queue job.
      */
     private function dispatchReleasedMessage(HeldMessage $message): void
     {
         if ($message->campaign_id && $message->campaign_recipient_id) {
-            // Campaign message — re-queue the campaign recipient
-            $recipient = \App\Models\CampaignRecipient::find($message->campaign_recipient_id);
-            if ($recipient && $recipient->status === 'held') {
-                $recipient->update(['status' => 'pending']);
-                // The ProcessCampaignBatch will pick it up on next run
+            // Campaign message — reset recipient to pending for re-processing
+            $recipient = \App\Models\CampaignRecipient::withoutGlobalScopes()
+                ->find($message->campaign_recipient_id);
+
+            if ($recipient) {
+                // Reset to pending — this is a valid status in the CHECK constraint
+                DB::table('campaign_recipients')
+                    ->where('id', $recipient->id)
+                    ->update([
+                        'status' => 'pending',
+                        'failure_reason' => null,
+                        'failure_code' => null,
+                    ]);
+
+                // Dispatch a new batch job to process the released recipients
+                $campaign = \App\Models\Campaign::withoutGlobalScopes()->find($message->campaign_id);
+                if ($campaign && in_array($campaign->status, ['sending', 'queued'])) {
+                    \App\Jobs\ProcessCampaignBatch::dispatch(
+                        $campaign->id,
+                        $recipient->batch_number ?? 1
+                    );
+                }
+
                 Log::info('[OutOfHoursService] Released campaign recipient', [
                     'recipient_id' => $recipient->id,
                     'campaign_id' => $message->campaign_id,
@@ -197,39 +236,23 @@ class OutOfHoursService
     }
 
     /**
-     * Get account settings with in-process caching.
+     * Get account settings with request-scoped caching.
      */
     private function getSettings(string $accountId): ?AccountSettings
     {
-        static $cache = [];
-
-        if (!isset($cache[$accountId])) {
-            $cache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!isset($this->settingsCache[$accountId])) {
+            $this->settingsCache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
         }
 
-        return $cache[$accountId];
-    }
-}
-
-/**
- * Value object for out-of-hours check results.
- */
-class OutOfHoursResult
-{
-    public function __construct(
-        public readonly bool $allowed,
-        public readonly ?string $action,
-        public readonly ?Carbon $releaseAfter,
-        public readonly ?string $reason,
-    ) {}
-
-    public static function allowed(): self
-    {
-        return new self(allowed: true, action: null, releaseAfter: null, reason: null);
+        return $this->settingsCache[$accountId];
     }
 
-    public static function restricted(string $action, Carbon $releaseAfter, string $reason): self
+    /**
+     * Clear the in-process settings cache.
+     * Called after settings are updated to prevent stale reads.
+     */
+    public function clearSettingsCache(): void
     {
-        return new self(allowed: false, action: $action, releaseAfter: $releaseAfter, reason: $reason);
+        $this->settingsCache = [];
     }
 }

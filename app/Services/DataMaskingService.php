@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Log;
  */
 class DataMaskingService
 {
+    /** @var array<string, AccountSettings|null> Request-scoped settings cache */
+    private array $settingsCache = [];
     /**
      * Apply masking to a single message log record (array form).
      *
@@ -210,12 +212,19 @@ class DataMaskingService
      */
     private function getAccountSettings(string $accountId): ?AccountSettings
     {
-        static $cache = [];
-
-        if (!isset($cache[$accountId])) {
-            $cache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!isset($this->settingsCache[$accountId])) {
+            $this->settingsCache[$accountId] = AccountSettings::withoutGlobalScopes()->find($accountId);
         }
 
-        return $cache[$accountId];
+        return $this->settingsCache[$accountId];
+    }
+
+    /**
+     * Clear the in-process settings cache.
+     * Called after settings are updated to prevent stale reads.
+     */
+    public function clearSettingsCache(): void
+    {
+        $this->settingsCache = [];
     }
 }
