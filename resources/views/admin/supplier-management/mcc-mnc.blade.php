@@ -962,6 +962,9 @@
                             <button class="btn btn-sm btn-outline-danger" onclick="clearFile()"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
+                    <div id="uploadStatus" class="mt-2 d-none">
+                        <small id="uploadStatusText" class="text-muted"></small>
+                    </div>
                     <div id="uploadError" class="alert alert-danger mt-3 d-none"></div>
                     <div id="uploadSpinner" class="text-center py-3 d-none">
                         <div class="spinner-border text-primary" role="status"></div>
@@ -1384,6 +1387,8 @@ function resetImportWizard() {
     document.getElementById('importProgress').classList.add('d-none');
     document.getElementById('previewSection').classList.remove('d-none');
     document.getElementById('importFile').value = '';
+    document.getElementById('uploadStatus').classList.add('d-none');
+    document.getElementById('uploadStatusText').textContent = '';
     setNextEnabled(false);
     document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
 }
@@ -1467,16 +1472,34 @@ function formatBytes(bytes) {
     return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
+function setUploadStatus(text, color) {
+    var el = document.getElementById('uploadStatus');
+    var txt = document.getElementById('uploadStatusText');
+    if (el && txt) {
+        txt.textContent = text;
+        txt.style.color = color || '#6c757d';
+        el.classList.remove('d-none');
+    }
+}
+
 function uploadFile(file) {
     console.log('[MCC Import] uploadFile called, file:', file.name, file.size);
     document.getElementById('uploadSpinner').classList.remove('d-none');
     document.getElementById('uploadError').classList.add('d-none');
     setNextEnabled(false);
-    const formData = new FormData();
+    setUploadStatus('Uploading and parsing file...', '#6c757d');
+
+    var formData = new FormData();
     formData.append('file', file);
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
-    console.log('[MCC Import] POST /admin/supplier-management/mcc-mnc/parse-file, CSRF token length:', csrfToken.length);
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrfToken) {
+        document.getElementById('uploadSpinner').classList.add('d-none');
+        setUploadStatus('Error: CSRF token not found. Please refresh the page.', '#dc3545');
+        document.getElementById('uploadError').textContent = 'Security token missing. Please refresh the page and try again.';
+        document.getElementById('uploadError').classList.remove('d-none');
+        return;
+    }
 
     fetch('/admin/supplier-management/mcc-mnc/parse-file', {
         method: 'POST',
@@ -1486,17 +1509,18 @@ function uploadFile(file) {
         },
         body: formData
     })
-    .then(r => {
+    .then(function(r) {
         console.log('[MCC Import] Response status:', r.status, r.statusText);
         if (!r.ok) {
-            return r.text().then(t => { throw new Error('Server error (' + r.status + '): ' + (t.substring(0, 200))); });
+            return r.text().then(function(t) { throw new Error('Server error (' + r.status + '): ' + (t.substring(0, 200))); });
         }
         return r.json();
     })
-    .then(data => {
+    .then(function(data) {
         console.log('[MCC Import] Parse result:', data.success, 'headers:', data.headers?.length, 'rows:', data.totalRows);
         document.getElementById('uploadSpinner').classList.add('d-none');
         if (!data.success) {
+            setUploadStatus('File parsing failed: ' + (data.message || 'Unknown error'), '#dc3545');
             document.getElementById('uploadError').textContent = data.message || 'File parsing failed.';
             document.getElementById('uploadError').classList.remove('d-none');
             return;
@@ -1506,15 +1530,16 @@ function uploadFile(file) {
         importState.totalRows = data.totalRows;
         importState.importId = data.importId;
         setNextEnabled(true);
+        setUploadStatus('File parsed successfully — ' + data.totalRows + ' rows, ' + data.headers.length + ' columns detected. Click Next to continue.', '#198754');
         console.log('[MCC Import] Next button enabled');
     })
-    .catch(err => {
+    .catch(function(err) {
         console.error('[MCC Import] Upload failed:', err.message);
         document.getElementById('uploadSpinner').classList.add('d-none');
         var errMsg = 'Failed to upload file: ' + (err.message || 'Unknown error');
+        setUploadStatus(errMsg, '#dc3545');
         document.getElementById('uploadError').textContent = errMsg;
         document.getElementById('uploadError').classList.remove('d-none');
-        alert('File upload failed: ' + (err.message || 'Unknown error. Please try again.'));
     });
 }
 
@@ -1583,10 +1608,19 @@ function getMappingValues() {
 }
 
 function wizardNext() {
+    try {
     console.log('[MCC Import] wizardNext called, step:', importState.step, 'headers:', importState.headers?.length, 'enabled:', document.getElementById('btnNext').dataset.enabled);
     if (document.getElementById('btnNext').dataset.enabled !== 'true') {
-        if (importState.step === 1 && !importState.headers.length) {
-            alert('Please upload a file first. If you already selected a file, the upload may still be processing — check for a spinning indicator.');
+        var statusEl = document.getElementById('uploadStatusText');
+        var statusMsg = statusEl ? statusEl.textContent : '';
+        if (importState.step === 1) {
+            if (statusMsg && statusMsg.indexOf('parsing') !== -1) {
+                setUploadStatus('File is still being processed. Please wait for parsing to complete.', '#e67e22');
+            } else if (statusMsg && statusMsg.indexOf('failed') !== -1) {
+                setUploadStatus('Upload failed. Please remove the file and try again, or try a different file.', '#dc3545');
+            } else {
+                setUploadStatus('Please upload a file first. Select a CSV or Excel file to continue.', '#e67e22');
+            }
         }
         return;
     }
@@ -1608,6 +1642,10 @@ function wizardNext() {
         showStep(3);
     } else if (importState.step === 3) {
         runImport();
+    }
+    } catch (e) {
+        console.error('[MCC Import] wizardNext error:', e);
+        setUploadStatus('Error advancing wizard: ' + e.message, '#dc3545');
     }
 }
 
