@@ -9,6 +9,7 @@ var Composer = (function () {
     var currentChannel = 'sms';
     var onSendCallback = null;
     var pendingRcsPayload = null;
+    var chipEditor = null;
 
     var GSM7_BASIC = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ' +
         ' !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
@@ -52,10 +53,37 @@ var Composer = (function () {
         };
     }
 
+    function getMessageText() {
+        if (chipEditor) return chipEditor.getValue();
+        var textarea = document.getElementById('replyMessage');
+        return textarea ? textarea.value : '';
+    }
+
+    function setMessageText(text) {
+        if (chipEditor) {
+            chipEditor.setValue(text);
+        } else {
+            var textarea = document.getElementById('replyMessage');
+            if (textarea) textarea.value = text;
+        }
+        updateCharCount();
+    }
+
+    function clearMessage() {
+        if (chipEditor) {
+            chipEditor.setValue('');
+        } else {
+            var textarea = document.getElementById('replyMessage');
+            if (textarea) textarea.value = '';
+        }
+        updateCharCount();
+    }
+
     function init(onSend) {
         onSendCallback = onSend;
         bindChannelToggle();
         bindTextarea();
+        initChipEditor();
         bindSendButton();
         bindTemplatePicker();
         bindEmojiPicker();
@@ -65,6 +93,24 @@ var Composer = (function () {
         bindRcsClear();
         populateSenderDropdowns();
         rehydrateRcsPayload();
+    }
+
+    function initChipEditor() {
+        if (typeof BadgeChipEditor === 'undefined') return;
+        var textarea = document.getElementById('replyMessage');
+        if (!textarea) return;
+        chipEditor = BadgeChipEditor.initFromTextarea(textarea, {
+            onChange: function () { updateCharCount(); }
+        });
+        if (chipEditor) {
+            window.inboxChipEditor = chipEditor;
+            chipEditor.el.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                }
+            });
+        }
     }
 
     function rehydrateRcsPayload() {
@@ -128,10 +174,12 @@ var Composer = (function () {
         var ta = document.getElementById('replyMessage');
         if (!btn || !ta) return;
 
+        var targetEl = (chipEditor && chipEditor.el) ? chipEditor.el : ta;
+
         if (typeof QSEmojiPicker !== 'undefined') {
             window.inboxEmojiPicker = new QSEmojiPicker({
                 triggerEl: btn,
-                textareaEl: ta,
+                textareaEl: targetEl,
                 onInsert: function () { updateCharCount(); }
             });
             window.smsEmojiPicker = window.inboxEmojiPicker;
@@ -156,8 +204,14 @@ var Composer = (function () {
                 if (!placeholderBtn) return;
                 var field = placeholderBtn.getAttribute('data-placeholder');
                 if (field) {
-                    insertText('{{' + field + '}}');
+                    var placeholder = '{{' + field + '}}';
+                    if (chipEditor) {
+                        chipEditor.insertAtCursor(placeholder);
+                    } else {
+                        insertText(placeholder);
+                    }
                     updateCharCount();
+                    bootstrap.Modal.getInstance(modalEl).hide();
                 }
             });
         }
@@ -168,8 +222,7 @@ var Composer = (function () {
         if (!btn) return;
 
         btn.addEventListener('click', function () {
-            var textarea = document.getElementById('replyMessage');
-            var currentText = textarea ? textarea.value.trim() : '';
+            var currentText = getMessageText().trim();
 
             var contentEl = document.getElementById('inboxAiCurrentContent');
             if (contentEl) {
@@ -204,8 +257,7 @@ var Composer = (function () {
     }
 
     function runAiImprove(action) {
-        var textarea = document.getElementById('replyMessage');
-        var currentText = textarea ? textarea.value.trim() : '';
+        var currentText = getMessageText().trim();
         if (!currentText) {
             InboxApp.comingSoon('Type a message first');
             return;
@@ -247,11 +299,7 @@ var Composer = (function () {
     function useAiSuggestion() {
         var suggestedEl = document.getElementById('inboxAiSuggestedContent');
         if (!suggestedEl) return;
-        var textarea = document.getElementById('replyMessage');
-        if (textarea) {
-            textarea.value = suggestedEl.textContent;
-            updateCharCount();
-        }
+        setMessageText(suggestedEl.textContent);
         var modal = document.getElementById('inboxAiAssistantModal');
         if (modal && typeof bootstrap !== 'undefined') {
             bootstrap.Modal.getInstance(modal).hide();
@@ -340,7 +388,6 @@ var Composer = (function () {
         var content = selected.getAttribute('data-content') || '';
         var templateSenderId = selected.getAttribute('data-sender-id') || '';
         var templateRcsAgentId = selected.getAttribute('data-rcs-agent-id') || '';
-        var textarea = document.getElementById('replyMessage');
 
         var senderSelect = document.getElementById('inboxSenderSelect');
         var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
@@ -378,20 +425,17 @@ var Composer = (function () {
                 setChannel('rcs_basic');
             }
 
-            if (textarea) {
-                var rcsText = '';
-                if (rcsData && rcsData.text) {
-                    rcsText = rcsData.text;
-                } else if (rcsData && rcsData.cards && rcsData.cards[0]) {
-                    rcsText = rcsData.cards[0].description || rcsData.cards[0].title || '';
-                } else if (rcsData && rcsData.description) {
-                    rcsText = rcsData.description;
-                } else if (rcsData && rcsData.title) {
-                    rcsText = rcsData.title;
-                }
-                textarea.value = rcsText || content;
-                updateCharCount();
+            var rcsText = '';
+            if (rcsData && rcsData.text) {
+                rcsText = rcsData.text;
+            } else if (rcsData && rcsData.cards && rcsData.cards[0]) {
+                rcsText = rcsData.cards[0].description || rcsData.cards[0].title || '';
+            } else if (rcsData && rcsData.description) {
+                rcsText = rcsData.description;
+            } else if (rcsData && rcsData.title) {
+                rcsText = rcsData.title;
             }
+            setMessageText(rcsText || content);
         } else {
             if (channel.indexOf('RCS') !== -1 || channel.indexOf('rcs') !== -1) {
                 setChannel('rcs_basic');
@@ -399,10 +443,11 @@ var Composer = (function () {
                 setChannel('sms');
             }
 
-            if (textarea && content) {
-                textarea.value = content;
-                updateCharCount();
-                textarea.focus();
+            if (content) {
+                setMessageText(content);
+                if (chipEditor && chipEditor.el) {
+                    chipEditor.el.focus();
+                }
             }
         }
     }
@@ -543,15 +588,12 @@ var Composer = (function () {
     }
 
     function updateCharCount() {
-        var textarea = document.getElementById('replyMessage');
         var charCountEl = document.getElementById('charCount');
         var encodingEl = document.getElementById('encodingType');
         var segmentEl = document.getElementById('smsPartCount');
         var unicodeWarning = document.getElementById('unicodeWarning');
 
-        if (!textarea) return;
-
-        var text = textarea.value;
+        var text = getMessageText();
 
         if (currentChannel === 'rcs_basic' || currentChannel === 'rcs_rich' || currentChannel === 'rcs') {
             if (charCountEl) charCountEl.textContent = text.length;
@@ -576,10 +618,7 @@ var Composer = (function () {
     }
 
     function send() {
-        var textarea = document.getElementById('replyMessage');
-        if (!textarea) return;
-
-        var text = textarea.value.trim();
+        var text = getMessageText().trim();
         var isRcs = apiChannel() === 'rcs';
 
         if (pendingRcsPayload && isRcs) {
@@ -595,10 +634,9 @@ var Composer = (function () {
                 });
             }
             clearRcsPayload();
-            textarea.value = '';
+            clearMessage();
             var fallbackEl = document.getElementById('rcsSmsFallbackText');
             if (fallbackEl) fallbackEl.value = '';
-            updateCharCount();
             return;
         }
 
@@ -616,55 +654,74 @@ var Composer = (function () {
             });
         }
 
-        textarea.value = '';
-        updateCharCount();
-        textarea.focus();
-
-        var selector = document.getElementById('inboxTemplateSelector');
-        if (selector) selector.selectedIndex = 0;
-    }
-
-    function getSenderId() {
-        var el = document.getElementById('inboxSenderSelect');
-        return el ? el.value : '';
-    }
-
-    function getRcsAgent() {
-        var el = document.getElementById('inboxRcsAgentSelect');
-        return el ? el.value : '';
-    }
-
-    function getSmsFallback() {
-        if (currentChannel === 'rcs_rich') {
-            var fallbackText = document.getElementById('rcsSmsFallbackText');
-            return fallbackText ? fallbackText.value.trim() : '';
-        }
-        var el = document.getElementById('inboxSmsFallbackSelect');
-        return el ? el.value : '';
+        clearMessage();
     }
 
     function setRcsPayload(payload) {
         pendingRcsPayload = payload;
+        sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+
         var summary = document.getElementById('rcsConfiguredSummary');
         var clearBtn = document.getElementById('rcsClearBtn');
         var wizardText = document.getElementById('rcsWizardBtnText');
+        var configuredText = document.getElementById('rcsConfiguredText');
+
         if (summary) summary.classList.remove('d-none');
         if (clearBtn) clearBtn.classList.remove('d-none');
         if (wizardText) wizardText.textContent = 'Edit RCS Message';
+
+        if (configuredText && payload && payload.cards) {
+            var cardCount = payload.cards.length || 1;
+            var btnCount = 0;
+            payload.cards.forEach(function (c) {
+                if (c.buttons) btnCount += c.buttons.length;
+            });
+            configuredText.textContent = cardCount + ' card(s), ' + btnCount + ' button(s) configured';
+        }
     }
 
     function clearRcsPayload() {
         pendingRcsPayload = null;
         sessionStorage.removeItem('quicksms_rcs_draft');
+
         var summary = document.getElementById('rcsConfiguredSummary');
         var clearBtn = document.getElementById('rcsClearBtn');
         var wizardText = document.getElementById('rcsWizardBtnText');
+
         if (summary) summary.classList.add('d-none');
         if (clearBtn) clearBtn.classList.add('d-none');
         if (wizardText) wizardText.textContent = 'Create RCS Message';
+
+        if (typeof resetRcsWizard === 'function') {
+            resetRcsWizard();
+        }
+    }
+
+    function getSenderId() {
+        var isRcs = apiChannel() === 'rcs';
+        if (isRcs) {
+            var fallback = document.getElementById('inboxSmsFallbackSelect');
+            return fallback ? fallback.value : '';
+        }
+        var sender = document.getElementById('inboxSenderSelect');
+        return sender ? sender.value : '';
+    }
+
+    function getRcsAgent() {
+        var sel = document.getElementById('inboxRcsAgentSelect');
+        return sel ? sel.value : '';
+    }
+
+    function getSmsFallback() {
+        var sel = document.getElementById('inboxSmsFallbackSelect');
+        return sel ? sel.value : '';
     }
 
     function insertText(text) {
+        if (chipEditor) {
+            chipEditor.insertAtCursor(text);
+            return;
+        }
         var textarea = document.getElementById('replyMessage');
         if (!textarea) return;
 
@@ -688,8 +745,7 @@ var Composer = (function () {
     }
 
     function getText() {
-        var textarea = document.getElementById('replyMessage');
-        return textarea ? textarea.value : '';
+        return getMessageText();
     }
 
     function escapeHtml(str) {

@@ -51,10 +51,10 @@ window.__inbox = {
 <script src="{{ asset('js/emoji-picker.js') }}?v=20260310"></script>
 <script src="{{ asset('js/inbox/conversation-list.js') }}"></script>
 <script src="{{ asset('js/inbox/chat-thread.js') }}"></script>
-<script src="{{ asset('js/inbox/composer.js') }}"></script>
+<script src="{{ asset('js/inbox/composer.js') }}?v=20260318d"></script>
 <script src="{{ asset('js/inbox/inbox-app.js') }}"></script>
 {{-- v1 RCS Wizard integration --}}
 <script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260318c"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260318d"></script>
 <script src="{{ asset('js/shared-image-editor.js') }}"></script>
 @endpush

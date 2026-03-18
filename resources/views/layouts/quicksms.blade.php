@@ -3,11 +3,11 @@
 @push('styles')
 <link href="{{ asset('css/quicksms-global-layout.css') }}" rel="stylesheet" type="text/css"/>
 <link href="{{ asset('css/quicksms-pastel.css') }}" rel="stylesheet" type="text/css"/>
-<link href="{{ asset('css/badge-chip-editor.css') }}?v=20260318c" rel="stylesheet" type="text/css"/>
+<link href="{{ asset('css/badge-chip-editor.css') }}?v=20260318d" rel="stylesheet" type="text/css"/>
 @endpush
 
 @push('scripts')
-<script src="{{ asset('js/badge-chip-editor.js') }}?v=20260318c"></script>
+<script src="{{ asset('js/badge-chip-editor.js') }}?v=20260318d"></script>
 <script src="{{ asset('js/security-helpers.js') }}"></script>
 <script src="{{ asset('js/account-policy-service.js') }}"></script>
 <script src="{{ asset('js/quicksms-account-lifecycle.js') }}"></script>

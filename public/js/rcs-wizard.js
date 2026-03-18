@@ -162,6 +162,26 @@ var rcsEditingButtonIndex = -1;
 var rcsActiveTextField = null;
 var rcsChipEditors = {};
 
+function resetRcsChipEditors() {
+    ['description', 'textBody'].forEach(function(key) {
+        var editor = rcsChipEditors[key];
+        if (!editor || !editor.el) return;
+        var wrapper = editor.el.parentNode;
+        if (wrapper) {
+            wrapper.removeChild(editor.el);
+            wrapper.classList.remove('bce-wrapper-active');
+            if (!wrapper.classList.contains('border')) {
+                wrapper.classList.add('border');
+            }
+        }
+    });
+    var descInput = document.getElementById('rcsDescription');
+    if (descInput) descInput.style.display = '';
+    var bodyTextarea = document.getElementById('rcsTextBody');
+    if (bodyTextarea) bodyTextarea.style.display = '';
+    rcsChipEditors = {};
+}
+
 function initRcsChipEditors() {
     if (typeof BadgeChipEditor === 'undefined') {
         console.log('[RCS Wizard] BadgeChipEditor not loaded yet, skipping chip init');
@@ -250,6 +270,7 @@ function openRcsWizard() {
     if (applyBtn) applyBtn.disabled = false;
     
     setTimeout(function() {
+        resetRcsChipEditors();
         initRcsChipEditors();
         initRcsCropEditor();
         initializeMessageTypeUI();
@@ -3375,8 +3396,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('[RCS Wizard] Apply button not found');
     }
-    
-    initRcsChipEditors();
     
     console.log('[RCS Wizard] DOMContentLoaded complete');
 });
