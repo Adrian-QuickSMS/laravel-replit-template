@@ -165,9 +165,10 @@ var rcsChipEditors = {};
 function resetRcsChipEditors() {
     ['description', 'textBody'].forEach(function(key) {
         var editor = rcsChipEditors[key];
-        if (!editor || !editor.el) return;
-        var wrapper = editor.el.parentNode;
-        if (wrapper) {
+        if (editor && typeof editor.destroy === 'function') {
+            editor.destroy();
+        } else if (editor && editor.el && editor.el.parentNode) {
+            var wrapper = editor.el.parentNode;
             wrapper.removeChild(editor.el);
             wrapper.classList.remove('bce-wrapper-active');
             if (!wrapper.classList.contains('border')) {
@@ -176,9 +177,19 @@ function resetRcsChipEditors() {
         }
     });
     var descInput = document.getElementById('rcsDescription');
-    if (descInput) descInput.style.display = '';
+    if (descInput) {
+        descInput.classList.remove('bce-hidden-source', 'd-none');
+        descInput.removeAttribute('aria-hidden');
+        descInput.removeAttribute('tabindex');
+        descInput.style.display = '';
+    }
     var bodyTextarea = document.getElementById('rcsTextBody');
-    if (bodyTextarea) bodyTextarea.style.display = '';
+    if (bodyTextarea) {
+        bodyTextarea.classList.remove('bce-hidden-source', 'd-none');
+        bodyTextarea.removeAttribute('aria-hidden');
+        bodyTextarea.removeAttribute('tabindex');
+        bodyTextarea.style.display = '';
+    }
     rcsChipEditors = {};
 }
 
@@ -188,24 +199,17 @@ function initRcsChipEditors() {
         return;
     }
     var descEl = document.getElementById('rcsDescription');
-    console.log('[RCS ChipEditor] descEl:', !!descEl, 'parent:', descEl ? descEl.parentElement.tagName : 'N/A', 'existing:', !!rcsChipEditors.description);
     if (descEl && descEl.parentElement && !rcsChipEditors.description) {
         rcsChipEditors.description = BadgeChipEditor.initFromTextarea(descEl, {
             singleLine: true,
             onChange: function() { updateRcsDescriptionCount(); }
         });
-        var ed = rcsChipEditors.description;
-        console.log('[RCS ChipEditor] desc result:', !!ed, 'hasEl:', !!(ed && ed.el), 'elInDOM:', !!(ed && ed.el && ed.el.parentNode), 'hiddenInput:', !!(ed && ed.hiddenTextarea), 'inputHidden:', descEl.style.display);
-        if (ed && ed.el) {
-            console.log('[RCS ChipEditor] desc el classes:', ed.el.className, 'height:', ed.el.offsetHeight, 'parent classes:', ed.el.parentElement.className);
-        }
     }
     var bodyEl = document.getElementById('rcsTextBody');
     if (bodyEl && bodyEl.parentElement && !rcsChipEditors.textBody) {
         rcsChipEditors.textBody = BadgeChipEditor.initFromTextarea(bodyEl, {
             onChange: function() { updateRcsTextBodyCount(); }
         });
-        console.log('[RCS ChipEditor] body result:', !!rcsChipEditors.textBody, 'hasEl:', !!(rcsChipEditors.textBody && rcsChipEditors.textBody.el));
     }
 }
 
@@ -279,7 +283,6 @@ function openRcsWizard() {
 }
 
 function onRcsWizardShown() {
-    console.log('[RCS ChipEditor] onRcsWizardShown called, pendingInit:', rcsWizardPendingInit);
     if (!rcsWizardPendingInit) return;
     rcsWizardPendingInit = false;
     

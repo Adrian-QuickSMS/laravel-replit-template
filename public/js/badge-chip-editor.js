@@ -29,12 +29,14 @@
         this.el.setAttribute('spellcheck', 'true');
         this.el.setAttribute('role', 'textbox');
 
-        var existingTextarea = this.container.querySelector('textarea');
-        var existingInput = !existingTextarea ? this.container.querySelector('input[type="text"]') : null;
+        var existingTextarea = this.container.querySelector('textarea:not(.bce-hidden-source)');
+        var existingInput = !existingTextarea ? this.container.querySelector('input[type="text"]:not(.bce-hidden-source)') : null;
         var sourceEl = existingTextarea || existingInput;
         if (sourceEl) {
             this.hiddenTextarea = sourceEl;
-            this.hiddenTextarea.style.display = 'none';
+            sourceEl.classList.add('bce-hidden-source', 'd-none');
+            sourceEl.setAttribute('aria-hidden', 'true');
+            sourceEl.setAttribute('tabindex', '-1');
             if (existingTextarea) {
                 this.el.style.paddingBottom = existingTextarea.style.paddingBottom || '';
                 this.el.style.minHeight = (existingTextarea.rows * 1.5) + 'em';
@@ -58,6 +60,25 @@
             this.hiddenTextarea = null;
             this.container.appendChild(this.el);
         }
+    };
+
+    BadgeChipEditor.prototype.destroy = function() {
+        if (this.el && this.el.parentNode) {
+            var wrapper = this.el.parentNode;
+            wrapper.removeChild(this.el);
+            if (wrapper.classList.contains('bce-wrapper-active')) {
+                wrapper.classList.remove('bce-wrapper-active');
+                wrapper.classList.add('border');
+            }
+        }
+        if (this.hiddenTextarea) {
+            this.hiddenTextarea.classList.remove('bce-hidden-source', 'd-none');
+            this.hiddenTextarea.removeAttribute('aria-hidden');
+            this.hiddenTextarea.removeAttribute('tabindex');
+            this.hiddenTextarea.style.display = '';
+        }
+        this.el = null;
+        this.hiddenTextarea = null;
     };
 
     BadgeChipEditor.prototype._bindEvents = function() {

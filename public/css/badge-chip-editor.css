@@ -143,3 +143,13 @@
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
 }
+
+.bce-hidden-source {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
