@@ -2426,14 +2426,16 @@ function updateRcsTextBodyCount() {
 
 function openRcsPlaceholderPicker(field) {
     rcsActiveTextField = field;
-    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
-    modal.show();
+    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    if (!modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function openRcsUrlPlaceholderPicker(inputId) {
     rcsActiveTextField = inputId;
-    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
-    modal.show();
+    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    if (!modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function openRcsEmojiPicker(field) {
@@ -2456,8 +2458,9 @@ function getRcsTextElement(field) {
 
 function openRcsButtonFieldPlaceholder(fieldId) {
     rcsActiveTextField = fieldId;
-    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('personalisationModal'));
-    modal.show();
+    var modalEl = document.getElementById('personalisationModal') || document.getElementById('rcsPersonalisationModal');
+    if (!modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function openRcsButtonFieldEmoji(fieldId) {
@@ -2466,6 +2469,64 @@ function openRcsButtonFieldEmoji(fieldId) {
     if (window.smsEmojiPicker && el) {
         window.smsEmojiPicker.openFor(el);
     }
+}
+
+function insertRcsPlaceholder(field) {
+    var placeholder = '{{' + field + '}}';
+    var chipEditor = null;
+    if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+    if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+
+    if (chipEditor) {
+        chipEditor.insertAtCursor(placeholder);
+    } else {
+        var el = getRcsTextElement(rcsActiveTextField);
+        if (!el) return;
+        var start = el.selectionStart;
+        var end = el.selectionEnd;
+        var text = el.value;
+        el.value = text.substring(0, start) + placeholder + text.substring(end);
+        el.selectionStart = el.selectionEnd = start + placeholder.length;
+        el.focus();
+    }
+
+    if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
+    if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
+
+    ['personalisationModal', 'rcsPersonalisationModal'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            var inst = bootstrap.Modal.getInstance(el);
+            if (inst) inst.hide();
+        }
+    });
+    rcsActiveTextField = null;
+}
+
+function insertRcsEmoji(emoji) {
+    var chipEditor = null;
+    if (rcsActiveTextField === 'description' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.description) chipEditor = rcsChipEditors.description;
+    if (rcsActiveTextField === 'textBody' && typeof rcsChipEditors !== 'undefined' && rcsChipEditors.textBody) chipEditor = rcsChipEditors.textBody;
+
+    if (chipEditor) {
+        chipEditor.insertAtCursor(emoji);
+    } else {
+        var el = getRcsTextElement(rcsActiveTextField);
+        if (!el) return;
+        var start = el.selectionStart;
+        var end = el.selectionEnd;
+        var text = el.value;
+        el.value = text.substring(0, start) + emoji + text.substring(end);
+        el.selectionStart = el.selectionEnd = start + emoji.length;
+        el.focus();
+    }
+
+    if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
+    if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
+
+    rcsActiveTextField = null;
 }
 
 function validateRcsPhoneNoEmoji() {

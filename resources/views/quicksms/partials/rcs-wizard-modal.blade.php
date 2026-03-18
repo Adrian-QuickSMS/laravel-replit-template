@@ -408,3 +408,30 @@ function toggleRcsMobilePreview() {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="rcsPersonalisationModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Insert Personalisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Click a field to insert it at the cursor position.</p>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Contact Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('first_name')">@{{first_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('last_name')">@{{last_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('full_name')">@{{full_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('mobile_number')">@{{mobile_number}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertRcsPlaceholder('email')">@{{email}}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
