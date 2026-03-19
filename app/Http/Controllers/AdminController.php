@@ -718,13 +718,18 @@ class AdminController extends Controller
         }
 
         $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
-        AccountStatusOverridden::dispatch(
-            $accountId,
-            $previousStatus,
-            $newStatus,
-            $request->input('reason'),
-            $adminUser,
-        );
+        try {
+            AccountStatusOverridden::dispatch(
+                $accountId,
+                $previousStatus,
+                $newStatus,
+                $request->input('reason'),
+                $adminUser,
+            );
+            Log::info('Alert dispatched: account_status_override', ['account_id' => $accountId, 'new_status' => $newStatus]);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: account_status_override', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
@@ -842,20 +847,6 @@ class AdminController extends Controller
                 );
             });
 
-            SpamFilterModeChanged::dispatch(
-                $accountId,
-                $previousMode,
-                $newMode,
-                $adminUser,
-            );
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'previous_mode' => $previousMode,
-                    'new_mode' => $newMode,
-                ],
-            ]);
         } catch (\Throwable $e) {
             Log::error('Failed to update spam filter mode', [
                 'account_id' => $accountId,
@@ -863,6 +854,26 @@ class AdminController extends Controller
             ]);
             return response()->json(['success' => false, 'error' => 'Failed to update spam filter mode.'], 500);
         }
+
+        try {
+            SpamFilterModeChanged::dispatch(
+                $accountId,
+                $previousMode,
+                $newMode,
+                $adminUser,
+            );
+            Log::info('Alert dispatched: spam_filter_mode_changed', ['account_id' => $accountId, 'new_mode' => $newMode]);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: spam_filter_mode_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'previous_mode' => $previousMode,
+                'new_mode' => $newMode,
+            ],
+        ]);
     }
 
     public function adminSecuritySettings($accountId)
@@ -964,6 +975,12 @@ class AdminController extends Controller
                 );
             });
 
+        } catch (\Throwable $e) {
+            Log::error('Admin retention update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update retention.'], 500);
+        }
+
+        try {
             AccountSecuritySettingChanged::dispatch(
                 $accountId,
                 'retention',
@@ -971,12 +988,12 @@ class AdminController extends Controller
                 ['message_retention_days' => $newValue],
                 $adminUser,
             );
-
-            return response()->json(['success' => true, 'data' => ['message_retention_days' => $newValue]]);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'retention']);
         } catch (\Throwable $e) {
-            Log::error('Admin retention update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => 'Failed to update retention.'], 500);
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json(['success' => true, 'data' => ['message_retention_days' => $newValue]]);
     }
 
     public function adminUpdateMasking(Request $request, $accountId)
@@ -1003,6 +1020,10 @@ class AdminController extends Controller
             'mask_sent_time' => (bool) $request->input('mask_sent_time'),
             'mask_delivered_time' => (bool) $request->input('mask_delivered_time'),
         ];
+
+        $oldMasking = is_string($settings->data_masking_config)
+            ? json_decode($settings->data_masking_config, true)
+            : ($settings->data_masking_config ?? []);
 
         try {
             $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
@@ -1032,11 +1053,12 @@ class AdminController extends Controller
                     ['config' => $maskingConfig, 'owner_bypass' => $request->input('owner_bypass_masking')]
                 );
             });
+        } catch (\Throwable $e) {
+            Log::error('Admin masking update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update masking.'], 500);
+        }
 
-            $oldMasking = is_string($settings->data_masking_config)
-                ? json_decode($settings->data_masking_config, true)
-                : ($settings->data_masking_config ?? []);
-
+        try {
             AccountSecuritySettingChanged::dispatch(
                 $accountId,
                 'masking',
@@ -1044,20 +1066,20 @@ class AdminController extends Controller
                 $maskingConfig,
                 $adminUser,
             );
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'config' => $maskingConfig,
-                    'owner_bypass_masking' => $request->has('owner_bypass_masking')
-                        ? (bool) $request->input('owner_bypass_masking')
-                        : $settings->owner_bypass_masking,
-                ],
-            ]);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'masking']);
         } catch (\Throwable $e) {
-            Log::error('Admin masking update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => 'Failed to update masking.'], 500);
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'config' => $maskingConfig,
+                'owner_bypass_masking' => $request->has('owner_bypass_masking')
+                    ? (bool) $request->input('owner_bypass_masking')
+                    : $settings->owner_bypass_masking,
+            ],
+        ]);
     }
 
     public function adminUpdateAntiFlood(Request $request, $accountId)
@@ -1112,6 +1134,12 @@ class AdminController extends Controller
                 );
             });
 
+        } catch (\Throwable $e) {
+            Log::error('Admin anti-flood update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update anti-flood.'], 500);
+        }
+
+        try {
             AccountSecuritySettingChanged::dispatch(
                 $accountId,
                 'anti_flood',
@@ -1119,15 +1147,15 @@ class AdminController extends Controller
                 ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
                 $adminUser,
             );
-
-            return response()->json([
-                'success' => true,
-                'data' => ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
-            ]);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'anti_flood']);
         } catch (\Throwable $e) {
-            Log::error('Admin anti-flood update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => 'Failed to update anti-flood.'], 500);
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
+        ]);
     }
 
     public function adminUpdateOutOfHours(Request $request, $accountId)
@@ -1186,6 +1214,12 @@ class AdminController extends Controller
                 );
             });
 
+        } catch (\Throwable $e) {
+            Log::error('Admin out-of-hours update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update out-of-hours.'], 500);
+        }
+
+        try {
             AccountSecuritySettingChanged::dispatch(
                 $accountId,
                 'out_of_hours',
@@ -1193,15 +1227,15 @@ class AdminController extends Controller
                 ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action],
                 $adminUser,
             );
-
-            return response()->json([
-                'success' => true,
-                'data' => ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action],
-            ]);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'out_of_hours']);
         } catch (\Throwable $e) {
-            Log::error('Admin out-of-hours update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => 'Failed to update out-of-hours.'], 500);
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action],
+        ]);
     }
 
     public function adminListIps($accountId)
@@ -1278,20 +1312,25 @@ class AdminController extends Controller
                 $enabled ? 'Admin enabled IP allowlist' : 'Admin disabled IP allowlist',
                 ['enabled' => $enabled]
             );
-
-            IpAllowlistChanged::dispatch(
-                $accountId,
-                $enabled ? 'enabled' : 'disabled',
-                changedBy: $adminUser,
-            );
-
-            return response()->json(['success' => true, 'data' => ['enabled' => $enabled]]);
         } catch (\RuntimeException $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 409);
         } catch (\Throwable $e) {
             Log::error('Admin IP allowlist toggle failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'error' => 'Failed to toggle IP allowlist.'], 500);
         }
+
+        try {
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                $enabled ? 'enabled' : 'disabled',
+                changedBy: $adminUser,
+            );
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => $enabled ? 'enabled' : 'disabled']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
+
+        return response()->json(['success' => true, 'data' => ['enabled' => $enabled]]);
     }
 
     public function adminAddIp(Request $request, $accountId)
@@ -1328,16 +1367,6 @@ class AdminController extends Controller
                 "Admin added IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
             );
-
-            IpAllowlistChanged::dispatch(
-                $accountId,
-                'added',
-                $entry->ip_address,
-                $entry->label,
-                changedBy: $adminUser,
-            );
-
-            return response()->json(['success' => true, 'data' => $entry->toPortalArray()], 201);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
         } catch (\RuntimeException $e) {
@@ -1346,6 +1375,21 @@ class AdminController extends Controller
             Log::error('Admin IP add failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'error' => 'Failed to add IP.'], 500);
         }
+
+        try {
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                'added',
+                $entry->ip_address,
+                $entry->label,
+                changedBy: $adminUser,
+            );
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => 'added']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
+
+        return response()->json(['success' => true, 'data' => $entry->toPortalArray()], 201);
     }
 
     public function adminRemoveIp(Request $request, $accountId, $entryId)
@@ -1396,7 +1440,12 @@ class AdminController extends Controller
                 "Admin removed IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
             );
+        } catch (\Throwable $e) {
+            Log::error('Admin IP remove failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to remove IP.'], 500);
+        }
 
+        try {
             $remainingCount = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
                 ->where('tenant_id', $accountId)
                 ->where('status', 'active')
@@ -1410,12 +1459,12 @@ class AdminController extends Controller
                 $remainingCount,
                 $adminUser,
             );
-
-            return response()->json(['success' => true]);
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => 'removed']);
         } catch (\Throwable $e) {
-            Log::error('Admin IP remove failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => 'Failed to remove IP.'], 500);
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json(['success' => true]);
     }
 
     public function reportingMessageLog()
