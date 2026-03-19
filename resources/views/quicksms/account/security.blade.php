@@ -38,6 +38,13 @@
     font-weight: 600;
     color: #374151;
     font-size: 0.95rem;
+    flex: 1;
+}
+.card-save-indicator {
+    font-size: 0.75rem;
+    color: #886cc0;
+    font-weight: 500;
+    margin-left: auto;
 }
 .security-card-body {
     padding: 1.25rem;
@@ -444,6 +451,7 @@
                 <div class="security-card-header">
                     <i class="fas fa-database"></i>
                     <h6>Message Data Retention</h6>
+                    <span class="card-save-indicator d-none" id="retentionSaving"><i class="fas fa-spinner fa-spin"></i> Saving</span>
                 </div>
                 <div class="security-card-body">
                     <div class="setting-row">
@@ -469,6 +477,7 @@
                 <div class="security-card-header">
                     <i class="fas fa-eye-slash"></i>
                     <h6>Data Visibility & Masking</h6>
+                    <span class="card-save-indicator d-none" id="maskingSaving"><i class="fas fa-spinner fa-spin"></i> Saving</span>
                 </div>
                 <div class="security-card-body">
                     <p class="setting-description mb-3">Control which data fields are masked in Message Logs, Reporting, and Exports. When enabled, data is masked or hidden from view.</p>
@@ -524,6 +533,7 @@
                 <div class="security-card-header">
                     <i class="fas fa-ban"></i>
                     <h6>Anti-Flood Protection</h6>
+                    <span class="card-save-indicator d-none" id="antiFloodSaving"><i class="fas fa-spinner fa-spin"></i> Saving</span>
                 </div>
                 <div class="security-card-body">
                     <div class="setting-row">
@@ -568,6 +578,7 @@
                 <div class="security-card-header">
                     <i class="fas fa-clock"></i>
                     <h6>Out-of-Hours Sending Restriction</h6>
+                    <span class="card-save-indicator d-none" id="outOfHoursSaving"><i class="fas fa-spinner fa-spin"></i> Saving</span>
                 </div>
                 <div class="security-card-body">
                     <div class="setting-row">
@@ -948,6 +959,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function setCardSaving(indicatorId, saving) {
+        var el = document.getElementById(indicatorId);
+        if (!el) return;
+        if (saving) { el.classList.remove('d-none'); } else { el.classList.add('d-none'); }
+    }
+
     apiCall('/api/account/security/settings').then(function(result) {
         var data = result.data;
         populateRetention(data.retention);
@@ -980,6 +997,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         select.addEventListener('change', function() {
             var val = parseInt(this.value, 10);
+            setCardSaving('retentionSaving', true);
             apiCall('/api/account/security/retention', 'PUT', { message_retention_days: val })
                 .then(function() {
                     showToast('success', 'Retention period updated');
@@ -987,6 +1005,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(function(err) {
                     showToast('error', err.message);
+                })
+                .finally(function() {
+                    setCardSaving('retentionSaving', false);
                 });
         });
     }
@@ -1007,6 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function saveMasking() {
             if (savingFlags.masking) return;
             savingFlags.masking = true;
+            setCardSaving('maskingSaving', true);
 
             apiCall('/api/account/security/masking', 'PUT', {
                 mask_mobile: maskMobile ? maskMobile.checked : false,
@@ -1021,6 +1043,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('error', err.message);
             }).finally(function() {
                 savingFlags.masking = false;
+                setCardSaving('maskingSaving', false);
             });
         }
 
@@ -1056,6 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function saveAntiFlood() {
             if (savingFlags.antiFlood) return;
             savingFlags.antiFlood = true;
+            setCardSaving('antiFloodSaving', true);
 
             var enabled = toggle.checked;
             apiCall('/api/account/security/anti-flood', 'PUT', {
@@ -1069,6 +1093,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('error', err.message);
             }).finally(function() {
                 savingFlags.antiFlood = false;
+                setCardSaving('antiFloodSaving', false);
             });
         }
 
@@ -1122,6 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function saveOutOfHours() {
             if (savingFlags.outOfHours) return;
             savingFlags.outOfHours = true;
+            setCardSaving('outOfHoursSaving', true);
 
             var enabled = toggle.checked;
             var body = { enabled: enabled };
@@ -1141,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .finally(function() {
                     savingFlags.outOfHours = false;
+                    setCardSaving('outOfHoursSaving', false);
                 });
         }
 
