@@ -949,10 +949,18 @@ class HrController extends Controller
             return $profile;
         }
 
-        return EmployeeHrProfile::create([
+        $assignedRole = $adminUser->hr_role !== 'none' ? $adminUser->hr_role : EmployeeHrProfile::ROLE_HR_ADMIN;
+
+        $profile = EmployeeHrProfile::create([
             'admin_user_id' => $adminUser->id,
             'start_date' => $adminUser->created_at?->toDateString() ?? now()->toDateString(),
-            'hr_role' => $adminUser->hr_role !== 'none' ? $adminUser->hr_role : EmployeeHrProfile::ROLE_HR_ADMIN,
+            'hr_role' => $assignedRole,
         ]);
+
+        if ($adminUser->hr_role === 'none') {
+            $adminUser->update(['hr_role' => $assignedRole]);
+        }
+
+        return $profile;
     }
 }

@@ -138,17 +138,17 @@ class AdminUser extends Authenticatable
 
     public function hasHrAccess(): bool
     {
-        return in_array($this->hr_role, ['employee', 'manager', 'hr_admin']);
+        return $this->role === 'super_admin' || in_array($this->hr_role, ['employee', 'manager', 'hr_admin']);
     }
 
     public function isHrAdmin(): bool
     {
-        return $this->hr_role === 'hr_admin';
+        return $this->role === 'super_admin' || $this->hr_role === 'hr_admin';
     }
 
     public function isHrManager(): bool
     {
-        return in_array($this->hr_role, ['manager', 'hr_admin']);
+        return $this->role === 'super_admin' || in_array($this->hr_role, ['manager', 'hr_admin']);
     }
 
     // =====================================================
