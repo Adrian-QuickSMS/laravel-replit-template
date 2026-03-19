@@ -1,9 +1,9 @@
 # MASTER PROMPT — Notification Centre UI Build (Reviewed & Updated)
 
 > **Branch:** `claude/review-alerting-engine-EonJJ`
-> **HEAD:** `26edbe7b` — Add hasColumn() guards to migration 800006 down() method
+> **HEAD:** Latest commit on branch (run `git log -1 --oneline` to verify)
 > **Base (origin/main):** `7dbecea6` — Update breadcrumb navigation links
-> **Total commits on branch:** 8
+> **Total commits on branch:** 10 (8 code + 2 prompt updates)
 > **Date:** 2026-03-19
 
 ---
@@ -14,7 +14,7 @@
 
 | # | Commit | Date | Summary |
 |---|--------|------|---------|
-| 1 | `281c347a` | 2026-03-17 | **Rules-based alerting engine** — 5 models (AlertRule, AlertHistory, AlertChannelConfig, AlertPreference, NotificationBatch), 3 services (Evaluator, Dispatcher, Frequency), 9 queue jobs, 6 migrations, config/alerting.php with 25 customer + 9 admin default rules, AlertDefaultsSeeder, AlertEventSubscriber, 36 event classes, 4 email templates |
+| 1 | `281c347a` | 2026-03-17 | **Rules-based alerting engine** — 5 models (AlertRule, AlertHistory, AlertChannelConfig, AlertPreference, NotificationBatch), 3 services (Evaluator, Dispatcher, Frequency), 9 queue jobs, 6 migrations, config/alerting.php with 23 customer + 8 admin default rules, AlertDefaultsSeeder, AlertEventSubscriber, 36 event classes, 4 email templates |
 | 2 | `628f658e` | 2026-03-18 | **Review round 1** — Transition gating in SubAccount.recordMessageSent() (fire alerts on state change only, not every message). Primary DB refresh after atomic counter update. Log::info on every alert dispatch. SubAccountAlertingTest (18 tests) |
 | 3 | `ebe4e382` | 2026-03-19 | **Security/account alert events** — 5 new events (AccountSecuritySettingChanged, AccountStatusOverridden, SpamFilterModeChanged, IpAllowlistChanged, ApiConnectionStateChanged). Wired dispatch into AdminController (9 sites) + SecuritySettingsController (7 sites). Subscriber extended to 42 events |
 | 4 | `1d235b9d` | 2026-03-19 | **Review round 2** — Moved 16 dispatch() calls outside business-logic try/catch. Each wrapped in own try/catch(\Throwable). Fixed old-value captures. Added cooldown_minutes:5 on security rules. Created SecurityAlertingTest |
@@ -177,7 +177,7 @@ app/Http/Controllers/Admin/AdminAlertRuleController.php          # RED — CRUD 
 
 ### Config — config/alerting.php
 
-Contains: categories, channels, frequencies, operators, condition types, 25 customer_defaults, 6 admin_defaults, severity levels, trigger_key labels. **Read this file before building UI** — it defines every dropdown option.
+Contains: categories, channels, frequencies, operators, condition types, 23 customer defaults, 8 admin defaults, severity levels. Each default rule has a `title` field that serves as the human-readable label. **Read this file before building UI** — it defines every dropdown option.
 
 ### Data Flow (for reference)
 
@@ -213,7 +213,7 @@ User action (e.g. security setting change)
    - Empty state: "No notifications yet" (visible message, not blank)
 
 2. **Alert Rules** — CRUD from `/api/v1/alerts/rules`
-   - List rules: trigger_key label (from config/alerting.php `trigger_key_labels`), channels, frequency, enabled toggle
+   - List rules: trigger_key (use the `title` field from matching default rule in config/alerting.php as display label), channels, frequency, enabled toggle
    - "Add Rule" form: category dropdown, trigger_key dropdown, condition operator/value, channels checkboxes, frequency dropdown
    - System defaults (is_system_default=true) shown read-only with option to override
    - Edit/Delete via action menu (ellipsis → dropdown pattern)
