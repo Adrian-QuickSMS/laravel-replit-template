@@ -241,46 +241,6 @@
 .mfa-method-option input[type="checkbox"]:checked + .mfa-method-pill i {
     color: #886cc0;
 }
-.ip-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-}
-.ip-entry {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0.75rem;
-    background: #f9fafb;
-    border: 1px solid #e9ecef;
-    border-radius: 0.375rem;
-}
-.ip-entry-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-.ip-address {
-    font-family: monospace;
-    font-size: 0.85rem;
-    color: #374151;
-}
-.ip-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-.ip-entry .remove-ip-btn {
-    background: none;
-    border: none;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 0.25rem;
-    transition: color 0.15s;
-}
-.ip-entry .remove-ip-btn:hover {
-    color: #dc2626;
-}
 .add-ip-btn {
     display: inline-flex;
     align-items: center;
@@ -301,59 +261,6 @@
     color: white;
     border-style: solid;
 }
-.audit-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-.audit-entry {
-    display: flex;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f3f5;
-    position: relative;
-}
-.audit-entry:last-child {
-    border-bottom: none;
-}
-.audit-entry-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-right: 0.75rem;
-}
-.audit-entry-icon.security { background: rgba(111, 66, 193, 0.1); color: #886cc0; }
-.audit-entry-icon.mfa { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.audit-entry-icon.ip { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.audit-entry-icon.retention { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.audit-entry-content {
-    flex: 1;
-}
-.audit-entry-action {
-    font-size: 0.8rem;
-    color: #374151;
-    font-weight: 500;
-    margin-bottom: 0.125rem;
-}
-.audit-entry-details {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-.audit-entry-meta {
-    text-align: right;
-    flex-shrink: 0;
-}
-.audit-entry-time {
-    font-size: 0.75rem;
-    color: #9ca3af;
-}
-.audit-entry-user {
-    font-size: 0.7rem;
-    color: #6b7280;
-}
 .empty-state {
     text-align: center;
     padding: 2rem 1rem;
@@ -368,10 +275,88 @@
     font-size: 0.8rem;
     margin: 0;
 }
+.security-loading-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #886cc0;
+    font-size: 0.9rem;
+    gap: 0.5rem;
+}
+.mode-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.mode-option {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+.mode-option:hover {
+    border-color: #886cc0;
+    background: #faf8ff;
+}
+.mode-option.active {
+    border-color: #886cc0;
+    background: rgba(111, 66, 193, 0.08);
+}
+.mode-option .mode-title {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #374151;
+    margin-bottom: 0.15rem;
+}
+.mode-option .mode-desc {
+    font-size: 0.7rem;
+    color: #6b7280;
+    line-height: 1.3;
+}
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+}
+.qs-toast {
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    min-width: 280px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.qs-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.qs-toast.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+.qs-toast.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
 </style>
 @endpush
 
 @section('content')
+<div class="toast-container" id="toastContainer"></div>
+
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
@@ -394,7 +379,13 @@
             </div>
         </div>
     </div>
-    
+
+    <div id="securityLoadingState" class="security-loading-overlay">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading security settings...</span>
+    </div>
+
+    <div id="securityContent" class="d-none">
     <div class="row">
         <div class="col-lg-8">
             <div class="security-card">
@@ -415,7 +406,7 @@
                         </div>
                     </div>
                     
-                    <div class="warning-banner" id="mfaWarning" style="display: none;">
+                    <div class="warning-banner d-none" id="mfaWarning">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>Disabling MFA reduces account security. This is not recommended.</span>
                     </div>
@@ -441,7 +432,7 @@
                                 </span>
                             </label>
                         </div>
-                        <div class="warning-banner" id="mfaMethodsWarning" style="display: none; margin-top: 0.75rem;">
+                        <div class="warning-banner d-none" id="mfaMethodsWarning" style="margin-top: 0.75rem;">
                             <i class="fas fa-exclamation-triangle"></i>
                             <span>At least one MFA method must be enabled.</span>
                         </div>
@@ -466,6 +457,8 @@
                                 <option value="60">60 days</option>
                                 <option value="90">90 days</option>
                                 <option value="120">120 days</option>
+                                <option value="150">150 days</option>
+                                <option value="180">180 days</option>
                             </select>
                         </div>
                     </div>
@@ -478,29 +471,50 @@
                     <h6>Data Visibility & Masking</h6>
                 </div>
                 <div class="security-card-body">
-                    <p class="setting-description mb-3">Control which data fields are visible in Message Logs, Reporting, and Exports. When disabled, data is masked or hidden from view.</p>
+                    <p class="setting-description mb-3">Control which data fields are masked in Message Logs, Reporting, and Exports. When enabled, data is masked or hidden from view.</p>
                     <div class="toggle-row">
-                        <span class="toggle-label">Mobile Number</span>
+                        <div>
+                            <span class="toggle-label">Mobile Number</span>
+                            <div style="font-size: 0.7rem; color: #9ca3af;">07700900123 &rarr; 077****0123</div>
+                        </div>
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="visibilityMobile">
+                            <input class="form-check-input" type="checkbox" id="maskMobile">
                         </div>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Message Content</span>
+                        <div>
+                            <span class="toggle-label">Message Content</span>
+                            <div style="font-size: 0.7rem; color: #9ca3af;">Full text &rarr; [REDACTED]</div>
+                        </div>
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="visibilityContent">
+                            <input class="form-check-input" type="checkbox" id="maskContent">
                         </div>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Date/Time Sent</span>
+                        <div>
+                            <span class="toggle-label">Date/Time Sent</span>
+                            <div style="font-size: 0.7rem; color: #9ca3af;">18/03/2026 14:30 &rarr; 18/03/2026 --:--</div>
+                        </div>
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="visibilitySentTime">
+                            <input class="form-check-input" type="checkbox" id="maskSentTime">
                         </div>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Date/Time Delivered</span>
+                        <div>
+                            <span class="toggle-label">Date/Time Delivered</span>
+                            <div style="font-size: 0.7rem; color: #9ca3af;">18/03/2026 14:30 &rarr; 18/03/2026 --:--</div>
+                        </div>
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="visibilityDeliveredTime">
+                            <input class="form-check-input" type="checkbox" id="maskDeliveredTime">
+                        </div>
+                    </div>
+                    <div class="toggle-row" style="border-top: 1px solid #e9ecef; margin-top: 0.5rem; padding-top: 0.75rem;">
+                        <div>
+                            <span class="toggle-label" style="font-weight: 600;">Owner/Admin Bypass</span>
+                            <div style="font-size: 0.7rem; color: #9ca3af;">Owners and Admins see unmasked data even when masking is enabled</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="ownerBypassMasking">
                         </div>
                     </div>
                 </div>
@@ -509,28 +523,42 @@
             <div class="security-card">
                 <div class="security-card-header">
                     <i class="fas fa-ban"></i>
-                    <h6>Anti-Spam Protection</h6>
+                    <h6>Anti-Flood Protection</h6>
                 </div>
                 <div class="security-card-body">
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">Enable Anti-Spam Protection</div>
-                            <div class="setting-description">Blocks sending identical message content to the same recipient within the specified time window. Applies to Portal, API, and Email-to-SMS.</div>
-                            <div class="sub-setting" id="antiSpamWindowContainer" style="display: none;">
-                                <label class="form-label" style="font-size: 0.8rem; color: #6b7280;">Protection Window</label>
-                                <select class="form-select form-select-sm" id="antiSpamWindow" style="width: 120px;">
-                                    <option value="2">2 hours</option>
-                                    <option value="4">4 hours</option>
-                                    <option value="12">12 hours</option>
-                                    <option value="24">24 hours</option>
-                                    <option value="48">48 hours</option>
-                                </select>
-                            </div>
+                            <div class="setting-label">Enable Anti-Flood Protection</div>
+                            <div class="setting-description">Prevents sending identical message content to the same recipient within a time window. Applies to Portal, API, and Email-to-SMS.</div>
                         </div>
                         <div class="setting-control">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="antiSpamToggle">
+                                <input class="form-check-input" type="checkbox" id="antiFloodToggle">
                             </div>
+                        </div>
+                    </div>
+                    <div id="antiFloodOptions" class="d-none" style="padding-top: 0.75rem;">
+                        <label class="form-label" style="font-size: 0.8rem; color: #374151; font-weight: 600;">Mode</label>
+                        <div class="mode-selector" id="antiFloodModeSelector">
+                            <div class="mode-option" data-mode="enforce">
+                                <div class="mode-title"><i class="fas fa-shield-alt me-1"></i>Enforce</div>
+                                <div class="mode-desc">Block duplicate messages</div>
+                            </div>
+                            <div class="mode-option" data-mode="monitor">
+                                <div class="mode-title"><i class="fas fa-eye me-1"></i>Monitor</div>
+                                <div class="mode-desc">Log duplicates but allow sending</div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label" style="font-size: 0.8rem; color: #374151; font-weight: 600;">Protection Window</label>
+                            <select class="form-select form-select-sm" id="antiFloodWindow" style="width: 140px;">
+                                <option value="2">2 hours</option>
+                                <option value="4">4 hours</option>
+                                <option value="8">8 hours</option>
+                                <option value="12">12 hours</option>
+                                <option value="24">24 hours</option>
+                                <option value="48">48 hours</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -545,11 +573,37 @@
                     <div class="setting-row">
                         <div class="setting-info">
                             <div class="setting-label">Restrict Out-of-Hours Sending</div>
-                            <div class="setting-description">When enabled, blocks all message sending between 21:00 and 08:00 (account timezone). Applies to Portal, API, and Email-to-SMS. Messages are rejected immediately, not queued.</div>
+                            <div class="setting-description">When enabled, blocks or holds outbound messages during the configured time window. Applies to Portal, API, and Email-to-SMS.</div>
                         </div>
                         <div class="setting-control">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="outOfHoursToggle">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="outOfHoursOptions" class="d-none" style="padding-top: 0.75rem;">
+                        <div class="row g-3 mb-3">
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size: 0.8rem; color: #374151; font-weight: 600;">Start Time</label>
+                                <input type="time" class="form-control form-control-sm" id="oohStartTime" value="21:00" style="width: 130px;">
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size: 0.8rem; color: #374151; font-weight: 600;">End Time</label>
+                                <input type="time" class="form-control form-control-sm" id="oohEndTime" value="08:00" style="width: 130px;">
+                            </div>
+                            <div class="col-auto d-flex align-items-end">
+                                <span id="oohTimezone" class="text-muted" style="font-size: 0.75rem; padding-bottom: 0.35rem;"></span>
+                            </div>
+                        </div>
+                        <label class="form-label" style="font-size: 0.8rem; color: #374151; font-weight: 600;">Action for blocked messages</label>
+                        <div class="mode-selector" id="oohActionSelector">
+                            <div class="mode-option" data-action="reject">
+                                <div class="mode-title"><i class="fas fa-times-circle me-1"></i>Reject</div>
+                                <div class="mode-desc">Return error — caller retries later</div>
+                            </div>
+                            <div class="mode-option" data-action="hold">
+                                <div class="mode-title"><i class="fas fa-pause-circle me-1"></i>Hold</div>
+                                <div class="mode-desc">Queue and auto-send when window opens</div>
                             </div>
                         </div>
                     </div>
@@ -601,6 +655,7 @@
                 <div class="security-card-header">
                     <i class="fas fa-network-wired"></i>
                     <h6>Login IP Allowlist</h6>
+                    <span class="ms-auto" id="ipCounter" style="font-size: 0.75rem; color: #6b7280;"></span>
                 </div>
                 <div class="security-card-body">
                     <div class="setting-row">
@@ -624,7 +679,7 @@
                         <div class="d-flex align-items-center justify-content-between mb-3 mt-3" style="padding: 0.75rem; background: rgba(111, 66, 193, 0.08); border-radius: 0.375rem;">
                             <div style="font-size: 0.85rem; color: #495057;">
                                 <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
-                                Your current IP: <strong id="currentIPDisplay">192.168.1.100</strong>
+                                Your current IP: <strong id="currentIPDisplay">...</strong>
                             </div>
                             <button type="button" class="btn btn-sm" id="addCurrentIPBtn" style="background: #886cc0; color: white; font-size: 0.8rem;">
                                 <i class="fas fa-plus me-1"></i>Add Current IP
@@ -637,15 +692,12 @@
                                     <tr>
                                         <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Label</th>
                                         <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">IP / CIDR</th>
-                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Created by</th>
-                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Created date</th>
                                         <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Status</th>
-                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef; width: 80px;">Actions</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Added</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef; width: 60px;">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="ipAllowlistTableBody">
-                                    <!-- Entries rendered from service state -->
-                                </tbody>
+                                <tbody id="ipAllowlistTableBody"></tbody>
                             </table>
                         </div>
                         
@@ -659,45 +711,9 @@
                         </button>
                     </div>
                     
-                    <div class="warning-banner" id="ipAllowlistWarning" style="display: none;">
+                    <div class="warning-banner d-none" id="ipAllowlistWarning">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>Ensure your current IP is in the allowlist before enabling, or you may lock yourself out.</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="security-card">
-                <div class="security-card-header">
-                    <i class="fas fa-history"></i>
-                    <h6>Audit & Change History</h6>
-                </div>
-                <div class="security-card-body">
-                    <p class="setting-description mb-3">Security-related changes to your account. This log is read-only and retained for 7 years for compliance purposes.</p>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="auditLogTable">
-                            <thead>
-                                <tr>
-                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Timestamp</th>
-                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Actor</th>
-                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Action Type</th>
-                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Summary</th>
-                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Source IP</th>
-                                </tr>
-                            </thead>
-                            <tbody id="auditLogTableBody">
-                                <!-- Populated from AuditLogService -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="text-center py-3 d-none" id="auditLogEmpty" style="color: #9ca3af; font-size: 0.85rem;">
-                        <i class="fas fa-clipboard-list mb-2" style="font-size: 1.5rem;"></i>
-                        <div>No audit entries yet</div>
-                    </div>
-                    
-                    <div class="text-center mt-3">
-                        <a href="/account/audit-logs" class="text-muted" style="font-size: 0.8rem;"><i class="fas fa-external-link-alt me-1"></i>View Full Audit Log</a>
                     </div>
                 </div>
             </div>
@@ -711,31 +727,12 @@
                         These settings apply to your entire account. Only Account Owners and Admins can modify security settings.
                     </p>
                     <p style="font-size: 0.8rem; color: #6b7280; line-height: 1.6; margin-bottom: 0;">
-                        All changes are logged in the Audit Trail for compliance purposes.
+                        All changes are automatically logged for compliance purposes.
                     </p>
                 </div>
             </div>
-            
-            <div class="security-card">
-                <div class="security-card-body">
-                    <h6 style="font-weight: 600; color: #374151; margin-bottom: 0.75rem;"><i class="fas fa-history me-2" style="color: #886cc0;"></i>Recent Changes</h6>
-                    <div style="font-size: 0.8rem;">
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">MFA enabled</span>
-                            <span class="text-muted">Jan 15, 2026</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">Retention set to 60 days</span>
-                            <span class="text-muted">Jan 10, 2026</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span class="text-muted">Ireland country requested</span>
-                            <span class="text-muted">Jan 8, 2026</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
+    </div>
     </div>
 </div>
 
@@ -799,7 +796,7 @@
                 <div class="mb-3">
                     <label class="form-label">IP Address or CIDR Range <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="newIPAddress" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
-                    <div class="form-text">IPv4 address or CIDR range (/8 to /32)</div>
+                    <div class="form-text">IPv4 address or CIDR range</div>
                     <div class="invalid-feedback" id="newIPAddressError">Please enter a valid IP address</div>
                 </div>
                 <div class="mb-3">
@@ -808,43 +805,13 @@
                 </div>
                 <div class="alert" style="background: rgba(111, 66, 193, 0.08); border: none; font-size: 0.8rem; color: #495057;">
                     <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
-                    Your current IP address is <strong id="currentUserIP">192.168.1.100</strong>. Ensure it is included in the allowlist.
+                    Your current IP address is <strong id="currentUserIP">...</strong>. Ensure it is included in the allowlist.
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn" id="confirmAddIP" style="background: #886cc0; color: white;">
                     <i class="fas fa-plus me-1"></i>Add IP
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="editIPModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2" style="color: #886cc0;"></i>Edit IP Entry</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editIPIndex">
-                <div class="mb-3">
-                    <label class="form-label">IP Address or CIDR Range <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="editIPAddress" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
-                    <div class="form-text">IPv4 address or CIDR range (/8 to /32)</div>
-                    <div class="invalid-feedback" id="editIPAddressError">Please enter a valid IP address</div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Label</label>
-                    <input type="text" class="form-control" id="editIPLabel" placeholder="e.g., Office Network, VPN Gateway">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="confirmEditIP" style="background: #886cc0; color: white;">
-                    <i class="fas fa-save me-1"></i>Save Changes
                 </button>
             </div>
         </div>
@@ -859,7 +826,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="removeIPIndex">
+                <input type="hidden" id="removeIPId">
                 <p style="font-size: 0.9rem; color: #374151;">
                     Are you sure you want to remove this IP entry?
                 </p>
@@ -895,7 +862,7 @@
                 </p>
                 <div class="alert" style="background: rgba(111, 66, 193, 0.08); border: none; font-size: 0.8rem; color: #495057;">
                     <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
-                    Make sure your current IP address is in the allowlist before proceeding.
+                    Your current IP will be automatically added if not already in the allowlist.
                 </div>
             </div>
             <div class="modal-footer">
@@ -912,750 +879,621 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Security Settings Service - wraps centralized AccountPolicyService for MFA/IP policy
-    // Other settings remain local until backend integration
-    var SecuritySettingsService = {
-        settings: {
-            // MFA and IP policies now use centralized AccountPolicyService
-            get mfa_required() { return AccountPolicyService.isMfaRequired(); },
-            set mfa_required(v) { AccountPolicyService.setMfaRequired(v); },
-            get mfa_methods() { return AccountPolicyService.getMfaMethods(); },
-            get ip_allowlist_enabled() { return AccountPolicyService.isIpAllowlistEnabled(); },
-            set ip_allowlist_enabled(v) { AccountPolicyService.setIpAllowlistEnabled(v); },
-            get ip_allowlist() { return AccountPolicyService.getIpAllowlist(); },
-            set ip_allowlist(v) { /* handled by AccountPolicyService methods */ },
-            current_ip: '192.168.1.100',
-            retention_days: 60,
-            visibility_mobile: false,
-            visibility_content: true,
-            visibility_sent_time: false,
-            visibility_delivered_time: false,
-            anti_spam_enabled: false,
-            anti_spam_window: 4,
-            out_of_hours_enabled: false,
-            countries: [
-                { code: 'GB', name: 'United Kingdom', status: 'approved' },
-                { code: 'IE', name: 'Ireland', status: 'pending' }
-            ]
-        },
-        auditLog: [
-            { timestamp: '26-01-2026 16:45', actor: 'Sarah Mitchell', action_type: 'MFA_REQUIRED_CHANGED', summary: 'MFA requirement enabled for all users', source_ip: '192.168.1.100' },
-            { timestamp: '25-01-2026 14:22', actor: 'Sarah Mitchell', action_type: 'IP_ALLOWLIST_ENTRY_ADDED', summary: 'Added IP: 10.0.0.0/8 (VPN Gateway)', source_ip: '192.168.1.100' },
-            { timestamp: '20-01-2026 10:15', actor: 'John Smith', action_type: 'IP_ALLOWLIST_ENABLED_CHANGED', summary: 'IP allowlist enforcement enabled', source_ip: '192.168.1.45' },
-            { timestamp: '18-01-2026 09:30', actor: 'Sarah Mitchell', action_type: 'IP_ALLOWLIST_ENTRY_ADDED', summary: 'Added IP: 192.168.1.0/24 (Office Network)', source_ip: '192.168.1.100' },
-            { timestamp: '15-01-2026 11:40', actor: 'Sarah Mitchell', action_type: 'RETENTION_PERIOD_CHANGED', summary: 'Message retention changed from 30 to 60 days', source_ip: '192.168.1.100' },
-            { timestamp: '10-01-2026 08:55', actor: 'John Smith', action_type: 'MFA_ALLOWED_METHODS_CHANGED', summary: 'Enabled SMS/RCS OTP as MFA method', source_ip: '192.168.1.45' },
-            { timestamp: '08-01-2026 14:20', actor: 'Sarah Mitchell', action_type: 'COUNTRY_REQUEST_SUBMITTED', summary: 'Requested access to Ireland', source_ip: '192.168.1.100' }
-        ],
-        save: function(key, value) {
-            // Route MFA/IP policy saves through centralized service
-            if (key === 'mfa_required') {
-                return Promise.resolve(AccountPolicyService.setMfaRequired(value));
-            }
-            if (key === 'ip_allowlist_enabled') {
-                return Promise.resolve(AccountPolicyService.setIpAllowlistEnabled(value));
-            }
-            this.settings[key] = value;
-            console.log('[SecuritySettingsService] Saved:', key, value);
-            return Promise.resolve({ success: true });
-        },
-        addAuditEntry: function(action, details, type) {
-            var now = new Date();
-            var day = String(now.getDate()).padStart(2, '0');
-            var month = String(now.getMonth() + 1).padStart(2, '0');
-            var year = now.getFullYear();
-            var hours = String(now.getHours()).padStart(2, '0');
-            var minutes = String(now.getMinutes()).padStart(2, '0');
-            var timestamp = day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
-            
-            var summary = this.getActionSummary(action, details);
-            
-            var entry = {
-                timestamp: timestamp,
-                actor: details.actor || 'Sarah Mitchell',
-                action_type: action,
-                summary: summary,
-                source_ip: details.source_ip || '192.168.1.100'
-            };
-            this.auditLog.unshift(entry);
-            console.log('[AUDIT]', entry);
-            renderAuditLogTable();
-            return entry;
-        },
-        getActionSummary: function(action, details) {
-            switch(action) {
-                case 'MFA_REQUIRED_CHANGED':
-                    return details.new_value ? 'MFA requirement enabled for all users' : 'MFA requirement disabled';
-                case 'MFA_ALLOWED_METHODS_CHANGED':
-                    var methods = [];
-                    if (details.new_value && details.new_value.authenticator) methods.push('Authenticator App');
-                    if (details.new_value && details.new_value.sms_rcs) methods.push('SMS/RCS OTP');
-                    return 'Allowed MFA methods: ' + (methods.length > 0 ? methods.join(', ') : 'None');
-                case 'IP_ALLOWLIST_ENABLED_CHANGED':
-                    return details.new_value ? 'IP allowlist enforcement enabled' : 'IP allowlist enforcement disabled';
-                case 'IP_ALLOWLIST_ENTRY_ADDED':
-                    return 'Added IP: ' + details.ip + (details.label ? ' (' + details.label + ')' : '');
-                case 'IP_ALLOWLIST_ENTRY_EDITED':
-                    return 'Edited IP: ' + details.old_ip + ' → ' + details.new_ip;
-                case 'IP_ALLOWLIST_ENTRY_REMOVED':
-                    return 'Removed IP: ' + details.ip + (details.label ? ' (' + details.label + ')' : '');
-                case 'RETENTION_PERIOD_CHANGED':
-                    return 'Message retention changed to ' + details.new_value + ' days';
-                default:
-                    return action.replace(/_/g, ' ').toLowerCase();
-            }
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var ipEntries = [];
+    var ipLimit = 50;
+    var currentIp = '';
+    var savingFlags = {};
+
+    function apiCall(url, method, body) {
+        var opts = {
+            method: method || 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+        };
+        if (body) {
+            opts.headers['Content-Type'] = 'application/json';
+            opts.body = JSON.stringify(body);
         }
-    };
-    
-    function renderAuditLogTable() {
-        var tbody = document.getElementById('auditLogTableBody');
-        var emptyState = document.getElementById('auditLogEmpty');
-        var table = document.getElementById('auditLogTable');
-        
-        if (!tbody) return;
-        
-        var entries = SecuritySettingsService.auditLog;
-        
-        if (entries.length === 0) {
-            table.classList.add('d-none');
-            emptyState.classList.remove('d-none');
-            return;
-        }
-        
-        table.classList.remove('d-none');
-        emptyState.classList.add('d-none');
-        
-        var cellStyle = 'padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5; vertical-align: middle;';
-        
-        tbody.innerHTML = entries.map(function(entry) {
-            var actionBadgeClass = getActionBadgeClass(entry.action_type);
-            return '<tr>' +
-                '<td style="' + cellStyle + ' white-space: nowrap;">' + escapeHtml(entry.timestamp) + '</td>' +
-                '<td style="' + cellStyle + '">' + escapeHtml(entry.actor) + '</td>' +
-                '<td style="' + cellStyle + '"><span class="badge ' + actionBadgeClass + '" style="font-size: 0.7rem; font-weight: 500;">' + formatActionType(entry.action_type) + '</span></td>' +
-                '<td style="' + cellStyle + '">' + escapeHtml(entry.summary) + '</td>' +
-                '<td style="' + cellStyle + ' font-family: monospace; font-size: 0.75rem; color: #6b7280;">' + escapeHtml(entry.source_ip) + '</td>' +
-            '</tr>';
-        }).join('');
+        return fetch(url, opts).then(function(response) {
+            if (!response.ok) {
+                return response.json().catch(function() { return { message: 'Request failed' }; }).then(function(err) {
+                    throw new Error(err.message || 'HTTP ' + response.status);
+                });
+            }
+            return response.json();
+        });
     }
-    
-    function getActionBadgeClass(actionType) {
-        if (actionType.indexOf('MFA') >= 0) return 'bg-primary';
-        if (actionType.indexOf('IP_ALLOWLIST') >= 0) return 'bg-info';
-        if (actionType.indexOf('RETENTION') >= 0) return 'bg-secondary';
-        if (actionType.indexOf('LOGIN_BLOCKED') >= 0) return 'bg-danger';
-        return 'bg-secondary';
+
+    function showToast(type, message) {
+        var container = document.getElementById('toastContainer');
+        var toast = document.createElement('div');
+        toast.className = 'qs-toast ' + type;
+        var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        toast.innerHTML = '<i class="fas ' + icon + '"></i><span>' + escapeHtml(message) + '</span>';
+        container.appendChild(toast);
+        requestAnimationFrame(function() {
+            toast.classList.add('show');
+        });
+        setTimeout(function() {
+            toast.classList.remove('show');
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3500);
     }
-    
-    function formatActionType(actionType) {
-        return actionType.replace(/_/g, ' ');
+
+    function showSaveIndicator() {
+        var indicator = document.getElementById('saveIndicator');
+        indicator.classList.add('show');
+        setTimeout(function() { indicator.classList.remove('show'); }, 2000);
     }
-    
+
     function escapeHtml(str) {
         if (!str) return '';
         var div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
-    
-    function showSaveIndicator() {
-        var indicator = document.getElementById('saveIndicator');
-        indicator.classList.add('show');
-        setTimeout(function() {
-            indicator.classList.remove('show');
-        }, 2000);
+
+    function setButtonLoading(btn, loading) {
+        if (!btn) return;
+        if (loading) {
+            btn.disabled = true;
+            btn._originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+        } else {
+            btn.disabled = false;
+            if (btn._originalHtml) btn.innerHTML = btn._originalHtml;
+        }
     }
-    
-    function emitAuditEvent(action, details, type) {
-        // TODO: Replace with actual API call
-        // details is a structured object containing: actor, timestamp, source_ip, old_value, new_value
-        SecuritySettingsService.addAuditEntry(action, details, type);
+
+    apiCall('/api/account/security/settings').then(function(result) {
+        var data = result.data;
+        populateRetention(data.retention);
+        populateMasking(data.masking);
+        populateAntiFlood(data.anti_flood);
+        populateOutOfHours(data.out_of_hours);
+        populateIpAllowlist(data.ip_allowlist);
+
+        document.getElementById('securityLoadingState').classList.add('d-none');
+        document.getElementById('securityContent').classList.remove('d-none');
+    }).catch(function(err) {
+        document.getElementById('securityLoadingState').innerHTML =
+            '<i class="fas fa-exclamation-triangle" style="color: #dc2626;"></i>' +
+            '<span style="color: #dc2626;">Failed to load security settings. Please refresh the page.</span>';
+        console.error('Failed to load security settings:', err);
+    });
+
+    apiCall('/api/account/security/ip-allowlist/current-ip').then(function(result) {
+        currentIp = result.data.ip_address;
+        var displays = document.querySelectorAll('#currentIPDisplay, #currentUserIP');
+        displays.forEach(function(el) { el.textContent = currentIp; });
+    }).catch(function() {
+        currentIp = '';
+    });
+
+    function populateRetention(data) {
+        var select = document.getElementById('retentionPeriod');
+        if (!select) return;
+        select.value = String(data.message_retention_days);
+
+        select.addEventListener('change', function() {
+            var val = parseInt(this.value, 10);
+            apiCall('/api/account/security/retention', 'PUT', { message_retention_days: val })
+                .then(function() {
+                    showToast('success', 'Retention period updated');
+                    showSaveIndicator();
+                })
+                .catch(function(err) {
+                    showToast('error', err.message);
+                });
+        });
     }
-    
-    // MFA Required Toggle
+
+    function populateMasking(data) {
+        var maskMobile = document.getElementById('maskMobile');
+        var maskContent = document.getElementById('maskContent');
+        var maskSentTime = document.getElementById('maskSentTime');
+        var maskDeliveredTime = document.getElementById('maskDeliveredTime');
+        var ownerBypass = document.getElementById('ownerBypassMasking');
+
+        if (maskMobile) maskMobile.checked = data.config.mask_mobile;
+        if (maskContent) maskContent.checked = data.config.mask_content;
+        if (maskSentTime) maskSentTime.checked = data.config.mask_sent_time;
+        if (maskDeliveredTime) maskDeliveredTime.checked = data.config.mask_delivered_time;
+        if (ownerBypass) ownerBypass.checked = data.owner_bypass_masking;
+
+        function saveMasking() {
+            if (savingFlags.masking) return;
+            savingFlags.masking = true;
+
+            apiCall('/api/account/security/masking', 'PUT', {
+                mask_mobile: maskMobile ? maskMobile.checked : false,
+                mask_content: maskContent ? maskContent.checked : false,
+                mask_sent_time: maskSentTime ? maskSentTime.checked : false,
+                mask_delivered_time: maskDeliveredTime ? maskDeliveredTime.checked : false,
+                owner_bypass_masking: ownerBypass ? ownerBypass.checked : true,
+            }).then(function() {
+                showToast('success', 'Masking settings updated');
+                showSaveIndicator();
+            }).catch(function(err) {
+                showToast('error', err.message);
+            }).finally(function() {
+                savingFlags.masking = false;
+            });
+        }
+
+        [maskMobile, maskContent, maskSentTime, maskDeliveredTime, ownerBypass].forEach(function(el) {
+            if (el) el.addEventListener('change', saveMasking);
+        });
+    }
+
+    function populateAntiFlood(data) {
+        var toggle = document.getElementById('antiFloodToggle');
+        var options = document.getElementById('antiFloodOptions');
+        var windowSelect = document.getElementById('antiFloodWindow');
+        var modeSelector = document.getElementById('antiFloodModeSelector');
+        var currentMode = data.mode || 'enforce';
+
+        if (!toggle) return;
+        toggle.checked = data.enabled;
+        if (data.enabled) options.classList.remove('d-none');
+        if (windowSelect) windowSelect.value = String(data.window_hours);
+
+        function setActiveMode(mode) {
+            currentMode = mode;
+            modeSelector.querySelectorAll('.mode-option').forEach(function(opt) {
+                if (opt.dataset.mode === mode) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        }
+        setActiveMode(data.enabled ? currentMode : 'enforce');
+
+        function saveAntiFlood() {
+            if (savingFlags.antiFlood) return;
+            savingFlags.antiFlood = true;
+
+            var enabled = toggle.checked;
+            apiCall('/api/account/security/anti-flood', 'PUT', {
+                enabled: enabled,
+                mode: enabled ? currentMode : 'off',
+                window_hours: parseInt(windowSelect.value, 10),
+            }).then(function() {
+                showToast('success', 'Anti-flood settings updated');
+                showSaveIndicator();
+            }).catch(function(err) {
+                showToast('error', err.message);
+            }).finally(function() {
+                savingFlags.antiFlood = false;
+            });
+        }
+
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                options.classList.remove('d-none');
+            } else {
+                options.classList.add('d-none');
+            }
+            saveAntiFlood();
+        });
+
+        modeSelector.querySelectorAll('.mode-option').forEach(function(opt) {
+            opt.addEventListener('click', function() {
+                setActiveMode(this.dataset.mode);
+                saveAntiFlood();
+            });
+        });
+
+        windowSelect.addEventListener('change', saveAntiFlood);
+    }
+
+    function populateOutOfHours(data) {
+        var toggle = document.getElementById('outOfHoursToggle');
+        var options = document.getElementById('outOfHoursOptions');
+        var startInput = document.getElementById('oohStartTime');
+        var endInput = document.getElementById('oohEndTime');
+        var timezoneEl = document.getElementById('oohTimezone');
+        var actionSelector = document.getElementById('oohActionSelector');
+        var currentAction = data.action || 'reject';
+
+        if (!toggle) return;
+        toggle.checked = data.enabled;
+        if (data.enabled) options.classList.remove('d-none');
+        if (startInput) startInput.value = data.start || '21:00';
+        if (endInput) endInput.value = data.end || '08:00';
+        if (timezoneEl) timezoneEl.textContent = data.timezone || 'Europe/London';
+
+        function setActiveAction(action) {
+            currentAction = action;
+            actionSelector.querySelectorAll('.mode-option').forEach(function(opt) {
+                if (opt.dataset.action === action) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        }
+        setActiveAction(currentAction);
+
+        function saveOutOfHours() {
+            if (savingFlags.outOfHours) return;
+            savingFlags.outOfHours = true;
+
+            var enabled = toggle.checked;
+            var body = { enabled: enabled };
+            if (enabled) {
+                body.start = startInput.value;
+                body.end = endInput.value;
+                body.action = currentAction;
+            }
+
+            apiCall('/api/account/security/out-of-hours', 'PUT', body)
+                .then(function() {
+                    showToast('success', 'Out-of-hours settings updated');
+                    showSaveIndicator();
+                })
+                .catch(function(err) {
+                    showToast('error', err.message);
+                })
+                .finally(function() {
+                    savingFlags.outOfHours = false;
+                });
+        }
+
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                options.classList.remove('d-none');
+            } else {
+                options.classList.add('d-none');
+            }
+            saveOutOfHours();
+        });
+
+        actionSelector.querySelectorAll('.mode-option').forEach(function(opt) {
+            opt.addEventListener('click', function() {
+                setActiveAction(this.dataset.action);
+                saveOutOfHours();
+            });
+        });
+
+        startInput.addEventListener('change', saveOutOfHours);
+        endInput.addEventListener('change', saveOutOfHours);
+    }
+
+    function populateIpAllowlist(data) {
+        ipEntries = data.entries || [];
+        ipLimit = data.limit || 50;
+        var toggle = document.getElementById('ipAllowlistToggle');
+
+        if (toggle) {
+            toggle.checked = data.enabled;
+            updateIpWarning(data.enabled);
+        }
+
+        updateIpCounter();
+        renderIPList();
+        bindIpToggle();
+        bindAddIp();
+        bindAddCurrentIp();
+    }
+
+    function updateIpCounter() {
+        var counter = document.getElementById('ipCounter');
+        if (counter) counter.textContent = ipEntries.length + ' / ' + ipLimit + ' IPs';
+    }
+
+    function updateIpWarning(enabled) {
+        var warning = document.getElementById('ipAllowlistWarning');
+        if (warning) {
+            if (enabled) {
+                warning.classList.remove('d-none');
+            } else {
+                warning.classList.add('d-none');
+            }
+        }
+    }
+
+    function renderIPList() {
+        var tableBody = document.getElementById('ipAllowlistTableBody');
+        var emptyState = document.getElementById('ipAllowlistEmpty');
+        var table = document.getElementById('ipAllowlistTable');
+
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (ipEntries.length === 0) {
+            if (table) table.classList.add('d-none');
+            if (emptyState) emptyState.classList.remove('d-none');
+            return;
+        }
+
+        if (table) table.classList.remove('d-none');
+        if (emptyState) emptyState.classList.add('d-none');
+
+        var cellStyle = 'padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5; vertical-align: middle;';
+
+        ipEntries.forEach(function(item) {
+            var row = document.createElement('tr');
+            var statusBg = item.status === 'active' ? '#dcfce7' : '#fee2e2';
+            var statusColor = item.status === 'active' ? '#166534' : '#991b1b';
+            var createdDate = item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB') : '-';
+
+            row.innerHTML =
+                '<td style="' + cellStyle + '">' + escapeHtml(item.label || '-') + '</td>' +
+                '<td style="' + cellStyle + ' font-family: monospace;">' + escapeHtml(item.ip_address) + '</td>' +
+                '<td style="' + cellStyle + '"><span class="badge" style="background: ' + statusBg + '; color: ' + statusColor + '; font-weight: 500;">' + escapeHtml(item.status) + '</span></td>' +
+                '<td style="' + cellStyle + '">' + escapeHtml(createdDate) + '</td>' +
+                '<td style="' + cellStyle + '">' +
+                    '<button type="button" class="btn btn-sm p-1 remove-ip-btn" data-id="' + escapeHtml(item.id) + '" data-ip="' + escapeHtml(item.ip_address) + '" data-label="' + escapeHtml(item.label || '') + '" title="Remove" style="color: #6c757d;"><i class="fas fa-trash-alt"></i></button>' +
+                '</td>';
+            tableBody.appendChild(row);
+        });
+
+        tableBody.querySelectorAll('.remove-ip-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                openRemoveIPModal(this.dataset.id, this.dataset.ip, this.dataset.label);
+            });
+        });
+
+        updateIpCounter();
+    }
+
+    function openRemoveIPModal(id, ip, label) {
+        document.getElementById('removeIPId').value = id;
+        document.getElementById('removeIPDisplay').textContent = ip;
+        document.getElementById('removeIPLabelDisplay').textContent = label ? '(' + label + ')' : '';
+
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeIPModal'));
+        modal.show();
+    }
+
+    function bindIpToggle() {
+        var toggle = document.getElementById('ipAllowlistToggle');
+        if (!toggle) return;
+
+        toggle.addEventListener('change', function() {
+            var self = this;
+            var ipAllowlistError = document.getElementById('ipAllowlistError');
+
+            if (self.checked) {
+                if (ipEntries.length === 0) {
+                    self.checked = false;
+                    if (ipAllowlistError) ipAllowlistError.classList.remove('d-none');
+                    return;
+                }
+                if (ipAllowlistError) ipAllowlistError.classList.add('d-none');
+
+                self.checked = false;
+                var confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmIPAllowlistModal'));
+                confirmModal.show();
+            } else {
+                apiCall('/api/account/security/ip-allowlist/toggle', 'PUT', { enabled: false })
+                    .then(function() {
+                        updateIpWarning(false);
+                        showToast('success', 'IP allowlist disabled');
+                        showSaveIndicator();
+                    })
+                    .catch(function(err) {
+                        self.checked = true;
+                        showToast('error', err.message);
+                    });
+            }
+        });
+
+        var confirmBtn = document.getElementById('confirmEnableIPAllowlist');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                setButtonLoading(this, true);
+                var self = this;
+
+                apiCall('/api/account/security/ip-allowlist/toggle', 'PUT', { enabled: true })
+                    .then(function() {
+                        var toggle = document.getElementById('ipAllowlistToggle');
+                        if (toggle) toggle.checked = true;
+                        updateIpWarning(true);
+                        showToast('success', 'IP allowlist enabled');
+                        showSaveIndicator();
+
+                        return apiCall('/api/account/security/ip-allowlist');
+                    })
+                    .then(function(result) {
+                        ipEntries = result.data.entries || [];
+                        renderIPList();
+                    })
+                    .catch(function(err) {
+                        showToast('error', err.message);
+                    })
+                    .finally(function() {
+                        setButtonLoading(self, false);
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('confirmIPAllowlistModal'));
+                        if (modal) modal.hide();
+                    });
+            });
+        }
+
+        var cancelBtn = document.getElementById('cancelIPAllowlist');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                var toggle = document.getElementById('ipAllowlistToggle');
+                if (toggle) toggle.checked = false;
+            });
+        }
+    }
+
+    function bindAddIp() {
+        var confirmBtn = document.getElementById('confirmAddIP');
+        if (!confirmBtn) return;
+
+        confirmBtn.addEventListener('click', function() {
+            var ipInput = document.getElementById('newIPAddress');
+            var labelInput = document.getElementById('newIPLabel');
+            var errorEl = document.getElementById('newIPAddressError');
+            var ip = ipInput.value.trim();
+            var label = labelInput.value.trim() || null;
+
+            if (!ip) {
+                ipInput.classList.add('is-invalid');
+                errorEl.textContent = 'Please enter an IP address';
+                return;
+            }
+            ipInput.classList.remove('is-invalid');
+
+            setButtonLoading(this, true);
+            var self = this;
+
+            apiCall('/api/account/security/ip-allowlist', 'POST', { ip_address: ip, label: label })
+                .then(function(result) {
+                    ipEntries.unshift(result.data);
+                    renderIPList();
+
+                    var ipAllowlistError = document.getElementById('ipAllowlistError');
+                    if (ipAllowlistError) ipAllowlistError.classList.add('d-none');
+
+                    showToast('success', 'IP address added');
+                    showSaveIndicator();
+                    ipInput.value = '';
+                    labelInput.value = '';
+
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('addIPModal'));
+                    if (modal) modal.hide();
+                })
+                .catch(function(err) {
+                    ipInput.classList.add('is-invalid');
+                    errorEl.textContent = err.message;
+                })
+                .finally(function() {
+                    setButtonLoading(self, false);
+                });
+        });
+    }
+
+    function bindAddCurrentIp() {
+        var btn = document.getElementById('addCurrentIPBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            if (!currentIp) {
+                showToast('error', 'Could not detect your current IP');
+                return;
+            }
+
+            setButtonLoading(this, true);
+            var self = this;
+
+            apiCall('/api/account/security/ip-allowlist', 'POST', { ip_address: currentIp, label: 'My Current IP' })
+                .then(function(result) {
+                    ipEntries.unshift(result.data);
+                    renderIPList();
+
+                    var ipAllowlistError = document.getElementById('ipAllowlistError');
+                    if (ipAllowlistError) ipAllowlistError.classList.add('d-none');
+
+                    showToast('success', 'Current IP added');
+                    showSaveIndicator();
+                })
+                .catch(function(err) {
+                    showToast('error', err.message);
+                })
+                .finally(function() {
+                    setButtonLoading(self, false);
+                });
+        });
+    }
+
+    var confirmRemoveIPBtn = document.getElementById('confirmRemoveIP');
+    if (confirmRemoveIPBtn) {
+        confirmRemoveIPBtn.addEventListener('click', function() {
+            var id = document.getElementById('removeIPId').value;
+            setButtonLoading(this, true);
+            var self = this;
+
+            apiCall('/api/account/security/ip-allowlist/' + id, 'DELETE')
+                .then(function() {
+                    ipEntries = ipEntries.filter(function(e) { return e.id !== id; });
+                    renderIPList();
+                    showToast('success', 'IP address removed');
+                    showSaveIndicator();
+                })
+                .catch(function(err) {
+                    showToast('error', err.message);
+                })
+                .finally(function() {
+                    setButtonLoading(self, false);
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('removeIPModal'));
+                    if (modal) modal.hide();
+                });
+        });
+    }
+
     var mfaRequiredToggle = document.getElementById('mfaRequiredToggle');
     var mfaWarning = document.getElementById('mfaWarning');
-    
+
     if (mfaRequiredToggle) {
-        // Initialize from service state (default: ON)
-        mfaRequiredToggle.checked = SecuritySettingsService.settings.mfa_required;
-        mfaWarning.style.display = SecuritySettingsService.settings.mfa_required ? 'none' : 'flex';
-        
+        mfaRequiredToggle.checked = AccountPolicyService.isMfaRequired();
+        if (mfaRequiredToggle.checked) { mfaWarning.classList.add('d-none'); } else { mfaWarning.classList.remove('d-none'); }
+
         mfaRequiredToggle.addEventListener('change', function() {
-            var oldValue = SecuritySettingsService.settings.mfa_required;
-            var newValue = this.checked;
-            
-            SecuritySettingsService.save('mfa_required', newValue);
-            
-            // Show warning when MFA is disabled
-            mfaWarning.style.display = newValue ? 'none' : 'flex';
-            
-            // Emit audit event: MFA_REQUIRED_CHANGED
-            emitAuditEvent('MFA_REQUIRED_CHANGED', {
-                actor: 'Sarah Mitchell', // TODO: Get from session
-                timestamp: new Date().toISOString(),
-                source_ip: '192.168.1.100', // TODO: Get from request
-                old_value: oldValue,
-                new_value: newValue
-            }, 'mfa');
+            AccountPolicyService.setMfaRequired(this.checked);
+            if (this.checked) { mfaWarning.classList.add('d-none'); } else { mfaWarning.classList.remove('d-none'); }
             showSaveIndicator();
         });
     }
-    
-    // MFA Allowed Methods
+
     var mfaMethodAuthenticator = document.getElementById('mfaMethodAuthenticator');
     var mfaMethodSmsRcs = document.getElementById('mfaMethodSmsRcs');
     var mfaMethodsWarning = document.getElementById('mfaMethodsWarning');
-    
+
     function getEnabledMethods() {
         return {
             authenticator: mfaMethodAuthenticator ? mfaMethodAuthenticator.checked : false,
             sms_rcs: mfaMethodSmsRcs ? mfaMethodSmsRcs.checked : false
         };
     }
-    
+
     function validateMfaMethods() {
         var methods = getEnabledMethods();
         var hasAtLeastOne = methods.authenticator || methods.sms_rcs;
         if (mfaMethodsWarning) {
-            mfaMethodsWarning.style.display = hasAtLeastOne ? 'none' : 'flex';
+            if (hasAtLeastOne) { mfaMethodsWarning.classList.add('d-none'); } else { mfaMethodsWarning.classList.remove('d-none'); }
         }
         return hasAtLeastOne;
     }
-    
+
     function handleMfaMethodChange() {
-        var oldMethods = JSON.parse(JSON.stringify(SecuritySettingsService.settings.mfa_methods));
+        var oldMethods = AccountPolicyService.getMfaMethods();
         var newMethods = getEnabledMethods();
-        
-        // Prevent unchecking if it would leave no methods enabled
+
         if (!newMethods.authenticator && !newMethods.sms_rcs) {
-            // Revert the change
             if (mfaMethodAuthenticator) mfaMethodAuthenticator.checked = oldMethods.authenticator;
             if (mfaMethodSmsRcs) mfaMethodSmsRcs.checked = oldMethods.sms_rcs;
             validateMfaMethods();
             return;
         }
-        
-        SecuritySettingsService.save('mfa_methods', newMethods);
+
+        if (newMethods.authenticator !== oldMethods.authenticator) {
+            AccountPolicyService.setMfaMethod('authenticator', newMethods.authenticator);
+        }
+        if (newMethods.sms_rcs !== oldMethods.sms_rcs) {
+            AccountPolicyService.setMfaMethod('sms_rcs', newMethods.sms_rcs);
+        }
         validateMfaMethods();
-        
-        // Emit audit event: MFA_ALLOWED_METHODS_CHANGED
-        emitAuditEvent('MFA_ALLOWED_METHODS_CHANGED', {
-            actor: 'Sarah Mitchell', // TODO: Get from session
-            timestamp: new Date().toISOString(),
-            source_ip: '192.168.1.100', // TODO: Get from request
-            old_value: oldMethods,
-            new_value: newMethods
-        }, 'mfa');
         showSaveIndicator();
     }
-    
-    // Initialize MFA methods from service state
+
     if (mfaMethodAuthenticator) {
-        mfaMethodAuthenticator.checked = SecuritySettingsService.settings.mfa_methods.authenticator;
+        mfaMethodAuthenticator.checked = AccountPolicyService.getMfaMethods().authenticator;
         mfaMethodAuthenticator.addEventListener('change', handleMfaMethodChange);
     }
     if (mfaMethodSmsRcs) {
-        mfaMethodSmsRcs.checked = SecuritySettingsService.settings.mfa_methods.sms_rcs;
+        mfaMethodSmsRcs.checked = AccountPolicyService.getMfaMethods().sms_rcs;
         mfaMethodSmsRcs.addEventListener('change', handleMfaMethodChange);
     }
     validateMfaMethods();
-    
-    // IP Allowlist Toggle
-    var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
-    var ipAllowlistContainer = document.getElementById('ipAllowlistContainer');
-    var ipAllowlistWarning = document.getElementById('ipAllowlistWarning');
-    var ipAllowlistEl = document.getElementById('ipAllowlist');
-    
-    // IP Validation Functions
-    function validateIPv4(ip) {
-        var parts = ip.split('.');
-        if (parts.length !== 4) return false;
-        for (var i = 0; i < 4; i++) {
-            var num = parseInt(parts[i], 10);
-            if (isNaN(num) || num < 0 || num > 255 || parts[i] !== String(num)) return false;
-        }
-        return true;
-    }
-    
-    function validateIPEntry(ipStr, excludeIndex) {
-        ipStr = ipStr.trim();
-        
-        // Check for 0.0.0.0/0 explicitly
-        if (ipStr === '0.0.0.0/0') {
-            return { valid: false, error: 'Cannot add 0.0.0.0/0 - this would allow all IPs' };
-        }
-        
-        var hasCidr = ipStr.includes('/');
-        var ip, prefix;
-        
-        if (hasCidr) {
-            var parts = ipStr.split('/');
-            if (parts.length !== 2) {
-                return { valid: false, error: 'Invalid CIDR format' };
-            }
-            ip = parts[0];
-            prefix = parseInt(parts[1], 10);
-            
-            // Validate prefix range /8 to /32
-            if (isNaN(prefix) || prefix < 8 || prefix > 32) {
-                return { valid: false, error: 'CIDR prefix must be between /8 and /32' };
-            }
-        } else {
-            ip = ipStr;
-        }
-        
-        // Validate IPv4
-        if (!validateIPv4(ip)) {
-            return { valid: false, error: 'Invalid IPv4 address' };
-        }
-        
-        // Check for duplicates
-        var isDuplicate = SecuritySettingsService.settings.ip_allowlist.some(function(item, idx) {
-            if (excludeIndex !== undefined && idx === excludeIndex) return false;
-            return item.ip === ipStr;
-        });
-        
-        if (isDuplicate) {
-            return { valid: false, error: 'This IP address already exists in the allowlist' };
-        }
-        
-        return { valid: true };
-    }
-    
-    // Render IP list as table from service state
-    function renderIPList() {
-        var tableBody = document.getElementById('ipAllowlistTableBody');
-        var emptyState = document.getElementById('ipAllowlistEmpty');
-        var table = document.getElementById('ipAllowlistTable');
-        
-        if (!tableBody) return;
-        tableBody.innerHTML = '';
-        
-        var entries = SecuritySettingsService.settings.ip_allowlist;
-        
-        if (entries.length === 0) {
-            if (table) table.classList.add('d-none');
-            if (emptyState) emptyState.classList.remove('d-none');
-            return;
-        }
-        
-        if (table) table.classList.remove('d-none');
-        if (emptyState) emptyState.classList.add('d-none');
-        
-        entries.forEach(function(item, index) {
-            var row = document.createElement('tr');
-            row.innerHTML = 
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.label || '-') + '</td>' +
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5; font-family: monospace;">' + item.ip + '</td>' +
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.created_by || 'System') + '</td>' +
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.created_date || '-') + '</td>' +
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;"><span class="badge" style="background: #dcfce7; color: #166534; font-weight: 500;">Active</span></td>' +
-                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' +
-                    '<button type="button" class="btn btn-sm p-1 edit-ip-btn" data-index="' + index + '" title="Edit" style="color: #6c757d;"><i class="fas fa-edit"></i></button>' +
-                    '<button type="button" class="btn btn-sm p-1 remove-ip-btn" data-index="' + index + '" title="Remove" style="color: #6c757d;"><i class="fas fa-trash-alt"></i></button>' +
-                '</td>';
-            tableBody.appendChild(row);
-        });
-        
-        // Bind edit/remove handlers
-        tableBody.querySelectorAll('.edit-ip-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var idx = parseInt(this.dataset.index, 10);
-                openEditIPModal(idx);
-            });
-        });
-        
-        tableBody.querySelectorAll('.remove-ip-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var idx = parseInt(this.dataset.index, 10);
-                openRemoveIPModal(idx);
-            });
-        });
-    }
-    
-    function openEditIPModal(index) {
-        var ipList = AccountPolicyService.getIpAllowlist();
-        var entry = ipList[index];
-        if (!entry) return;
-        
-        document.getElementById('editIPIndex').value = index;
-        document.getElementById('editIPAddress').value = entry.ip;
-        document.getElementById('editIPLabel').value = entry.label || '';
-        document.getElementById('editIPAddress').classList.remove('is-invalid');
-        
-        var modal = new bootstrap.Modal(document.getElementById('editIPModal'));
-        modal.show();
-    }
-    
-    function openRemoveIPModal(index) {
-        var ipList = AccountPolicyService.getIpAllowlist();
-        var entry = ipList[index];
-        if (!entry) return;
-        
-        document.getElementById('removeIPIndex').value = index;
-        document.getElementById('removeIPDisplay').textContent = entry.ip;
-        document.getElementById('removeIPLabelDisplay').textContent = entry.label ? '(' + entry.label + ')' : '';
-        
-        var modal = new bootstrap.Modal(document.getElementById('removeIPModal'));
-        modal.show();
-    }
-    
-    function getCurrentDate() {
-        var d = new Date();
-        var day = String(d.getDate()).padStart(2, '0');
-        var month = String(d.getMonth() + 1).padStart(2, '0');
-        var year = d.getFullYear();
-        return day + '-' + month + '-' + year;
-    }
-    
-    if (ipAllowlistToggle) {
-        ipAllowlistToggle.checked = SecuritySettingsService.settings.ip_allowlist_enabled;
-        if (ipAllowlistContainer) {
-            ipAllowlistContainer.style.display = SecuritySettingsService.settings.ip_allowlist_enabled ? 'block' : 'none';
-        }
-        if (ipAllowlistWarning) {
-            ipAllowlistWarning.style.display = SecuritySettingsService.settings.ip_allowlist_enabled ? 'flex' : 'none';
-        }
-        
-        // Render initial IP list
-        renderIPList();
-        
-        // Render initial audit log table
-        renderAuditLogTable();
-        
-        ipAllowlistToggle.addEventListener('change', function() {
-            var toggle = this;
-            var ipAllowlistError = document.getElementById('ipAllowlistError');
-            
-            if (toggle.checked) {
-                // Hard guardrail: Cannot enable with 0 entries
-                if (SecuritySettingsService.settings.ip_allowlist.length === 0) {
-                    toggle.checked = false;
-                    if (ipAllowlistError) {
-                        ipAllowlistError.classList.remove('d-none');
-                    }
-                    return;
-                }
-                
-                // Hide error if previously shown
-                if (ipAllowlistError) {
-                    ipAllowlistError.classList.add('d-none');
-                }
-                
-                // Show confirmation modal before enabling
-                toggle.checked = false; // Reset until confirmed
-                var confirmModal = new bootstrap.Modal(document.getElementById('confirmIPAllowlistModal'));
-                confirmModal.show();
-            } else {
-                // Disabling - no confirmation needed
-                var oldValue = SecuritySettingsService.settings.ip_allowlist_enabled;
-                SecuritySettingsService.save('ip_allowlist_enabled', false);
-                if (ipAllowlistWarning) {
-                    ipAllowlistWarning.style.display = 'none';
-                }
-                emitAuditEvent('IP_ALLOWLIST_ENABLED_CHANGED', { 
-                    old_value: oldValue, 
-                    new_value: false,
-                    actor: 'Sarah Mitchell',
-                    source_ip: '192.168.1.100'
-                }, 'ip');
-                showSaveIndicator();
-            }
-        });
-    }
-    
-    // Confirm enable IP allowlist
-    var confirmEnableIPAllowlistBtn = document.getElementById('confirmEnableIPAllowlist');
-    if (confirmEnableIPAllowlistBtn) {
-        confirmEnableIPAllowlistBtn.addEventListener('click', function() {
-            var oldValue = SecuritySettingsService.settings.ip_allowlist_enabled;
-            SecuritySettingsService.save('ip_allowlist_enabled', true);
-            
-            var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
-            if (ipAllowlistToggle) {
-                ipAllowlistToggle.checked = true;
-            }
-            
-            var ipAllowlistWarning = document.getElementById('ipAllowlistWarning');
-            if (ipAllowlistWarning) {
-                ipAllowlistWarning.style.display = 'flex';
-            }
-            
-            emitAuditEvent('IP_ALLOWLIST_ENABLED_CHANGED', { 
-                old_value: oldValue, 
-                new_value: true,
-                actor: 'Sarah Mitchell',
-                source_ip: '192.168.1.100'
-            }, 'ip');
-            showSaveIndicator();
-            
-            var modal = bootstrap.Modal.getInstance(document.getElementById('confirmIPAllowlistModal'));
-            if (modal) modal.hide();
-        });
-    }
-    
-    // Cancel IP allowlist enable
-    var cancelIPAllowlistBtn = document.getElementById('cancelIPAllowlist');
-    if (cancelIPAllowlistBtn) {
-        cancelIPAllowlistBtn.addEventListener('click', function() {
-            var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
-            if (ipAllowlistToggle) {
-                ipAllowlistToggle.checked = false;
-            }
-        });
-    }
-    
-    // Add Current IP Button
-    var addCurrentIPBtn = document.getElementById('addCurrentIPBtn');
-    if (addCurrentIPBtn) {
-        addCurrentIPBtn.addEventListener('click', function() {
-            var currentIP = SecuritySettingsService.settings.current_ip;
-            var validation = validateIPEntry(currentIP);
-            
-            if (!validation.valid) {
-                alert(validation.error);
-                return;
-            }
-            
-            var newEntry = {
-                ip: currentIP,
-                label: 'My Current IP',
-                created_by: 'Sarah Mitchell',
-                created_date: getCurrentDate(),
-                status: 'active'
-            };
-            
-            AccountPolicyService.addIpEntry(newEntry);
-            
-            // Hide error message now that there's at least one IP
-            var ipAllowlistError = document.getElementById('ipAllowlistError');
-            if (ipAllowlistError) {
-                ipAllowlistError.classList.add('d-none');
-            }
-            
-            renderIPList();
-            
-            emitAuditEvent('IP_ALLOWLIST_ENTRY_ADDED', { 
-                ip: currentIP, 
-                label: newEntry.label,
-                actor: 'Sarah Mitchell',
-                timestamp: new Date().toISOString(),
-                source_ip: currentIP
-            }, 'ip');
-            showSaveIndicator();
-        });
-    }
-    
-    // Add IP
-    var confirmAddIPBtn = document.getElementById('confirmAddIP');
-    if (confirmAddIPBtn) {
-        confirmAddIPBtn.addEventListener('click', function() {
-            var ipInput = document.getElementById('newIPAddress');
-            var labelInput = document.getElementById('newIPLabel');
-            var errorEl = document.getElementById('newIPAddressError');
-            var ip = ipInput.value.trim();
-            var label = labelInput.value.trim() || 'Custom';
-            
-            if (!ip) {
-                ipInput.classList.add('is-invalid');
-                errorEl.textContent = 'Please enter an IP address';
-                return;
-            }
-            
-            var validation = AccountPolicyService.validateIpEntry(ip);
-            if (!validation.valid) {
-                ipInput.classList.add('is-invalid');
-                errorEl.textContent = validation.error;
-                return;
-            }
-            
-            ipInput.classList.remove('is-invalid');
-            
-            var newEntry = {
-                ip: ip,
-                label: label,
-                created_by: 'Sarah Mitchell',
-                created_date: getCurrentDate(),
-                status: 'active'
-            };
-            
-            AccountPolicyService.addIpEntry(newEntry);
-            
-            // Hide error message now that there's at least one IP
-            var ipAllowlistError = document.getElementById('ipAllowlistError');
-            if (ipAllowlistError) {
-                ipAllowlistError.classList.add('d-none');
-            }
-            
-            renderIPList();
-            
-            emitAuditEvent('IP_ALLOWLIST_ENTRY_ADDED', { 
-                ip: ip, 
-                label: label,
-                actor: 'Sarah Mitchell',
-                timestamp: new Date().toISOString(),
-                source_ip: SecuritySettingsService.settings.current_ip
-            }, 'ip');
-            showSaveIndicator();
-            
-            ipInput.value = '';
-            labelInput.value = '';
-            var modal = bootstrap.Modal.getInstance(document.getElementById('addIPModal'));
-            if (modal) modal.hide();
-        });
-    }
-    
-    // Edit IP
-    var confirmEditIPBtn = document.getElementById('confirmEditIP');
-    if (confirmEditIPBtn) {
-        confirmEditIPBtn.addEventListener('click', function() {
-            var indexInput = document.getElementById('editIPIndex');
-            var ipInput = document.getElementById('editIPAddress');
-            var labelInput = document.getElementById('editIPLabel');
-            var errorEl = document.getElementById('editIPAddressError');
-            var index = parseInt(indexInput.value, 10);
-            var ip = ipInput.value.trim();
-            var label = labelInput.value.trim() || 'Custom';
-            
-            if (!ip) {
-                ipInput.classList.add('is-invalid');
-                errorEl.textContent = 'Please enter an IP address';
-                return;
-            }
-            
-            var validation = validateIPEntry(ip, index);
-            if (!validation.valid) {
-                ipInput.classList.add('is-invalid');
-                errorEl.textContent = validation.error;
-                return;
-            }
-            
-            ipInput.classList.remove('is-invalid');
-            
-            var ipList = AccountPolicyService.getIpAllowlist();
-            var oldEntry = ipList[index];
-            var oldIP = oldEntry.ip;
-            var oldLabel = oldEntry.label;
-            
-            var updatedEntry = Object.assign({}, oldEntry, { ip: ip, label: label });
-            AccountPolicyService.updateIpEntry(index, updatedEntry);
-            
-            renderIPList();
-            
-            emitAuditEvent('IP_ALLOWLIST_ENTRY_EDITED', { 
-                old_ip: oldIP,
-                old_label: oldLabel,
-                new_ip: ip, 
-                new_label: label,
-                actor: 'Sarah Mitchell',
-                timestamp: new Date().toISOString(),
-                source_ip: SecuritySettingsService.settings.current_ip
-            }, 'ip');
-            showSaveIndicator();
-            
-            var modal = bootstrap.Modal.getInstance(document.getElementById('editIPModal'));
-            if (modal) modal.hide();
-        });
-    }
-    
-    // Remove IP
-    var confirmRemoveIPBtn = document.getElementById('confirmRemoveIP');
-    if (confirmRemoveIPBtn) {
-        confirmRemoveIPBtn.addEventListener('click', function() {
-            var indexInput = document.getElementById('removeIPIndex');
-            var index = parseInt(indexInput.value, 10);
-            
-            var ipList = AccountPolicyService.getIpAllowlist();
-            var entry = ipList[index];
-            var removedIP = entry.ip;
-            var removedLabel = entry.label;
-            
-            AccountPolicyService.removeIpEntry(index);
-            
-            renderIPList();
-            
-            emitAuditEvent('IP_ALLOWLIST_ENTRY_REMOVED', { 
-                ip: removedIP, 
-                label: removedLabel,
-                actor: 'Sarah Mitchell',
-                timestamp: new Date().toISOString(),
-                source_ip: SecuritySettingsService.settings.current_ip
-            }, 'ip');
-            showSaveIndicator();
-            
-            var modal = bootstrap.Modal.getInstance(document.getElementById('removeIPModal'));
-            if (modal) modal.hide();
-        });
-    }
-    
-    // Retention Period
-    var retentionSelect = document.getElementById('retentionPeriod');
-    if (retentionSelect) {
-        retentionSelect.value = SecuritySettingsService.settings.retention_days;
-        retentionSelect.addEventListener('change', function() {
-            var oldValue = SecuritySettingsService.settings.retention_days;
-            SecuritySettingsService.save('retention_days', parseInt(this.value));
-            emitAuditEvent('RETENTION_PERIOD_CHANGED', { old_value: oldValue, new_value: parseInt(this.value) }, 'retention');
-            showSaveIndicator();
-        });
-    }
-    
-    // Data Visibility Toggles
-    ['Mobile', 'Content', 'SentTime', 'DeliveredTime'].forEach(function(field) {
-        var toggle = document.getElementById('visibility' + field);
-        if (toggle) {
-            var key = 'visibility_' + field.toLowerCase().replace('time', '_time');
-            toggle.checked = SecuritySettingsService.settings[key] || false;
-            toggle.addEventListener('change', function() {
-                SecuritySettingsService.save(key, this.checked);
-                emitAuditEvent('DATA_VISIBILITY_CHANGED', { field: field, visible: this.checked }, 'security');
-                showSaveIndicator();
-            });
-        }
-    });
-    
-    // Anti-Spam
-    var antiSpamToggle = document.getElementById('antiSpamToggle');
-    var antiSpamWindowContainer = document.getElementById('antiSpamWindowContainer');
-    if (antiSpamToggle) {
-        antiSpamToggle.checked = SecuritySettingsService.settings.anti_spam_enabled;
-        if (antiSpamWindowContainer) {
-            antiSpamWindowContainer.style.display = SecuritySettingsService.settings.anti_spam_enabled ? 'block' : 'none';
-        }
-        antiSpamToggle.addEventListener('change', function() {
-            SecuritySettingsService.save('anti_spam_enabled', this.checked);
-            if (antiSpamWindowContainer) {
-                antiSpamWindowContainer.style.display = this.checked ? 'block' : 'none';
-            }
-            emitAuditEvent(this.checked ? 'ANTI_SPAM_ENABLED' : 'ANTI_SPAM_DISABLED', { enabled: this.checked }, 'security');
-            showSaveIndicator();
-        });
-    }
-    
-    var antiSpamWindow = document.getElementById('antiSpamWindow');
-    if (antiSpamWindow) {
-        antiSpamWindow.value = SecuritySettingsService.settings.anti_spam_window;
-        antiSpamWindow.addEventListener('change', function() {
-            var oldValue = SecuritySettingsService.settings.anti_spam_window;
-            SecuritySettingsService.save('anti_spam_window', parseInt(this.value));
-            emitAuditEvent('ANTI_SPAM_WINDOW_CHANGED', { old_value: oldValue, new_value: parseInt(this.value) }, 'security');
-            showSaveIndicator();
-        });
-    }
-    
-    // Out of Hours
-    var outOfHoursToggle = document.getElementById('outOfHoursToggle');
-    if (outOfHoursToggle) {
-        outOfHoursToggle.checked = SecuritySettingsService.settings.out_of_hours_enabled;
-        outOfHoursToggle.addEventListener('change', function() {
-            SecuritySettingsService.save('out_of_hours_enabled', this.checked);
-            emitAuditEvent(this.checked ? 'OUT_OF_HOURS_RESTRICTION_ENABLED' : 'OUT_OF_HOURS_RESTRICTION_DISABLED', { enabled: this.checked }, 'security');
-            showSaveIndicator();
-        });
-    }
-    
-    // Country List
+
     var confirmAddCountryBtn = document.getElementById('confirmAddCountry');
     if (confirmAddCountryBtn) {
         confirmAddCountryBtn.addEventListener('click', function() {
@@ -1665,56 +1503,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please select a country');
                 return;
             }
-            
+
             var selectedOption = select.options[select.selectedIndex];
             var name = selectedOption.textContent.replace(/\s*\(\+\d+\)\s*$/, '').trim();
-            
+
             confirmAddCountryBtn.disabled = true;
             confirmAddCountryBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Submitting...';
-            
+
             fetch('/account/security/country-request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({ country_code: code, country_name: name })
             })
-            .then(function(response) { return response.json(); })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.json().catch(function() { return { message: 'Request failed' }; }).then(function(err) {
+                        throw new Error(err.message || 'HTTP ' + response.status);
+                    });
+                }
+                return response.json();
+            })
             .then(function(data) {
                 if (data.success) {
-                    SecuritySettingsService.settings.countries.push({ code: code, name: name, status: 'pending' });
-                    
                     var countryList = document.getElementById('countryList');
                     if (countryList) {
                         var addBtn = countryList.querySelector('.add-country-btn');
                         var newPill = document.createElement('span');
                         newPill.className = 'country-pill pending';
-                        newPill.innerHTML = '<span class="status-dot pending"></span>' + name +
-                            '<button type="button" class="remove-btn" title="Remove"><i class="fas fa-times" style="font-size: 10px;"></i></button>';
+                        newPill.innerHTML = '<span class="status-dot pending"></span>' + escapeHtml(name);
                         countryList.insertBefore(newPill, addBtn);
                     }
-                    
-                    emitAuditEvent('COUNTRY_REQUESTED', { country: name }, 'security');
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success('Country access request submitted for ' + name);
-                    }
+                    showToast('success', 'Country access request submitted for ' + name);
                 } else {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.warning(data.message || 'Could not submit request');
-                    } else {
-                        alert(data.message || 'Could not submit request');
-                    }
+                    showToast('error', data.message || 'Could not submit request');
                 }
             })
             .catch(function(err) {
-                console.error('Country request error:', err);
-                if (typeof toastr !== 'undefined') {
-                    toastr.error('Failed to submit country request');
-                } else {
-                    alert('Failed to submit country request');
-                }
+                showToast('error', err.message || 'Failed to submit country request');
             })
             .finally(function() {
                 confirmAddCountryBtn.disabled = false;
@@ -1723,24 +1552,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 var modal = bootstrap.Modal.getInstance(document.getElementById('addCountryModal'));
                 if (modal) modal.hide();
             });
-        });
-    }
-    
-    var countryListEl = document.getElementById('countryList');
-    if (countryListEl) {
-        countryListEl.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-btn')) {
-                var pill = e.target.closest('.country-pill');
-                var countryName = pill.textContent.trim();
-                pill.remove();
-                
-                SecuritySettingsService.settings.countries = SecuritySettingsService.settings.countries.filter(function(c) {
-                    return c.name !== countryName;
-                });
-                
-                emitAuditEvent('COUNTRY_REMOVED', { country: countryName }, 'security');
-                showSaveIndicator();
-            }
         });
     }
 });
