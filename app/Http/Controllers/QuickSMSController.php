@@ -363,9 +363,10 @@ class QuickSMSController extends Controller
             'page_title' => 'Messages',
             'purpose' => 'Manage all messaging activities including sending, receiving, and campaign management.',
             'sub_modules' => [
-                'Send Message',
-                'Inbox',
-                'Campaign History'
+                ['title' => 'Send Message', 'icon' => 'fas fa-paper-plane', 'description' => 'Compose and send SMS, RCS, or WhatsApp messages to individuals or groups.', 'route' => route('messages.send')],
+                ['title' => 'Inbox', 'icon' => 'fas fa-inbox', 'description' => 'View and reply to inbound messages and manage two-way conversations.', 'route' => route('messages.inbox')],
+                ['title' => 'Campaign History', 'icon' => 'fas fa-history', 'description' => 'Review past campaigns, delivery stats, and message performance.', 'route' => route('messages.campaign-history')],
+                ['title' => 'Campaign Approvals', 'icon' => 'fas fa-check-circle', 'description' => 'Review and approve pending campaigns before they are sent.', 'route' => route('messages.campaign-approvals')],
             ]
         ]);
     }
@@ -2158,10 +2159,10 @@ class QuickSMSController extends Controller
             'page_title' => 'Contact Book',
             'purpose' => 'Manage your contacts, organize them into lists, and handle opt-out preferences.',
             'sub_modules' => [
-                'All Contacts',
-                'Lists',
-                'Tags',
-                'Opt-Out Lists'
+                ['title' => 'All Contacts', 'icon' => 'fas fa-users', 'description' => 'View, search, and manage all your contacts in one place.', 'route' => route('contacts.all')],
+                ['title' => 'Lists', 'icon' => 'fas fa-list-ul', 'description' => 'Organise contacts into static or dynamic lists for targeted messaging.', 'route' => route('contacts.lists')],
+                ['title' => 'Tags', 'icon' => 'fas fa-tags', 'description' => 'Label contacts with tags for flexible filtering and segmentation.', 'route' => route('contacts.tags')],
+                ['title' => 'Opt-Out Lists', 'icon' => 'fas fa-ban', 'description' => 'Manage contacts who have opted out of receiving messages.', 'route' => route('contacts.opt-out')],
             ]
         ]);
     }
@@ -2284,11 +2285,11 @@ class QuickSMSController extends Controller
             'page_title' => 'Reporting',
             'purpose' => 'Access comprehensive reports and analytics for your messaging activities.',
             'sub_modules' => [
-                'Dashboard',
-                'Message Log',
-                'Finance Data',
-                'Invoices',
-                'Download Area'
+                ['title' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'description' => 'At-a-glance overview of messaging volumes, delivery rates, and trends.', 'route' => route('reporting.dashboard')],
+                ['title' => 'Message Log', 'icon' => 'fas fa-search', 'description' => 'Search and inspect individual message delivery details and statuses.', 'route' => route('reporting.message-log')],
+                ['title' => 'Finance Data', 'icon' => 'fas fa-pound-sign', 'description' => 'View spend breakdowns, cost-per-message, and billing summaries.', 'route' => route('reporting.finance-data')],
+                ['title' => 'Invoices', 'icon' => 'fas fa-file-invoice', 'description' => 'Access and download your monthly invoices and payment history.', 'route' => route('reporting.invoices')],
+                ['title' => 'Download Area', 'icon' => 'fas fa-download', 'description' => 'Download exported reports, data files, and scheduled report outputs.', 'route' => route('reporting.download-area')],
             ]
         ]);
     }
@@ -2334,7 +2335,10 @@ class QuickSMSController extends Controller
         return view('quicksms.placeholder', [
             'page_title' => 'Purchase',
             'purpose' => 'Purchase message credits, packages, and additional services.',
-            'sub_modules' => []
+            'sub_modules' => [
+                ['title' => 'Messages', 'icon' => 'fas fa-comment-dots', 'description' => 'Buy message credits and top up your account balance.', 'route' => route('purchase.messages')],
+                ['title' => 'Numbers', 'icon' => 'fas fa-phone-alt', 'description' => 'Purchase virtual mobile numbers and shortcodes for inbound messaging.', 'route' => route('purchase.numbers')],
+            ]
         ]);
     }
 
@@ -2378,12 +2382,12 @@ class QuickSMSController extends Controller
             'page_title' => 'Management',
             'purpose' => 'Configure and manage your messaging infrastructure and integrations.',
             'sub_modules' => [
-                'RCS Agent Registrations',
-                'SMS SenderID Registration',
-                'Templates',
-                'API Connections',
-                'Email-to-SMS',
-                'Numbers'
+                ['title' => 'RCS Agent Registrations', 'icon' => 'fas fa-robot', 'description' => 'Register and manage RCS Business Messaging agent profiles.', 'route' => route('management.rcs-agent')],
+                ['title' => 'SMS SenderID Registration', 'icon' => 'fas fa-id-badge', 'description' => 'Register alphanumeric sender IDs for branded SMS delivery.', 'route' => route('management.sms-sender-id')],
+                ['title' => 'Message Templates', 'icon' => 'fas fa-file-alt', 'description' => 'Create and manage reusable message templates with approval workflow.', 'route' => route('management.templates')],
+                ['title' => 'API Connections', 'icon' => 'fas fa-plug', 'description' => 'Set up and manage API keys for programmatic messaging access.', 'route' => route('management.api-connections')],
+                ['title' => 'Email-to-SMS', 'icon' => 'fas fa-envelope-open-text', 'description' => 'Configure email addresses that automatically convert emails into SMS.', 'route' => route('management.email-to-sms')],
+                ['title' => 'Numbers', 'icon' => 'fas fa-hashtag', 'description' => 'Manage your virtual mobile numbers, shortcodes, and routing rules.', 'route' => route('management.numbers')],
             ]
         ]);
     }
@@ -3161,11 +3165,10 @@ class QuickSMSController extends Controller
             'page_title' => 'Account',
             'purpose' => 'Manage your account settings, users, and security preferences.',
             'sub_modules' => [
-                'Details',
-                'Users and Access',
-                'Sub Accounts',
-                'Audit Logs',
-                'Security Settings'
+                ['title' => 'Details', 'icon' => 'fas fa-building', 'description' => 'View and update your company details, address, and contact information.', 'route' => route('account.details')],
+                ['title' => 'Users & Permissions', 'icon' => 'fas fa-user-shield', 'description' => 'Manage team members, roles, sub-accounts, and access permissions.', 'route' => route('account.users')],
+                ['title' => 'Audit Logs', 'icon' => 'fas fa-clipboard-list', 'description' => 'Review a detailed history of account activity and changes.', 'route' => route('account.audit-logs')],
+                ['title' => 'Security Settings', 'icon' => 'fas fa-shield-alt', 'description' => 'Configure data retention, masking, anti-flood, IP allowlisting, and MFA.', 'route' => route('account.security')],
             ]
         ]);
     }
@@ -4479,9 +4482,9 @@ class QuickSMSController extends Controller
             'page_title' => 'Support',
             'purpose' => 'Access support resources, submit tickets, and browse documentation.',
             'sub_modules' => [
-                'Dashboard',
-                'Create a Ticket',
-                'Knowledge Base'
+                ['title' => 'Dashboard', 'icon' => 'fas fa-headset', 'description' => 'Overview of your support tickets, status updates, and quick links.', 'route' => route('support.dashboard')],
+                ['title' => 'Create a Ticket', 'icon' => 'fas fa-plus-circle', 'description' => 'Submit a new support request or report an issue to our team.', 'route' => route('support.create-ticket')],
+                ['title' => 'Knowledge Base', 'icon' => 'fas fa-book-open', 'description' => 'Browse help articles, guides, FAQs, and best-practice documentation.', 'route' => route('support.knowledge-base')],
             ]
         ]);
     }

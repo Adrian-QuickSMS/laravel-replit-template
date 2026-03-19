@@ -619,3 +619,105 @@
     max-width: 300px;
     min-width: 200px;
 }
+
+/* ===========================================
+   Navigation Tile Cards
+   =========================================== */
+
+.qs-nav-header {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+}
+
+.qs-nav-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c2c54;
+    margin-bottom: 0.35rem;
+}
+
+.qs-nav-subtitle {
+    color: #7c7c9a;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.qs-nav-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    padding: 0.5rem 0 2rem;
+}
+
+.qs-nav-tile {
+    background: #fff;
+    border: 1px solid rgba(136, 108, 192, 0.18);
+    border-radius: 14px;
+    padding: 1.75rem 1.5rem 1.25rem;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+.qs-nav-tile:hover {
+    transform: translateY(-4px);
+    border-color: rgba(136, 108, 192, 0.4);
+    box-shadow: 0 8px 28px rgba(136, 108, 192, 0.13);
+    text-decoration: none;
+}
+
+.qs-nav-tile-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    background: rgba(136, 108, 192, 0.1);
+    color: #886CC0;
+    transition: all 0.25s ease;
+}
+
+.qs-nav-tile:hover .qs-nav-tile-icon {
+    background: rgba(136, 108, 192, 0.18);
+    color: #6f42c1;
+}
+
+.qs-nav-tile-title {
+    color: #2c2c54;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.qs-nav-tile-desc {
+    color: #8e8ea9;
+    font-size: 0.8rem;
+    margin: 0;
+    line-height: 1.45;
+    flex: 1;
+}
+
+.qs-nav-tile-arrow {
+    margin-top: 1rem;
+    color: rgba(136, 108, 192, 0.35);
+    font-size: 1rem;
+    transition: all 0.25s ease;
+}
+
+.qs-nav-tile:hover .qs-nav-tile-arrow {
+    color: #886CC0;
+    transform: translateX(4px);
+}
+
+@media (max-width: 576px) {
+    .qs-nav-tiles {
+        grid-template-columns: 1fr;
+    }
+}
