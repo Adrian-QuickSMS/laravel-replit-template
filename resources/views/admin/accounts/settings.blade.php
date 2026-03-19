@@ -966,8 +966,32 @@ function cancelSpamFilter() {
 let securityData = null;
 let secSaveTimers = {};
 
+const preloadedSettings = @json($accountSettings);
+const preloadedIpEntries = @json($ipAllowlistEntries);
+
 async function loadSecuritySettings() {
     try {
+        if (!securityData && preloadedSettings) {
+            const s = preloadedSettings;
+            const mc = s.data_masking_config || {};
+            const maskConfig = typeof mc === 'string' ? JSON.parse(mc) : mc;
+            securityData = {
+                retention: { message_retention_days: s.message_retention_days ?? 180 },
+                masking: {
+                    config: Object.keys(maskConfig).length ? maskConfig : { mask_mobile: false, mask_content: false, mask_sent_time: false, mask_delivered_time: false },
+                    owner_bypass_masking: s.owner_bypass_masking ?? true,
+                },
+                anti_flood: { enabled: s.anti_flood_enabled ?? false, mode: s.anti_flood_mode ?? 'off', window_hours: s.anti_flood_window_hours ?? 2 },
+                out_of_hours: { enabled: s.out_of_hours_enabled ?? false, start: s.out_of_hours_start ?? '21:00', end: s.out_of_hours_end ?? '08:00', action: s.out_of_hours_action ?? 'reject', timezone: s.timezone ?? 'Europe/London' },
+                mfa: { require_mfa: s.require_mfa ?? false },
+                ip_allowlist: { enabled: s.ip_allowlist_enabled ?? false, entries: preloadedIpEntries || [], limit: 50 },
+            };
+            populateSecurityCards(securityData);
+            document.getElementById('securityLoadingState').classList.add('d-none');
+            document.getElementById('securityContent').classList.remove('d-none');
+            return;
+        }
+
         const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/settings`, {
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
         });
@@ -982,6 +1006,19 @@ async function loadSecuritySettings() {
         document.getElementById('securityLoadingState').innerHTML =
             '<i class="fas fa-exclamation-triangle text-danger"></i> <span class="ms-2 text-danger">Failed to load security settings.</span>';
     }
+}
+
+async function reloadSecurityFromApi() {
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/settings`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!json.success) return;
+        securityData = json.data;
+        populateSecurityCards(securityData);
+    } catch (err) {}
 }
 
 function populateSecurityCards(d) {
@@ -1270,7 +1307,7 @@ async function submitAddIp() {
         showToast('IP added successfully');
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addIpModal'));
         modal.hide();
-        loadSecuritySettings();
+        reloadSecurityFromApi();
     } catch (err) {
         showToast(err.message || 'Failed to add IP', 'error');
     } finally {
@@ -1305,7 +1342,7 @@ async function executeRemoveIp() {
         const json = await res.json();
         if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
         showToast('IP removed');
-        loadSecuritySettings();
+        reloadSecurityFromApi();
     } catch (err) {
         showToast(err.message || 'Failed to remove IP', 'error');
     } finally {

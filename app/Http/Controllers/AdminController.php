@@ -630,6 +630,16 @@ class AdminController extends Controller
         $totalCreditsUsed = $testCreditWallets->sum('credits_used');
         $totalCreditsAwarded = $testCreditWallets->sum('credits_total');
 
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $accountSettings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+
+        $ipAllowlistEntries = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+            ->where('tenant_id', $accountId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map->toPortalArray();
+
         return view('admin.accounts.settings', [
             'page_title' => 'Account Settings',
             'account_id' => $accountId,
@@ -638,6 +648,8 @@ class AdminController extends Controller
             'totalCreditsRemaining' => $totalCreditsRemaining,
             'totalCreditsUsed' => $totalCreditsUsed,
             'totalCreditsAwarded' => $totalCreditsAwarded,
+            'accountSettings' => $accountSettings,
+            'ipAllowlistEntries' => $ipAllowlistEntries,
         ]);
     }
 
@@ -1148,6 +1160,17 @@ class AdminController extends Controller
             ->map->toPortalArray();
 
         $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+
+        if (!$settings) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'enabled' => false,
+                    'entries' => $entries,
+                    'limit' => 50,
+                ],
+            ]);
+        }
 
         return response()->json([
             'success' => true,
