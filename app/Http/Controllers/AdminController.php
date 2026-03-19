@@ -887,8 +887,8 @@ class AdminController extends Controller
                 ],
                 'out_of_hours' => [
                     'enabled' => $settings->out_of_hours_enabled ?? false,
-                    'start' => $settings->out_of_hours_start ?? '21:00',
-                    'end' => $settings->out_of_hours_end ?? '08:00',
+                    'start' => substr($settings->out_of_hours_start ?? '21:00', 0, 5),
+                    'end' => substr($settings->out_of_hours_end ?? '08:00', 0, 5),
                     'action' => $settings->out_of_hours_action ?? 'reject',
                     'timezone' => $settings->timezone ?? 'Europe/London',
                 ],
@@ -1086,8 +1086,8 @@ class AdminController extends Controller
     {
         $request->validate([
             'enabled' => 'required|boolean',
-            'start' => 'sometimes|date_format:H:i',
-            'end' => 'sometimes|date_format:H:i',
+            'start' => ['sometimes', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
+            'end' => ['sometimes', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
             'action' => 'sometimes|string|in:reject,hold',
         ]);
 

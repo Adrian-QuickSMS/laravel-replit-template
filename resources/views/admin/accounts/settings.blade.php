@@ -982,7 +982,7 @@ async function loadSecuritySettings() {
                     owner_bypass_masking: s.owner_bypass_masking ?? true,
                 },
                 anti_flood: { enabled: s.anti_flood_enabled ?? false, mode: s.anti_flood_mode ?? 'off', window_hours: s.anti_flood_window_hours ?? 2 },
-                out_of_hours: { enabled: s.out_of_hours_enabled ?? false, start: s.out_of_hours_start ?? '21:00', end: s.out_of_hours_end ?? '08:00', action: s.out_of_hours_action ?? 'reject', timezone: s.timezone ?? 'Europe/London' },
+                out_of_hours: { enabled: s.out_of_hours_enabled ?? false, start: (s.out_of_hours_start || '21:00').substring(0, 5), end: (s.out_of_hours_end || '08:00').substring(0, 5), action: s.out_of_hours_action ?? 'reject', timezone: s.timezone ?? 'Europe/London' },
                 mfa: { require_mfa: s.require_mfa ?? false },
                 ip_allowlist: { enabled: s.ip_allowlist_enabled ?? false, entries: preloadedIpEntries || [], limit: 50 },
             };
