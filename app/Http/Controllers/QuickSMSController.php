@@ -4493,8 +4493,11 @@ class QuickSMSController extends Controller
     {
         return view('quicksms.placeholder', [
             'page_title' => 'Support Dashboard',
-            'purpose' => 'Overview of support tickets and help resources.',
-            'sub_modules' => []
+            'purpose' => 'Overview of your support tickets, status updates, and quick links.',
+            'sub_modules' => [
+                ['title' => 'Create a Ticket', 'icon' => 'fas fa-plus-circle', 'description' => 'Submit a new support request or report an issue to our team.', 'route' => route('support.create-ticket')],
+                ['title' => 'Knowledge Base', 'icon' => 'fas fa-book-open', 'description' => 'Browse help articles, guides, FAQs, and best-practice documentation.', 'route' => route('support.knowledge-base')],
+            ]
         ]);
     }
 
@@ -4502,8 +4505,11 @@ class QuickSMSController extends Controller
     {
         return view('quicksms.placeholder', [
             'page_title' => 'Create a Ticket',
-            'purpose' => 'Submit a new support request or issue.',
-            'sub_modules' => []
+            'purpose' => 'Submit a new support request or report an issue to our team.',
+            'sub_modules' => [
+                ['title' => 'Support Dashboard', 'icon' => 'fas fa-headset', 'description' => 'View your open tickets and support activity overview.', 'route' => route('support.dashboard')],
+                ['title' => 'Knowledge Base', 'icon' => 'fas fa-book-open', 'description' => 'Find answers in our help articles and documentation before submitting a ticket.', 'route' => route('support.knowledge-base')],
+            ]
         ]);
     }
 
@@ -4511,8 +4517,12 @@ class QuickSMSController extends Controller
     {
         return view('quicksms.placeholder', [
             'page_title' => 'Knowledge Base',
-            'purpose' => 'Browse help articles, guides, and FAQs.',
-            'sub_modules' => []
+            'purpose' => 'Browse help articles, guides, FAQs, and best-practice documentation.',
+            'sub_modules' => [
+                ['title' => 'Understanding Test Mode', 'icon' => 'fas fa-flask', 'description' => 'Learn how test mode works, restrictions, and how to activate your account.', 'route' => route('support.knowledge-base.test-mode')],
+                ['title' => 'Support Dashboard', 'icon' => 'fas fa-headset', 'description' => 'View your open tickets and support activity overview.', 'route' => route('support.dashboard')],
+                ['title' => 'Create a Ticket', 'icon' => 'fas fa-plus-circle', 'description' => 'Can\'t find what you need? Submit a support request.', 'route' => route('support.create-ticket')],
+            ]
         ]);
     }
     
