@@ -36,7 +36,7 @@ class SubAccountDailyLimitBreached extends BaseAlertEvent
 
     public function getCategory(): string
     {
-        return 'billing';
+        return 'sub_account';
     }
 
     public function getTitle(): string
