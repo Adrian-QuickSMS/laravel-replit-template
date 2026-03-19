@@ -61,11 +61,6 @@ class AdminNotification extends Model
         return $query->where('type', $type);
     }
 
-    public function scopeOfType(Builder $query, string $type): Builder
-    {
-        return $query->where('type', $type);
-    }
-
     public function scopeForCategory(Builder $query, string $category): Builder
     {
         return $query->where('category', $category);

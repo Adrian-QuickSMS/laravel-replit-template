@@ -121,18 +121,14 @@ class AlertRule extends Model
         $extraChannels = [];
         foreach ($this->escalation_rules as $rule) {
             $threshold = (float) ($rule['condition_value'] ?? 0);
-            if ($triggerValue <= $threshold || $triggerValue >= $threshold) {
-                // Escalation triggers when value passes the escalation threshold
-                // Direction depends on the main rule's operator
-                $shouldEscalate = match ($this->condition_operator) {
-                    'lt', 'lte' => $triggerValue <= $threshold,
-                    'gt', 'gte' => $triggerValue >= $threshold,
-                    default => true,
-                };
+            $shouldEscalate = match ($this->condition_operator) {
+                'lt', 'lte' => $triggerValue <= $threshold,
+                'gt', 'gte' => $triggerValue >= $threshold,
+                default => true,
+            };
 
-                if ($shouldEscalate) {
-                    $extraChannels = array_merge($extraChannels, $rule['channels'] ?? []);
-                }
+            if ($shouldEscalate) {
+                $extraChannels = array_merge($extraChannels, $rule['channels'] ?? []);
             }
         }
 

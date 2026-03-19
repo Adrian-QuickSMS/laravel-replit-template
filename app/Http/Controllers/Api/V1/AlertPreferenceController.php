@@ -57,16 +57,18 @@ class AlertPreferenceController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
+        $validated = $validator->validated();
+
         $preference = AlertPreference::updateOrCreate(
             [
                 'tenant_id' => $request->user()->account_id,
                 'user_id' => $request->user()->id,
-                'category' => $request->input('category'),
+                'category' => $validated['category'],
             ],
             array_filter([
-                'channels' => $request->input('channels'),
-                'is_muted' => $request->input('is_muted'),
-                'muted_until' => $request->input('muted_until'),
+                'channels' => $validated['channels'] ?? null,
+                'is_muted' => $validated['is_muted'] ?? null,
+                'muted_until' => $validated['muted_until'] ?? null,
             ], fn ($v) => $v !== null)
         );
 
