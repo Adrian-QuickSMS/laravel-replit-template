@@ -429,7 +429,7 @@
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Purchase</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('purchase') }}">Purchase</a></li>
             <li class="breadcrumb-item active"><a href="javascript:void(0)">Numbers</a></li>
         </ol>
     </div>

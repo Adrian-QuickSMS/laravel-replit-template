@@ -571,7 +571,7 @@ body > .dropdown-menu.dropdown-menu-end,
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Management</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('management') }}">Management</a></li>
             <li class="breadcrumb-item active"><a href="javascript:void(0)">SMS SenderID Registration</a></li>
         </ol>
     </div>

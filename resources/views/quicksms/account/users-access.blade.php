@@ -453,7 +453,7 @@ input:focus + .perm-slider {
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Account</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('account') }}">Account</a></li>
             <li class="breadcrumb-item active">Sub Accounts, Users and Permissions</li>
         </ol>
     </div>
