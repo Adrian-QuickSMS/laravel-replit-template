@@ -295,7 +295,7 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/notif
 });
 
 // Alerting Engine — Customer API
-Route::middleware('customer.auth')->prefix('api/v1/alerts')->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/v1/alerts')->group(function () {
     // Alert Rules
     Route::get('/rules', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'index'])->name('api.alerts.rules.index');
     Route::post('/rules', [\App\Http\Controllers\Api\V1\AlertRuleController::class, 'store'])->name('api.alerts.rules.store');
