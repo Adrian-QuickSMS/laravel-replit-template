@@ -21,6 +21,10 @@ use App\Models\User;
 use App\Models\AccountAuditLog;
 use App\Models\AdminAuditLog;
 use App\Services\Audit\AuditContext;
+use App\Events\Alerting\AccountStatusOverridden;
+use App\Events\Alerting\SpamFilterModeChanged;
+use App\Events\Alerting\AccountSecuritySettingChanged;
+use App\Events\Alerting\IpAllowlistChanged;
 
 class AdminController extends Controller
 {
@@ -713,6 +717,15 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'error' => 'Failed to update account status.'], 500);
         }
 
+        $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+        AccountStatusOverridden::dispatch(
+            $accountId,
+            $previousStatus,
+            $newStatus,
+            $request->input('reason'),
+            $adminUser,
+        );
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -829,6 +842,13 @@ class AdminController extends Controller
                 );
             });
 
+            SpamFilterModeChanged::dispatch(
+                $accountId,
+                $previousMode,
+                $newMode,
+                $adminUser,
+            );
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -944,6 +964,14 @@ class AdminController extends Controller
                 );
             });
 
+            AccountSecuritySettingChanged::dispatch(
+                $accountId,
+                'retention',
+                ['message_retention_days' => $oldValue],
+                ['message_retention_days' => $newValue],
+                $adminUser,
+            );
+
             return response()->json(['success' => true, 'data' => ['message_retention_days' => $newValue]]);
         } catch (\Throwable $e) {
             Log::error('Admin retention update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
@@ -1004,6 +1032,18 @@ class AdminController extends Controller
                     ['config' => $maskingConfig, 'owner_bypass' => $request->input('owner_bypass_masking')]
                 );
             });
+
+            $oldMasking = is_string($settings->data_masking_config)
+                ? json_decode($settings->data_masking_config, true)
+                : ($settings->data_masking_config ?? []);
+
+            AccountSecuritySettingChanged::dispatch(
+                $accountId,
+                'masking',
+                $oldMasking,
+                $maskingConfig,
+                $adminUser,
+            );
 
             return response()->json([
                 'success' => true,
@@ -1072,6 +1112,14 @@ class AdminController extends Controller
                 );
             });
 
+            AccountSecuritySettingChanged::dispatch(
+                $accountId,
+                'anti_flood',
+                ['enabled' => $settings->anti_flood_enabled, 'mode' => $settings->anti_flood_mode, 'window_hours' => $settings->anti_flood_window_hours],
+                ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
+                $adminUser,
+            );
+
             return response()->json([
                 'success' => true,
                 'data' => ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
@@ -1137,6 +1185,14 @@ class AdminController extends Controller
                     ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action]
                 );
             });
+
+            AccountSecuritySettingChanged::dispatch(
+                $accountId,
+                'out_of_hours',
+                ['enabled' => $settings->out_of_hours_enabled, 'start' => $settings->out_of_hours_start, 'end' => $settings->out_of_hours_end, 'action' => $settings->out_of_hours_action],
+                ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action],
+                $adminUser,
+            );
 
             return response()->json([
                 'success' => true,
@@ -1223,6 +1279,12 @@ class AdminController extends Controller
                 ['enabled' => $enabled]
             );
 
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                $enabled ? 'enabled' : 'disabled',
+                changedBy: $adminUser,
+            );
+
             return response()->json(['success' => true, 'data' => ['enabled' => $enabled]]);
         } catch (\RuntimeException $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 409);
@@ -1265,6 +1327,14 @@ class AdminController extends Controller
                 $accountId,
                 "Admin added IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
+            );
+
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                'added',
+                $entry->ip_address,
+                $entry->label,
+                changedBy: $adminUser,
             );
 
             return response()->json(['success' => true, 'data' => $entry->toPortalArray()], 201);
@@ -1325,6 +1395,20 @@ class AdminController extends Controller
                 $accountId,
                 "Admin removed IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
+            );
+
+            $remainingCount = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+                ->where('tenant_id', $accountId)
+                ->where('status', 'active')
+                ->count();
+
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                'removed',
+                $entry->ip_address,
+                $entry->label,
+                $remainingCount,
+                $adminUser,
             );
 
             return response()->json(['success' => true]);
