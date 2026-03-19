@@ -620,7 +620,7 @@ class AdminController extends Controller
 
     public function accountsSettings($accountId)
     {
-        $account = Account::findOrFail($accountId);
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
 
         $testCreditWallets = \App\Models\Billing\TestCreditWallet::where('account_id', $accountId)
             ->orderBy('created_at', 'desc')
@@ -718,7 +718,7 @@ class AdminController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $account = Account::findOrFail($accountId);
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
 
         try {
             DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
@@ -785,7 +785,7 @@ class AdminController extends Controller
             'spam_filter_mode' => 'required|string|in:enforced,monitoring,off',
         ]);
 
-        $account = Account::findOrFail($accountId);
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
         $previousMode = $account->spam_filter_mode ?? 'enforced';
         $newMode = $request->input('spam_filter_mode');
 

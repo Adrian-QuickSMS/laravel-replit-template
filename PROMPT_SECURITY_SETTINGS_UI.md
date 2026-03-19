@@ -324,7 +324,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 ---
 
-## PART 2: Admin Console — Per-Account Security Controls
+## PART 2: Admin Console — Per-Account Security Controls (TO BUILD)
+
+> **STATUS: These endpoints DO NOT exist yet.** This section is a specification for what needs to be built. The 3 existing admin endpoints (status-override, test-credits, spam-filter-mode) are already implemented in `AdminController.php`. The 8 security settings endpoints below are **new work** that must be created.
 
 ### Overview
 
@@ -339,7 +341,7 @@ Admins manage security settings for any customer from **Admin Console > Accounts
 
 Security settings go as a **new section** below existing content.
 
-### New Admin API Endpoints (to be created)
+### New Admin API Endpoints (TO BUILD)
 
 Add to `AdminController.php`. These are RED zone — `svc_red` role, no RLS, use `withoutGlobalScopes()`.
 
@@ -354,7 +356,7 @@ Add to `AdminController.php`. These are RED zone — `svc_red` role, no RLS, use
 | `toggleAccountIpAllowlist` | PUT | `/admin/api/accounts/{accountId}/security-settings/ip-allowlist/toggle` | Enable/disable |
 | `removeAccountIpEntry` | DELETE | `/admin/api/accounts/{accountId}/security-settings/ip-allowlist/{entryId}` | Remove IP |
 
-### Route Registration
+### Route Registration (TO BUILD)
 
 Add inside the existing admin middleware group in `routes/web.php` (after the other `/api/accounts/{accountId}/` routes around line 649):
 
@@ -372,7 +374,7 @@ Route::prefix('api/accounts/{accountId}/security-settings')->group(function () {
 });
 ```
 
-### GET Endpoint Implementation
+### GET Endpoint Implementation (TO BUILD)
 
 The GET endpoint returns the same shape as the customer portal `index()`, but bypasses RLS:
 
@@ -408,7 +410,7 @@ public function getSecuritySettings($accountId)
 }
 ```
 
-### PUT Endpoints Pattern
+### PUT Endpoints Pattern (TO BUILD)
 
 Each admin PUT endpoint follows the same pattern as the customer portal equivalent but:
 1. Takes `$accountId` from the route parameter (not session)
@@ -429,7 +431,7 @@ Each admin PUT endpoint follows the same pattern as the customer portal equivale
 | Audit log | `AccountAuditLog` (customer) | Admin audit log |
 | CSRF | `X-CSRF-TOKEN` meta tag | `X-CSRF-TOKEN` meta tag |
 
-### Admin UI Section
+### Admin UI Section (TO BUILD)
 
 Add to `admin/accounts/settings.blade.php` below existing Test Credits section:
 

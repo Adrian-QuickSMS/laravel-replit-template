@@ -520,7 +520,7 @@
 @push('scripts')
 <script>
 const ACCOUNT_ID = @json($account_id);
-const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 let currentSpamFilter = @json($account->spam_filter_mode ?? 'enforced');
 let selectedSpamFilter = currentSpamFilter;
 
@@ -591,9 +591,14 @@ async function applyStatusChange() {
             },
             body: JSON.stringify({ status: newStatus, reason: reason }),
         });
-        
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => null);
+            showToast(errData?.error || `Request failed (${res.status})`, 'error');
+            return;
+        }
         const data = await res.json();
-        
+
         if (data.success) {
             showToast(`Status changed to ${newStatus.replace(/_/g, ' ')}`);
             setTimeout(() => window.location.reload(), 1000);
@@ -647,9 +652,14 @@ async function applySpamFilter() {
             },
             body: JSON.stringify({ spam_filter_mode: selectedSpamFilter }),
         });
-        
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => null);
+            showToast(errData?.error || `Request failed (${res.status})`, 'error');
+            return;
+        }
         const data = await res.json();
-        
+
         if (data.success) {
             currentSpamFilter = selectedSpamFilter;
             document.getElementById('spamFilterActions').style.display = 'none';
@@ -698,15 +708,20 @@ async function addTestCredits() {
             },
             body: JSON.stringify({ credits: amount, reason: reason }),
         });
-        
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => null);
+            showToast(errData?.error || `Request failed (${res.status})`, 'error');
+            return;
+        }
         const data = await res.json();
-        
+
         if (data.success) {
             showToast(`Added ${amount.toLocaleString()} test credits successfully`);
             document.getElementById('addCreditsAmount').value = '';
             document.getElementById('addCreditsReason').value = '';
             document.getElementById('totalRemaining').textContent = Number(data.data.total_remaining).toLocaleString();
-            
+
             setTimeout(() => window.location.reload(), 1500);
         } else {
             showToast(data.error || 'Failed to add test credits', 'error');
