@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Alerting\AccountSecuritySettingChanged;
+use App\Events\Alerting\IpAllowlistChanged;
 use App\Models\AccountAuditLog;
 use App\Models\AccountIpAllowlist;
 use App\Models\AccountSettings;
@@ -131,6 +133,8 @@ class SecuritySettingsController extends Controller
             'new_value' => $newValue,
         ]);
 
+        AccountSecuritySettingChanged::dispatch($accountId, 'retention', ['days' => $oldValue], ['days' => $newValue]);
+
         return response()->json([
             'status' => 'success',
             'data' => ['message_retention_days' => $newValue],
@@ -189,6 +193,8 @@ class SecuritySettingsController extends Controller
             'owner_bypass' => $updates['owner_bypass_masking'] ?? $settings->owner_bypass_masking,
         ]);
 
+        AccountSecuritySettingChanged::dispatch($accountId, 'masking', [], $maskingConfig);
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -244,6 +250,11 @@ class SecuritySettingsController extends Controller
             'mode' => $mode,
             'window_hours' => $windowHours,
         ]);
+
+        AccountSecuritySettingChanged::dispatch($accountId, 'anti_flood',
+            ['enabled' => $settings->anti_flood_enabled, 'mode' => $settings->anti_flood_mode],
+            ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours]
+        );
 
         return response()->json([
             'status' => 'success',
@@ -312,6 +323,11 @@ class SecuritySettingsController extends Controller
             ]
         );
 
+        AccountSecuritySettingChanged::dispatch($accountId, 'out_of_hours',
+            ['enabled' => $settings->out_of_hours_enabled],
+            ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action]
+        );
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -378,6 +394,8 @@ class SecuritySettingsController extends Controller
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
             );
 
+            IpAllowlistChanged::dispatch($accountId, 'added', $entry->ip_address, $entry->label);
+
             return response()->json([
                 'status' => 'success',
                 'data' => $entry->toPortalArray(),
@@ -430,6 +448,12 @@ class SecuritySettingsController extends Controller
             ['ip_address' => $entry->ip_address, 'label' => $entry->label]
         );
 
+        $remainingCount = AccountIpAllowlist::withoutGlobalScopes()
+            ->where('tenant_id', $accountId)
+            ->where('status', 'active')
+            ->count();
+        IpAllowlistChanged::dispatch($accountId, 'removed', $entry->ip_address, $entry->label, $remainingCount);
+
         return response()->json(['status' => 'success']);
     }
 
@@ -454,6 +478,12 @@ class SecuritySettingsController extends Controller
                 $enabled ? 'ip_allowlist_enabled' : 'ip_allowlist_disabled',
                 $enabled ? "IP allowlist enabled (caller IP: {$clientIp})" : 'IP allowlist disabled',
                 ['enabled' => $enabled, 'caller_ip' => $clientIp]
+            );
+
+            IpAllowlistChanged::dispatch(
+                $accountId,
+                $enabled ? 'enabled' : 'disabled',
+                changedBy: $userId,
             );
 
             return response()->json([
