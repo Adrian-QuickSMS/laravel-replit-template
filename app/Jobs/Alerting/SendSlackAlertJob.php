@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Validation\WebhookUrlValidator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -32,6 +33,16 @@ class SendSlackAlertJob implements ShouldQueue
 
         if (!$url) {
             Log::debug('[SendSlackAlert] No Slack webhook URL');
+            return;
+        }
+
+        // SSRF protection
+        $validation = WebhookUrlValidator::validate($url);
+        if (!$validation['valid']) {
+            Log::error('[SendSlackAlert] URL blocked by SSRF protection', [
+                'error' => $validation['error'],
+                'trigger_key' => $this->payload['trigger_key'],
+            ]);
             return;
         }
 

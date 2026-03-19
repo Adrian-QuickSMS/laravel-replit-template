@@ -30,9 +30,11 @@ class DispatchBatchedAlertsJob implements ShouldQueue
 
     public function handle(): void
     {
+        // Use lockForUpdate to prevent concurrent workers from processing same batches
         $batches = NotificationBatch::ready()
             ->orderBy('scheduled_for')
             ->limit(100)
+            ->lockForUpdate()
             ->get();
 
         if ($batches->isEmpty()) {

@@ -101,6 +101,18 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Channel Webhook URLs
+    |--------------------------------------------------------------------------
+    |
+    | Used by AlertDispatcherService for admin-only alerts (no tenant context).
+    |
+    */
+
+    'admin_slack_webhook_url' => env('ALERT_ADMIN_SLACK_WEBHOOK_URL'),
+    'admin_teams_webhook_url' => env('ALERT_ADMIN_TEAMS_WEBHOOK_URL'),
+
     'webhook' => [
         'timeout_seconds' => 10,
         'max_retries' => 3,

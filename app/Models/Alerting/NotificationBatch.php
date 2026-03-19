@@ -63,9 +63,20 @@ class NotificationBatch extends Model
 
     // --- Business Logic ---
 
+    private const MAX_BATCH_ITEMS = 100;
+
     public function addItem(array $item): void
     {
         $items = $this->items ?? [];
+
+        if (count($items) >= self::MAX_BATCH_ITEMS) {
+            \Illuminate\Support\Facades\Log::warning('[NotificationBatch] Max items reached, discarding', [
+                'batch_id' => $this->id,
+                'max' => self::MAX_BATCH_ITEMS,
+            ]);
+            return;
+        }
+
         $items[] = $item;
         $this->update(['items' => $items]);
     }

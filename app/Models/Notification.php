@@ -104,4 +104,25 @@ class Notification extends Model
     {
         return is_null($this->read_at) && is_null($this->resolved_at);
     }
+
+    /**
+     * Return a safe representation for customer portal API responses.
+     */
+    public function toPortalArray(): array
+    {
+        return [
+            'uuid' => $this->uuid,
+            'type' => $this->type,
+            'severity' => $this->severity,
+            'category' => $this->category,
+            'title' => $this->title,
+            'body' => $this->body,
+            'deep_link' => $this->deep_link,
+            'action_url' => $this->action_url,
+            'action_label' => $this->action_label,
+            'read_at' => $this->read_at?->toIso8601String(),
+            'dismissed_at' => $this->dismissed_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
+        ];
+    }
 }

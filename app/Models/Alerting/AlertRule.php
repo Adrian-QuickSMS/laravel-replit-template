@@ -135,11 +135,52 @@ class AlertRule extends Model
         return array_unique($extraChannels);
     }
 
+    /**
+     * Atomically mark the rule as triggered.
+     * Uses raw UPDATE to prevent race conditions with concurrent evaluations.
+     */
     public function markTriggered(float $currentValue): void
     {
-        $this->update([
-            'last_triggered_at' => now(),
-            'last_value_snapshot' => $currentValue,
-        ]);
+        \Illuminate\Support\Facades\DB::table('alert_rules')
+            ->where('id', $this->id)
+            ->update([
+                'last_triggered_at' => now(),
+                'last_value_snapshot' => $currentValue,
+                'updated_at' => now(),
+            ]);
+
+        $this->refresh();
+    }
+
+    /**
+     * Update the value snapshot without marking as triggered.
+     * Used by once_per_breach to track recovery.
+     */
+    public function updateSnapshot(float $currentValue): void
+    {
+        $this->update(['last_value_snapshot' => $currentValue]);
+    }
+
+    /**
+     * Return a safe representation for customer portal API responses.
+     */
+    public function toPortalArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'category' => $this->category,
+            'trigger_type' => $this->trigger_type,
+            'trigger_key' => $this->trigger_key,
+            'condition_operator' => $this->condition_operator,
+            'condition_value' => $this->condition_value,
+            'channels' => $this->channels,
+            'frequency' => $this->frequency,
+            'cooldown_minutes' => $this->cooldown_minutes,
+            'escalation_rules' => $this->escalation_rules,
+            'is_enabled' => $this->is_enabled,
+            'is_system_default' => $this->is_system_default,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
     }
 }

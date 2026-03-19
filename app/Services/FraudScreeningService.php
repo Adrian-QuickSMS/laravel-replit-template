@@ -372,17 +372,25 @@ class FraudScreeningService
 
         // Fire alertable event for the alerting engine
         if (in_array($type, ['auto_rejected', 'pending_review'])) {
-            HighRiskAccountBehaviour::dispatch(
-                $account->id,
-                $account->account_number ?? $account->id,
-                'fraud_' . $type,
-                trim($body),
-                [
-                    'risk_score' => $context['risk_score'] ?? null,
-                    'reason' => $context['reason'] ?? null,
-                    'screening_type' => $type,
-                ]
-            );
+            try {
+                HighRiskAccountBehaviour::dispatch(
+                    $account->id,
+                    $account->account_number ?? $account->id,
+                    'fraud_' . $type,
+                    trim($body),
+                    [
+                        'risk_score' => $context['risk_score'] ?? null,
+                        'reason' => $context['reason'] ?? null,
+                        'screening_type' => $type,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[FraudScreening] Alert dispatch failed — non-blocking', [
+                    'account_id' => $account->id,
+                    'type' => $type,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }

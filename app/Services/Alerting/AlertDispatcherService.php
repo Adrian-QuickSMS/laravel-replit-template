@@ -157,13 +157,8 @@ class AlertDispatcherService
     {
         $recipients = [];
 
-        // From rule recipients
-        $ruleRecipients = $payload['metadata']['recipients'] ?? [];
-        if (!empty($ruleRecipients['emails'])) {
-            $recipients = array_merge($recipients, $ruleRecipients['emails']);
-        }
-
-        // From channel config
+        // Only use configured channel recipients — never trust metadata recipients
+        // to prevent potential email injection via crafted event payloads
         if ($tenantId) {
             $config = AlertChannelConfig::forTenant($tenantId)
                 ->forChannel('email')
@@ -204,7 +199,7 @@ class AlertDispatcherService
      */
     private function resolveSmsRecipients(array $payload, ?string $tenantId): array
     {
-        $recipients = $payload['metadata']['recipients']['phones'] ?? [];
+        $recipients = [];
 
         if ($tenantId) {
             $config = AlertChannelConfig::forTenant($tenantId)

@@ -97,4 +97,23 @@ class AlertHistory extends Model
     {
         return $query->where('created_at', '>=', $datetime);
     }
+
+    /**
+     * Return a safe representation for customer portal API responses.
+     */
+    public function toPortalArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'trigger_key' => $this->trigger_key,
+            'trigger_value' => $this->trigger_value,
+            'severity' => $this->severity,
+            'category' => $this->category,
+            'title' => $this->title,
+            'body' => $this->body,
+            'status' => $this->status,
+            'channels_dispatched' => $this->channels_dispatched,
+            'created_at' => $this->created_at?->toIso8601String(),
+        ];
+    }
 }
