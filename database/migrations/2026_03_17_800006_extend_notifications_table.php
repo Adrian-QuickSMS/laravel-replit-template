@@ -42,11 +42,23 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn(['category', 'action_url', 'action_label']);
+            $columns = array_filter(
+                ['category', 'action_url', 'action_label'],
+                fn ($col) => Schema::hasColumn('notifications', $col)
+            );
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
 
         Schema::table('admin_notifications', function (Blueprint $table) {
-            $table->dropColumn(['category', 'action_url', 'action_label', 'dismissed_at', 'resolved_at']);
+            $columns = array_filter(
+                ['category', 'action_url', 'action_label', 'dismissed_at', 'resolved_at'],
+                fn ($col) => Schema::hasColumn('admin_notifications', $col)
+            );
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };
