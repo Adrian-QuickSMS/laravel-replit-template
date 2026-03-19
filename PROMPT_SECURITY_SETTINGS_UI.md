@@ -531,9 +531,9 @@ Then 5 cards with the same structure as the customer portal but using admin desi
 
 ## PART 5: Bug Review Justifications
 
-A prior code review flagged several issues. Here is the disposition of each, with evidence for verification:
+Two code reviews were conducted. Here is the disposition of every finding, with file paths, line numbers, and verification steps.
 
-### VALID — Fixed in this branch
+### Round 1: VALID — Fixed in this branch
 
 | Issue | Fix Applied |
 |-------|-------------|
@@ -543,7 +543,15 @@ A prior code review flagged several issues. Here is the disposition of each, wit
 | **session()->flush() should be invalidate()** | Changed to `$request->session()->invalidate()` + `$request->session()->regenerateToken()` in `CustomerIpAllowlist.php` to prevent session fixation |
 | **SendHeldMessage job doesn't actually send** | Changed from silently logging "released for delivery" to marking as `failed` with error-level log. Gateway dispatch is a follow-up integration |
 
-### INVALID — With Evidence
+### Round 2: VALID — Fixed in this branch
+
+| Issue | Fix Applied |
+|-------|-------------|
+| **settings.blade.php JS skips `response.ok` check** | Added `if (!res.ok)` check before `.json()` on all 3 fetch calls (`applyStatusChange`, `applySpamFilter`, `addTestCredits`). If server returns 500 HTML, error is now caught properly instead of throwing a JSON parse error |
+| **CSRF fallback uses Blade literal `{{ csrf_token() }}` in JS** | Removed `\|\| '{{ csrf_token() }}'` fallback from line 523 of `settings.blade.php`. The admin layout always includes the `<meta name="csrf-token">` tag, so the fallback never fires and violates the no-Blade-in-JS standard |
+| **`findOrFail` without `withoutGlobalScopes()` in admin methods** | Changed `accountsSettings` (L623), `addTestCredits` (L721), `updateSpamFilterMode` (L788) to use `Account::withoutGlobalScopes()->findOrFail()`, matching the pattern in `adminUpdateAccountStatus` (L651) |
+
+### Round 1: INVALID — With Evidence
 
 #### 1. "permission:manage_security middleware doesn't exist"
 
@@ -605,6 +613,42 @@ The `throttle:30,1` middleware applies to the entire security settings route gro
 #### 6. "DataMaskingService has no integration points"
 
 **Verdict: TRUE but intentionally deferred.** The service is built and registered as a scoped singleton in `AppServiceProvider.php`. Integration into reporting controllers and export endpoints is a separate follow-up task — it requires changes across multiple controllers and was scoped out of this branch.
+
+### Round 2: NOT A BUG — With Evidence
+
+#### 7. "findOrFail without withoutGlobalScopes() will fail for admin users"
+
+**Verdict: NOT A RUNTIME BUG. Fixed for consistency only.**
+
+**Evidence:** The `Account` model (`app/Models/Account.php`) has **no global scopes** — it does not call `addGlobalScope()` in `boot()` or `booted()`, and does not use any scope trait. Similarly, `TestCreditWallet` (`app/Models/Billing/TestCreditWallet.php`) has no global scopes. The admin console uses the `svc_red` database role which bypasses PostgreSQL RLS anyway.
+
+The existing `adminUpdateAccountStatus` at line 651 uses `withoutGlobalScopes()` defensively — this is correct practice for RED-zone code, but its absence wouldn't cause a 404. We applied the same pattern to the other 3 methods for consistency, not because they were broken.
+
+**How to verify:** Check `app/Models/Account.php` — no `boot()` or `booted()` method, no `addGlobalScope()` call, no scope traits. Same for `app/Models/Billing/TestCreditWallet.php`.
+
+#### 8. "TestCreditWallet query doesn't use withoutGlobalScopes()"
+
+**Verdict: NOT A BUG.**
+
+**Evidence:** `TestCreditWallet` (`app/Models/Billing/TestCreditWallet.php`) has no global scopes. The `where('account_id', $accountId)` query at line 625 of `AdminController.php` uses an explicit filter, not a scope. And `account_id` is a direct column filter, not a tenant scope. This query works correctly for any account.
+
+**How to verify:** Read `app/Models/Billing/TestCreditWallet.php` — no `boot()`, no `booted()`, no `addGlobalScope()`. Model only has `HasUuids` trait.
+
+#### 9. "HeldMessage double-encryption risk from saving event"
+
+**Verdict: LOW RISK, no change needed.**
+
+**Evidence:** The `saving` event in `HeldMessage::boot()` checks `$model->isDirty('message_content')` before encrypting. When a held message is updated (e.g., status change from 'held' to 'released'), `message_content` is not modified, so `isDirty()` returns `false` and no re-encryption occurs. The only way to trigger double-encryption would be `$msg->message_content = $msg->message_content` — pathological code that no developer would write. This pattern matches `InboxMessage` (`app/Models/InboxMessage.php:73-77`) which has been in production.
+
+**How to verify:** Read `app/Models/HeldMessage.php` boot method — confirm `isDirty('message_content')` guard exists.
+
+#### 10. "manage_security toggle needs seeder/creation SP update"
+
+**Verdict: NOT NEEDED — architecture already handles this.**
+
+**Evidence:** The `hasPermission()` method on User first checks the JSONB `permission_toggles` column. If the column is `null` (default for new users), it falls back to `ROLE_DEFAULT_PERMISSIONS` which already defines `manage_security` for every role (`app/Models/User.php`, lines 76-160). New users get the correct default based on their assigned role without any seeder or stored procedure change. The SP `sp_create_account()` creates the owner user with role `'owner'` — and `ROLE_DEFAULT_PERMISSIONS['owner']['manage_security']` is `true`.
+
+**How to verify:** Create a new account via the signup flow → log in as owner → call `GET /api/account/security/settings` → should return 200.
 
 ---
 
