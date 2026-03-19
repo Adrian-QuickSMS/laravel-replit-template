@@ -36,7 +36,7 @@ Preferred communication style: Simple, everyday language.
 - **Flow Builder:** A visual drag-and-drop tool for automated messaging journeys, including triggers, actions, logic, and endpoints, with a secure credential vault.
 - **Admin Console:** Dedicated landing page and separate layouts for Messaging and HR management.
 - **HR Leave Management (Admin Console):** Internal module for staff leave, entitlements, requests, and auditing, with specific HR roles and robust calculation services.
-- **Security Settings:** Customer portal configuration for message data retention, data masking, anti-flood protection, out-of-hours sending restrictions, and IP allowlisting.
+- **Security Settings:** Customer portal configuration for message data retention, data masking, anti-flood protection, out-of-hours sending restrictions, and IP allowlisting. Admin console also provides per-account security settings management via `/admin/accounts/{accountId}/settings` with dedicated API endpoints (`/admin/api/accounts/{accountId}/security/*`) for viewing and modifying each customer's security configuration without logging in as the customer.
 - **Billing Snapshots:** Immutable records for campaign pricing estimates.
 - **Audit Logging:** Five domain-specific, immutable audit log tables with a unified API for retrieval.
 

@@ -512,6 +512,203 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            <h5 style="font-weight: 600; color: var(--admin-primary); margin-bottom: 1rem;">
+                <i class="fas fa-lock me-2"></i>Customer Security Settings
+            </h5>
+        </div>
+    </div>
+
+    <div id="securityLoadingState" class="text-center py-4">
+        <i class="fas fa-spinner fa-spin" style="color: var(--admin-primary);"></i>
+        <span class="ms-2 text-muted">Loading security settings...</span>
+    </div>
+
+    <div id="securityContent" class="d-none">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-database me-2"></i>Message Data Retention</h6>
+                    <span class="d-none" id="secRetentionSaving" style="font-size: 0.75rem; color: var(--admin-primary);"><i class="fas fa-spinner fa-spin"></i> Saving</span>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-row">
+                        <span class="settings-label">Message Log Retention Period</span>
+                        <select class="form-select form-select-sm" id="secRetentionPeriod" style="width: 140px;" onchange="saveSecRetention()">
+                            <option value="30">30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90">90 days</option>
+                            <option value="120">120 days</option>
+                            <option value="150">150 days</option>
+                            <option value="180">180 days</option>
+                        </select>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6c757d; margin-top: 0.5rem;">
+                        How long message logs and delivery receipts are stored. Billing records are not affected.
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-eye-slash me-2"></i>Data Visibility & Masking</h6>
+                    <span class="d-none" id="secMaskingSaving" style="font-size: 0.75rem; color: var(--admin-primary);"><i class="fas fa-spinner fa-spin"></i> Saving</span>
+                </div>
+                <div class="settings-card-body">
+                    <div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 0.75rem;">Controls which data fields are masked in Message Logs, Reporting, and Exports.</div>
+                    <div class="settings-row">
+                        <span class="settings-label" style="font-size: 0.85rem;">Mobile Number</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secMaskMobile" onchange="saveSecMasking()">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label" style="font-size: 0.85rem;">Message Content</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secMaskContent" onchange="saveSecMasking()">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label" style="font-size: 0.85rem;">Sent Timestamp</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secMaskSentTime" onchange="saveSecMasking()">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label" style="font-size: 0.85rem;">Delivered Timestamp</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secMaskDeliveredTime" onchange="saveSecMasking()">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label" style="font-size: 0.85rem;">Owner Bypass Masking</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secOwnerBypass" onchange="saveSecMasking()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-shield-alt me-2"></i>MFA Policy</h6>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-row">
+                        <span class="settings-label">Require MFA for all users</span>
+                        <div>
+                            <span class="badge" id="secMfaBadge" style="font-size: 0.8rem;">-</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem;">
+                        <i class="fas fa-info-circle me-1"></i>MFA configuration is read-only from the admin console. The customer manages this setting.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-water me-2"></i>Anti-Flood Protection</h6>
+                    <span class="d-none" id="secAntiFloodSaving" style="font-size: 0.75rem; color: var(--admin-primary);"><i class="fas fa-spinner fa-spin"></i> Saving</span>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-row">
+                        <span class="settings-label">Enabled</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secAntiFloodEnabled" onchange="saveSecAntiFlood()">
+                        </div>
+                    </div>
+                    <div class="settings-row" id="secAntiFloodModeRow">
+                        <span class="settings-label">Mode</span>
+                        <select class="form-select form-select-sm" id="secAntiFloodMode" style="width: 140px;" onchange="saveSecAntiFlood()">
+                            <option value="enforce">Enforce</option>
+                            <option value="monitor">Monitor</option>
+                            <option value="off">Off</option>
+                        </select>
+                    </div>
+                    <div class="settings-row" id="secAntiFloodWindowRow">
+                        <span class="settings-label">Window (hours)</span>
+                        <select class="form-select form-select-sm" id="secAntiFloodWindow" style="width: 100px;" onchange="saveSecAntiFlood()">
+                            <option value="2">2</option>
+                            <option value="4">4</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="12">12</option>
+                            <option value="24">24</option>
+                            <option value="48">48</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-clock me-2"></i>Out-of-Hours Restriction</h6>
+                    <span class="d-none" id="secOohSaving" style="font-size: 0.75rem; color: var(--admin-primary);"><i class="fas fa-spinner fa-spin"></i> Saving</span>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-row">
+                        <span class="settings-label">Enabled</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secOohEnabled" onchange="saveSecOutOfHours()">
+                        </div>
+                    </div>
+                    <div id="secOohDetailsRows">
+                        <div class="settings-row">
+                            <span class="settings-label">Start Time</span>
+                            <input type="time" class="form-control form-control-sm" id="secOohStart" style="width: 120px;" onchange="saveSecOutOfHours()">
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">End Time</span>
+                            <input type="time" class="form-control form-control-sm" id="secOohEnd" style="width: 120px;" onchange="saveSecOutOfHours()">
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">Action</span>
+                            <select class="form-select form-select-sm" id="secOohAction" style="width: 120px;" onchange="saveSecOutOfHours()">
+                                <option value="reject">Reject</option>
+                                <option value="hold">Hold</option>
+                            </select>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">Timezone</span>
+                            <span class="settings-value" id="secOohTimezone" style="font-size: 0.85rem;">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h6><i class="fas fa-network-wired me-2"></i>IP Allowlist</h6>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-row">
+                        <span class="settings-label">Allowlist Enabled</span>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="secIpEnabled" onchange="toggleSecIpAllowlist()">
+                        </div>
+                    </div>
+                    <div id="secIpListContainer" style="margin-top: 0.75rem;">
+                        <div id="secIpEntries"></div>
+                        <div class="d-flex gap-2 mt-2">
+                            <input type="text" class="form-control form-control-sm" id="secIpAddressInput" placeholder="IP or CIDR" style="max-width: 180px;">
+                            <input type="text" class="form-control form-control-sm" id="secIpLabelInput" placeholder="Label (optional)" style="max-width: 150px;">
+                            <button type="button" class="btn btn-sm btn-admin-primary" onclick="addSecIp()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div style="font-size: 0.7rem; color: #6c757d; margin-top: 0.5rem;" id="secIpCount">0 / 50 entries</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -680,6 +877,272 @@ function cancelSpamFilter() {
     selectSpamFilter(currentSpamFilter);
     document.getElementById('spamFilterActions').style.display = 'none';
 }
+
+let securityData = null;
+let secSaveTimers = {};
+
+async function loadSecuritySettings() {
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/settings`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        });
+        if (!res.ok) throw new Error('Failed to load');
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || 'Failed');
+        securityData = json.data;
+        populateSecurityCards(securityData);
+        document.getElementById('securityLoadingState').classList.add('d-none');
+        document.getElementById('securityContent').classList.remove('d-none');
+    } catch (err) {
+        document.getElementById('securityLoadingState').innerHTML =
+            '<i class="fas fa-exclamation-triangle text-danger"></i> <span class="ms-2 text-danger">Failed to load security settings.</span>';
+    }
+}
+
+function populateSecurityCards(d) {
+    document.getElementById('secRetentionPeriod').value = d.retention.message_retention_days;
+
+    const mc = d.masking.config || {};
+    document.getElementById('secMaskMobile').checked = !!mc.mask_mobile;
+    document.getElementById('secMaskContent').checked = !!mc.mask_content;
+    document.getElementById('secMaskSentTime').checked = !!mc.mask_sent_time;
+    document.getElementById('secMaskDeliveredTime').checked = !!mc.mask_delivered_time;
+    document.getElementById('secOwnerBypass').checked = d.masking.owner_bypass_masking !== false;
+
+    document.getElementById('secAntiFloodEnabled').checked = !!d.anti_flood.enabled;
+    document.getElementById('secAntiFloodMode').value = d.anti_flood.mode || 'off';
+    document.getElementById('secAntiFloodWindow').value = d.anti_flood.window_hours || 2;
+    updateAntiFloodVisibility();
+
+    document.getElementById('secOohEnabled').checked = !!d.out_of_hours.enabled;
+    document.getElementById('secOohStart').value = d.out_of_hours.start || '21:00';
+    document.getElementById('secOohEnd').value = d.out_of_hours.end || '08:00';
+    document.getElementById('secOohAction').value = d.out_of_hours.action || 'reject';
+    document.getElementById('secOohTimezone').textContent = d.out_of_hours.timezone || 'Europe/London';
+    updateOohVisibility();
+
+    const mfaEnabled = d.mfa && d.mfa.require_mfa;
+    const mfaBadge = document.getElementById('secMfaBadge');
+    if (mfaEnabled) {
+        mfaBadge.textContent = 'Enabled';
+        mfaBadge.style.background = 'rgba(28,187,140,0.15)';
+        mfaBadge.style.color = '#1cbb8c';
+    } else {
+        mfaBadge.textContent = 'Disabled';
+        mfaBadge.style.background = 'rgba(108,117,125,0.15)';
+        mfaBadge.style.color = '#6c757d';
+    }
+
+    document.getElementById('secIpEnabled').checked = !!d.ip_allowlist.enabled;
+    renderIpEntries(d.ip_allowlist.entries || []);
+}
+
+function updateAntiFloodVisibility() {
+    const enabled = document.getElementById('secAntiFloodEnabled').checked;
+    document.getElementById('secAntiFloodModeRow').style.display = enabled ? 'flex' : 'none';
+    document.getElementById('secAntiFloodWindowRow').style.display = enabled ? 'flex' : 'none';
+}
+
+function updateOohVisibility() {
+    const enabled = document.getElementById('secOohEnabled').checked;
+    document.getElementById('secOohDetailsRows').style.display = enabled ? 'block' : 'none';
+}
+
+function showSecSaving(id) {
+    document.getElementById(id).classList.remove('d-none');
+}
+function hideSecSaving(id) {
+    document.getElementById(id).classList.add('d-none');
+}
+
+async function saveSecRetention() {
+    showSecSaving('secRetentionSaving');
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/retention`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({ message_retention_days: parseInt(document.getElementById('secRetentionPeriod').value) }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast('Retention updated');
+    } catch (err) {
+        showToast(err.message || 'Failed to update retention', 'error');
+    } finally {
+        hideSecSaving('secRetentionSaving');
+    }
+}
+
+async function saveSecMasking() {
+    clearTimeout(secSaveTimers.masking);
+    secSaveTimers.masking = setTimeout(async () => {
+        showSecSaving('secMaskingSaving');
+        try {
+            const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/masking`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    mask_mobile: document.getElementById('secMaskMobile').checked,
+                    mask_content: document.getElementById('secMaskContent').checked,
+                    mask_sent_time: document.getElementById('secMaskSentTime').checked,
+                    mask_delivered_time: document.getElementById('secMaskDeliveredTime').checked,
+                    owner_bypass_masking: document.getElementById('secOwnerBypass').checked,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+            showToast('Masking updated');
+        } catch (err) {
+            showToast(err.message || 'Failed to update masking', 'error');
+        } finally {
+            hideSecSaving('secMaskingSaving');
+        }
+    }, 300);
+}
+
+async function saveSecAntiFlood() {
+    updateAntiFloodVisibility();
+    showSecSaving('secAntiFloodSaving');
+    try {
+        const enabled = document.getElementById('secAntiFloodEnabled').checked;
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/anti-flood`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({
+                enabled: enabled,
+                mode: enabled ? document.getElementById('secAntiFloodMode').value : 'off',
+                window_hours: parseInt(document.getElementById('secAntiFloodWindow').value),
+            }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast('Anti-flood updated');
+    } catch (err) {
+        showToast(err.message || 'Failed to update anti-flood', 'error');
+    } finally {
+        hideSecSaving('secAntiFloodSaving');
+    }
+}
+
+async function saveSecOutOfHours() {
+    updateOohVisibility();
+    showSecSaving('secOohSaving');
+    try {
+        const enabled = document.getElementById('secOohEnabled').checked;
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/out-of-hours`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({
+                enabled: enabled,
+                start: document.getElementById('secOohStart').value,
+                end: document.getElementById('secOohEnd').value,
+                action: document.getElementById('secOohAction').value,
+            }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast('Out-of-hours updated');
+    } catch (err) {
+        showToast(err.message || 'Failed to update out-of-hours', 'error');
+    } finally {
+        hideSecSaving('secOohSaving');
+    }
+}
+
+async function toggleSecIpAllowlist() {
+    const enabled = document.getElementById('secIpEnabled').checked;
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist/toggle`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({ enabled: enabled }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast(enabled ? 'IP allowlist enabled' : 'IP allowlist disabled');
+    } catch (err) {
+        document.getElementById('secIpEnabled').checked = !enabled;
+        showToast(err.message || 'Failed to toggle IP allowlist', 'error');
+    }
+}
+
+function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function renderIpEntries(entries) {
+    const container = document.getElementById('secIpEntries');
+    if (!entries || entries.length === 0) {
+        container.innerHTML = '<div class="text-muted small py-2">No IP entries configured.</div>';
+    } else {
+        let html = '<table class="credit-wallet-table"><thead><tr><th>IP Address</th><th>Label</th><th>Status</th><th>Added</th><th></th></tr></thead><tbody>';
+        entries.forEach(e => {
+            const statusBg = e.status === 'active' ? 'rgba(28,187,140,0.15)' : 'rgba(108,117,125,0.15)';
+            const statusColor = e.status === 'active' ? '#1cbb8c' : '#6c757d';
+            const dateStr = e.created_at ? new Date(e.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const safeIp = escHtml(e.ip_address);
+            const safeLabel = e.label ? escHtml(e.label) : '-';
+            const safeStatus = escHtml(e.status);
+            const safeId = escHtml(e.id);
+            html += `<tr>
+                <td><code style="font-size: 0.8rem;">${safeIp}</code></td>
+                <td>${safeLabel}</td>
+                <td><span class="badge" style="background:${statusBg};color:${statusColor};">${safeStatus}</span></td>
+                <td>${dateStr}</td>
+                <td><button class="btn btn-sm btn-outline-danger" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="removeSecIp('${safeId}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    document.getElementById('secIpCount').textContent = `${entries.length} / 50 entries`;
+}
+
+async function addSecIp() {
+    const ip = document.getElementById('secIpAddressInput').value.trim();
+    const label = document.getElementById('secIpLabelInput').value.trim();
+    if (!ip) {
+        showToast('Please enter an IP address.', 'error');
+        return;
+    }
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({ ip_address: ip, label: label || null }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast('IP added');
+        document.getElementById('secIpAddressInput').value = '';
+        document.getElementById('secIpLabelInput').value = '';
+        loadSecuritySettings();
+    } catch (err) {
+        showToast(err.message || 'Failed to add IP', 'error');
+    }
+}
+
+async function removeSecIp(entryId) {
+    if (!confirm('Remove this IP entry?')) return;
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist/${entryId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
+        showToast('IP removed');
+        loadSecuritySettings();
+    } catch (err) {
+        showToast(err.message || 'Failed to remove IP', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadSecuritySettings();
+});
 
 async function addTestCredits() {
     const amount = parseInt(document.getElementById('addCreditsAmount').value);

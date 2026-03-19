@@ -833,6 +833,451 @@ class AdminController extends Controller
         }
     }
 
+    public function adminSecuritySettings($accountId)
+    {
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+
+        if (!$settings) {
+            return response()->json(['success' => false, 'error' => 'Account settings not found'], 404);
+        }
+
+        $ipEntries = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+            ->where('tenant_id', $accountId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map->toPortalArray();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'retention' => [
+                    'message_retention_days' => $settings->message_retention_days ?? 180,
+                ],
+                'masking' => [
+                    'config' => is_string($settings->data_masking_config)
+                        ? json_decode($settings->data_masking_config, true)
+                        : ($settings->data_masking_config ?? [
+                            'mask_mobile' => false,
+                            'mask_content' => false,
+                            'mask_sent_time' => false,
+                            'mask_delivered_time' => false,
+                        ]),
+                    'owner_bypass_masking' => $settings->owner_bypass_masking ?? true,
+                ],
+                'anti_flood' => [
+                    'enabled' => $settings->anti_flood_enabled ?? false,
+                    'mode' => $settings->anti_flood_mode ?? 'off',
+                    'window_hours' => $settings->anti_flood_window_hours ?? 2,
+                ],
+                'out_of_hours' => [
+                    'enabled' => $settings->out_of_hours_enabled ?? false,
+                    'start' => $settings->out_of_hours_start ?? '21:00',
+                    'end' => $settings->out_of_hours_end ?? '08:00',
+                    'action' => $settings->out_of_hours_action ?? 'reject',
+                    'timezone' => $settings->timezone ?? 'Europe/London',
+                ],
+                'mfa' => [
+                    'require_mfa' => $settings->require_mfa ?? false,
+                ],
+                'ip_allowlist' => [
+                    'enabled' => $settings->ip_allowlist_enabled ?? false,
+                    'entries' => $ipEntries,
+                    'limit' => 50,
+                ],
+            ],
+        ]);
+    }
+
+    public function adminUpdateRetention(Request $request, $accountId)
+    {
+        $request->validate([
+            'message_retention_days' => 'required|integer|in:30,60,90,120,150,180',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!$settings) {
+            return response()->json(['success' => false, 'error' => 'Account settings not found'], 404);
+        }
+
+        $oldValue = $settings->message_retention_days;
+        $newValue = (int) $request->input('message_retention_days');
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            DB::transaction(function () use ($accountId, $newValue, $oldValue, $adminId, $adminUser) {
+                DB::table('account_settings')
+                    ->where('account_id', $accountId)
+                    ->update(['message_retention_days' => $newValue, 'updated_at' => now()]);
+
+                AdminAuditLog::record(
+                    'SECURITY_RETENTION_CHANGED',
+                    'account_management',
+                    'MEDIUM',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    "Admin changed retention from {$oldValue} to {$newValue} days",
+                    ['old_value' => $oldValue, 'new_value' => $newValue]
+                );
+            });
+
+            return response()->json(['success' => true, 'data' => ['message_retention_days' => $newValue]]);
+        } catch (\Throwable $e) {
+            Log::error('Admin retention update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update retention.'], 500);
+        }
+    }
+
+    public function adminUpdateMasking(Request $request, $accountId)
+    {
+        $request->validate([
+            'mask_mobile' => 'required|boolean',
+            'mask_content' => 'required|boolean',
+            'mask_sent_time' => 'required|boolean',
+            'mask_delivered_time' => 'required|boolean',
+            'owner_bypass_masking' => 'sometimes|boolean',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!$settings) {
+            return response()->json(['success' => false, 'error' => 'Account settings not found'], 404);
+        }
+
+        $maskingConfig = [
+            'mask_mobile' => (bool) $request->input('mask_mobile'),
+            'mask_content' => (bool) $request->input('mask_content'),
+            'mask_sent_time' => (bool) $request->input('mask_sent_time'),
+            'mask_delivered_time' => (bool) $request->input('mask_delivered_time'),
+        ];
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            DB::transaction(function () use ($accountId, $maskingConfig, $settings, $request, $adminId, $adminUser) {
+                DB::table('account_settings')
+                    ->where('account_id', $accountId)
+                    ->update([
+                        'data_masking_config' => json_encode($maskingConfig),
+                        'owner_bypass_masking' => $request->has('owner_bypass_masking')
+                            ? (bool) $request->input('owner_bypass_masking')
+                            : $settings->owner_bypass_masking,
+                        'updated_at' => now(),
+                    ]);
+
+                AdminAuditLog::record(
+                    'SECURITY_MASKING_CHANGED',
+                    'account_management',
+                    'MEDIUM',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    'Admin updated data masking settings',
+                    ['config' => $maskingConfig, 'owner_bypass' => $request->input('owner_bypass_masking')]
+                );
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'config' => $maskingConfig,
+                    'owner_bypass_masking' => $request->has('owner_bypass_masking')
+                        ? (bool) $request->input('owner_bypass_masking')
+                        : $settings->owner_bypass_masking,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Admin masking update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update masking.'], 500);
+        }
+    }
+
+    public function adminUpdateAntiFlood(Request $request, $accountId)
+    {
+        $request->validate([
+            'enabled' => 'required|boolean',
+            'mode' => 'required|string|in:enforce,monitor,off',
+            'window_hours' => 'required|integer|min:2|max:48',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!$settings) {
+            return response()->json(['success' => false, 'error' => 'Account settings not found'], 404);
+        }
+
+        $enabled = (bool) $request->input('enabled');
+        $mode = $request->input('mode');
+        $windowHours = (int) $request->input('window_hours');
+
+        if (!$enabled) {
+            $mode = 'off';
+        }
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            DB::transaction(function () use ($accountId, $enabled, $mode, $windowHours, $adminId, $adminUser) {
+                DB::table('account_settings')
+                    ->where('account_id', $accountId)
+                    ->update([
+                        'anti_flood_enabled' => $enabled,
+                        'anti_flood_mode' => $mode,
+                        'anti_flood_window_hours' => $windowHours,
+                        'updated_at' => now(),
+                    ]);
+
+                AdminAuditLog::record(
+                    'SECURITY_ANTI_FLOOD_CHANGED',
+                    'account_management',
+                    'MEDIUM',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    "Admin set anti-flood: {$mode}, window: {$windowHours}h",
+                    ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours]
+                );
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Admin anti-flood update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update anti-flood.'], 500);
+        }
+    }
+
+    public function adminUpdateOutOfHours(Request $request, $accountId)
+    {
+        $request->validate([
+            'enabled' => 'required|boolean',
+            'start' => 'sometimes|date_format:H:i',
+            'end' => 'sometimes|date_format:H:i',
+            'action' => 'sometimes|string|in:reject,hold',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if (!$settings) {
+            return response()->json(['success' => false, 'error' => 'Account settings not found'], 404);
+        }
+
+        $enabled = (bool) $request->input('enabled');
+        $start = $request->input('start', $settings->out_of_hours_start ?? '21:00');
+        $end = $request->input('end', $settings->out_of_hours_end ?? '08:00');
+        $action = $request->input('action', $settings->out_of_hours_action ?? 'reject');
+
+        if ($start === $end) {
+            return response()->json(['success' => false, 'error' => 'Start and end times cannot be the same'], 422);
+        }
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            DB::transaction(function () use ($accountId, $enabled, $start, $end, $action, $adminId, $adminUser) {
+                DB::table('account_settings')
+                    ->where('account_id', $accountId)
+                    ->update([
+                        'out_of_hours_enabled' => $enabled,
+                        'out_of_hours_start' => $start,
+                        'out_of_hours_end' => $end,
+                        'out_of_hours_action' => $action,
+                        'updated_at' => now(),
+                    ]);
+
+                $desc = $enabled ? "Admin enabled out-of-hours: {$start}–{$end} ({$action})" : 'Admin disabled out-of-hours';
+                AdminAuditLog::record(
+                    'SECURITY_OUT_OF_HOURS_CHANGED',
+                    'account_management',
+                    'MEDIUM',
+                    $adminId,
+                    $adminUser,
+                    'account',
+                    $accountId,
+                    $accountId,
+                    $desc,
+                    ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action]
+                );
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Admin out-of-hours update failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update out-of-hours.'], 500);
+        }
+    }
+
+    public function adminToggleIpAllowlist(Request $request, $accountId)
+    {
+        $request->validate([
+            'enabled' => 'required|boolean',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $enabled = (bool) $request->input('enabled');
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            $ipService = app(\App\Services\IpAllowlistService::class);
+            $ipService->toggleEnabled($accountId, $enabled, null, $adminId ?? 'admin');
+
+            AdminAuditLog::record(
+                $enabled ? 'SECURITY_IP_ALLOWLIST_ENABLED' : 'SECURITY_IP_ALLOWLIST_DISABLED',
+                'account_management',
+                'HIGH',
+                $adminId,
+                $adminUser,
+                'account',
+                $accountId,
+                $accountId,
+                $enabled ? 'Admin enabled IP allowlist' : 'Admin disabled IP allowlist',
+                ['enabled' => $enabled]
+            );
+
+            return response()->json(['success' => true, 'data' => ['enabled' => $enabled]]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 409);
+        } catch (\Throwable $e) {
+            Log::error('Admin IP allowlist toggle failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to toggle IP allowlist.'], 500);
+        }
+    }
+
+    public function adminAddIp(Request $request, $accountId)
+    {
+        $request->validate([
+            'ip_address' => 'required|string|max:45',
+            'label' => 'nullable|string|max:100',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            $ipService = app(\App\Services\IpAllowlistService::class);
+            $entry = $ipService->addIp(
+                $accountId,
+                $request->input('ip_address'),
+                $request->input('label'),
+                $adminId ?? 'admin'
+            );
+
+            AdminAuditLog::record(
+                'SECURITY_IP_ADDED',
+                'account_management',
+                'HIGH',
+                $adminId,
+                $adminUser,
+                'account',
+                $accountId,
+                $accountId,
+                "Admin added IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
+                ['ip_address' => $entry->ip_address, 'label' => $entry->label]
+            );
+
+            return response()->json(['success' => true, 'data' => $entry->toPortalArray()], 201);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 409);
+        } catch (\Throwable $e) {
+            Log::error('Admin IP add failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to add IP.'], 500);
+        }
+    }
+
+    public function adminRemoveIp(Request $request, $accountId, $entryId)
+    {
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $entry = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+            ->where('tenant_id', $accountId)
+            ->where('id', $entryId)
+            ->first();
+
+        if (!$entry) {
+            return response()->json(['success' => false, 'error' => 'IP entry not found'], 404);
+        }
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+        if ($settings && $settings->ip_allowlist_enabled && $entry->status === 'active') {
+            $activeCount = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+                ->where('tenant_id', $accountId)
+                ->where('status', 'active')
+                ->count();
+
+            if ($activeCount <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Cannot remove the last active IP while allowlist is enabled. Disable the allowlist first.',
+                ], 409);
+            }
+        }
+
+        try {
+            $adminUser = session('admin_auth.name', session('admin_auth.email', session('admin_user_name', 'Admin')));
+            $adminId = session('admin_auth.admin_id', session('admin_user_id'));
+
+            $ipService = app(\App\Services\IpAllowlistService::class);
+            $ipService->removeIp($accountId, $entryId);
+
+            AdminAuditLog::record(
+                'SECURITY_IP_REMOVED',
+                'account_management',
+                'HIGH',
+                $adminId,
+                $adminUser,
+                'account',
+                $accountId,
+                $accountId,
+                "Admin removed IP: {$entry->ip_address}" . ($entry->label ? " ({$entry->label})" : ''),
+                ['ip_address' => $entry->ip_address, 'label' => $entry->label]
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Throwable $e) {
+            Log::error('Admin IP remove failed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to remove IP.'], 500);
+        }
+    }
+
     public function reportingMessageLog()
     {
         return view('admin.reporting.message-log', [

@@ -647,6 +647,16 @@ Route::prefix('admin')->group(function () {
             Route::put('/api/accounts/{accountId}/status-override', 'adminUpdateAccountStatus')->name('admin.api.accounts.status-override');
             Route::post('/api/accounts/{accountId}/test-credits', 'addTestCredits')->name('admin.api.accounts.test-credits');
             Route::put('/api/accounts/{accountId}/spam-filter-mode', 'updateSpamFilterMode')->name('admin.api.accounts.spam-filter-mode');
+
+            Route::get('/api/accounts/{accountId}/security/settings', 'adminSecuritySettings')->name('admin.api.accounts.security.settings');
+            Route::put('/api/accounts/{accountId}/security/retention', 'adminUpdateRetention')->name('admin.api.accounts.security.retention');
+            Route::put('/api/accounts/{accountId}/security/masking', 'adminUpdateMasking')->name('admin.api.accounts.security.masking');
+            Route::put('/api/accounts/{accountId}/security/anti-flood', 'adminUpdateAntiFlood')->name('admin.api.accounts.security.anti-flood');
+            Route::put('/api/accounts/{accountId}/security/out-of-hours', 'adminUpdateOutOfHours')->name('admin.api.accounts.security.out-of-hours');
+            Route::put('/api/accounts/{accountId}/security/ip-allowlist/toggle', 'adminToggleIpAllowlist')->name('admin.api.accounts.security.ip-allowlist.toggle');
+            Route::post('/api/accounts/{accountId}/security/ip-allowlist', 'adminAddIp')->name('admin.api.accounts.security.ip-allowlist.add');
+            Route::delete('/api/accounts/{accountId}/security/ip-allowlist/{entryId}', 'adminRemoveIp')->name('admin.api.accounts.security.ip-allowlist.remove');
+
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
             
