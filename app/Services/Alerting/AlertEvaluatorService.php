@@ -84,6 +84,8 @@ class AlertEvaluatorService
         $decision = $this->frequencyService->shouldDispatch($rule, $triggerValue);
 
         if ($decision === 'suppress') {
+            // Always update the snapshot so once_per_breach can detect recovery
+            $rule->updateSnapshot($triggerValue);
             $this->recordHistory($rule, $event, [], 'suppressed_cooldown');
             return;
         }

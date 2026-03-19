@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Validation\WebhookUrlValidator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -30,6 +31,16 @@ class SendWebhookAlertJob implements ShouldQueue
 
         if (!$url) {
             Log::debug('[SendWebhookAlert] No webhook URL configured');
+            return;
+        }
+
+        // SSRF protection — validate URL resolves to a public IP
+        $validation = WebhookUrlValidator::validate($url);
+        if (!$validation['valid']) {
+            Log::error('[SendWebhookAlert] URL blocked by SSRF protection', [
+                'error' => $validation['error'],
+                'trigger_key' => $this->payload['trigger_key'],
+            ]);
             return;
         }
 
@@ -98,7 +109,6 @@ class SendWebhookAlertJob implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error('[SendWebhookAlert] Job failed permanently', [
-            'url' => $this->webhookConfig['webhook_url'] ?? 'unknown',
             'trigger_key' => $this->payload['trigger_key'] ?? 'unknown',
             'error' => $exception->getMessage(),
         ]);

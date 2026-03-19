@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Alerting\AlertChannelConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Validation\WebhookUrlValidator;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -72,9 +73,32 @@ class AlertChannelController extends Controller
 
         $configData = $request->input('config', []);
 
-        // Auto-generate HMAC secret for webhooks if not provided
+        // SSRF protection — validate webhook URLs resolve to public IPs
+        $urlFields = ['webhook_url', 'slack_webhook_url', 'teams_webhook_url'];
+        foreach ($urlFields as $field) {
+            if (!empty($configData[$field])) {
+                $validation = WebhookUrlValidator::validate($configData[$field]);
+                if (!$validation['valid']) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => "Invalid {$field}: {$validation['error']}",
+                    ], 422);
+                }
+            }
+        }
+
+        // Auto-generate HMAC secret for webhooks only on initial creation
+        $existingConfig = AlertChannelConfig::forTenant($request->user()->account_id)
+            ->forChannel($channel)
+            ->first();
+
         if ($channel === 'webhook' && empty($configData['hmac_secret'])) {
-            $configData['hmac_secret'] = Str::random(64);
+            // Preserve existing secret on updates, only generate on first creation
+            if ($existingConfig && !empty($existingConfig->config['hmac_secret'])) {
+                $configData['hmac_secret'] = $existingConfig->config['hmac_secret'];
+            } else {
+                $configData['hmac_secret'] = Str::random(64);
+            }
         }
 
         $channelConfig = AlertChannelConfig::updateOrCreate(

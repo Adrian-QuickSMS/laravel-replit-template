@@ -44,7 +44,7 @@ class AlertHistoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $history->items(),
+            'data' => collect($history->items())->map->toPortalArray(),
             'pagination' => [
                 'total' => $history->total(),
                 'per_page' => $history->perPage(),

@@ -71,17 +71,24 @@ class BalanceAlertService
         // Fire alertable event for the alerting engine
         $severity = $usagePercentage >= 95 ? 'critical' : 'warning';
 
-        BalanceThresholdBreached::dispatch(
-            $account->id,
-            round($usagePercentage, 2),
-            (float) $remaining,
-            $currency,
-            $severity,
-            [
-                'threshold_percentage' => $alert->threshold_percentage,
-                'account_number' => $account->account_number ?? null,
-                'billing_type' => $account->billing_type ?? null,
-            ]
-        );
+        try {
+            BalanceThresholdBreached::dispatch(
+                $account->id,
+                round($usagePercentage, 2),
+                (float) $remaining,
+                $currency,
+                $severity,
+                [
+                    'threshold_percentage' => $alert->threshold_percentage,
+                    'account_number' => $account->account_number ?? null,
+                    'billing_type' => $account->billing_type ?? null,
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[BalanceAlert] Alert dispatch failed — non-blocking', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

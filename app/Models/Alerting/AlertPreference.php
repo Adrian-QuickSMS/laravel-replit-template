@@ -52,8 +52,8 @@ class AlertPreference extends Model
             return false;
         }
 
-        // If muted_until is set and has passed, no longer muted
-        if ($this->muted_until && $this->muted_until->isPast()) {
+        // If muted_until is set and has passed (or is exactly now), no longer muted
+        if ($this->muted_until && $this->muted_until <= now()) {
             return false;
         }
 

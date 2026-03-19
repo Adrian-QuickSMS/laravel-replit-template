@@ -61,26 +61,32 @@ class AlertFrequencyService
         $batchType = $rule->frequency;
         $scheduledFor = $this->calculateNextBatchTime($batchType);
 
-        // Find or create batch for this tenant/user/channel/type
-        $batch = NotificationBatch::where('tenant_id', $tenantId)
-            ->where('user_id', $userId)
-            ->where('batch_type', $batchType)
-            ->where('channel', $channel)
-            ->pending()
-            ->where('scheduled_for', $scheduledFor)
-            ->first();
+        // Atomic find-or-create to prevent race condition (unique constraint enforced at DB level)
+        try {
+            $batch = NotificationBatch::firstOrCreate(
+                [
+                    'tenant_id' => $tenantId,
+                    'user_id' => $userId,
+                    'batch_type' => $batchType,
+                    'channel' => $channel,
+                    'scheduled_for' => $scheduledFor,
+                ],
+                ['items' => [$notificationPayload]]
+            );
 
-        if ($batch) {
-            $batch->addItem($notificationPayload);
-        } else {
-            NotificationBatch::create([
-                'tenant_id' => $tenantId,
-                'user_id' => $userId,
-                'batch_type' => $batchType,
-                'channel' => $channel,
-                'items' => [$notificationPayload],
-                'scheduled_for' => $scheduledFor,
-            ]);
+            if (!$batch->wasRecentlyCreated) {
+                $batch->addItem($notificationPayload);
+            }
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Race condition hit — retry by finding the existing batch
+            $batch = NotificationBatch::where('tenant_id', $tenantId)
+                ->where('user_id', $userId)
+                ->where('batch_type', $batchType)
+                ->where('channel', $channel)
+                ->where('scheduled_for', $scheduledFor)
+                ->first();
+
+            $batch?->addItem($notificationPayload);
         }
 
         Log::debug('[AlertFrequency] Added to batch', [

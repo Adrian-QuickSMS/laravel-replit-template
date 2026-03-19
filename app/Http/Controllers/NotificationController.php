@@ -47,7 +47,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $notifications->items(),
+            'data' => collect($notifications->items())->map->toPortalArray(),
             'unread_count' => $unreadCount,
             'unread_by_category' => $unreadByCategoryQuery,
             'pagination' => [

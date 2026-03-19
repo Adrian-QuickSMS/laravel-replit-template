@@ -287,7 +287,7 @@ Route::post('/webhook/inbound/{gateway}', [\App\Http\Controllers\Api\InboundWebh
     ->name('webhook.inbound')
     ->middleware('throttle:300,1');
 
-Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:60,1'])->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
     Route::get('/', 'index')->name('api.notifications.index');
     Route::post('/mark-all-read', 'markAllRead')->name('api.notifications.markAllRead');
     Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');

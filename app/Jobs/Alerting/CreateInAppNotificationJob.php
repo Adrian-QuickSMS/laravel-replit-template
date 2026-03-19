@@ -45,6 +45,7 @@ class CreateInAppNotificationJob implements ShouldQueue
 
         Notification::create([
             'tenant_id' => $tenantId,
+            'user_id' => $this->payload['user_id'] ?? null,
             'type' => $this->payload['trigger_key'],
             'severity' => $this->payload['severity'] ?? 'info',
             'category' => $this->payload['category'] ?? null,

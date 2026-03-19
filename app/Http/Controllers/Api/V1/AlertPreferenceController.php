@@ -72,6 +72,14 @@ class AlertPreferenceController extends Controller
             ], fn ($v) => $v !== null)
         );
 
-        return response()->json(['success' => true, 'data' => $preference]);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'category' => $preference->category,
+                'channels' => $preference->channels,
+                'is_muted' => $preference->isCurrentlyMuted(),
+                'muted_until' => $preference->muted_until?->toIso8601String(),
+            ],
+        ]);
     }
 }

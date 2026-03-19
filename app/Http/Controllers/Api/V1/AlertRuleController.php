@@ -36,13 +36,20 @@ class AlertRuleController extends Controller
             $query->forTriggerKey($triggerKey);
         }
 
+        $perPage = min((int) $request->input('per_page', 25), 100);
         $rules = $query->orderBy('category')
             ->orderBy('trigger_key')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $rules,
+            'data' => collect($rules->items())->map->toPortalArray(),
+            'pagination' => [
+                'total' => $rules->total(),
+                'per_page' => $rules->perPage(),
+                'current_page' => $rules->currentPage(),
+                'last_page' => $rules->lastPage(),
+            ],
         ]);
     }
 
@@ -90,7 +97,7 @@ class AlertRuleController extends Controller
             'is_system_default' => false,
         ]);
 
-        return response()->json(['success' => true, 'data' => $rule], 201);
+        return response()->json(['success' => true, 'data' => $rule->toPortalArray()], 201);
     }
 
     /**
@@ -107,7 +114,7 @@ class AlertRuleController extends Controller
             })
             ->firstOrFail();
 
-        return response()->json(['success' => true, 'data' => $rule]);
+        return response()->json(['success' => true, 'data' => $rule->toPortalArray()]);
     }
 
     /**
@@ -136,7 +143,7 @@ class AlertRuleController extends Controller
 
         $rule->update($validator->validated());
 
-        return response()->json(['success' => true, 'data' => $rule]);
+        return response()->json(['success' => true, 'data' => $rule->toPortalArray()]);
     }
 
     /**

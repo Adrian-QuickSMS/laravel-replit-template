@@ -177,7 +177,8 @@ class SecuritySettingsController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Account settings not found'], 404);
         }
 
-        // Capture old value BEFORE the DB update
+        // Capture old values BEFORE the DB update (include owner_bypass_masking)
+        $oldOwnerBypass = $settings->owner_bypass_masking;
         $oldMasking = is_string($settings->data_masking_config)
             ? json_decode($settings->data_masking_config, true)
             : ($settings->data_masking_config ?? []);
@@ -213,8 +214,11 @@ class SecuritySettingsController extends Controller
             'owner_bypass' => $updates['owner_bypass_masking'] ?? $settings->owner_bypass_masking,
         ]);
 
+        $newOwnerBypass = $updates['owner_bypass_masking'] ?? $settings->owner_bypass_masking;
         $this->safeDispatch('security_setting_changed', AccountSecuritySettingChanged::class,
-            [$accountId, 'masking', $oldMasking, $maskingConfig],
+            [$accountId, 'masking',
+                ['config' => $oldMasking, 'owner_bypass_masking' => $oldOwnerBypass],
+                ['config' => $maskingConfig, 'owner_bypass_masking' => $newOwnerBypass]],
             ['account_id' => $accountId, 'setting' => 'masking']
         );
 
