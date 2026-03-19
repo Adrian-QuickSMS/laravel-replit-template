@@ -2,6 +2,12 @@
 
 namespace App\Events\Alerting;
 
+/**
+ * TODO: This event is registered in AlertEventSubscriber and has a config rule,
+ * but is not yet dispatched from any controller. Wire dispatch points into the
+ * API connection management flow (connect/disconnect/suspend/archive) once that
+ * feature is implemented.
+ */
 class ApiConnectionStateChanged extends BaseAlertEvent
 {
     public function __construct(

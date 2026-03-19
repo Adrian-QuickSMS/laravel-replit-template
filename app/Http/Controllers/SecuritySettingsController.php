@@ -133,7 +133,12 @@ class SecuritySettingsController extends Controller
             'new_value' => $newValue,
         ]);
 
-        AccountSecuritySettingChanged::dispatch($accountId, 'retention', ['days' => $oldValue], ['days' => $newValue]);
+        try {
+            AccountSecuritySettingChanged::dispatch($accountId, 'retention', ['message_retention_days' => $oldValue], ['message_retention_days' => $newValue]);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'retention']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -193,7 +198,16 @@ class SecuritySettingsController extends Controller
             'owner_bypass' => $updates['owner_bypass_masking'] ?? $settings->owner_bypass_masking,
         ]);
 
-        AccountSecuritySettingChanged::dispatch($accountId, 'masking', [], $maskingConfig);
+        $oldMasking = is_string($settings->data_masking_config)
+            ? json_decode($settings->data_masking_config, true)
+            : ($settings->data_masking_config ?? []);
+
+        try {
+            AccountSecuritySettingChanged::dispatch($accountId, 'masking', $oldMasking, $maskingConfig);
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'masking']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -251,10 +265,15 @@ class SecuritySettingsController extends Controller
             'window_hours' => $windowHours,
         ]);
 
-        AccountSecuritySettingChanged::dispatch($accountId, 'anti_flood',
-            ['enabled' => $settings->anti_flood_enabled, 'mode' => $settings->anti_flood_mode],
-            ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours]
-        );
+        try {
+            AccountSecuritySettingChanged::dispatch($accountId, 'anti_flood',
+                ['enabled' => $settings->anti_flood_enabled, 'mode' => $settings->anti_flood_mode, 'window_hours' => $settings->anti_flood_window_hours],
+                ['enabled' => $enabled, 'mode' => $mode, 'window_hours' => $windowHours]
+            );
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'anti_flood']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -323,10 +342,15 @@ class SecuritySettingsController extends Controller
             ]
         );
 
-        AccountSecuritySettingChanged::dispatch($accountId, 'out_of_hours',
-            ['enabled' => $settings->out_of_hours_enabled],
-            ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action]
-        );
+        try {
+            AccountSecuritySettingChanged::dispatch($accountId, 'out_of_hours',
+                ['enabled' => $settings->out_of_hours_enabled, 'start' => $settings->out_of_hours_start, 'end' => $settings->out_of_hours_end, 'action' => $settings->out_of_hours_action],
+                ['enabled' => $enabled, 'start' => $start, 'end' => $end, 'action' => $action]
+            );
+            Log::info('Alert dispatched: security_setting_changed', ['account_id' => $accountId, 'setting' => 'out_of_hours']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: security_setting_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -394,18 +418,23 @@ class SecuritySettingsController extends Controller
                 ['ip_address' => $entry->ip_address, 'label' => $entry->label]
             );
 
-            IpAllowlistChanged::dispatch($accountId, 'added', $entry->ip_address, $entry->label);
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $entry->toPortalArray(),
-            ], 201);
-
         } catch (\InvalidArgumentException $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
         } catch (\RuntimeException $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 409);
         }
+
+        try {
+            IpAllowlistChanged::dispatch($accountId, 'added', $entry->ip_address, $entry->label);
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => 'added']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $entry->toPortalArray(),
+        ], 201);
     }
 
     /**
@@ -448,11 +477,16 @@ class SecuritySettingsController extends Controller
             ['ip_address' => $entry->ip_address, 'label' => $entry->label]
         );
 
-        $remainingCount = AccountIpAllowlist::withoutGlobalScopes()
-            ->where('tenant_id', $accountId)
-            ->where('status', 'active')
-            ->count();
-        IpAllowlistChanged::dispatch($accountId, 'removed', $entry->ip_address, $entry->label, $remainingCount);
+        try {
+            $remainingCount = AccountIpAllowlist::withoutGlobalScopes()
+                ->where('tenant_id', $accountId)
+                ->where('status', 'active')
+                ->count();
+            IpAllowlistChanged::dispatch($accountId, 'removed', $entry->ip_address, $entry->label, $remainingCount);
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => 'removed']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
+        }
 
         return response()->json(['status' => 'success']);
     }
@@ -479,21 +513,25 @@ class SecuritySettingsController extends Controller
                 $enabled ? "IP allowlist enabled (caller IP: {$clientIp})" : 'IP allowlist disabled',
                 ['enabled' => $enabled, 'caller_ip' => $clientIp]
             );
+        } catch (\RuntimeException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 409);
+        }
 
+        try {
             IpAllowlistChanged::dispatch(
                 $accountId,
                 $enabled ? 'enabled' : 'disabled',
                 changedBy: $userId,
             );
-
-            return response()->json([
-                'status' => 'success',
-                'data' => ['enabled' => $enabled],
-            ]);
-
-        } catch (\RuntimeException $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 409);
+            Log::info('Alert dispatched: ip_allowlist_changed', ['account_id' => $accountId, 'action' => $enabled ? 'enabled' : 'disabled']);
+        } catch (\Throwable $e) {
+            Log::warning('Alert dispatch failed: ip_allowlist_changed', ['account_id' => $accountId, 'error' => $e->getMessage()]);
         }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => ['enabled' => $enabled],
+        ]);
     }
 
     /**
