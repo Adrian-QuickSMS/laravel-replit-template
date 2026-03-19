@@ -7,6 +7,9 @@ use App\Events\Alerting\AccountStatusOverridden;
 use App\Events\Alerting\ApiConnectionStateChanged;
 use App\Events\Alerting\IpAllowlistChanged;
 use App\Events\Alerting\SpamFilterModeChanged;
+use App\Traits\DispatchesAlertsSafely;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class SecurityAlertingTest extends TestCase
@@ -74,6 +77,13 @@ class SecurityAlertingTest extends TestCase
     public function test_ip_allowlist_enabled_stays_warning(): void
     {
         $event = new IpAllowlistChanged(null, 'enabled');
+        $this->assertEquals('warning', $event->getSeverity());
+        $this->assertNull($event->getMetadata()['ip_address']);
+    }
+
+    public function test_ip_allowlist_disabled_stays_warning(): void
+    {
+        $event = new IpAllowlistChanged(null, 'disabled');
         $this->assertEquals('warning', $event->getSeverity());
         $this->assertNull($event->getMetadata()['ip_address']);
     }
@@ -177,7 +187,81 @@ class SecurityAlertingTest extends TestCase
     {
         $subscriber = new \App\Listeners\Alerting\AlertEventSubscriber();
         $subscriptions = $subscriber->subscribe(app(\Illuminate\Events\Dispatcher::class));
-        // 31 original + 3 new security + 2 new admin + 6 sub-account = 42
-        $this->assertGreaterThanOrEqual(42, count($subscriptions), 'Expected at least 42 registered alert events');
+        $this->assertEquals(42, count($subscriptions), 'Subscriber event count changed — update this test if intentional');
+    }
+
+    // ==========================================================
+    // CONFIG STRUCTURAL CONSISTENCY
+    // ==========================================================
+
+    public function test_all_default_rules_have_required_keys(): void
+    {
+        $requiredKeys = ['category', 'trigger_type', 'trigger_key', 'condition_operator', 'condition_value', 'channels', 'frequency', 'cooldown_minutes', 'severity', 'title'];
+
+        foreach (config('alerting.defaults') as $i => $rule) {
+            foreach ($requiredKeys as $key) {
+                $this->assertArrayHasKey($key, $rule, "defaults[{$i}] (trigger_key: {$rule['trigger_key']}) missing required key '{$key}'");
+            }
+        }
+    }
+
+    public function test_all_admin_default_rules_have_required_keys(): void
+    {
+        $requiredKeys = ['category', 'trigger_type', 'trigger_key', 'condition_operator', 'condition_value', 'channels', 'frequency', 'cooldown_minutes', 'severity', 'title'];
+
+        foreach (config('alerting.admin_defaults') as $i => $rule) {
+            foreach ($requiredKeys as $key) {
+                $this->assertArrayHasKey($key, $rule, "admin_defaults[{$i}] (trigger_key: {$rule['trigger_key']}) missing required key '{$key}'");
+            }
+        }
+    }
+
+    // ==========================================================
+    // SAFE DISPATCH — dispatch failure must not affect caller
+    // ==========================================================
+
+    public function test_safe_dispatch_logs_info_on_success(): void
+    {
+        Log::shouldReceive('info')
+            ->once()
+            ->withArgs(fn ($msg, $ctx) => $msg === 'Alert dispatched: test_trigger' && $ctx['account_id'] === 'acct-1');
+
+        Event::fake([IpAllowlistChanged::class]);
+
+        $obj = new class {
+            use DispatchesAlertsSafely {
+                safeDispatch as public;
+            }
+        };
+
+        $obj->safeDispatch('test_trigger', IpAllowlistChanged::class,
+            [null, 'added', '1.2.3.4'],
+            ['account_id' => 'acct-1']
+        );
+
+        Event::assertDispatched(IpAllowlistChanged::class);
+    }
+
+    public function test_safe_dispatch_logs_warning_on_failure_and_does_not_throw(): void
+    {
+        Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(fn ($msg, $ctx) => $msg === 'Alert dispatch failed: test_trigger' && isset($ctx['error']));
+
+        // Use a non-existent class to force a dispatch error
+        $obj = new class {
+            use DispatchesAlertsSafely {
+                safeDispatch as public;
+            }
+        };
+
+        // Should not throw — the trait swallows the exception
+        $obj->safeDispatch('test_trigger', 'App\\Events\\Alerting\\NonExistentEvent',
+            [null],
+            ['account_id' => 'acct-1']
+        );
+
+        // If we got here without exception, the test passes
+        $this->assertTrue(true);
     }
 }
