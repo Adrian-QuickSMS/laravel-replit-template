@@ -1136,6 +1136,39 @@ class AdminController extends Controller
         }
     }
 
+    public function adminListIps($accountId)
+    {
+        $account = Account::withoutGlobalScopes()->findOrFail($accountId);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $entries = \App\Models\AccountIpAllowlist::withoutGlobalScopes()
+            ->where('tenant_id', $accountId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map->toPortalArray();
+
+        $settings = \App\Models\AccountSettings::withoutGlobalScopes()->find($accountId);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'enabled' => $settings->ip_allowlist_enabled ?? false,
+                'entries' => $entries,
+                'limit' => 50,
+            ],
+        ]);
+    }
+
+    public function adminGetCurrentIp(Request $request, $accountId)
+    {
+        Account::withoutGlobalScopes()->findOrFail($accountId);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['ip_address' => $request->ip()],
+        ]);
+    }
+
     public function adminToggleIpAllowlist(Request $request, $accountId)
     {
         $request->validate([

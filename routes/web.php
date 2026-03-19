@@ -653,6 +653,8 @@ Route::prefix('admin')->group(function () {
             Route::put('/api/accounts/{accountId}/security/masking', 'adminUpdateMasking')->name('admin.api.accounts.security.masking');
             Route::put('/api/accounts/{accountId}/security/anti-flood', 'adminUpdateAntiFlood')->name('admin.api.accounts.security.anti-flood');
             Route::put('/api/accounts/{accountId}/security/out-of-hours', 'adminUpdateOutOfHours')->name('admin.api.accounts.security.out-of-hours');
+            Route::get('/api/accounts/{accountId}/security/ip-allowlist', 'adminListIps')->name('admin.api.accounts.security.ip-allowlist.list');
+            Route::get('/api/accounts/{accountId}/security/ip-allowlist/current-ip', 'adminGetCurrentIp')->name('admin.api.accounts.security.ip-allowlist.current-ip');
             Route::put('/api/accounts/{accountId}/security/ip-allowlist/toggle', 'adminToggleIpAllowlist')->name('admin.api.accounts.security.ip-allowlist.toggle');
             Route::post('/api/accounts/{accountId}/security/ip-allowlist', 'adminAddIp')->name('admin.api.accounts.security.ip-allowlist.add');
             Route::delete('/api/accounts/{accountId}/security/ip-allowlist/{entryId}', 'adminRemoveIp')->name('admin.api.accounts.security.ip-allowlist.remove');

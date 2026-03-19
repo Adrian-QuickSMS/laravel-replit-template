@@ -685,29 +685,114 @@
             <div class="settings-card">
                 <div class="settings-card-header">
                     <h6><i class="fas fa-network-wired me-2"></i>IP Allowlist</h6>
+                    <span class="d-none" id="secIpSaving" style="font-size: 0.75rem; color: var(--admin-primary);"><i class="fas fa-spinner fa-spin"></i> Saving</span>
                 </div>
                 <div class="settings-card-body">
                     <div class="settings-row">
                         <span class="settings-label">Allowlist Enabled</span>
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="secIpEnabled" onchange="toggleSecIpAllowlist()">
+                            <input class="form-check-input" type="checkbox" id="secIpEnabled" onchange="confirmToggleIpAllowlist()">
                         </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Your Current IP</span>
+                        <span class="settings-value" id="secAdminCurrentIp" style="font-size: 0.85rem;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 0.75rem;"></i>
+                        </span>
                     </div>
                     <div id="secIpListContainer" style="margin-top: 0.75rem;">
                         <div id="secIpEntries"></div>
-                        <div class="d-flex gap-2 mt-2">
-                            <input type="text" class="form-control form-control-sm" id="secIpAddressInput" placeholder="IP or CIDR" style="max-width: 180px;">
-                            <input type="text" class="form-control form-control-sm" id="secIpLabelInput" placeholder="Label (optional)" style="max-width: 150px;">
-                            <button type="button" class="btn btn-sm btn-admin-primary" onclick="addSecIp()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-sm btn-admin-outline mt-2" onclick="openAddIpModal()">
+                            <i class="fas fa-plus me-1"></i>Add IP
+                        </button>
                         <div style="font-size: 0.7rem; color: #6c757d; margin-top: 0.5rem;" id="secIpCount">0 / 50 entries</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addIpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                <h6 class="modal-title" style="color: var(--admin-primary); font-weight: 600;">
+                    <i class="fas fa-plus-circle me-2"></i>Add IP to Allowlist
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">IP Address or CIDR</label>
+                    <input type="text" class="form-control" id="modalIpAddress" placeholder="e.g. 192.168.1.1 or 10.0.0.0/24">
+                    <div class="form-text">Supports IPv4, IPv6, and CIDR notation.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Label (optional)</label>
+                    <input type="text" class="form-control" id="modalIpLabel" placeholder="e.g. Office VPN, Developer laptop" maxlength="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-admin-primary" id="modalAddIpBtn" onclick="submitAddIp()">
+                    <i class="fas fa-plus me-1"></i>Add IP
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmToggleIpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                <h6 class="modal-title" style="color: var(--admin-primary); font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm IP Allowlist Change
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmToggleIpText"></p>
+                <div class="alert alert-warning small" id="confirmToggleIpWarning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <span id="confirmToggleIpWarningText"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" onclick="revertIpToggle()">Cancel</button>
+                <button type="button" class="btn btn-sm btn-admin-primary" onclick="executeToggleIpAllowlist()">
+                    <i class="fas fa-check me-1"></i>Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmRemoveIpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                <h6 class="modal-title" style="color: var(--admin-primary); font-weight: 600;">
+                    <i class="fas fa-trash me-2"></i>Remove IP Entry
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this IP entry?</p>
+                <div class="p-2 rounded" style="background: #f8f9fa;">
+                    <strong>IP:</strong> <code id="confirmRemoveIpAddress"></code>
+                    <span class="ms-2" id="confirmRemoveIpLabel"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-danger" id="confirmRemoveIpBtn" onclick="executeRemoveIp()">
+                    <i class="fas fa-trash me-1"></i>Remove
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1049,8 +1134,46 @@ async function saveSecOutOfHours() {
     }
 }
 
-async function toggleSecIpAllowlist() {
+let pendingIpToggle = null;
+let pendingRemoveIpId = null;
+let ipEntriesCache = [];
+
+function confirmToggleIpAllowlist() {
     const enabled = document.getElementById('secIpEnabled').checked;
+    pendingIpToggle = enabled;
+    const text = document.getElementById('confirmToggleIpText');
+    const warning = document.getElementById('confirmToggleIpWarning');
+    const warningText = document.getElementById('confirmToggleIpWarningText');
+
+    if (enabled) {
+        text.textContent = 'Are you sure you want to enable the IP allowlist for this account?';
+        warning.style.display = 'block';
+        warningText.textContent = 'Enabling the allowlist restricts portal access to listed IPs only. Ensure valid IPs are added to prevent customer lockout.';
+    } else {
+        text.textContent = 'Are you sure you want to disable the IP allowlist for this account? All users will be able to log in from any IP.';
+        warning.style.display = 'none';
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmToggleIpModal'));
+    modal.show();
+}
+
+function revertIpToggle() {
+    if (pendingIpToggle !== null) {
+        document.getElementById('secIpEnabled').checked = !pendingIpToggle;
+        pendingIpToggle = null;
+    }
+}
+
+async function executeToggleIpAllowlist() {
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmToggleIpModal'));
+    modal.hide();
+
+    if (pendingIpToggle === null) return;
+    const enabled = pendingIpToggle;
+    pendingIpToggle = null;
+
+    showSecSaving('secIpSaving');
     try {
         const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist/toggle`, {
             method: 'PUT',
@@ -1063,6 +1186,24 @@ async function toggleSecIpAllowlist() {
     } catch (err) {
         document.getElementById('secIpEnabled').checked = !enabled;
         showToast(err.message || 'Failed to toggle IP allowlist', 'error');
+    } finally {
+        hideSecSaving('secIpSaving');
+    }
+}
+
+async function loadAdminCurrentIp() {
+    try {
+        const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist/current-ip`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+            document.getElementById('secAdminCurrentIp').innerHTML = '<code style="font-size: 0.85rem;">' + escHtml(json.data.ip_address) + '</code>';
+        } else {
+            document.getElementById('secAdminCurrentIp').textContent = 'Unknown';
+        }
+    } catch (err) {
+        document.getElementById('secAdminCurrentIp').textContent = 'Unknown';
     }
 }
 
@@ -1073,6 +1214,7 @@ function escHtml(str) {
 }
 
 function renderIpEntries(entries) {
+    ipEntriesCache = entries || [];
     const container = document.getElementById('secIpEntries');
     if (!entries || entries.length === 0) {
         container.innerHTML = '<div class="text-muted small py-2">No IP entries configured.</div>';
@@ -1091,7 +1233,7 @@ function renderIpEntries(entries) {
                 <td>${safeLabel}</td>
                 <td><span class="badge" style="background:${statusBg};color:${statusColor};">${safeStatus}</span></td>
                 <td>${dateStr}</td>
-                <td><button class="btn btn-sm btn-outline-danger" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="removeSecIp('${safeId}')"><i class="fas fa-trash"></i></button></td>
+                <td><button class="btn btn-sm btn-outline-danger" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="openRemoveIpModal('${safeId}')"><i class="fas fa-trash"></i></button></td>
             </tr>`;
         });
         html += '</tbody></table>';
@@ -1100,13 +1242,23 @@ function renderIpEntries(entries) {
     document.getElementById('secIpCount').textContent = `${entries.length} / 50 entries`;
 }
 
-async function addSecIp() {
-    const ip = document.getElementById('secIpAddressInput').value.trim();
-    const label = document.getElementById('secIpLabelInput').value.trim();
+function openAddIpModal() {
+    document.getElementById('modalIpAddress').value = '';
+    document.getElementById('modalIpLabel').value = '';
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addIpModal'));
+    modal.show();
+}
+
+async function submitAddIp() {
+    const ip = document.getElementById('modalIpAddress').value.trim();
+    const label = document.getElementById('modalIpLabel').value.trim();
     if (!ip) {
         showToast('Please enter an IP address.', 'error');
         return;
     }
+    const btn = document.getElementById('modalAddIpBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
     try {
         const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist`, {
             method: 'POST',
@@ -1115,17 +1267,36 @@ async function addSecIp() {
         });
         const json = await res.json();
         if (!res.ok || !json.success) throw new Error(json.error || 'Failed');
-        showToast('IP added');
-        document.getElementById('secIpAddressInput').value = '';
-        document.getElementById('secIpLabelInput').value = '';
+        showToast('IP added successfully');
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addIpModal'));
+        modal.hide();
         loadSecuritySettings();
     } catch (err) {
         showToast(err.message || 'Failed to add IP', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus me-1"></i>Add IP';
     }
 }
 
-async function removeSecIp(entryId) {
-    if (!confirm('Remove this IP entry?')) return;
+function openRemoveIpModal(entryId) {
+    pendingRemoveIpId = entryId;
+    const entry = ipEntriesCache.find(e => e.id === entryId);
+    document.getElementById('confirmRemoveIpAddress').textContent = entry ? entry.ip_address : entryId;
+    document.getElementById('confirmRemoveIpLabel').textContent = entry && entry.label ? '(' + entry.label + ')' : '';
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmRemoveIpModal'));
+    modal.show();
+}
+
+async function executeRemoveIp() {
+    if (!pendingRemoveIpId) return;
+    const entryId = pendingRemoveIpId;
+    pendingRemoveIpId = null;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmRemoveIpModal'));
+    modal.hide();
+
+    showSecSaving('secIpSaving');
     try {
         const res = await fetch(`/admin/api/accounts/${ACCOUNT_ID}/security/ip-allowlist/${entryId}`, {
             method: 'DELETE',
@@ -1137,11 +1308,18 @@ async function removeSecIp(entryId) {
         loadSecuritySettings();
     } catch (err) {
         showToast(err.message || 'Failed to remove IP', 'error');
+    } finally {
+        hideSecSaving('secIpSaving');
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     loadSecuritySettings();
+    loadAdminCurrentIp();
+
+    document.getElementById('confirmToggleIpModal').addEventListener('hidden.bs.modal', function() {
+        revertIpToggle();
+    });
 });
 
 async function addTestCredits() {
