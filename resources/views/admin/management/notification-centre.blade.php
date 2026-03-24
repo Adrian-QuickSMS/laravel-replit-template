@@ -73,6 +73,22 @@
     border-left: 3px solid #886cc0;
     background: #faf9fc;
 }
+.notif-item.severity-critical {
+    border-left: 3px solid #ef4444;
+    background: #fff5f5;
+}
+.notif-item.severity-warning {
+    border-left: 3px solid #f59e0b;
+    background: #fff9e6;
+}
+.notif-item.severity-info {
+    border-left: 3px solid #886cc0;
+    background: #faf9fc;
+}
+.notif-item.severity-success {
+    border-left: 3px solid #22c55e;
+    background: #f0fdf4;
+}
 .notif-item:last-child {
     border-bottom: none;
 }
@@ -352,14 +368,14 @@
                     <label class="form-label">Trigger Key</label>
                     <select class="form-select" id="adminRuleTriggerKey"></select>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-6">
+                <div class="row mb-3" id="adminRuleOperatorValueRow">
+                    <div class="col-6" id="adminRuleOperatorCol">
                         <label class="form-label">Operator</label>
                         <select class="form-select" id="adminRuleOperator"></select>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">Value</label>
-                        <input type="number" class="form-control" id="adminRuleCondValue" placeholder="Value">
+                    <div class="col-6" id="adminRuleValueCol">
+                        <label class="form-label" id="adminRuleCondValueLabel">Value</label>
+                        <input type="number" class="form-control" id="adminRuleCondValue" placeholder="e.g. 80">
                     </div>
                 </div>
                 <div class="mb-3">
@@ -400,6 +416,49 @@
         'lt': 'Less than', 'gt': 'Greater than', 'lte': 'Less than or equal',
         'gte': 'Greater than or equal', 'eq': 'Equals', 'drops_by': 'Drops by', 'increases_by': 'Increases by'
     };
+
+    var CATEGORY_COLORS = {
+        'billing': { bg: '#fef3c7', color: '#92400e' },
+        'messaging': { bg: '#dbeafe', color: '#1e40af' },
+        'compliance': { bg: '#fce7f3', color: '#9d174d' },
+        'security': { bg: '#fee2e2', color: '#991b1b' },
+        'system': { bg: '#e0e7ff', color: '#3730a3' },
+        'campaign': { bg: '#d1fae5', color: '#065f46' },
+        'sub_account': { bg: '#ede9fe', color: '#5b21b6' },
+        'fraud': { bg: '#fee2e2', color: '#991b1b' },
+        'platform_health': { bg: '#cffafe', color: '#155e75' },
+        'customer_risk': { bg: '#ffedd5', color: '#9a3412' },
+        'commercial': { bg: '#fef9c3', color: '#854d0e' },
+        'compliance_legal': { bg: '#fce7f3', color: '#9d174d' }
+    };
+
+    var CHANNEL_LABELS = {
+        'in_app': 'In App', 'email': 'Email', 'sms': 'SMS',
+        'webhook': 'Webhook', 'slack': 'Slack', 'teams': 'Teams'
+    };
+
+    var TRIGGER_VALUE_LABELS = {
+        'credit_balance_percentage': 'Balance (£)',
+        'spend_rate': 'Spend Change (%)',
+        'delivery_rate': 'Delivery Rate (%)',
+        'failed_messages': 'Message Count',
+        'campaign_delivery_rate': 'Delivery Rate (%)',
+        'campaign_roi': 'ROI (%)',
+        'daily_message_volume': 'Message Count',
+        'api_error_rate': 'Error Rate (%)',
+        'api_latency': 'Latency (ms)',
+        'sub_account_spend_cap_approaching': 'Within (% of cap)',
+        'sub_account_volume_cap_approaching': 'Within (% of cap)',
+        'sub_account_daily_limit_approaching': 'Within (% of cap)',
+        'queue_backlog': 'Queue Size',
+        'dlr_latency_seconds': 'Latency (seconds)'
+    };
+
+    var CAP_REACHED_TRIGGERS = [
+        'sub_account_spend_cap',
+        'sub_account_volume_cap',
+        'sub_account_daily_limit'
+    ];
 
     var state = { notifPage: 1, histPage: 1 };
 
@@ -449,9 +508,15 @@
         return '<span class="status-chip ' + cls + '">' + escapeHtml(status || 'unknown') + '</span>';
     }
 
+    function categoryChip(categoryKey) {
+        var label = ADMIN_CATEGORIES[categoryKey] || categoryKey;
+        var colors = CATEGORY_COLORS[categoryKey] || { bg: '#f3f4f6', color: '#6b7280' };
+        return '<span class="category-chip" style="background: ' + colors.bg + '; color: ' + colors.color + ';">' + escapeHtml(label) + '</span>';
+    }
+
     function channelTags(channels) {
         if (!channels || !channels.length) return '<span class="text-muted">—</span>';
-        return channels.map(function(c) { return '<span class="channel-tag">' + escapeHtml(c) + '</span>'; }).join('');
+        return '<span style="font-size: 0.8rem; color: #6b7280;">' + channels.map(function(c) { return CHANNEL_LABELS[c] || c; }).join(' | ') + '</span>';
     }
 
     function apiGet(url) {
@@ -554,12 +619,13 @@
                 var html = '';
                 items.forEach(function(n) {
                     var isUnread = !n.read_at;
-                    html += '<div class="notif-item ' + (isUnread ? 'unread' : '') + '" data-uuid="' + escapeHtml(n.uuid) + '">';
+                    var sevClass = 'severity-' + (n.severity || 'info');
+                    html += '<div class="notif-item ' + sevClass + ' ' + (isUnread ? 'unread' : '') + '" data-uuid="' + escapeHtml(n.uuid) + '">';
                     html += '<div class="d-flex justify-content-between align-items-start">';
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
                     html += severityBadge(n.severity);
-                    html += '<span class="category-chip">' + escapeHtml(ADMIN_CATEGORIES[n.category] || n.category) + '</span>';
+                    html += categoryChip(n.category);
                     html += '<small class="text-muted">' + formatTimeAgo(n.created_at) + '</small>';
                     if (n.resolved_at) html += '<span class="category-chip" style="background: #d1fae5; color: #059669;"><i class="fas fa-check me-1"></i>Resolved</span>';
                     html += '</div>';
@@ -631,8 +697,7 @@
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
                     html += '<strong style="font-size: 0.9rem;">' + escapeHtml(getAdminTriggerTitle(r.trigger_key)) + '</strong>';
-                    html += '<span class="category-chip">' + escapeHtml(ADMIN_CATEGORIES[r.category] || r.category) + '</span>';
-                    if (r.is_system_default) html += '<span class="category-chip" style="background: #ede9fe; color: #7c3aed;">System Default</span>';
+                    html += categoryChip(r.category);
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-2" style="font-size: 0.8rem; color: #6b7280;">';
                     if (r.condition_operator && r.condition_value !== null) {
@@ -640,11 +705,12 @@
                         html += '<span>·</span>';
                     }
                     html += '<span>' + escapeHtml(FREQUENCIES[r.frequency] || r.frequency) + '</span>';
-                    html += '<span>·</span>';
-                    html += channelTags(r.channels);
                     if (r.cooldown_minutes) {
                         html += '<span>·</span><span>Cooldown: ' + r.cooldown_minutes + 'min</span>';
                     }
+                    html += '</div>';
+                    html += '<div style="font-size: 0.8rem; color: #6b7280; margin-top: 2px;">';
+                    html += channelTags(r.channels);
                     html += '</div>';
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-2">';
@@ -737,6 +803,7 @@
 
         updateAdminTriggerKeys();
         catSelect.addEventListener('change', updateAdminTriggerKeys);
+        document.getElementById('adminRuleTriggerKey').addEventListener('change', updateAdminCondValueLabel);
     }
 
     function updateAdminTriggerKeys() {
@@ -757,6 +824,38 @@
             opt.textContent = 'No triggers for this category';
             tkSelect.appendChild(opt);
         }
+        updateAdminCondValueLabel();
+    }
+
+    function getAdminTriggerType(triggerKey) {
+        for (var i = 0; i < ADMIN_DEFAULTS.length; i++) {
+            if (ADMIN_DEFAULTS[i].trigger_key === triggerKey) return ADMIN_DEFAULTS[i].trigger_type;
+        }
+        return 'threshold';
+    }
+
+    function updateAdminCondValueLabel() {
+        var tk = document.getElementById('adminRuleTriggerKey').value;
+        var isEvent = (getAdminTriggerType(tk) === 'event');
+        var isCapReached = (CAP_REACHED_TRIGGERS.indexOf(tk) !== -1);
+        var isApproaching = (tk.indexOf('_approaching') !== -1);
+        var row = document.getElementById('adminRuleOperatorValueRow');
+        var opCol = document.getElementById('adminRuleOperatorCol');
+        var valCol = document.getElementById('adminRuleValueCol');
+        if (isEvent || isCapReached) {
+            row.classList.add('d-none');
+        } else if (isApproaching) {
+            row.classList.remove('d-none');
+            opCol.classList.add('d-none');
+            valCol.classList.remove('col-6');
+            valCol.classList.add('col-12');
+        } else {
+            row.classList.remove('d-none');
+            opCol.classList.remove('d-none');
+            valCol.classList.remove('col-12');
+            valCol.classList.add('col-6');
+        }
+        document.getElementById('adminRuleCondValueLabel').textContent = TRIGGER_VALUE_LABELS[tk] || 'Value';
     }
 
     function openAdminRuleModal(rule) {
@@ -766,6 +865,7 @@
             document.getElementById('adminRuleCategory').value = rule.category;
             updateAdminTriggerKeys();
             document.getElementById('adminRuleTriggerKey').value = rule.trigger_key;
+            updateAdminCondValueLabel();
             document.getElementById('adminRuleOperator').value = rule.condition_operator || 'gte';
             document.getElementById('adminRuleCondValue').value = rule.condition_value || '';
             document.getElementById('adminRuleFrequency').value = rule.frequency || 'instant';
@@ -858,7 +958,7 @@
                     mostTriggered.forEach(function(t) {
                         html += '<tr>';
                         html += '<td>' + escapeHtml(getAdminTriggerTitle(t.trigger_key)) + '</td>';
-                        html += '<td><span class="category-chip">' + escapeHtml(ADMIN_CATEGORIES[t.category] || t.category) + '</span></td>';
+                        html += '<td>' + categoryChip(t.category) + '</td>';
                         html += '<td><strong>' + (t.count || 0) + '</strong></td>';
                         html += '</tr>';
                     });
@@ -927,7 +1027,7 @@
                     html += '<td>' + formatDate(h.created_at) + '</td>';
                     html += '<td><strong>' + escapeHtml(h.title || getAdminTriggerTitle(h.trigger_key)) + '</strong></td>';
                     html += '<td>' + severityBadge(h.severity) + '</td>';
-                    html += '<td><span class="category-chip">' + escapeHtml(ADMIN_CATEGORIES[h.category] || h.category) + '</span></td>';
+                    html += '<td>' + categoryChip(h.category) + '</td>';
                     html += '<td>' + statusChip(h.status) + '</td>';
                     html += '<td>' + channelTags(h.channels_dispatched) + '</td>';
                     html += '<td style="font-size: 0.75rem; font-family: monospace;">' + escapeHtml(h.tenant_id ? h.tenant_id.substring(0, 8) + '...' : 'System') + '</td>';
