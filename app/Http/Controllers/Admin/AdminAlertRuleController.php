@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Alerting\AlertChannelConfig;
 use App\Models\Alerting\AlertHistory;
+use App\Models\Alerting\AlertPreference;
 use App\Models\Alerting\AlertRule;
+use App\Validation\WebhookUrlValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AdminAlertRuleController extends Controller
 {
@@ -218,5 +222,208 @@ class AdminAlertRuleController extends Controller
                 'period_since' => $since,
             ],
         ]);
+    }
+
+    public function preferences(Request $request): JsonResponse
+    {
+        $adminUserId = session('admin_user_id');
+
+        $preferences = AlertPreference::whereNull('tenant_id')
+            ->where('user_id', $adminUserId)
+            ->get()
+            ->keyBy('category');
+
+        $allCategories = array_merge(
+            config('alerting.categories', []),
+            config('alerting.admin_categories', [])
+        );
+        $result = [];
+
+        foreach ($allCategories as $key => $label) {
+            $pref = $preferences->get($key);
+            $result[] = [
+                'category' => $key,
+                'label' => $label,
+                'channels' => $pref ? $pref->channels : ['in_app', 'email'],
+                'is_muted' => $pref ? $pref->isCurrentlyMuted() : false,
+                'muted_until' => $pref?->muted_until?->toIso8601String(),
+            ];
+        }
+
+        return response()->json(['success' => true, 'data' => $result]);
+    }
+
+    public function updatePreference(Request $request): JsonResponse
+    {
+        $allCategories = array_merge(
+            array_keys(config('alerting.categories', [])),
+            array_keys(config('alerting.admin_categories', []))
+        );
+
+        $validator = Validator::make($request->all(), [
+            'category' => 'required|string|in:' . implode(',', $allCategories),
+            'channels' => 'sometimes|array',
+            'channels.*' => 'string|in:' . implode(',', config('alerting.channels', [])),
+            'is_muted' => 'sometimes|boolean',
+            'muted_until' => 'sometimes|nullable|date|after:now',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $validated = $validator->validated();
+        $adminUserId = session('admin_user_id');
+
+        $preference = AlertPreference::updateOrCreate(
+            [
+                'tenant_id' => null,
+                'user_id' => $adminUserId,
+                'category' => $validated['category'],
+            ],
+            array_filter([
+                'channels' => $validated['channels'] ?? null,
+                'is_muted' => $validated['is_muted'] ?? null,
+                'muted_until' => $validated['muted_until'] ?? null,
+            ], fn ($v) => $v !== null)
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'category' => $preference->category,
+                'channels' => $preference->channels,
+                'is_muted' => $preference->isCurrentlyMuted(),
+                'muted_until' => $preference->muted_until?->toIso8601String(),
+            ],
+        ]);
+    }
+
+    public function channels(Request $request): JsonResponse
+    {
+        $configs = AlertChannelConfig::whereNull('tenant_id')
+            ->whereNull('user_id')
+            ->get()
+            ->map(function ($config) {
+                return [
+                    'id' => $config->id,
+                    'channel' => $config->channel,
+                    'config' => $config->safe_config,
+                    'is_enabled' => $config->is_enabled,
+                    'updated_at' => $config->updated_at,
+                ];
+            });
+
+        return response()->json(['success' => true, 'data' => $configs]);
+    }
+
+    public function updateChannel(Request $request, string $channel): JsonResponse
+    {
+        $availableChannels = config('alerting.channels', []);
+        if (!in_array($channel, $availableChannels)) {
+            return response()->json(['success' => false, 'error' => 'Invalid channel.'], 422);
+        }
+
+        $existingConfig = AlertChannelConfig::whereNull('tenant_id')
+            ->whereNull('user_id')
+            ->where('channel', $channel)
+            ->first();
+
+        $hasConfigPayload = $request->has('config') && !empty($request->input('config'));
+
+        if ($hasConfigPayload) {
+            $rules = match ($channel) {
+                'webhook' => [
+                    'config.webhook_url' => 'required|url|max:500',
+                    'config.hmac_secret' => 'sometimes|string|min:16|max:128',
+                ],
+                'slack' => [
+                    'config.slack_webhook_url' => 'required|url|max:500',
+                ],
+                'teams' => [
+                    'config.teams_webhook_url' => 'required|url|max:500',
+                ],
+                'email' => [
+                    'config.email' => 'required|email|max:255',
+                ],
+                'sms' => [
+                    'config.phone' => 'required|string|regex:/^[0-9+\s]{10,20}$/',
+                ],
+                default => [],
+            };
+        } else {
+            $rules = [];
+        }
+
+        $rules['is_enabled'] = 'sometimes|boolean';
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $updateData = ['is_enabled' => $request->input('is_enabled', true)];
+
+        if ($hasConfigPayload) {
+            $configData = $request->input('config', []);
+
+            $urlFields = ['webhook_url', 'slack_webhook_url', 'teams_webhook_url'];
+            foreach ($urlFields as $field) {
+                if (!empty($configData[$field])) {
+                    $validation = WebhookUrlValidator::validate($configData[$field]);
+                    if (!$validation['valid']) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => "Invalid {$field}: {$validation['error']}",
+                        ], 422);
+                    }
+                }
+            }
+
+            if ($channel === 'webhook' && empty($configData['hmac_secret'])) {
+                if ($existingConfig && !empty($existingConfig->config['hmac_secret'])) {
+                    $configData['hmac_secret'] = $existingConfig->config['hmac_secret'];
+                } else {
+                    $configData['hmac_secret'] = Str::random(64);
+                }
+            }
+
+            $updateData['config'] = $configData;
+        }
+
+        $channelConfig = AlertChannelConfig::updateOrCreate(
+            [
+                'tenant_id' => null,
+                'user_id' => null,
+                'channel' => $channel,
+            ],
+            $updateData
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $channelConfig->id,
+                'channel' => $channelConfig->channel,
+                'config' => $channelConfig->safe_config,
+                'is_enabled' => $channelConfig->is_enabled,
+            ],
+        ]);
+    }
+
+    public function destroyChannel(string $channel): JsonResponse
+    {
+        $config = AlertChannelConfig::whereNull('tenant_id')
+            ->whereNull('user_id')
+            ->where('channel', $channel)
+            ->first();
+
+        if (!$config) {
+            return response()->json(['success' => false, 'error' => 'Channel config not found.'], 404);
+        }
+
+        $config->delete();
+
+        return response()->json(['success' => true]);
     }
 }

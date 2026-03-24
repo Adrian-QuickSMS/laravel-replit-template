@@ -811,6 +811,11 @@ Route::prefix('admin')->group(function () {
                 Route::delete('/rules/{id}', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'destroy'])->name('admin.api.alerts.rules.destroy');
                 Route::get('/history', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'history'])->name('admin.api.alerts.history');
                 Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'dashboard'])->name('admin.api.alerts.dashboard');
+                Route::get('/preferences', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'preferences'])->name('admin.api.alerts.preferences');
+                Route::put('/preferences', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'updatePreference'])->name('admin.api.alerts.preferences.update');
+                Route::get('/channels', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'channels'])->name('admin.api.alerts.channels');
+                Route::put('/channels/{channel}', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'updateChannel'])->name('admin.api.alerts.channels.update');
+                Route::delete('/channels/{channel}', [\App\Http\Controllers\Admin\AdminAlertRuleController::class, 'destroyChannel'])->name('admin.api.alerts.channels.destroy');
             });
 
             Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {

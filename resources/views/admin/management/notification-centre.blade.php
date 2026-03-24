@@ -330,6 +330,50 @@
     border-bottom: 1px solid #f3f4f6;
     font-weight: 600;
 }
+.pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f3f4f6;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.pref-row:last-child {
+    border-bottom: none;
+}
+.pref-pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+.pref-pill:hover {
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.pref-pill.active {
+    background: #e8edf3;
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.channel-cfg-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.channel-cfg-card h6 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
 .nc-card .btn-primary,
 #adminBtnAddRule,
 #adminBtnSaveRule {
@@ -369,6 +413,8 @@
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-admin-rules" role="tab">Alert Rules</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-admin-dashboard" role="tab">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-admin-history" role="tab">History</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-admin-preferences" role="tab">Preferences</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-admin-channels" role="tab">Channel Settings</a></li>
         </ul>
 
         <div class="tab-content nc-card-body">
@@ -460,6 +506,20 @@
                     </table>
                 </div>
                 <div id="adminHistPagination" class="nc-pagination"></div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-admin-preferences" role="tabpanel">
+                <p class="text-muted mb-3" style="font-size: 0.85rem;">Control which alert categories you receive and through which channels.</p>
+                <div id="adminPrefsList">
+                    <div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading preferences...</div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-admin-channels" role="tabpanel">
+                <p class="text-muted mb-3" style="font-size: 0.85rem;">Configure notification delivery channels for admin alerts.</p>
+                <div id="adminChannelsList">
+                    <div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading channel settings...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -1491,9 +1551,232 @@
                 else if (target === '#tab-admin-rules') loadAdminRules();
                 else if (target === '#tab-admin-dashboard') loadDashboard();
                 else if (target === '#tab-admin-history') loadAdminHistory(1);
+                else if (target === '#tab-admin-preferences') loadAdminPreferences();
+                else if (target === '#tab-admin-channels') loadAdminChannels();
             });
         });
     });
+
+    function renderAdminPreferencesFromConfig() {
+        var el = document.getElementById('adminPrefsList');
+        var cats = Object.keys(ADMIN_CATEGORIES);
+        if (cats.length === 0) {
+            el.innerHTML = '<div class="empty-state"><i class="fas fa-sliders-h"></i><p>No preferences available</p></div>';
+            return;
+        }
+        var html = '';
+        cats.forEach(function(cat) {
+            html += '<div class="pref-row" data-category="' + escapeHtml(cat) + '">';
+            html += '<div class="flex-grow-1">';
+            html += '<strong style="font-size: 0.85rem;">' + escapeHtml(ADMIN_CATEGORIES[cat] || cat) + '</strong>';
+            html += '</div>';
+            html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
+            html += '<div class="d-flex gap-1 flex-wrap">';
+            CHANNELS.forEach(function(ch) {
+                html += '<span class="pref-pill active admin-pref-channel-pill" data-category="' + escapeHtml(cat) + '" data-channel="' + ch + '">' + (CHANNEL_LABELS[ch] || ch) + '</span>';
+            });
+            html += '</div>';
+            html += '<div class="form-check form-switch">';
+            html += '<input class="form-check-input admin-pref-mute-toggle" type="checkbox" data-category="' + escapeHtml(cat) + '" checked title="Active">';
+            html += '</div>';
+            html += '</div></div>';
+        });
+        el.innerHTML = html;
+        el.querySelectorAll('.admin-pref-channel-pill').forEach(function(pill) {
+            pill.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+    }
+
+    function loadAdminPreferences() {
+        var el = document.getElementById('adminPrefsList');
+        el.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+        apiGet('/admin/api/alerts/preferences')
+            .then(function(result) {
+                if (!result.success) throw new Error('API returned success=false');
+                var prefs = result.data || [];
+                if (prefs.length === 0) {
+                    renderAdminPreferencesFromConfig();
+                    return;
+                }
+                var html = '';
+                prefs.forEach(function(p) {
+                    html += '<div class="pref-row" data-category="' + escapeHtml(p.category) + '">';
+                    html += '<div class="flex-grow-1">';
+                    html += '<strong style="font-size: 0.85rem;">' + escapeHtml(p.label || ADMIN_CATEGORIES[p.category] || p.category) + '</strong>';
+                    if (p.muted_until) {
+                        html += '<br><small class="text-warning"><i class="fas fa-clock me-1"></i>Muted until ' + formatDate(p.muted_until) + '</small>';
+                    }
+                    html += '</div>';
+                    html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
+                    html += '<div class="d-flex gap-1 flex-wrap">';
+                    CHANNELS.forEach(function(ch) {
+                        var active = p.channels && p.channels.indexOf(ch) !== -1;
+                        html += '<span class="pref-pill' + (active ? ' active' : '') + ' admin-pref-channel-pill" data-category="' + escapeHtml(p.category) + '" data-channel="' + ch + '">' + (CHANNEL_LABELS[ch] || ch) + '</span>';
+                    });
+                    html += '</div>';
+                    html += '<div class="form-check form-switch">';
+                    html += '<input class="form-check-input admin-pref-mute-toggle" type="checkbox" data-category="' + escapeHtml(p.category) + '" ' + (p.is_muted ? '' : 'checked') + ' title="' + (p.is_muted ? 'Muted' : 'Active') + '">';
+                    html += '</div>';
+                    html += '</div></div>';
+                });
+                el.innerHTML = html;
+
+                el.querySelectorAll('.admin-pref-mute-toggle').forEach(function(toggle) {
+                    toggle.addEventListener('change', function() {
+                        var cat = this.getAttribute('data-category');
+                        apiPut('/admin/api/alerts/preferences', { category: cat, is_muted: !this.checked })
+                            .then(function() { loadAdminPreferences(); })
+                            .catch(function(err) { console.error('[NotificationCentre]', err.message); loadAdminPreferences(); });
+                    });
+                });
+
+                el.querySelectorAll('.admin-pref-channel-pill').forEach(function(pill) {
+                    pill.addEventListener('click', function() {
+                        var pillEl = this;
+                        var cat = pillEl.getAttribute('data-category');
+                        var channel = pillEl.getAttribute('data-channel');
+                        var pref = prefs.find(function(p) { return p.category === cat; });
+                        if (!pref) return;
+                        pillEl.classList.toggle('active');
+                        var channels = (pref.channels || []).slice();
+                        var idx = channels.indexOf(channel);
+                        if (idx !== -1) channels.splice(idx, 1);
+                        else channels.push(channel);
+                        pref.channels = channels;
+                        apiPut('/admin/api/alerts/preferences', { category: cat, channels: channels })
+                            .catch(function(err) {
+                                console.error('[NotificationCentre]', err.message);
+                                pillEl.classList.toggle('active');
+                                var revertIdx = pref.channels.indexOf(channel);
+                                if (revertIdx !== -1) pref.channels.splice(revertIdx, 1);
+                                else pref.channels.push(channel);
+                            });
+                    });
+                });
+            })
+            .catch(function(err) {
+                console.error('[NotificationCentre] Preferences API unavailable, using config fallback');
+                renderAdminPreferencesFromConfig();
+            });
+    }
+
+    function loadAdminChannels() {
+        var el = document.getElementById('adminChannelsList');
+        el.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+        apiGet('/admin/api/alerts/channels')
+            .then(function(result) {
+                if (!result.success) throw new Error('API returned success=false');
+                var channels = result.data || [];
+                var html = '';
+
+                html += '<div class="channel-cfg-card">';
+                html += '<h6><i class="fas fa-envelope me-2 text-primary"></i>Email</h6>';
+                html += '<p style="font-size: 0.85rem; color: #6b7280;">Email notifications are sent to admin email addresses. Enable or disable them in the Preferences tab.</p>';
+                html += '</div>';
+
+                var channelDefs = [
+                    { key: 'webhook', icon: 'fa-plug', label: 'Webhook', color: 'text-warning' },
+                    { key: 'slack', icon: 'fa-hashtag', label: 'Slack', color: 'text-success' },
+                    { key: 'teams', icon: 'fa-users', label: 'Microsoft Teams', color: 'text-info' },
+                    { key: 'sms', icon: 'fa-mobile-alt', label: 'SMS', color: 'text-danger' }
+                ];
+
+                channelDefs.forEach(function(cd) {
+                    var existing = channels.find(function(c) { return c.channel === cd.key; });
+                    html += '<div class="channel-cfg-card" data-channel="' + cd.key + '">';
+                    html += '<div class="d-flex justify-content-between align-items-center mb-2">';
+                    html += '<h6 class="mb-0"><i class="fas ' + cd.icon + ' me-2 ' + cd.color + '"></i>' + cd.label + '</h6>';
+                    html += '<div class="form-check form-switch">';
+                    html += '<input class="form-check-input admin-channel-enabled-toggle" type="checkbox" data-channel="' + cd.key + '" data-id="' + (existing ? existing.id : '') + '" ' + (existing && existing.is_enabled ? 'checked' : '') + '>';
+                    html += '</div></div>';
+
+                    if (cd.key === 'webhook') {
+                        var urlSet = existing && existing.config && existing.config.webhook_url_set;
+                        var hmac = existing && existing.config ? existing.config.hmac_secret : '';
+                        html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Webhook URL</label>';
+                        html += '<div class="input-group"><input type="url" class="form-control form-control-sm admin-channel-webhook-url" placeholder="https://your-server.com/webhook" data-channel="webhook"></div></div>';
+                        if (urlSet) html += '<small class="text-success d-block mb-2"><i class="fas fa-check-circle me-1"></i>Webhook URL is configured</small>';
+                        if (hmac) html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">HMAC Secret</label><input type="text" class="form-control form-control-sm" value="' + escapeHtml(hmac) + '" readonly></div>';
+                        html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="webhook"><i class="fas fa-save me-1"></i>Save</button>';
+                    } else if (cd.key === 'slack') {
+                        var slackUrl = existing && existing.config ? existing.config.slack_webhook_url : '';
+                        html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Slack Webhook URL</label>';
+                        html += '<input type="url" class="form-control form-control-sm admin-channel-slack-url" value="' + escapeHtml(slackUrl || '') + '" placeholder="https://hooks.slack.com/services/..." data-channel="slack"></div>';
+                        html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="slack"><i class="fas fa-save me-1"></i>Save</button>';
+                    } else if (cd.key === 'teams') {
+                        var teamsUrl = existing && existing.config ? existing.config.teams_webhook_url : '';
+                        html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Teams Webhook URL</label>';
+                        html += '<input type="url" class="form-control form-control-sm admin-channel-teams-url" value="' + escapeHtml(teamsUrl || '') + '" placeholder="https://outlook.office.com/webhook/..." data-channel="teams"></div>';
+                        html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="teams"><i class="fas fa-save me-1"></i>Save</button>';
+                    } else if (cd.key === 'sms') {
+                        var smsPhone = existing && existing.config ? existing.config.phone : '';
+                        html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Phone Number</label>';
+                        html += '<input type="tel" class="form-control form-control-sm admin-channel-sms-phone" value="' + escapeHtml(smsPhone || '') + '" placeholder="+44 7xxx xxx xxx" data-channel="sms"></div>';
+                        html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="sms"><i class="fas fa-save me-1"></i>Save</button>';
+                    }
+
+                    if (existing) {
+                        html += ' <button class="btn btn-sm btn-outline-danger admin-channel-delete ms-2" data-channel="' + cd.key + '" title="Remove configuration"><i class="fas fa-trash me-1"></i>Remove</button>';
+                    }
+
+                    html += '</div>';
+                });
+
+                el.innerHTML = html;
+
+                el.querySelectorAll('.admin-channel-enabled-toggle').forEach(function(toggle) {
+                    toggle.addEventListener('change', function() {
+                        var channel = this.getAttribute('data-channel');
+                        apiPut('/admin/api/alerts/channels/' + channel, { is_enabled: this.checked })
+                            .then(function() { loadAdminChannels(); })
+                            .catch(function(err) { console.error('[NotificationCentre]', err.message); loadAdminChannels(); });
+                    });
+                });
+
+                el.querySelectorAll('.admin-channel-save').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var channel = this.getAttribute('data-channel');
+                        var config = {};
+                        if (channel === 'webhook') {
+                            var urlInput = el.querySelector('.admin-channel-webhook-url');
+                            if (urlInput && urlInput.value) config.webhook_url = urlInput.value;
+                        } else if (channel === 'slack') {
+                            var slackInput = el.querySelector('.admin-channel-slack-url');
+                            if (slackInput) config.slack_webhook_url = slackInput.value;
+                        } else if (channel === 'teams') {
+                            var teamsInput = el.querySelector('.admin-channel-teams-url');
+                            if (teamsInput) config.teams_webhook_url = teamsInput.value;
+                        } else if (channel === 'sms') {
+                            var smsInput = el.querySelector('.admin-channel-sms-phone');
+                            if (smsInput) config.phone = smsInput.value;
+                        }
+                        apiPut('/admin/api/alerts/channels/' + channel, { config: config, is_enabled: true })
+                            .then(function() { loadAdminChannels(); alert('Channel saved successfully.'); })
+                            .catch(function(err) { console.error('[NotificationCentre]', err.message); alert('Failed to save: ' + err.message); });
+                    });
+                });
+
+                el.querySelectorAll('.admin-channel-delete').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var channel = this.getAttribute('data-channel');
+                        if (confirm('Remove ' + channel + ' channel configuration?')) {
+                            apiDelete('/admin/api/alerts/channels/' + channel)
+                                .then(function() { loadAdminChannels(); })
+                                .catch(function(err) { console.error('[NotificationCentre]', err.message); alert('Failed to remove: ' + err.message); });
+                        }
+                    });
+                });
+            })
+            .catch(function(err) {
+                console.error('[NotificationCentre] Channels API unavailable');
+                el.innerHTML = '<div class="nc-error"><i class="fas fa-exclamation-triangle"></i><p>Failed to load channel settings</p><small>' + escapeHtml(err.message) + '</small></div>';
+            });
+    }
+
 })();
 </script>
 @endpush
