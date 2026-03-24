@@ -516,7 +516,7 @@
 
     function channelTags(channels) {
         if (!channels || !channels.length) return '<span class="text-muted">—</span>';
-        return '<span style="font-size: 0.8rem; color: #6b7280;">' + channels.map(function(c) { return CHANNEL_LABELS[c] || c; }).join(' | ') + '</span>';
+        return '<span style="font-size: 0.8rem; color: #6b7280;">' + channels.map(function(c) { return escapeHtml(CHANNEL_LABELS[c] || c); }).join(' | ') + '</span>';
     }
 
     function apiGet(url) {
