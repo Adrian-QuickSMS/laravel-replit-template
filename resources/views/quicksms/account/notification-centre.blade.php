@@ -58,16 +58,13 @@
 .nc-tabs .nav-link:hover:not(.active) {
     color: #374151;
 }
-.severity-badge {
+.nc-severity-badge {
     font-size: 0.7rem;
     padding: 0.2rem 0.5rem;
     border-radius: 0.25rem;
     font-weight: 600;
     text-transform: uppercase;
 }
-.severity-critical { background: #fee2e2; color: #dc2626; }
-.severity-warning { background: #fef3c7; color: #d97706; }
-.severity-info { background: #dbeafe; color: #2563eb; }
 .category-chip {
     font-size: 0.7rem;
     padding: 0.15rem 0.45rem;
@@ -473,10 +470,10 @@
     }
 
     function severityBadge(sev) {
-        var cls = 'severity-info';
-        if (sev === 'critical') cls = 'severity-critical';
-        else if (sev === 'warning') cls = 'severity-warning';
-        return '<span class="severity-badge ' + cls + '">' + escapeHtml(sev) + '</span>';
+        var cls = 'badge-info';
+        if (sev === 'critical') cls = 'badge-danger';
+        else if (sev === 'warning') cls = 'badge-warning';
+        return '<span class="badge ' + cls + '">' + escapeHtml(sev) + '</span>';
     }
 
     function statusChip(status) {

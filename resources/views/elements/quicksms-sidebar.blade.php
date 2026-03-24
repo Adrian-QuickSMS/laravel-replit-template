@@ -95,7 +95,7 @@
                     <li data-subnav="users"><a href="{{ route('account.users') }}" class="{{ request()->routeIs('account.users') || request()->routeIs('account.sub-accounts') || request()->routeIs('account.sub-accounts.*') ? 'mm-active' : '' }}">Sub Accounts, Users and Permissions</a></li>
                     <li data-subnav="audit-logs"><a href="{{ route('account.audit-logs') }}" class="{{ request()->routeIs('account.audit-logs') ? 'mm-active' : '' }}">Audit Logs</a></li>
                     <li data-subnav="security"><a href="{{ route('account.security') }}" class="{{ request()->routeIs('account.security') ? 'mm-active' : '' }}">Security Settings</a></li>
-                    <li data-subnav="notification-centre"><a href="{{ route('account.notification-centre') }}" class="{{ request()->routeIs('account.notification-centre') ? 'mm-active' : '' }}">Notification Centre</a></li>
+                    <li data-subnav="notification-centre"><a href="{{ route('account.notification-centre') }}" class="{{ request()->routeIs('account.notification-centre') ? 'mm-active' : '' }}"><i class="fas fa-bell me-1"></i>Notification Centre</a></li>
                 </ul>
             </li>
             

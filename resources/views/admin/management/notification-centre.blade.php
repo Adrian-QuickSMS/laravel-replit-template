@@ -46,16 +46,13 @@
 .nc-tabs .nav-link:hover:not(.active) {
     color: #374151;
 }
-.severity-badge {
+.nc-severity-badge {
     font-size: 0.7rem;
     padding: 0.2rem 0.5rem;
     border-radius: 0.25rem;
     font-weight: 600;
     text-transform: uppercase;
 }
-.severity-critical { background: #fee2e2; color: #dc2626; }
-.severity-warning { background: #fef3c7; color: #d97706; }
-.severity-info { background: #dbeafe; color: #2563eb; }
 .category-chip {
     font-size: 0.7rem;
     padding: 0.15rem 0.45rem;
@@ -382,7 +379,9 @@
 <script>
 (function() {
     var CSRF = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '';
-    var ADMIN_CATEGORIES = @json(config('alerting.admin_categories'));
+    var CUSTOMER_CATEGORIES = @json(config('alerting.categories'));
+    var ADMIN_ONLY_CATEGORIES = @json(config('alerting.admin_categories'));
+    var ADMIN_CATEGORIES = Object.assign({}, CUSTOMER_CATEGORIES, ADMIN_ONLY_CATEGORIES);
     var CHANNELS = @json(config('alerting.channels'));
     var FREQUENCIES = @json(config('alerting.frequencies'));
     var OPERATORS = @json(config('alerting.condition_operators'));
@@ -430,10 +429,10 @@
     }
 
     function severityBadge(sev) {
-        var cls = 'severity-info';
-        if (sev === 'critical') cls = 'severity-critical';
-        else if (sev === 'warning') cls = 'severity-warning';
-        return '<span class="severity-badge ' + cls + '">' + escapeHtml(sev) + '</span>';
+        var cls = 'badge-info';
+        if (sev === 'critical') cls = 'badge-danger';
+        else if (sev === 'warning') cls = 'badge-warning';
+        return '<span class="badge ' + cls + '">' + escapeHtml(sev) + '</span>';
     }
 
     function statusChip(status) {
