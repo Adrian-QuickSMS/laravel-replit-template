@@ -1759,19 +1759,19 @@
                         var config = {};
                         if (channel === 'email') {
                             var emailInput = el.querySelector('.admin-channel-email-addr');
-                            if (emailInput) config.email = emailInput.value;
+                            config.email = emailInput ? emailInput.value : '';
                         } else if (channel === 'webhook') {
                             var urlInput = el.querySelector('.admin-channel-webhook-url');
-                            if (urlInput && urlInput.value) config.webhook_url = urlInput.value;
+                            config.webhook_url = urlInput ? urlInput.value : '';
                         } else if (channel === 'slack') {
                             var slackInput = el.querySelector('.admin-channel-slack-url');
-                            if (slackInput) config.slack_webhook_url = slackInput.value;
+                            config.slack_webhook_url = slackInput ? slackInput.value : '';
                         } else if (channel === 'teams') {
                             var teamsInput = el.querySelector('.admin-channel-teams-url');
-                            if (teamsInput) config.teams_webhook_url = teamsInput.value;
+                            config.teams_webhook_url = teamsInput ? teamsInput.value : '';
                         } else if (channel === 'sms') {
                             var smsInput = el.querySelector('.admin-channel-sms-phone');
-                            if (smsInput) config.phone = smsInput.value;
+                            config.phone = smsInput ? smsInput.value : '';
                         }
                         apiPut('/admin/api/alerts/channels/' + channel, { config: config, is_enabled: true })
                             .then(function() { loadAdminChannels(); alert('Channel saved successfully.'); })
