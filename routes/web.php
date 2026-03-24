@@ -630,6 +630,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/templates/{accountId}/{templateId}/versions', 'apiTemplateVersions')->name('admin.api.templates.versions');
             Route::get('/api/templates/{accountId}/{templateId}/audit-log', 'apiTemplateAuditLog')->name('admin.api.templates.audit-log');
             Route::get('/api/accounts', 'apiAccountsSearch')->name('admin.api.accounts.search');
+            Route::get('/api/suppliers', 'apiSuppliersSearch')->name('admin.api.suppliers.search');
             Route::get('/management/templates/{accountId}/{templateId}/edit', function($accountId, $templateId) {
                 return redirect()->route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]);
             })->name('admin.management.templates.edit');

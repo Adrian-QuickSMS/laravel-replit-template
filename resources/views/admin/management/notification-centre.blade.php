@@ -500,6 +500,12 @@
                         </div>
                     </div>
                 </div>
+                <div class="mb-3 d-none" id="adminRuleGatewayGroup">
+                    <label class="form-label">Gateway (optional)</label>
+                    <select class="form-select" id="adminRuleGateway">
+                        <option value="">All Gateways</option>
+                    </select>
+                </div>
                 <div class="row mb-3" id="adminRuleOperatorValueRow">
                     <div class="col-6" id="adminRuleOperatorCol">
                         <label class="form-label">Operator</label>
@@ -630,7 +636,8 @@
         'sub_account_daily_limit'
     ];
 
-    var state = { notifPage: 1, histPage: 1, selectedAccounts: [] };
+    var state = { notifPage: 1, histPage: 1, selectedAccounts: [], selectedGateway: null };
+    var allSuppliersCache = [];
 
     function sanitizeUrl(url) {
         if (!url || typeof url !== 'string') return '#';
@@ -738,13 +745,25 @@
         });
     }
 
+    function isSupplierCategory() {
+        return document.getElementById('adminRuleCategory').value === 'supplier_monitoring';
+    }
+
     function loadAccountList(search) {
         var listEl = document.getElementById('adminRuleAccountList');
-        fetch('/admin/api/accounts?search=' + encodeURIComponent(search))
+        var url = isSupplierCategory()
+            ? '/admin/api/suppliers?search=' + encodeURIComponent(search)
+            : '/admin/api/accounts?search=' + encodeURIComponent(search);
+        fetch(url)
             .then(function(r) { return r.json(); })
             .then(function(result) {
                 if (!result.success) return;
-                allAccountsCache = result.data || [];
+                if (isSupplierCategory()) {
+                    allSuppliersCache = result.data || [];
+                } else {
+                    allSuppliersCache = [];
+                }
+                allAccountsCache = isSupplierCategory() ? [] : (result.data || []);
                 renderAccountOptions();
             })
             .catch(function() {
@@ -754,17 +773,19 @@
 
     function renderAccountOptions() {
         var listEl = document.getElementById('adminRuleAccountList');
-        if (!allAccountsCache.length) {
-            listEl.innerHTML = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">No accounts found</div>';
+        var items = isSupplierCategory() ? allSuppliersCache : allAccountsCache;
+        var emptyLabel = isSupplierCategory() ? 'No suppliers found' : 'No accounts found';
+        if (!items.length) {
+            listEl.innerHTML = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">' + emptyLabel + '</div>';
             return;
         }
         var html = '';
-        allAccountsCache.forEach(function(acct) {
-            var isChecked = state.selectedAccounts.some(function(s) { return s.id === acct.id; });
-            html += '<div class="account-picker-option" data-id="' + escapeHtml(acct.id) + '" data-name="' + escapeHtml(acct.name) + '">';
+        items.forEach(function(item) {
+            var isChecked = state.selectedAccounts.some(function(s) { return s.id === item.id; });
+            html += '<div class="account-picker-option" data-id="' + escapeHtml(item.id) + '" data-name="' + escapeHtml(item.name) + '">';
             html += '<input type="checkbox"' + (isChecked ? ' checked' : '') + '>';
-            html += '<span class="acct-name">' + escapeHtml(acct.name) + '</span>';
-            html += '<span class="acct-id">#' + escapeHtml(acct.id) + '</span>';
+            html += '<span class="acct-name">' + escapeHtml(item.name) + '</span>';
+            html += '<span class="acct-id">' + escapeHtml(item.code || ('#' + item.id)) + '</span>';
             html += '</div>';
         });
         listEl.innerHTML = html;
@@ -774,17 +795,59 @@
                 var id = this.getAttribute('data-id');
                 var name = this.getAttribute('data-name');
                 var cb = this.querySelector('input[type="checkbox"]');
-                var idx = state.selectedAccounts.findIndex(function(s) { return s.id === id; });
-                if (idx !== -1) {
-                    state.selectedAccounts.splice(idx, 1);
-                    cb.checked = false;
+                if (isSupplierCategory()) {
+                    var wasSelected = state.selectedAccounts.some(function(s) { return s.id === id; });
+                    if (wasSelected) {
+                        state.selectedAccounts = [];
+                        cb.checked = false;
+                    } else {
+                        state.selectedAccounts = [{ id: id, name: name }];
+                        listEl.querySelectorAll('input[type="checkbox"]').forEach(function(c) { c.checked = false; });
+                        cb.checked = true;
+                    }
+                    updateGatewayPicker();
                 } else {
-                    state.selectedAccounts.push({ id: id, name: name });
-                    cb.checked = true;
+                    var idx = state.selectedAccounts.findIndex(function(s) { return s.id === id; });
+                    if (idx !== -1) {
+                        state.selectedAccounts.splice(idx, 1);
+                        cb.checked = false;
+                    } else {
+                        state.selectedAccounts.push({ id: id, name: name });
+                        cb.checked = true;
+                    }
                 }
                 updateAccountPickerUI();
             });
         });
+    }
+
+    function updateGatewayPicker() {
+        var gwGroup = document.getElementById('adminRuleGatewayGroup');
+        var gwSelect = document.getElementById('adminRuleGateway');
+        if (!isSupplierCategory() || state.selectedAccounts.length === 0) {
+            gwGroup.classList.add('d-none');
+            gwSelect.innerHTML = '<option value="">All Gateways</option>';
+            state.selectedGateway = null;
+            return;
+        }
+        var selectedId = state.selectedAccounts[0].id;
+        var supplier = allSuppliersCache.find(function(s) { return String(s.id) === String(selectedId); });
+        if (!supplier || !supplier.gateways || !supplier.gateways.length) {
+            gwGroup.classList.add('d-none');
+            gwSelect.innerHTML = '<option value="">No gateways</option>';
+            state.selectedGateway = null;
+            return;
+        }
+        gwGroup.classList.remove('d-none');
+        var html = '<option value="">All Gateways</option>';
+        supplier.gateways.forEach(function(gw) {
+            var activeTag = gw.active ? '' : ' (inactive)';
+            html += '<option value="' + gw.id + '">' + escapeHtml(gw.name) + ' — ' + escapeHtml(gw.code) + activeTag + '</option>';
+        });
+        gwSelect.innerHTML = html;
+        if (state.selectedGateway) {
+            gwSelect.value = state.selectedGateway;
+        }
     }
 
     function updateAccountPickerUI() {
@@ -1094,6 +1157,9 @@
         updateAdminTriggerKeys();
         catSelect.addEventListener('change', updateAdminTriggerKeys);
         document.getElementById('adminRuleTriggerKey').addEventListener('change', updateAdminCondValueLabel);
+        document.getElementById('adminRuleGateway').addEventListener('change', function() {
+            state.selectedGateway = this.value || null;
+        });
     }
 
     function updateAdminTriggerKeys() {
@@ -1104,7 +1170,12 @@
         scopeLabel.textContent = isSupplier ? 'Scope to Suppliers' : 'Scope to Accounts';
         document.getElementById('adminRuleAccountAllLabel').textContent = isSupplier ? 'All Suppliers' : 'All Accounts';
         document.getElementById('adminRuleAccountSearch').placeholder = isSupplier ? 'Search suppliers...' : 'Search accounts...';
-        if (state.selectedAccounts.length === 0) toggleText.textContent = isSupplier ? 'All Suppliers' : 'All Accounts';
+        state.selectedAccounts = [];
+        state.selectedGateway = null;
+        toggleText.textContent = isSupplier ? 'All Suppliers' : 'All Accounts';
+        document.getElementById('adminRuleAccountSearch').value = '';
+        loadAccountList('');
+        updateGatewayPicker();
         var tkSelect = document.getElementById('adminRuleTriggerKey');
         tkSelect.innerHTML = '';
         ADMIN_DEFAULTS.forEach(function(d) {
@@ -1176,6 +1247,7 @@
             });
             var meta = rule.metadata || {};
             state.selectedAccounts = (meta.scoped_accounts || []).slice();
+            state.selectedGateway = meta.scoped_gateway_id || null;
         } else {
             document.getElementById('adminRuleCategory').selectedIndex = 0;
             updateAdminTriggerKeys();
@@ -1188,8 +1260,17 @@
                 if (cb) cb.checked = (ch === 'in_app');
             });
             state.selectedAccounts = [];
+            state.selectedGateway = null;
         }
         updateAccountPickerUI();
+        if (rule && rule.category === 'supplier_monitoring') {
+            setTimeout(function() {
+                updateGatewayPicker();
+                if (state.selectedGateway) {
+                    document.getElementById('adminRuleGateway').value = state.selectedGateway;
+                }
+            }, 300);
+        }
         var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('adminRuleModal'));
         modal.show();
     }
@@ -1206,6 +1287,13 @@
             metadata = {
                 scoped_accounts: state.selectedAccounts.map(function(a) { return { id: a.id, name: a.name }; })
             };
+        }
+        var gwVal = document.getElementById('adminRuleGateway').value;
+        if (isSupplierCategory() && gwVal) {
+            if (!metadata) metadata = {};
+            metadata.scoped_gateway_id = gwVal;
+            var gwOpt = document.getElementById('adminRuleGateway').options[document.getElementById('adminRuleGateway').selectedIndex];
+            metadata.scoped_gateway_name = gwOpt ? gwOpt.textContent : '';
         }
         var data = {
             category: document.getElementById('adminRuleCategory').value,

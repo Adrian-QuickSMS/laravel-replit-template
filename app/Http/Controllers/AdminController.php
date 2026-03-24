@@ -2948,6 +2948,42 @@ class AdminController extends Controller
         ]);
     }
 
+    public function apiSuppliersSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $search = $request->query('search', '');
+        $query = \App\Models\Supplier::with('gateways:id,supplier_id,name,gateway_code,active');
+
+        if ($search) {
+            $term = '%' . $search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE LOWER(?)', [$term])
+                  ->orWhereRaw('LOWER(supplier_code) LIKE LOWER(?)', [$term]);
+            });
+        }
+
+        $suppliers = $query->orderBy('name')->limit(50)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $suppliers->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'code' => $s->supplier_code,
+                    'status' => $s->status,
+                    'gateways' => $s->gateways->map(function ($g) {
+                        return [
+                            'id' => $g->id,
+                            'name' => $g->name,
+                            'code' => $g->gateway_code,
+                            'active' => $g->active,
+                        ];
+                    }),
+                ];
+            }),
+        ]);
+    }
+
     public function managementTemplateEdit($accountId, $templateId)
     {
         $sender_ids = [
