@@ -101,7 +101,8 @@
                         else if (severity === 'warning') { icon = 'fa-exclamation-triangle'; mediaClass = 'media-warning'; }
                         var isUnread = !n.read_at;
                         html += '<li>';
-                        html += '<a href="' + (n.deep_link || '#') + '" class="timeline-panel admin-notif-link" data-uuid="' + n.uuid + '" style="text-decoration: none; color: inherit;' + (isUnread ? ' font-weight: 600;' : '') + '">';
+                        var safeLink = sanitizeAdminUrl(n.deep_link);
+                        html += '<a href="' + escapeAdminHtml(safeLink) + '" class="timeline-panel admin-notif-link" data-uuid="' + escapeAdminHtml(n.uuid || '') + '" style="text-decoration: none; color: inherit;' + (isUnread ? ' font-weight: 600;' : '') + '">';
                         html += '<div class="media me-2 ' + mediaClass + '"><i class="fas ' + icon + '"></i></div>';
                         html += '<div class="media-body">';
                         html += '<h6 class="mb-1" style="font-size: 0.85rem;">' + escapeAdminHtml(n.title || n.type) + '</h6>';
@@ -117,6 +118,13 @@
                 }
             })
             .catch(function(err) { console.warn(err.message || err); });
+    }
+
+    function sanitizeAdminUrl(url) {
+        if (!url || typeof url !== 'string') return '#';
+        var trimmed = url.trim();
+        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+        return '#';
     }
 
     function escapeAdminHtml(str) {

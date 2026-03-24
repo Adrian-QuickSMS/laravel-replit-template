@@ -437,6 +437,13 @@
 
     var state = { notifPage: 1, histPage: 1 };
 
+    function sanitizeUrl(url) {
+        if (!url || typeof url !== 'string') return '#';
+        var trimmed = url.trim();
+        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+        return '#';
+    }
+
     function escapeHtml(s) {
         if (!s) return '';
         var d = document.createElement('div');
@@ -560,8 +567,9 @@
         var read = document.getElementById('notifFilterRead').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
-        if (read === 'unread') params += '&unread=1';
-        else if (read === 'read') params += '&read=1';
+        if (read === 'unread') params += '&unread_only=1';
+        else if (read === 'read') params += '&unread_only=0';
+        else params += '&unread_only=0';
 
         var listEl = document.getElementById('notifList');
         listEl.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
@@ -597,7 +605,7 @@
                     html += '<h6 class="mb-1" style="font-size: 0.9rem; font-weight: ' + (isUnread ? '600' : '400') + ';">' + escapeHtml(n.title) + '</h6>';
                     html += '<p class="mb-1 text-muted" style="font-size: 0.8rem;">' + escapeHtml(n.body) + '</p>';
                     if (n.action_url && n.action_label) {
-                        html += '<a href="' + escapeHtml(n.action_url) + '" class="btn btn-sm btn-outline-primary mt-1" style="font-size: 0.75rem;">' + escapeHtml(n.action_label) + '</a>';
+                        html += '<a href="' + escapeHtml(sanitizeUrl(n.action_url)) + '" class="btn btn-sm btn-outline-primary mt-1" style="font-size: 0.75rem;">' + escapeHtml(n.action_label) + '</a>';
                     }
                     html += '</div>';
                     html += '<div class="notif-actions d-flex gap-1">';
@@ -1063,7 +1071,7 @@
                         html += '<input type="url" class="form-control form-control-sm channel-teams-url" value="' + escapeHtml(teamsUrl || '') + '" placeholder="https://outlook.office.com/webhook/..." data-channel="teams"></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="teams"><i class="fas fa-save me-1"></i>Save</button>';
                     } else if (cd.key === 'sms') {
-                        var smsPhone = existing && existing.config ? existing.config.phone_number : '';
+                        var smsPhone = existing && existing.config ? existing.config.phone : '';
                         html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Phone Number</label>';
                         html += '<input type="tel" class="form-control form-control-sm channel-sms-phone" value="' + escapeHtml(smsPhone || '') + '" placeholder="+44 7xxx xxx xxx" data-channel="sms"></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="sms"><i class="fas fa-save me-1"></i>Save</button>';
@@ -1102,7 +1110,7 @@
                             if (teamsInput) config.teams_webhook_url = teamsInput.value;
                         } else if (channel === 'sms') {
                             var smsInput = el.querySelector('.channel-sms-phone');
-                            if (smsInput) config.phone_number = smsInput.value;
+                            if (smsInput) config.phone = smsInput.value;
                         }
                         apiPut('/api/v1/alerts/channels/' + channel, { config: config, is_enabled: true })
                             .then(function() { loadChannels(); alert('Channel saved successfully.'); })

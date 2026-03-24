@@ -404,6 +404,13 @@
 
     var state = { notifPage: 1, histPage: 1 };
 
+    function sanitizeUrl(url) {
+        if (!url || typeof url !== 'string') return '#';
+        var trimmed = url.trim();
+        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+        return '#';
+    }
+
     function escapeHtml(s) {
         if (!s) return '';
         var d = document.createElement('div');
@@ -521,8 +528,9 @@
         var read = document.getElementById('adminNotifFilterRead').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
-        if (read === 'unread') params += '&unread=1';
-        else if (read === 'read') params += '&read=1';
+        if (read === 'unread') params += '&unread_only=1';
+        else if (read === 'read') params += '&unread_only=0';
+        else params += '&unread_only=0';
 
         var listEl = document.getElementById('adminNotifList');
         listEl.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
@@ -559,7 +567,7 @@
                     html += '<h6 class="mb-1" style="font-size: 0.9rem; font-weight: ' + (isUnread ? '600' : '400') + ';">' + escapeHtml(n.title) + '</h6>';
                     html += '<p class="mb-1 text-muted" style="font-size: 0.8rem;">' + escapeHtml(n.body) + '</p>';
                     if (n.action_url && n.action_label) {
-                        html += '<a href="' + escapeHtml(n.action_url) + '" class="btn btn-sm btn-outline-primary mt-1" style="font-size: 0.75rem;">' + escapeHtml(n.action_label) + '</a>';
+                        html += '<a href="' + escapeHtml(sanitizeUrl(n.action_url)) + '" class="btn btn-sm btn-outline-primary mt-1" style="font-size: 0.75rem;">' + escapeHtml(n.action_label) + '</a>';
                     }
                     html += '</div>';
                     html += '<div class="notif-actions d-flex gap-1">';
