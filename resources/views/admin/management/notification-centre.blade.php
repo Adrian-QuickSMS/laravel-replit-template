@@ -624,7 +624,6 @@
                     html += '<div class="d-flex justify-content-between align-items-start">';
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
-                    html += severityBadge(n.severity);
                     html += categoryChip(n.category);
                     html += '<small class="text-muted">' + formatTimeAgo(n.created_at) + '</small>';
                     if (n.resolved_at) html += '<span class="category-chip" style="background: #d1fae5; color: #059669;"><i class="fas fa-check me-1"></i>Resolved</span>';
