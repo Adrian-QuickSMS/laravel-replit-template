@@ -1673,9 +1673,25 @@
                 var channels = result.data || [];
                 var html = '';
 
-                html += '<div class="channel-cfg-card">';
-                html += '<h6><i class="fas fa-envelope me-2 text-primary"></i>Email</h6>';
-                html += '<p style="font-size: 0.85rem; color: #6b7280;">Email notifications are sent to admin email addresses. Enable or disable them in the Preferences tab.</p>';
+                var emailExisting = channels.find(function(c) { return c.channel === 'email'; });
+                html += '<div class="channel-cfg-card" data-channel="email">';
+                html += '<div class="d-flex justify-content-between align-items-center mb-2">';
+                html += '<h6 class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i>Email</h6>';
+                html += '<div class="form-check form-switch">';
+                html += '<input class="form-check-input admin-channel-enabled-toggle" type="checkbox" data-channel="email" data-id="' + (emailExisting ? emailExisting.id : '') + '" ' + (!emailExisting || emailExisting.is_enabled ? 'checked' : '') + '>';
+                html += '</div></div>';
+                html += '<p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Email notifications are sent to admin email addresses.</p>';
+                if (emailExisting) {
+                    var emailAddr = emailExisting.config && emailExisting.config.email ? emailExisting.config.email : '';
+                    html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Admin Email Address</label>';
+                    html += '<input type="email" class="form-control form-control-sm admin-channel-email-addr" value="' + escapeHtml(emailAddr) + '" placeholder="admin@quicksms.com" data-channel="email"></div>';
+                    html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="email"><i class="fas fa-save me-1"></i>Save</button>';
+                    html += ' <button class="btn btn-sm btn-outline-danger admin-channel-delete ms-2" data-channel="email" title="Remove configuration"><i class="fas fa-trash me-1"></i>Remove</button>';
+                } else {
+                    html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Admin Email Address</label>';
+                    html += '<input type="email" class="form-control form-control-sm admin-channel-email-addr" value="" placeholder="admin@quicksms.com" data-channel="email"></div>';
+                    html += '<button class="btn btn-sm btn-outline-primary admin-channel-save" data-channel="email"><i class="fas fa-save me-1"></i>Save</button>';
+                }
                 html += '</div>';
 
                 var channelDefs = [
@@ -1741,7 +1757,10 @@
                     btn.addEventListener('click', function() {
                         var channel = this.getAttribute('data-channel');
                         var config = {};
-                        if (channel === 'webhook') {
+                        if (channel === 'email') {
+                            var emailInput = el.querySelector('.admin-channel-email-addr');
+                            if (emailInput) config.email = emailInput.value;
+                        } else if (channel === 'webhook') {
                             var urlInput = el.querySelector('.admin-channel-webhook-url');
                             if (urlInput && urlInput.value) config.webhook_url = urlInput.value;
                         } else if (channel === 'slack') {
