@@ -617,20 +617,57 @@
                     dropdownEl.innerHTML = html;
 
                     if (autoOpen && unreadCount > 0) {
-                        var bellEl = document.getElementById('customerNotificationBell');
-                        if (bellEl && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
-                            setTimeout(function() {
-                                var dropdown = bootstrap.Dropdown.getOrCreateInstance(bellEl);
-                                dropdown.show();
-                                setTimeout(function() { dropdown.hide(); }, 5000);
-                            }, 800);
-                        }
+                        showNotificationAlerts(items);
                     }
                 } else {
                     dropdownEl.innerHTML = '<div class="text-muted text-center py-3 small">No new notifications</div>';
                 }
             })
             .catch(function(err) { console.warn(err.message || err); });
+    }
+
+    function showNotificationAlerts(items) {
+        var existing = document.getElementById('customerNotifAlerts');
+        if (existing) existing.remove();
+
+        var container = document.createElement('div');
+        container.id = 'customerNotifAlerts';
+        container.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 450px; width: 100%;';
+
+        var severityMap = {
+            critical: { alertClass: 'alert-danger', icon: 'mdi mdi-alert' },
+            warning: { alertClass: 'alert-warning', icon: 'mdi mdi-help-circle-outline' },
+            info: { alertClass: 'alert-primary', icon: 'mdi mdi-email-alert' }
+        };
+
+        items.slice(0, 5).forEach(function(n) {
+            var severity = n.severity || 'info';
+            var config = severityMap[severity] || severityMap.info;
+
+            var alertDiv = document.createElement('div');
+            alertDiv.className = 'alert ' + config.alertClass + ' left-icon-big alert-dismissible fade show';
+            alertDiv.style.cssText = 'margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease;';
+            alertDiv.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="btn-close"><span><i class="mdi mdi-btn-close"></i></span></button>' +
+                '<div class="media">' +
+                '<div class="alert-left-icon-big"><span><i class="' + config.icon + '"></i></span></div>' +
+                '<div class="media-body">' +
+                '<h6 class="mt-1 mb-2">' + escapeHtml(n.title || n.type) + '</h6>' +
+                '<p class="mb-0">' + escapeHtml(n.body || '') + '</p>' +
+                '</div></div>';
+
+            container.appendChild(alertDiv);
+        });
+
+        document.body.appendChild(container);
+
+        setTimeout(function() {
+            var el = document.getElementById('customerNotifAlerts');
+            if (el) {
+                el.style.transition = 'opacity 0.5s ease';
+                el.style.opacity = '0';
+                setTimeout(function() { if (el.parentNode) el.remove(); }, 500);
+            }
+        }, 8000);
     }
 
     function escapeHtml(str) {
