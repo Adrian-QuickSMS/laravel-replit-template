@@ -518,9 +518,14 @@
         return '<span class="status-chip ' + cls + '">' + escapeHtml(status || 'unknown') + '</span>';
     }
 
+    var CHANNEL_LABELS = {
+        'in_app': 'In App', 'email': 'Email', 'sms': 'SMS',
+        'webhook': 'Webhook', 'slack': 'Slack', 'teams': 'Teams'
+    };
+
     function channelTags(channels) {
         if (!channels || !channels.length) return '<span class="text-muted">—</span>';
-        return channels.map(function(c) { return '<span class="channel-tag">' + escapeHtml(c) + '</span>'; }).join('');
+        return '<span style="font-size: 0.8rem; color: #6b7280;">' + channels.map(function(c) { return CHANNEL_LABELS[c] || c; }).join(' | ') + '</span>';
     }
 
     function apiGet(url) {
@@ -713,7 +718,8 @@
                         html += '<span>·</span>';
                     }
                     html += '<span>' + escapeHtml(FREQUENCIES[r.frequency] || r.frequency) + '</span>';
-                    html += '<span>·</span>';
+                    html += '</div>';
+                    html += '<div style="font-size: 0.8rem; color: #6b7280; margin-top: 2px;">';
                     html += channelTags(r.channels);
                     html += '</div>';
                     html += '</div>';
