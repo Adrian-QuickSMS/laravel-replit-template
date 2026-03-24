@@ -3,7 +3,7 @@
 > **Branch:** `claude/review-alerting-engine-EonJJ`
 > **HEAD:** Latest commit on branch (run `git log -1 --oneline` to verify)
 > **Base (origin/main):** `7dbecea6` — Update breadcrumb navigation links
-> **Total commits on branch:** 12 (8 code + 2 prompt updates + 1 review analysis + 1 review fixes)
+> **Total commits on branch:** Run `git rev-list --count origin/main..HEAD` to verify
 > **Date:** 2026-03-24 (review fixes applied)
 > **Review status:** External review completed — 5 valid issues fixed, 3 invalid claims rejected with evidence (see Appendix A)
 
@@ -298,7 +298,7 @@ User action (e.g. security setting change)
 }
 ```
 
-> **Note:** `muted_until` format differs between endpoints — `GET .../preferences` returns Eloquent-serialized datetime (`"2026-03-19 16:00:00"`), while `PUT .../preferences` returns ISO 8601 (`"2026-03-19T16:00:00+00:00"`). Parse with `new Date()` which handles both formats.
+> **Note:** `muted_until` is returned as ISO 8601 format (`"2026-03-19T16:00:00+00:00"`) or `null` on both `GET` and `PUT` endpoints. Parse with `new Date()`.
 
 **AlertChannelConfig** (`GET /api/v1/alerts/channels`) — sensitive values masked via `safe_config`:
 ```json
@@ -560,7 +560,7 @@ Route::get('/management/notification-centre', function () {
 | `routes/web.php` | Add 2 GET page routes (NOT API routes) |
 | `resources/views/elements/quicksms-sidebar.blade.php` | Add 1 nav link after line 97 |
 | `resources/views/elements/admin-sidebar.blade.php` | Add 1 nav link after line 55 |
-| `resources/views/elements/admin-header.blade.php` | Wire bell dropdown to /api/notifications, update "View all" link |
+| `resources/views/elements/admin-header.blade.php` | Wire bell dropdown to /admin/api/notifications, update "View all" link |
 | `resources/views/elements/header.blade.php` | Wire customer bell to /api/notifications, add "View All" link |
 
 **DO NOT modify any other files.**
@@ -719,3 +719,12 @@ No action needed — already addressed in a prior update.
 | 6 | HEAD verification hardcodes wrong commit | Already generic | None needed |
 | 7 | Missing AlertHistory/Preference/Channel shapes | VALID | Fixed — added all shapes |
 | 8 | Preferences lists 6 categories, should be 7 | VALID | Fixed — added `sub_account` |
+
+### ROUND 2 REVIEW SUMMARY TABLE
+
+| # | Finding | Severity | Action |
+|---|---------|----------|--------|
+| 1 | `muted_until` format note at line 301 documents a bug that was simultaneously fixed in the same changeset — note was stale on arrival | Medium | Fixed — replaced with accurate "both endpoints return ISO 8601" note |
+| 2 | Section 8 admin header path missing `/admin` prefix (`/api/notifications` → `/admin/api/notifications`) | Medium | Fixed — added `/admin` prefix |
+| 3 | Header metadata hardcodes "12 commits" but branch has 17+ | Low | Fixed — replaced with generic `git rev-list --count` verification pattern |
+| 4 | No test coverage for `muted_until` ISO 8601 serialization or `isCurrentlyMuted()` edge cases | Low | Fixed — added `tests/Unit/AlertPreferenceTest.php` with 10 test cases |
