@@ -635,9 +635,9 @@
         container.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 450px; width: 100%;';
 
         var severityMap = {
-            critical: { alertClass: 'alert-danger', icon: 'mdi mdi-alert' },
-            warning: { alertClass: 'alert-warning', icon: 'mdi mdi-help-circle-outline' },
-            info: { alertClass: 'alert-primary', icon: 'mdi mdi-email-alert' }
+            critical: { alertClass: 'alert-danger', icon: 'mdi mdi-alert', bg: '#fff5f5' },
+            warning: { alertClass: 'alert-warning', icon: 'mdi mdi-help-circle-outline', bg: '#fff9e6' },
+            info: { alertClass: 'alert-primary', icon: 'mdi mdi-email-alert', bg: '#f0ebf8' }
         };
 
         items.slice(0, 5).forEach(function(n) {
@@ -646,7 +646,7 @@
 
             var alertDiv = document.createElement('div');
             alertDiv.className = 'alert ' + config.alertClass + ' left-icon-big alert-dismissible fade show';
-            alertDiv.style.cssText = 'margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease;';
+            alertDiv.style.cssText = 'margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease; background-color: ' + config.bg + '; opacity: 1;';
             alertDiv.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="btn-close"><span><i class="mdi mdi-btn-close"></i></span></button>' +
                 '<div class="media">' +
                 '<div class="alert-left-icon-big"><span><i class="' + config.icon + '"></i></span></div>' +
