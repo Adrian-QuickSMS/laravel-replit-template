@@ -506,7 +506,7 @@
                     <div class="collapse navbar-collapse justify-content-between">
                         <div class="header-left">
                                                         <div class="dashboard_bar">
-                                                                {{$page_title ? $page_title : ''}}
+                                                                {{ isset($page_title) ? $page_title : '' }}
                             </div>
                         </div>
                         <ul class="navbar-nav header-right">
