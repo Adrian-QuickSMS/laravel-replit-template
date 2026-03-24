@@ -545,7 +545,7 @@
     };
 
     var TRIGGER_VALUE_LABELS = {
-        'credit_balance_percentage': 'Balance (£)',
+        'credit_balance_percentage': '% of Credit Used',
         'spend_rate': 'Spend Change (%)',
         'delivery_rate': 'Delivery Rate (%)',
         'failed_messages': 'Message Count',
