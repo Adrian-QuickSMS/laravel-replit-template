@@ -528,6 +528,7 @@
         'spend_rate': 'Spend Change (%)',
         'delivery_rate': 'Delivery Rate (%)',
         'failed_messages': 'Message Count',
+        'campaign_delivery_rate': 'Delivery Rate (%)',
         'campaign_roi': 'ROI (%)',
         'daily_message_volume': 'Message Count',
         'api_error_rate': 'Error Rate (%)',
