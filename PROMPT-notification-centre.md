@@ -1,10 +1,11 @@
-# MASTER PROMPT — Notification Centre UI Build (Reviewed & Updated)
+# MASTER PROMPT — Notification Centre UI Build (Final — Review Complete)
 
 > **Branch:** `claude/review-alerting-engine-EonJJ`
 > **HEAD:** Latest commit on branch (run `git log -1 --oneline` to verify)
 > **Base (origin/main):** `7dbecea6` — Update breadcrumb navigation links
-> **Total commits on branch:** 10 (8 code + 2 prompt updates)
-> **Date:** 2026-03-19
+> **Total commits on branch:** 12 (8 code + 2 prompt updates + 1 review analysis + 1 review fixes)
+> **Date:** 2026-03-24 (review fixes applied)
+> **Review status:** External review completed — 5 valid issues fixed, 3 invalid claims rejected with evidence (see Appendix A)
 
 ---
 
@@ -598,3 +599,136 @@ Route::get('/management/notification-centre', function () {
 - [ ] Browser console: no errors, `[NotificationCentre] Initialized` logged
 - [ ] No new files created beyond the 2 Blade views listed above
 - [ ] No modifications to files in the NEVER DO list
+
+---
+
+## 10. REFERENCE — PATTERN FILES
+
+When building the Notification Centre views, pattern-match against these existing pages for Fillow design system conventions:
+
+| Pattern | File | What to Copy |
+|---------|------|-------------|
+| Admin table + action menu | `resources/views/admin/security/country-controls.blade.php` | Table structure, ellipsis dropdown, status badges |
+| Customer account page | `resources/views/quicksms/account/security.blade.php` | Tab switching, card layout, form patterns |
+| Admin sidebar nav | `resources/views/elements/admin-sidebar.blade.php` | `mm-active` class pattern, link structure |
+| Customer sidebar nav | `resources/views/elements/quicksms-sidebar.blade.php` | `data-subnav` attribute pattern |
+| Admin header bell | `resources/views/elements/admin-header.blade.php` | Bell icon, badge, dropdown structure |
+| Customer header bell | `resources/views/elements/header.blade.php` | Enforcement alerts bell pattern |
+
+---
+
+## APPENDIX A — REVIEW RESPONSE: WHAT WAS FIXED AND WHAT WAS REJECTED
+
+An external code review was conducted against this prompt and the underlying codebase. Of the 8 issues raised, **5 were valid and have been fixed** in this version. **3 were invalid** — the reviewer was working from stale data or referencing text that doesn't exist in this prompt. Full justification below.
+
+---
+
+### FIXES APPLIED (5 valid issues)
+
+#### Fix 1: Endpoint count corrected — "28" → "27"
+**Reviewer claim:** "The summary says '28', table shows 27"
+**Verdict:** VALID — fixed.
+
+The guardrails table (Section 6, rule #1) previously said "All 28 API endpoints". Counting the route table: 16 customer + 11 admin = 27. There are also 4 balance alert routes in `routes/api_billing.php`, but those are a separate billing feature not used by the Notification Centre.
+
+**Fix:** Changed to "All 27 API endpoints already exist in routes/web.php".
+
+#### Fix 2: API response format documentation added
+**Reviewer claim:** "Pagination format description is wrong — builder will write response.data.current_page instead of response.data.pagination.current_page"
+**Verdict:** PARTIALLY VALID — the prompt never had wrong pagination docs (see Rejected #3 below), but the *absence* of pagination documentation was a real gap. A builder would have no way to know the correct format without reading controller code.
+
+**Fix:** Added complete "API Response Formats" subsection to Section 4, documenting:
+- Paginated response shape with nested `pagination` object
+- Non-paginated response shape
+- Notification endpoint extras (`unread_count`, `unread_by_category`)
+
+This is the highest-impact fix — prevents broken pagination in every paginated tab.
+
+#### Fix 3: Missing model response shapes added
+**Reviewer claim:** "AlertHistory, AlertPreference, AlertChannelConfig, admin response shapes not documented"
+**Verdict:** VALID — fixed.
+
+The prompt previously only documented Notification and AlertRule shapes. The builder needs shapes for every tab:
+- Tab 3 (History) needs AlertHistory shape
+- Tab 4 (Preferences) needs AlertPreference shape
+- Tab 5 (Channels) needs AlertChannelConfig shape
+- Admin tabs need raw Eloquent model shapes
+
+**Fix:** Added two new subsections to Section 4:
+- **"GREEN Zone Model Shapes"** — Notification, AlertRule, AlertHistory, AlertPreference, AlertChannelConfig with exact JSON examples from `toPortalArray()` and controller `map()` functions
+- **"RED Zone Response Shapes"** — AdminNotification, Admin AlertRule, Admin Dashboard with exact JSON examples showing raw Eloquent format differences (extra fields, different date format)
+
+#### Fix 4: Missing `sub_account` category in preferences list
+**Reviewer claim:** "Preferences tab lists 6 categories, should be 7"
+**Verdict:** VALID — fixed.
+
+Section 5A Tab 4 (Preferences) listed: `billing, messaging, compliance, security, system, campaign` — that's 6. The config defines 7 customer categories including `sub_account` ("Sub-Account Caps & Limits").
+
+**Fix:** Changed to "All 7 categories: billing, messaging, compliance, security, system, campaign, sub_account".
+
+#### Fix 5: `unread_count` and `unread_by_category` documented
+**Reviewer claim:** "Notification response has extra fields not documented — builder will make separate API calls for unread counts"
+**Verdict:** VALID — fixed.
+
+Both `NotificationController@index` and `AdminNotificationController@index` return `unread_count` (integer) and `unread_by_category` (object keyed by category name) alongside `data` and `pagination`. These should be used for the bell badge count and category filter chips instead of making separate API calls.
+
+**Fix:** Documented in the "API Response Formats" subsection with an explicit note to use these fields for the bell badge.
+
+---
+
+### REJECTED CLAIMS (3 invalid issues)
+
+#### Rejected #1: "Customer default count says '24', actual is 23"
+**Reviewer claim:** "Section 5 guardrails table says: config/alerting.php — Fully configured — 550 lines, 24 customer defaults, 8 admin defaults"
+**Verdict:** INVALID — reviewer is reading stale data.
+
+**Evidence:**
+- Line 17 of this prompt says: `"config/alerting.php with 23 customer + 8 admin default rules"` — already correct
+- Line 180 says: `"23 customer defaults, 8 admin defaults"` — already correct
+- The fix commit `2c572bce` (2026-03-19) corrected the old prompt from "25" to "23"
+- The new prompt was written with the correct number from the start
+- Verified against `config/alerting.php`: exactly 23 entries in `customer_defaults` array, 8 in `admin_defaults`
+
+**Why the reviewer got this wrong:** The reviewer appears to have been looking at an intermediate version of the prompt (possibly the v1 from commit `ad40797d`) rather than the current version. The "24" number never appeared in any committed version — the old prompt said "25", which was fixed to "23" in `2c572bce`, and this prompt has always said "23".
+
+**No fix needed.** The prompt already has the correct count.
+
+#### Rejected #2: "HEAD verification command is wrong — says commit 3124b502"
+**Reviewer claim:** "Section 1 says: git log --oneline -1 → Expected: 3124b502 Fix alerting engine review findings... But the actual HEAD is 3df0dbeb (this prompt commit). A builder running the verification will see a mismatch."
+**Verdict:** INVALID — already fixed before the review was conducted.
+
+**Evidence:**
+- Line 4 reads: `"HEAD: Latest commit on branch (run git log -1 --oneline to verify)"` — no specific commit hash is hardcoded
+- This was deliberately changed to be generic so it remains valid as new commits are added
+- The reviewer is describing a version of the prompt that no longer exists
+
+**No fix needed.** The prompt already uses a generic, always-valid verification pattern.
+
+#### Rejected #3: "Pagination format description is wrong — guardrail #10"
+**Reviewer claim:** "Section 5 guardrail #10 says: 'Pagination: API endpoints return Laravel-style { data: [], current_page, last_page, per_page, total }' — Actual format has pagination fields nested inside a pagination key, not flat at root."
+**Verdict:** INVALID — the text being critiqued does not exist in this prompt.
+
+**Evidence:**
+- Section 6 (guardrails) has two tables: "NEVER DO" (22 rules) and "ALWAYS DO" (9 rules)
+- Neither table has a rule #10 about pagination format
+- A `grep` for "current_page", "per_page", and "pagination" returns zero matches in the prompt prior to our fix
+- The prompt simply never documented pagination format at all — it didn't have wrong documentation, it had no documentation
+
+**Why the reviewer got this wrong:** The reviewer may have been referencing a draft or discussion document that contained this text, or may have confused this prompt with another document. The claim describes a specific guardrail with specific text that has never existed in any committed version of this file.
+
+**What we did instead:** While the specific claim is invalid (the wrong text doesn't exist), the *underlying concern* is legitimate — the prompt should document the pagination format. We added the complete "API Response Formats" subsection (Fix #2 above) which documents the correct nested format. The reviewer's recommendation was right even though their diagnosis was wrong.
+
+---
+
+### SUMMARY TABLE
+
+| # | Reviewer Claim | Verdict | Action |
+|---|---------------|---------|--------|
+| 1 | Customer defaults says "24" | INVALID — already says "23" | None needed |
+| 2 | Endpoint count says "28" | VALID — should be "27" | Fixed |
+| 3 | Pagination guardrail #10 is wrong | INVALID — doesn't exist | Added missing docs instead |
+| 4 | `unread_count` not documented | VALID | Fixed — added to response format section |
+| 5 | Admin uses raw Eloquent, not toPortalArray | VALID — documentation gap | Fixed — added RED zone shapes |
+| 6 | HEAD verification hardcodes wrong commit | INVALID — already generic | None needed |
+| 7 | Missing AlertHistory/Preference/Channel shapes | VALID | Fixed — added all shapes |
+| 8 | "7 categories" ambiguous / preferences lists 6 | VALID (6→7 fix needed) | Fixed — added `sub_account` |
