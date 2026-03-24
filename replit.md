@@ -39,6 +39,7 @@ Preferred communication style: Simple, everyday language.
 - **Security Settings:** Customer portal configuration for message data retention, data masking, anti-flood protection, out-of-hours sending restrictions, and IP allowlisting. Admin console also provides per-account security settings management via `/admin/accounts/{accountId}/settings` with dedicated API endpoints (`/admin/api/accounts/{accountId}/security/*`) for viewing and modifying each customer's security configuration without logging in as the customer.
 - **Billing Snapshots:** Immutable records for campaign pricing estimates.
 - **Audit Logging:** Five domain-specific, immutable audit log tables with a unified API for retrieval.
+- **Supplier Monitoring:** Admin-only alert category with 14 pre-configured rules across two tiers (Critical Supplier Health and Carrier Behaviour), covering delivery rates, DLR latency, queue depth, submit success, API availability, network degradation, sender ID rejection, and missing DLR rates. Backend evaluation services are documented in `docs/supplier-monitoring-backend-todo.md` for future integration with reporting databases.
 
 ### Account Lifecycle & Test Mode
 A 7-status account model (`pending_verification`, `test_standard`, `test_dynamic`, `active_standard`, `active_dynamic`, `suspended`, `closed`) is implemented. `TestModeEnforcementService` applies restrictions for test accounts. `FraudScreeningService` handles activation. Admin controls allow status overrides, test credit top-ups, and per-account spam filter mode adjustments, all audit-logged.

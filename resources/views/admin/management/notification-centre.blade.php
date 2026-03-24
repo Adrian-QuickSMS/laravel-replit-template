@@ -560,7 +560,8 @@
         'platform_health': { bg: '#cffafe', color: '#155e75' },
         'customer_risk': { bg: '#ffedd5', color: '#9a3412' },
         'commercial': { bg: '#fef9c3', color: '#854d0e' },
-        'compliance_legal': { bg: '#fce7f3', color: '#9d174d' }
+        'compliance_legal': { bg: '#fce7f3', color: '#9d174d' },
+        'supplier_monitoring': { bg: '#ccfbf1', color: '#134e4a' }
     };
 
     var CHANNEL_LABELS = {
@@ -582,7 +583,21 @@
         'sub_account_volume_cap_approaching': 'Within (% of cap)',
         'sub_account_daily_limit_approaching': 'Within (% of cap)',
         'queue_backlog': 'Queue Size',
-        'dlr_latency_seconds': 'Latency (seconds)'
+        'dlr_latency_seconds': 'Latency (seconds)',
+        'supplier_delivery_rate': 'Delivery Rate (%)',
+        'supplier_delivery_rate_deviation': 'Deviation (%)',
+        'supplier_dlr_latency_median': 'Latency (seconds)',
+        'supplier_dlr_latency_p95': 'Multiplier (×baseline)',
+        'supplier_pending_messages': 'Message Count',
+        'supplier_pending_growth_rate': '% per Minute',
+        'supplier_submit_success_rate': 'Success Rate (%)',
+        'supplier_api_availability': 'Availability (%)',
+        'supplier_api_latency': 'Latency (ms)',
+        'supplier_api_timeout_rate': 'Timeout Rate (%)',
+        'supplier_network_delivery_delta': 'Deviation (%)',
+        'supplier_senderid_rejection_rate': 'Rejection Rate (%)',
+        'supplier_country_delivery_delta': 'Deviation (%)',
+        'supplier_missing_dlr_rate': 'Missing Rate (%)'
     };
 
     var CAP_REACHED_TRIGGERS = [
