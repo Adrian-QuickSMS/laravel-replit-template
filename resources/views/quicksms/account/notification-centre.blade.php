@@ -402,7 +402,7 @@
                     <label class="form-label">Trigger</label>
                     <select class="form-select" id="ruleTriggerKey"></select>
                 </div>
-                <div class="row mb-3">
+                <div class="row mb-3" id="ruleOperatorValueRow">
                     <div class="col-6">
                         <label class="form-label">Operator</label>
                         <select class="form-select" id="ruleOperator"></select>
@@ -830,8 +830,22 @@
         document.getElementById('ruleTriggerKey').addEventListener('change', updateCondValueLabel);
     }
 
+    function getTriggerType(triggerKey) {
+        for (var i = 0; i < DEFAULTS.length; i++) {
+            if (DEFAULTS[i].trigger_key === triggerKey) return DEFAULTS[i].trigger_type;
+        }
+        return 'threshold';
+    }
+
     function updateCondValueLabel() {
         var tk = document.getElementById('ruleTriggerKey').value;
+        var isEvent = (getTriggerType(tk) === 'event');
+        var row = document.getElementById('ruleOperatorValueRow');
+        if (isEvent) {
+            row.classList.add('d-none');
+        } else {
+            row.classList.remove('d-none');
+        }
         document.getElementById('ruleCondValueLabel').textContent = TRIGGER_VALUE_LABELS[tk] || 'Value';
     }
 
