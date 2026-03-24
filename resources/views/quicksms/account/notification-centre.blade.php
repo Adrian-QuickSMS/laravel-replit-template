@@ -189,6 +189,27 @@
 .pref-row:last-child {
     border-bottom: none;
 }
+.pref-pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+.pref-pill:hover {
+    border-color: #a78bfa;
+    color: #7c3aed;
+}
+.pref-pill.active {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+    color: #6d28d9;
+}
 .channel-cfg-card {
     border: 1px solid #e5e7eb;
     border-radius: 0.5rem;
@@ -1037,15 +1058,12 @@
         cats.forEach(function(cat) {
             html += '<div class="pref-row" data-category="' + escapeHtml(cat) + '">';
             html += '<div class="flex-grow-1">';
-            html += '<strong style="font-size: 0.9rem;">' + escapeHtml(CATEGORIES[cat] || cat) + '</strong>';
+            html += '<strong style="font-size: 0.85rem;">' + escapeHtml(CATEGORIES[cat] || cat) + '</strong>';
             html += '</div>';
             html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
-            html += '<div class="d-flex gap-2">';
+            html += '<div class="d-flex gap-1 flex-wrap">';
             CHANNELS.forEach(function(ch) {
-                html += '<label class="d-flex align-items-center gap-1" style="font-size: 0.8rem; cursor: pointer;">';
-                html += '<input type="checkbox" class="form-check-input pref-channel-toggle" data-category="' + escapeHtml(cat) + '" data-channel="' + ch + '" checked style="margin: 0;">';
-                html += (CHANNEL_LABELS[ch] || ch);
-                html += '</label>';
+                html += '<span class="pref-pill active pref-channel-pill" data-category="' + escapeHtml(cat) + '" data-channel="' + ch + '">' + (CHANNEL_LABELS[ch] || ch) + '</span>';
             });
             html += '</div>';
             html += '<div class="form-check form-switch">';
@@ -1072,19 +1090,16 @@
                 prefs.forEach(function(p) {
                     html += '<div class="pref-row" data-category="' + escapeHtml(p.category) + '">';
                     html += '<div class="flex-grow-1">';
-                    html += '<strong style="font-size: 0.9rem;">' + escapeHtml(p.label || CATEGORIES[p.category] || p.category) + '</strong>';
+                    html += '<strong style="font-size: 0.85rem;">' + escapeHtml(p.label || CATEGORIES[p.category] || p.category) + '</strong>';
                     if (p.muted_until) {
                         html += '<br><small class="text-warning"><i class="fas fa-clock me-1"></i>Muted until ' + formatDate(p.muted_until) + '</small>';
                     }
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
-                    html += '<div class="d-flex gap-2">';
+                    html += '<div class="d-flex gap-1 flex-wrap">';
                     CHANNELS.forEach(function(ch) {
                         var active = p.channels && p.channels.indexOf(ch) !== -1;
-                        html += '<label class="d-flex align-items-center gap-1" style="font-size: 0.8rem; cursor: pointer;">';
-                        html += '<input type="checkbox" class="form-check-input pref-channel-toggle" data-category="' + escapeHtml(p.category) + '" data-channel="' + ch + '" ' + (active ? 'checked' : '') + ' style="margin: 0;">';
-                        html += (CHANNEL_LABELS[ch] || ch);
-                        html += '</label>';
+                        html += '<span class="pref-pill' + (active ? ' active' : '') + ' pref-channel-pill" data-category="' + escapeHtml(p.category) + '" data-channel="' + ch + '">' + (CHANNEL_LABELS[ch] || ch) + '</span>';
                     });
                     html += '</div>';
                     html += '<div class="form-check form-switch">';
@@ -1103,19 +1118,20 @@
                     });
                 });
 
-                el.querySelectorAll('.pref-channel-toggle').forEach(function(input) {
-                    input.addEventListener('change', function() {
+                el.querySelectorAll('.pref-channel-pill').forEach(function(pill) {
+                    pill.addEventListener('click', function() {
                         var cat = this.getAttribute('data-category');
                         var channel = this.getAttribute('data-channel');
                         var pref = prefs.find(function(p) { return p.category === cat; });
                         if (!pref) return;
+                        this.classList.toggle('active');
                         var channels = (pref.channels || []).slice();
                         var idx = channels.indexOf(channel);
                         if (idx !== -1) channels.splice(idx, 1);
                         else channels.push(channel);
+                        pref.channels = channels;
                         apiPut('/api/v1/alerts/preferences', { category: cat, channels: channels })
-                            .then(function() { loadPreferences(); })
-                            .catch(function(err) { console.error(err.message); loadPreferences(); });
+                            .catch(function(err) { console.error(err.message); });
                     });
                 });
             })
