@@ -570,7 +570,7 @@
 
 <script>
 (function() {
-    function loadCustomerNotifications() {
+    function loadCustomerNotifications(autoOpen) {
         fetch('/api/notifications/?per_page=5&unread_only=1')
             .then(function(r) {
                 if (!r.ok) throw new Error('[NotificationCentre] Customer bell fetch failed: ' + r.status);
@@ -615,6 +615,17 @@
                     });
                     html += '</ul>';
                     dropdownEl.innerHTML = html;
+
+                    if (autoOpen && unreadCount > 0) {
+                        var bellEl = document.getElementById('customerNotificationBell');
+                        if (bellEl && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                            setTimeout(function() {
+                                var dropdown = bootstrap.Dropdown.getOrCreateInstance(bellEl);
+                                dropdown.show();
+                                setTimeout(function() { dropdown.hide(); }, 5000);
+                            }, 800);
+                        }
+                    }
                 } else {
                     dropdownEl.innerHTML = '<div class="text-muted text-center py-3 small">No new notifications</div>';
                 }
@@ -645,8 +656,8 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log('[NotificationCentre] Customer bell initialized');
-        loadCustomerNotifications();
-        setInterval(loadCustomerNotifications, 60000);
+        loadCustomerNotifications(true);
+        setInterval(function() { loadCustomerNotifications(false); }, 60000);
 
         var markAllBtn = document.getElementById('customerMarkAllRead');
         if (markAllBtn) {
