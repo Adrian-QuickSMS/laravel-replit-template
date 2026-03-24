@@ -18,7 +18,7 @@ class AlertRuleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $accountId = $request->user()->account_id;
+        $accountId = $request->user()->tenant_id;
 
         $query = AlertRule::where(function ($q) use ($accountId) {
             $q->where('tenant_id', $accountId)
@@ -81,7 +81,7 @@ class AlertRuleController extends Controller
         }
 
         $rule = AlertRule::create([
-            'tenant_id' => $request->user()->account_id,
+            'tenant_id' => $request->user()->tenant_id,
             'user_id' => $request->user()->id,
             'category' => $request->input('category'),
             'trigger_type' => $request->input('trigger_type'),
@@ -107,7 +107,7 @@ class AlertRuleController extends Controller
     {
         $rule = AlertRule::where('id', $id)
             ->where(function ($q) use ($request) {
-                $q->where('tenant_id', $request->user()->account_id)
+                $q->where('tenant_id', $request->user()->tenant_id)
                     ->orWhere(function ($q2) {
                         $q2->whereNull('tenant_id')->where('is_system_default', true);
                     });
@@ -123,7 +123,7 @@ class AlertRuleController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $rule = AlertRule::where('id', $id)
-            ->where('tenant_id', $request->user()->account_id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
@@ -154,7 +154,7 @@ class AlertRuleController extends Controller
     public function destroy(Request $request, string $id): JsonResponse
     {
         $rule = AlertRule::where('id', $id)
-            ->where('tenant_id', $request->user()->account_id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->firstOrFail();
 
         if ($rule->is_system_default) {

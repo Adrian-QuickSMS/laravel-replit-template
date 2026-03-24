@@ -14,7 +14,7 @@ class AlertHistoryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $accountId = $request->user()->account_id;
+        $accountId = $request->user()->tenant_id;
 
         $query = AlertHistory::forTenant($accountId)
             ->orderBy('created_at', 'desc');
@@ -61,7 +61,7 @@ class AlertHistoryController extends Controller
      */
     public function summary(Request $request): JsonResponse
     {
-        $accountId = $request->user()->account_id;
+        $accountId = $request->user()->tenant_id;
         $since = $request->input('since', now()->subDays(7)->toDateTimeString());
 
         $counts = AlertHistory::forTenant($accountId)

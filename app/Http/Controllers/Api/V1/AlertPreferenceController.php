@@ -15,7 +15,7 @@ class AlertPreferenceController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $preferences = AlertPreference::forTenant($request->user()->account_id)
+        $preferences = AlertPreference::forTenant($request->user()->tenant_id)
             ->forUser($request->user()->id)
             ->get()
             ->keyBy('category');
@@ -61,7 +61,7 @@ class AlertPreferenceController extends Controller
 
         $preference = AlertPreference::updateOrCreate(
             [
-                'tenant_id' => $request->user()->account_id,
+                'tenant_id' => $request->user()->tenant_id,
                 'user_id' => $request->user()->id,
                 'category' => $validated['category'],
             ],

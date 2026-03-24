@@ -17,7 +17,7 @@ class AlertChannelController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $configs = AlertChannelConfig::forTenant($request->user()->account_id)
+        $configs = AlertChannelConfig::forTenant($request->user()->tenant_id)
             ->get()
             ->map(function ($config) {
                 return [
@@ -88,7 +88,7 @@ class AlertChannelController extends Controller
         }
 
         // Auto-generate HMAC secret for webhooks only on initial creation
-        $existingConfig = AlertChannelConfig::forTenant($request->user()->account_id)
+        $existingConfig = AlertChannelConfig::forTenant($request->user()->tenant_id)
             ->forChannel($channel)
             ->first();
 
@@ -103,7 +103,7 @@ class AlertChannelController extends Controller
 
         $channelConfig = AlertChannelConfig::updateOrCreate(
             [
-                'tenant_id' => $request->user()->account_id,
+                'tenant_id' => $request->user()->tenant_id,
                 'user_id' => null, // Account-level config
                 'channel' => $channel,
             ],
@@ -129,7 +129,7 @@ class AlertChannelController extends Controller
      */
     public function destroy(Request $request, string $channel): JsonResponse
     {
-        $config = AlertChannelConfig::forTenant($request->user()->account_id)
+        $config = AlertChannelConfig::forTenant($request->user()->tenant_id)
             ->forChannel($channel)
             ->first();
 
