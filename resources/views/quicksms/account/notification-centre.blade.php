@@ -634,7 +634,6 @@
                     html += '<div class="d-flex justify-content-between align-items-start">';
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
-                    html += severityBadge(n.severity);
                     html += categoryChip(n.category);
                     html += '<small class="text-muted">' + formatTimeAgo(n.created_at) + '</small>';
                     html += '</div>';
