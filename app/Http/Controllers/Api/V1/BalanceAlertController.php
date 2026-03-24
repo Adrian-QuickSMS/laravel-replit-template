@@ -15,7 +15,7 @@ class BalanceAlertController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $alerts = BalanceAlertConfig::where('account_id', $request->user()->account_id)
+        $alerts = BalanceAlertConfig::where('account_id', $request->user()->tenant_id)
             ->orderBy('threshold_percentage')
             ->get();
 
@@ -39,7 +39,7 @@ class BalanceAlertController extends Controller
         }
 
         $alert = BalanceAlertConfig::create([
-            'account_id' => $request->user()->account_id,
+            'account_id' => $request->user()->tenant_id,
             'threshold_percentage' => $request->input('threshold_percentage'),
             'notify_customer' => $request->input('notify_customer', true),
             'notify_admin' => $request->input('notify_admin', true),
@@ -55,7 +55,7 @@ class BalanceAlertController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $alert = BalanceAlertConfig::where('id', $id)
-            ->where('account_id', $request->user()->account_id)
+            ->where('account_id', $request->user()->tenant_id)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
@@ -80,7 +80,7 @@ class BalanceAlertController extends Controller
     public function destroy(Request $request, string $id): JsonResponse
     {
         $alert = BalanceAlertConfig::where('id', $id)
-            ->where('account_id', $request->user()->account_id)
+            ->where('account_id', $request->user()->tenant_id)
             ->firstOrFail();
 
         $alert->delete();
