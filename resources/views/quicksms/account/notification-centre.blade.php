@@ -691,7 +691,10 @@
         apiGet('/api/v1/alerts/rules')
             .then(function(result) {
                 if (!result.success) throw new Error('API returned success=false');
-                var rules = result.data || [];
+                var customerCategories = @json(array_keys(config('alerting.categories')));
+                var rules = (result.data || []).filter(function(r) {
+                    return customerCategories.indexOf(r.category) !== -1;
+                });
                 if (rules.length === 0) {
                     el.innerHTML = '<div class="empty-state"><i class="fas fa-cog"></i><p>No alert rules configured</p><small>Click "Add Rule" to create your first alert rule.</small></div>';
                     return;
