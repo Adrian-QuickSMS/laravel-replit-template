@@ -193,6 +193,195 @@ User action (e.g. security setting change)
   → UI reads via /api/notifications/
 ```
 
+### API Response Formats
+
+**All endpoints** wrap responses in `{ "success": true, "data": ... }`. Paginated endpoints add a nested `pagination` object — fields are **never** flat at the root.
+
+**Paginated response** (notifications, alert history, admin history):
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "pagination": {
+    "total": 100,
+    "per_page": 25,
+    "current_page": 1,
+    "last_page": 4
+  }
+}
+```
+
+**Non-paginated response** (preferences, channels, admin rules):
+```json
+{
+  "success": true,
+  "data": [ ... ]
+}
+```
+
+**Notification endpoints** (both customer and admin) also return unread counts — use these for the bell badge and category filters instead of making separate API calls:
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "unread_count": 5,
+  "unread_by_category": { "security": 3, "billing": 2 },
+  "pagination": { ... }
+}
+```
+
+### GREEN Zone Model Shapes (toPortalArray responses)
+
+**Notification** (`GET /api/notifications/`):
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "type": "credit_balance_percentage",
+  "severity": "warning",
+  "category": "billing",
+  "title": "Balance below 20%",
+  "body": "Your account balance has dropped below the configured threshold.",
+  "deep_link": "/account/billing",
+  "action_url": "/account/top-up",
+  "action_label": "Top Up Now",
+  "read_at": "2026-03-19T16:00:00+00:00",
+  "dismissed_at": null,
+  "created_at": "2026-03-19T15:30:00+00:00"
+}
+```
+
+**AlertRule** (`GET /api/v1/alerts/rules`):
+```json
+{
+  "id": 42,
+  "category": "billing",
+  "trigger_type": "threshold",
+  "trigger_key": "credit_balance_percentage",
+  "condition_operator": "lt",
+  "condition_value": 20,
+  "channels": ["in_app", "email"],
+  "frequency": "once_per_breach",
+  "cooldown_minutes": 60,
+  "escalation_rules": [],
+  "is_enabled": true,
+  "is_system_default": true,
+  "created_at": "2026-03-17T10:00:00+00:00",
+  "updated_at": "2026-03-17T10:00:00+00:00"
+}
+```
+
+**AlertHistory** (`GET /api/v1/alerts/history`):
+```json
+{
+  "id": 1,
+  "trigger_key": "credit_balance_percentage",
+  "trigger_value": 15.5,
+  "severity": "warning",
+  "category": "billing",
+  "title": "Balance below 20%",
+  "body": "Current balance is 15.5% of credit limit.",
+  "status": "dispatched",
+  "channels_dispatched": ["in_app", "email"],
+  "created_at": "2026-03-19T15:30:00+00:00"
+}
+```
+
+**AlertPreference** (`GET /api/v1/alerts/preferences`) — returns all 7 categories with defaults for unconfigured ones:
+```json
+{
+  "category": "billing",
+  "label": "Account & Billing",
+  "channels": ["in_app", "email"],
+  "is_muted": false,
+  "muted_until": null
+}
+```
+
+**AlertChannelConfig** (`GET /api/v1/alerts/channels`) — sensitive values masked via `safe_config`:
+```json
+{
+  "id": 1,
+  "channel": "webhook",
+  "config": {
+    "webhook_url_set": true,
+    "hmac_secret": "***a1b2"
+  },
+  "is_enabled": true,
+  "updated_at": "2026-03-19T16:00:00"
+}
+```
+
+### RED Zone Response Shapes (Admin)
+
+Admin controllers return **raw Eloquent models** (not toPortalArray). Key differences from GREEN zone:
+- Extra fields present: `tenant_id`, `user_id`, `recipient_admin_id`, `alert_rule_id`, `condition_value`, `metadata`/`meta`
+- Dates in default Eloquent format (`"2026-03-19 16:00:00"`) not ISO 8601 — parse with `new Date()` which handles both
+- `$hidden` fields (like AlertChannelConfig `config`) are excluded from JSON serialization
+
+**AdminNotification** (`GET /api/notifications/` admin):
+```json
+{
+  "id": 1,
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "recipient_admin_id": null,
+  "type": "spam_filter_triggered",
+  "severity": "warning",
+  "category": "fraud",
+  "title": "Spam filter triggered",
+  "body": "Account XYZ triggered spam filters.",
+  "deep_link": "/admin/accounts/xyz",
+  "action_url": "/admin/accounts/xyz/review",
+  "action_label": "Review Account",
+  "meta": {},
+  "read_at": null,
+  "dismissed_at": null,
+  "resolved_at": null,
+  "created_at": "2026-03-19 16:00:00",
+  "updated_at": "2026-03-19 16:00:00"
+}
+```
+
+**Admin AlertRule** (`GET /api/alerts/rules`) — returns raw model, not paginated:
+```json
+{
+  "id": 1,
+  "tenant_id": null,
+  "category": "fraud",
+  "trigger_type": "event",
+  "trigger_key": "spam_filter_triggered",
+  "condition_operator": "gte",
+  "condition_value": 1,
+  "channels": ["in_app", "slack"],
+  "frequency": "instant",
+  "cooldown_minutes": 5,
+  "escalation_rules": [],
+  "is_enabled": true,
+  "is_system_default": true,
+  "last_triggered_at": null,
+  "last_value_snapshot": null,
+  "created_at": "2026-03-17 10:00:00",
+  "updated_at": "2026-03-17 10:00:00"
+}
+```
+
+**Admin Dashboard** (`GET /api/alerts/dashboard`):
+```json
+{
+  "success": true,
+  "data": {
+    "most_triggered": [
+      { "trigger_key": "spam_filter_triggered", "category": "fraud", "count": 42 }
+    ],
+    "by_severity": { "critical": 5, "warning": 18, "info": 120 },
+    "dispatched_count": 130,
+    "suppressed_count": 15,
+    "batched_count": 8,
+    "recent_critical": [ /* raw AlertHistory models */ ],
+    "period_since": "2026-03-12 16:00:00"
+  }
+}
+```
+
 ---
 
 ## 5. WHAT TO BUILD
@@ -225,7 +414,7 @@ User action (e.g. security setting change)
 
 4. **Preferences** — from `/api/v1/alerts/preferences`
    - Per-category row: category name, mute toggle, channel selection, mute-until date
-   - Categories: billing, messaging, compliance, security, system, campaign
+   - All 7 categories: billing, messaging, compliance, security, system, campaign, sub_account
 
 5. **Channel Settings** — from `/api/v1/alerts/channels`
    - Email: enabled toggle (address from profile)
@@ -259,6 +448,11 @@ User action (e.g. security setting change)
 4. **History** — from `/api/alerts/history`
    - Full table, all columns
    - Filters: trigger_key, severity, status, tenant_id, date range
+
+> **Admin response format note:** Admin API endpoints return raw Eloquent models, NOT `toPortalArray()`. This means:
+> - Extra fields are present (e.g. `tenant_id`, `user_id`, `alert_rule_id`, `condition_value`, `metadata`)
+> - Dates use Eloquent format (`"2026-03-19 16:00:00"`) not ISO 8601 — `new Date()` handles both
+> - Refer to the "RED Zone Response Shapes" in Section 4 for exact field lists
 
 ### 5C. Sidebar Navigation Updates
 
@@ -310,7 +504,7 @@ Route::get('/management/notification-centre', function () {
 
 | # | Rule | Reason |
 |---|------|--------|
-| 1 | Create new API routes | All 28 API endpoints already exist in routes/web.php |
+| 1 | Create new API routes | All 27 API endpoints already exist in routes/web.php |
 | 2 | Create new controllers | All 7 controllers already exist |
 | 3 | Create new models | All 7 models already exist |
 | 4 | Create new migrations | All 8 migration files already exist |
