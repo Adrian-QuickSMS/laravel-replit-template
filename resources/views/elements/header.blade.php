@@ -571,7 +571,7 @@
 <script>
 (function() {
     function loadCustomerNotifications() {
-        fetch('/api/notifications/?per_page=5&unread=1')
+        fetch('/api/notifications/?per_page=5&unread_only=1')
             .then(function(r) {
                 if (!r.ok) throw new Error('[NotificationCentre] Customer bell fetch failed: ' + r.status);
                 return r.json();

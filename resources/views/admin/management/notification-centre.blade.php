@@ -302,18 +302,8 @@
                         <option value="warning">Warning</option>
                         <option value="info">Info</option>
                     </select>
-                    <select id="adminHistFilterStatus">
-                        <option value="">All Statuses</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="failed">Failed</option>
-                        <option value="suppressed">Suppressed</option>
-                        <option value="batched">Batched</option>
-                    </select>
-                    <input type="text" class="form-control form-control-sm" id="adminHistFilterTrigger" placeholder="Trigger key" style="max-width: 200px; font-size: 0.85rem;">
                     <input type="text" class="form-control form-control-sm" id="adminHistFilterTenant" placeholder="Tenant ID" style="max-width: 250px; font-size: 0.85rem;">
-                    <input type="date" class="form-control form-control-sm" id="adminHistFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="From date">
-                    <input type="date" class="form-control form-control-sm" id="adminHistFilterDateTo" style="max-width: 160px; font-size: 0.85rem;" title="To date">
+                    <input type="date" class="form-control form-control-sm" id="adminHistFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="Since date">
                 </div>
                 <div class="table-responsive">
                     <table class="nc-table">
@@ -900,18 +890,12 @@
         var params = '?page=' + page + '&per_page=20';
         var cat = document.getElementById('adminHistFilterCategory').value;
         var sev = document.getElementById('adminHistFilterSeverity').value;
-        var status = document.getElementById('adminHistFilterStatus').value;
-        var trigger = document.getElementById('adminHistFilterTrigger').value;
         var tenant = document.getElementById('adminHistFilterTenant').value;
         var dateFrom = document.getElementById('adminHistFilterDateFrom').value;
-        var dateTo = document.getElementById('adminHistFilterDateTo').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
-        if (status) params += '&status=' + status;
-        if (trigger) params += '&trigger_key=' + encodeURIComponent(trigger);
         if (tenant) params += '&tenant_id=' + encodeURIComponent(tenant);
-        if (dateFrom) params += '&date_from=' + dateFrom;
-        if (dateTo) params += '&date_to=' + dateTo;
+        if (dateFrom) params += '&since=' + dateFrom + ' 00:00:00';
 
         var tbody = document.getElementById('adminHistoryBody');
         tbody.innerHTML = '<tr><td colspan="7" class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
@@ -979,7 +963,7 @@
         ['adminNotifFilterCategory', 'adminNotifFilterSeverity', 'adminNotifFilterRead'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadAdminNotifications(1); });
         });
-        ['adminHistFilterCategory', 'adminHistFilterSeverity', 'adminHistFilterStatus', 'adminHistFilterDateFrom', 'adminHistFilterDateTo'].forEach(function(id) {
+        ['adminHistFilterCategory', 'adminHistFilterSeverity', 'adminHistFilterDateFrom'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadAdminHistory(1); });
         });
         var tenantInput = document.getElementById('adminHistFilterTenant');
@@ -987,12 +971,6 @@
         tenantInput.addEventListener('input', function() {
             clearTimeout(tenantTimer);
             tenantTimer = setTimeout(function() { loadAdminHistory(1); }, 500);
-        });
-        var triggerInput = document.getElementById('adminHistFilterTrigger');
-        var triggerTimer = null;
-        triggerInput.addEventListener('input', function() {
-            clearTimeout(triggerTimer);
-            triggerTimer = setTimeout(function() { loadAdminHistory(1); }, 500);
         });
 
         document.querySelectorAll('#adminNcTabs .nav-link').forEach(function(tab) {

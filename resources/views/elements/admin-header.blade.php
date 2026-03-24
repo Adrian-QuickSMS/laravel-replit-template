@@ -69,7 +69,7 @@
 <script>
 (function() {
     function loadAdminNotifications() {
-        fetch('/admin/api/notifications/?per_page=5&unread=1')
+        fetch('/admin/api/notifications/?per_page=5&unread_only=1')
             .then(function(r) {
                 if (!r.ok) throw new Error('[NotificationCentre] Admin bell fetch failed: ' + r.status);
                 return r.json();

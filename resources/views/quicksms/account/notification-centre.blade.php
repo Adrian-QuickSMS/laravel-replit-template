@@ -334,8 +334,7 @@
                         <option value="failed">Failed</option>
                         <option value="suppressed">Suppressed</option>
                     </select>
-                    <input type="date" class="form-control form-control-sm" id="histFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="From date">
-                    <input type="date" class="form-control form-control-sm" id="histFilterDateTo" style="max-width: 160px; font-size: 0.85rem;" title="To date">
+                    <input type="date" class="form-control form-control-sm" id="histFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="Since date">
                 </div>
                 <div class="table-responsive">
                     <table class="nc-table">
@@ -868,12 +867,10 @@
         var sev = document.getElementById('histFilterSeverity').value;
         var status = document.getElementById('histFilterStatus').value;
         var dateFrom = document.getElementById('histFilterDateFrom').value;
-        var dateTo = document.getElementById('histFilterDateTo').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
         if (status) params += '&status=' + status;
-        if (dateFrom) params += '&date_from=' + dateFrom;
-        if (dateTo) params += '&date_to=' + dateTo;
+        if (dateFrom) params += '&since=' + dateFrom + ' 00:00:00';
 
         var tbody = document.getElementById('historyBody');
         tbody.innerHTML = '<tr><td colspan="5" class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
@@ -1182,7 +1179,7 @@
         ['notifFilterCategory', 'notifFilterSeverity', 'notifFilterRead'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadNotifications(1); });
         });
-        ['histFilterCategory', 'histFilterSeverity', 'histFilterStatus', 'histFilterDateFrom', 'histFilterDateTo'].forEach(function(id) {
+        ['histFilterCategory', 'histFilterSeverity', 'histFilterStatus', 'histFilterDateFrom'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadHistory(1); });
         });
 
