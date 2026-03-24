@@ -480,7 +480,7 @@
                     <select class="form-select" id="adminRuleTriggerKey"></select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Scope to Accounts</label>
+                    <label class="form-label" id="adminRuleScopeLabel">Scope to Accounts</label>
                     <div class="account-picker">
                         <div class="account-picker-toggle" id="adminRuleAccountToggle">
                             <span class="toggle-text" id="adminRuleAccountToggleText">All Accounts</span>
@@ -491,7 +491,7 @@
                                 <input type="text" class="account-picker-search" id="adminRuleAccountSearch" placeholder="Search accounts..." autocomplete="off">
                             </div>
                             <div class="account-picker-option account-picker-all" id="adminRuleAccountAll">
-                                <input type="checkbox" checked> <span class="acct-name">All Accounts</span>
+                                <input type="checkbox" checked> <span class="acct-name" id="adminRuleAccountAllLabel">All Accounts</span>
                             </div>
                             <div id="adminRuleAccountList"></div>
                         </div>
@@ -766,8 +766,10 @@
     function updateAccountPickerUI() {
         var toggleText = document.getElementById('adminRuleAccountToggleText');
         var allCb = document.getElementById('adminRuleAccountAll').querySelector('input[type="checkbox"]');
+        var cat = document.getElementById('adminRuleCategory').value;
+        var allLabel = (cat === 'supplier_monitoring') ? 'All Suppliers' : 'All Accounts';
         if (state.selectedAccounts.length === 0) {
-            toggleText.textContent = 'All Accounts';
+            toggleText.textContent = allLabel;
             allCb.checked = true;
         } else if (state.selectedAccounts.length === 1) {
             toggleText.textContent = state.selectedAccounts[0].name;
@@ -1072,6 +1074,13 @@
 
     function updateAdminTriggerKeys() {
         var cat = document.getElementById('adminRuleCategory').value;
+        var scopeLabel = document.getElementById('adminRuleScopeLabel');
+        var toggleText = document.getElementById('adminRuleAccountToggleText');
+        var isSupplier = (cat === 'supplier_monitoring');
+        scopeLabel.textContent = isSupplier ? 'Scope to Suppliers' : 'Scope to Accounts';
+        document.getElementById('adminRuleAccountAllLabel').textContent = isSupplier ? 'All Suppliers' : 'All Accounts';
+        document.getElementById('adminRuleAccountSearch').placeholder = isSupplier ? 'Search suppliers...' : 'Search accounts...';
+        if (state.selectedAccounts.length === 0) toggleText.textContent = isSupplier ? 'All Suppliers' : 'All Accounts';
         var tkSelect = document.getElementById('adminRuleTriggerKey');
         tkSelect.innerHTML = '';
         ADMIN_DEFAULTS.forEach(function(d) {
