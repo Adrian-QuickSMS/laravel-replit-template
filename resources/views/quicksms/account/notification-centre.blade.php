@@ -1026,6 +1026,36 @@
             .catch(function(err) { console.warn('[NotificationCentre] Summary load failed:', err.message); });
     }
 
+    function renderPreferencesFromConfig() {
+        var el = document.getElementById('prefsList');
+        var cats = Object.keys(CATEGORIES);
+        if (cats.length === 0) {
+            el.innerHTML = '<div class="empty-state"><i class="fas fa-sliders-h"></i><p>No preferences available</p></div>';
+            return;
+        }
+        var html = '';
+        cats.forEach(function(cat) {
+            html += '<div class="pref-row" data-category="' + escapeHtml(cat) + '">';
+            html += '<div class="flex-grow-1">';
+            html += '<strong style="font-size: 0.9rem;">' + escapeHtml(CATEGORIES[cat] || cat) + '</strong>';
+            html += '</div>';
+            html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
+            html += '<div class="d-flex gap-2">';
+            CHANNELS.forEach(function(ch) {
+                html += '<label class="d-flex align-items-center gap-1" style="font-size: 0.8rem; cursor: pointer;">';
+                html += '<input type="checkbox" class="form-check-input pref-channel-toggle" data-category="' + escapeHtml(cat) + '" data-channel="' + ch + '" checked style="margin: 0;">';
+                html += (CHANNEL_LABELS[ch] || ch);
+                html += '</label>';
+            });
+            html += '</div>';
+            html += '<div class="form-check form-switch">';
+            html += '<input class="form-check-input pref-mute-toggle" type="checkbox" data-category="' + escapeHtml(cat) + '" checked title="Active">';
+            html += '</div>';
+            html += '</div></div>';
+        });
+        el.innerHTML = html;
+    }
+
     function loadPreferences() {
         var el = document.getElementById('prefsList');
         el.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
@@ -1035,35 +1065,27 @@
                 if (!result.success) throw new Error('API returned success=false');
                 var prefs = result.data || [];
                 if (prefs.length === 0) {
-                    el.innerHTML = '<div class="empty-state"><i class="fas fa-sliders-h"></i><p>No preferences available</p></div>';
+                    renderPreferencesFromConfig();
                     return;
                 }
                 var html = '';
                 prefs.forEach(function(p) {
-                    var mutedUntilVal = '';
-                    if (p.muted_until) {
-                        var mu = new Date(p.muted_until);
-                        mutedUntilVal = mu.toISOString().slice(0, 16);
-                    }
                     html += '<div class="pref-row" data-category="' + escapeHtml(p.category) + '">';
-                    html += '<div style="min-width: 180px;">';
+                    html += '<div class="flex-grow-1">';
                     html += '<strong style="font-size: 0.9rem;">' + escapeHtml(p.label || CATEGORIES[p.category] || p.category) + '</strong>';
                     if (p.muted_until) {
                         html += '<br><small class="text-warning"><i class="fas fa-clock me-1"></i>Muted until ' + formatDate(p.muted_until) + '</small>';
                     }
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-3 flex-wrap">';
-                    html += '<div class="d-flex gap-1">';
+                    html += '<div class="d-flex gap-2">';
                     CHANNELS.forEach(function(ch) {
                         var active = p.channels && p.channels.indexOf(ch) !== -1;
-                        html += '<button class="btn btn-sm ' + (active ? 'btn-outline-primary' : 'btn-outline-secondary') + ' pref-channel-toggle" data-category="' + escapeHtml(p.category) + '" data-channel="' + ch + '" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">' + ch + '</button>';
+                        html += '<label class="d-flex align-items-center gap-1" style="font-size: 0.8rem; cursor: pointer;">';
+                        html += '<input type="checkbox" class="form-check-input pref-channel-toggle" data-category="' + escapeHtml(p.category) + '" data-channel="' + ch + '" ' + (active ? 'checked' : '') + ' style="margin: 0;">';
+                        html += (CHANNEL_LABELS[ch] || ch);
+                        html += '</label>';
                     });
-                    html += '</div>';
-                    html += '<div class="d-flex align-items-center gap-2">';
-                    html += '<input type="datetime-local" class="form-control form-control-sm pref-mute-until" data-category="' + escapeHtml(p.category) + '" value="' + mutedUntilVal + '" style="font-size: 0.75rem; width: 180px;" title="Mute until (leave empty for indefinite)">';
-                    if (p.muted_until) {
-                        html += '<button class="btn btn-sm btn-outline-warning pref-clear-mute" data-category="' + escapeHtml(p.category) + '" title="Clear mute timer" style="font-size: 0.7rem;"><i class="fas fa-times"></i></button>';
-                    }
                     html += '</div>';
                     html += '<div class="form-check form-switch">';
                     html += '<input class="form-check-input pref-mute-toggle" type="checkbox" data-category="' + escapeHtml(p.category) + '" ' + (p.is_muted ? '' : 'checked') + ' title="' + (p.is_muted ? 'Muted' : 'Active') + '">';
@@ -1081,8 +1103,8 @@
                     });
                 });
 
-                el.querySelectorAll('.pref-channel-toggle').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
+                el.querySelectorAll('.pref-channel-toggle').forEach(function(input) {
+                    input.addEventListener('change', function() {
                         var cat = this.getAttribute('data-category');
                         var channel = this.getAttribute('data-channel');
                         var pref = prefs.find(function(p) { return p.category === cat; });
@@ -1096,30 +1118,10 @@
                             .catch(function(err) { console.error(err.message); loadPreferences(); });
                     });
                 });
-
-                el.querySelectorAll('.pref-mute-until').forEach(function(input) {
-                    input.addEventListener('change', function() {
-                        var cat = this.getAttribute('data-category');
-                        var val = this.value;
-                        var mutedUntil = val ? new Date(val).toISOString() : null;
-                        apiPut('/api/v1/alerts/preferences', { category: cat, is_muted: !!val, muted_until: mutedUntil })
-                            .then(function() { loadPreferences(); })
-                            .catch(function(err) { console.error(err.message); loadPreferences(); });
-                    });
-                });
-
-                el.querySelectorAll('.pref-clear-mute').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        var cat = this.getAttribute('data-category');
-                        apiPut('/api/v1/alerts/preferences', { category: cat, is_muted: false, muted_until: null })
-                            .then(function() { loadPreferences(); })
-                            .catch(function(err) { console.error(err.message); loadPreferences(); });
-                    });
-                });
             })
             .catch(function(err) {
-                console.error(err.message);
-                el.innerHTML = '<div class="nc-error"><i class="fas fa-exclamation-triangle"></i><p>Failed to load preferences</p></div>';
+                console.error('[NotificationCentre] Preferences API unavailable, using config fallback');
+                renderPreferencesFromConfig();
             });
     }
 
