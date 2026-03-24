@@ -334,6 +334,8 @@
                         <option value="failed">Failed</option>
                         <option value="suppressed">Suppressed</option>
                     </select>
+                    <input type="date" class="form-control form-control-sm" id="histFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="From date">
+                    <input type="date" class="form-control form-control-sm" id="histFilterDateTo" style="max-width: 160px; font-size: 0.85rem;" title="To date">
                 </div>
                 <div class="table-responsive">
                     <table class="nc-table">
@@ -865,9 +867,13 @@
         var cat = document.getElementById('histFilterCategory').value;
         var sev = document.getElementById('histFilterSeverity').value;
         var status = document.getElementById('histFilterStatus').value;
+        var dateFrom = document.getElementById('histFilterDateFrom').value;
+        var dateTo = document.getElementById('histFilterDateTo').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
         if (status) params += '&status=' + status;
+        if (dateFrom) params += '&date_from=' + dateFrom;
+        if (dateTo) params += '&date_to=' + dateTo;
 
         var tbody = document.getElementById('historyBody');
         tbody.innerHTML = '<tr><td colspan="5" class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
@@ -1060,21 +1066,25 @@
                         if (urlSet) html += '<small class="text-success d-block mb-2"><i class="fas fa-check-circle me-1"></i>Webhook URL is configured</small>';
                         if (hmac) html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">HMAC Secret</label><input type="text" class="form-control form-control-sm" value="' + escapeHtml(hmac) + '" readonly></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="webhook"><i class="fas fa-save me-1"></i>Save</button>';
+                        if (existing) html += ' <button class="btn btn-sm btn-outline-secondary channel-test" data-channel="webhook"><i class="fas fa-paper-plane me-1"></i>Test</button>';
                     } else if (cd.key === 'slack') {
                         var slackUrl = existing && existing.config ? existing.config.slack_webhook_url : '';
                         html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Slack Webhook URL</label>';
                         html += '<input type="url" class="form-control form-control-sm channel-slack-url" value="' + escapeHtml(slackUrl || '') + '" placeholder="https://hooks.slack.com/services/..." data-channel="slack"></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="slack"><i class="fas fa-save me-1"></i>Save</button>';
+                        if (existing) html += ' <button class="btn btn-sm btn-outline-secondary channel-test" data-channel="slack"><i class="fas fa-paper-plane me-1"></i>Test</button>';
                     } else if (cd.key === 'teams') {
                         var teamsUrl = existing && existing.config ? existing.config.teams_webhook_url : '';
                         html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Teams Webhook URL</label>';
                         html += '<input type="url" class="form-control form-control-sm channel-teams-url" value="' + escapeHtml(teamsUrl || '') + '" placeholder="https://outlook.office.com/webhook/..." data-channel="teams"></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="teams"><i class="fas fa-save me-1"></i>Save</button>';
+                        if (existing) html += ' <button class="btn btn-sm btn-outline-secondary channel-test" data-channel="teams"><i class="fas fa-paper-plane me-1"></i>Test</button>';
                     } else if (cd.key === 'sms') {
                         var smsPhone = existing && existing.config ? existing.config.phone : '';
                         html += '<div class="mb-2"><label class="form-label" style="font-size: 0.8rem;">Phone Number</label>';
                         html += '<input type="tel" class="form-control form-control-sm channel-sms-phone" value="' + escapeHtml(smsPhone || '') + '" placeholder="+44 7xxx xxx xxx" data-channel="sms"></div>';
                         html += '<button class="btn btn-sm btn-outline-primary channel-save" data-channel="sms"><i class="fas fa-save me-1"></i>Save</button>';
+                        if (existing) html += ' <button class="btn btn-sm btn-outline-secondary channel-test" data-channel="sms"><i class="fas fa-paper-plane me-1"></i>Test</button>';
                     }
 
                     if (existing) {
@@ -1128,6 +1138,26 @@
                         }
                     });
                 });
+
+                el.querySelectorAll('.channel-test').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var channel = this.getAttribute('data-channel');
+                        var testBtn = this;
+                        testBtn.disabled = true;
+                        testBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
+                        apiPost('/api/v1/alerts/channels/' + channel + '/test')
+                            .then(function() {
+                                testBtn.disabled = false;
+                                testBtn.innerHTML = '<i class="fas fa-check me-1"></i>Sent';
+                                setTimeout(function() { testBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Test'; }, 3000);
+                            })
+                            .catch(function(err) {
+                                testBtn.disabled = false;
+                                testBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Test';
+                                alert('Test failed: ' + err.message);
+                            });
+                    });
+                });
             })
             .catch(function(err) {
                 console.error(err.message);
@@ -1152,7 +1182,7 @@
         ['notifFilterCategory', 'notifFilterSeverity', 'notifFilterRead'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadNotifications(1); });
         });
-        ['histFilterCategory', 'histFilterSeverity', 'histFilterStatus'].forEach(function(id) {
+        ['histFilterCategory', 'histFilterSeverity', 'histFilterStatus', 'histFilterDateFrom', 'histFilterDateTo'].forEach(function(id) {
             document.getElementById(id).addEventListener('change', function() { loadHistory(1); });
         });
 

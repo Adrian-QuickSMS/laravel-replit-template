@@ -310,6 +310,7 @@
                         <option value="suppressed">Suppressed</option>
                         <option value="batched">Batched</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm" id="adminHistFilterTrigger" placeholder="Trigger key" style="max-width: 200px; font-size: 0.85rem;">
                     <input type="text" class="form-control form-control-sm" id="adminHistFilterTenant" placeholder="Tenant ID" style="max-width: 250px; font-size: 0.85rem;">
                     <input type="date" class="form-control form-control-sm" id="adminHistFilterDateFrom" style="max-width: 160px; font-size: 0.85rem;" title="From date">
                     <input type="date" class="form-control form-control-sm" id="adminHistFilterDateTo" style="max-width: 160px; font-size: 0.85rem;" title="To date">
@@ -900,12 +901,14 @@
         var cat = document.getElementById('adminHistFilterCategory').value;
         var sev = document.getElementById('adminHistFilterSeverity').value;
         var status = document.getElementById('adminHistFilterStatus').value;
+        var trigger = document.getElementById('adminHistFilterTrigger').value;
         var tenant = document.getElementById('adminHistFilterTenant').value;
         var dateFrom = document.getElementById('adminHistFilterDateFrom').value;
         var dateTo = document.getElementById('adminHistFilterDateTo').value;
         if (cat) params += '&category=' + cat;
         if (sev) params += '&severity=' + sev;
         if (status) params += '&status=' + status;
+        if (trigger) params += '&trigger_key=' + encodeURIComponent(trigger);
         if (tenant) params += '&tenant_id=' + encodeURIComponent(tenant);
         if (dateFrom) params += '&date_from=' + dateFrom;
         if (dateTo) params += '&date_to=' + dateTo;
@@ -984,6 +987,12 @@
         tenantInput.addEventListener('input', function() {
             clearTimeout(tenantTimer);
             tenantTimer = setTimeout(function() { loadAdminHistory(1); }, 500);
+        });
+        var triggerInput = document.getElementById('adminHistFilterTrigger');
+        var triggerTimer = null;
+        triggerInput.addEventListener('input', function() {
+            clearTimeout(triggerTimer);
+            triggerTimer = setTimeout(function() { loadAdminHistory(1); }, 500);
         });
 
         document.querySelectorAll('#adminNcTabs .nav-link').forEach(function(tab) {
