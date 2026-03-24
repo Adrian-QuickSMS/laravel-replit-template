@@ -18,7 +18,7 @@
     gap: 0.75rem;
 }
 .nc-card-header i {
-    color: #886cc0;
+    color: #1e3a5f;
     font-size: 1.1rem;
 }
 .nc-card-header h6 {
@@ -70,7 +70,7 @@
     background: #f9fafb;
 }
 .notif-item.unread {
-    border-left: 3px solid #886cc0;
+    border-left: 3px solid #1e3a5f;
     background: #faf9fc;
 }
 .notif-item.severity-critical {
@@ -82,7 +82,7 @@
     background: #fff9e6;
 }
 .notif-item.severity-info {
-    border-left: 3px solid #886cc0;
+    border-left: 3px solid #1e3a5f;
     background: #faf9fc;
 }
 .notif-item.severity-success {
@@ -181,9 +181,9 @@
     cursor: pointer;
 }
 .nc-pagination button.active {
-    background: #886cc0;
+    background: #1e3a5f;
     color: #fff;
-    border-color: #886cc0;
+    border-color: #1e3a5f;
 }
 .nc-pagination button:disabled {
     opacity: 0.5;
@@ -232,11 +232,11 @@
 .dash-card.warning .count { color: #d97706; }
 .dash-card.info .count { color: #2563eb; }
 .nc-card .form-check-input:checked {
-    background-color: #886cc0;
-    border-color: #886cc0;
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
 }
 .nc-card .form-check-input:focus {
-    border-color: #886cc0;
+    border-color: #1e3a5f;
     box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.25);
 }
 .account-picker {
@@ -257,7 +257,7 @@
     color: #374151;
 }
 .account-picker-toggle:hover {
-    border-color: #886cc0;
+    border-color: #1e3a5f;
 }
 .account-picker-toggle .toggle-arrow {
     font-size: 0.7rem;
@@ -298,7 +298,7 @@
     outline: none;
 }
 .account-picker-search:focus {
-    border-color: #886cc0;
+    border-color: #1e3a5f;
 }
 .account-picker-option {
     padding: 0.4rem 0.75rem;
@@ -312,7 +312,7 @@
     background: #f5f3ff;
 }
 .account-picker-option input[type="checkbox"] {
-    accent-color: #886cc0;
+    accent-color: #1e3a5f;
     width: 15px;
     height: 15px;
     cursor: pointer;
@@ -333,8 +333,8 @@
 .nc-card .btn-primary,
 #adminBtnAddRule,
 #adminBtnSaveRule {
-    background-color: #886cc0;
-    border-color: #886cc0;
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
 }
 .nc-card .btn-primary:hover,
 #adminBtnAddRule:hover,
