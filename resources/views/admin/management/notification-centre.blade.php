@@ -242,17 +242,30 @@
 .account-picker {
     position: relative;
 }
-.account-picker-input {
+.account-picker-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     padding: 0.375rem 0.75rem;
     font-size: 0.9rem;
     border: 1px solid #d1d5db;
     border-radius: 0.375rem;
-    outline: none;
+    background: #fff;
+    cursor: pointer;
+    min-height: 38px;
+    color: #374151;
 }
-.account-picker-input:focus {
+.account-picker-toggle:hover {
     border-color: #886cc0;
-    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.25);
+}
+.account-picker-toggle .toggle-arrow {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    transition: transform 0.15s;
+}
+.account-picker-toggle.open .toggle-arrow {
+    transform: rotate(180deg);
 }
 .account-picker-dropdown {
     position: absolute;
@@ -263,13 +276,32 @@
     border: 1px solid #d1d5db;
     border-top: none;
     border-radius: 0 0 0.375rem 0.375rem;
-    max-height: 180px;
+    max-height: 240px;
     overflow-y: auto;
     z-index: 1060;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+.account-picker-search-wrap {
+    padding: 0.4rem;
+    border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+.account-picker-search {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    outline: none;
+}
+.account-picker-search:focus {
+    border-color: #886cc0;
+}
 .account-picker-option {
-    padding: 0.45rem 0.75rem;
+    padding: 0.4rem 0.75rem;
     cursor: pointer;
     font-size: 0.85rem;
     display: flex;
@@ -278,6 +310,12 @@
 }
 .account-picker-option:hover {
     background: #f5f3ff;
+}
+.account-picker-option input[type="checkbox"] {
+    accent-color: #886cc0;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
 }
 .account-picker-option .acct-name {
     font-weight: 500;
@@ -288,32 +326,9 @@
     color: #9ca3af;
     font-family: monospace;
 }
-.account-picker-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-top: 0.5rem;
-}
-.account-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    background: #f5f3ff;
-    border: 1px solid #c4b5fd;
-    color: #6d28d9;
-}
-.account-tag .remove-tag {
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85rem;
-    line-height: 1;
-    color: #7c3aed;
-}
-.account-tag .remove-tag:hover {
-    color: #dc2626;
+.account-picker-all {
+    border-bottom: 1px solid #f3f4f6;
+    font-weight: 600;
 }
 .nc-card .btn-primary,
 #adminBtnAddRule,
@@ -465,12 +480,22 @@
                     <select class="form-select" id="adminRuleTriggerKey"></select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Scope to Accounts <small class="text-muted">(optional — leave empty for all accounts)</small></label>
+                    <label class="form-label">Scope to Accounts</label>
                     <div class="account-picker">
-                        <input type="text" class="account-picker-input" id="adminRuleAccountSearch" placeholder="Search by company name or ID..." autocomplete="off">
-                        <div class="account-picker-dropdown d-none" id="adminRuleAccountDropdown"></div>
+                        <div class="account-picker-toggle" id="adminRuleAccountToggle">
+                            <span class="toggle-text" id="adminRuleAccountToggleText">All Accounts</span>
+                            <i class="fas fa-chevron-down toggle-arrow"></i>
+                        </div>
+                        <div class="account-picker-dropdown d-none" id="adminRuleAccountDropdown">
+                            <div class="account-picker-search-wrap">
+                                <input type="text" class="account-picker-search" id="adminRuleAccountSearch" placeholder="Search accounts..." autocomplete="off">
+                            </div>
+                            <div class="account-picker-option account-picker-all" id="adminRuleAccountAll">
+                                <input type="checkbox" checked> <span class="acct-name">All Accounts</span>
+                            </div>
+                            <div id="adminRuleAccountList"></div>
+                        </div>
                     </div>
-                    <div class="account-picker-tags" id="adminRuleAccountTags"></div>
                 </div>
                 <div class="row mb-3" id="adminRuleOperatorValueRow">
                     <div class="col-6" id="adminRuleOperatorCol">
@@ -514,7 +539,9 @@
     var CHANNELS = @json(config('alerting.channels'));
     var FREQUENCIES = @json(config('alerting.frequencies'));
     var OPERATORS = @json(config('alerting.condition_operators'));
-    var ADMIN_DEFAULTS = @json(config('alerting.admin_defaults'));
+    var CUSTOMER_DEFAULTS = @json(config('alerting.defaults'));
+    var ADMIN_ONLY_DEFAULTS = @json(config('alerting.admin_defaults'));
+    var ADMIN_DEFAULTS = CUSTOMER_DEFAULTS.concat(ADMIN_ONLY_DEFAULTS);
 
     var OPERATOR_LABELS = {
         'lt': 'Less than', 'gt': 'Greater than', 'lte': 'Less than or equal',
@@ -623,90 +650,118 @@
         return '<span style="font-size: 0.8rem; color: #6b7280;">' + channels.map(function(c) { return escapeHtml(CHANNEL_LABELS[c] || c); }).join(' | ') + '</span>';
     }
 
+    var allAccountsCache = [];
     var accountSearchTimer = null;
+
     function initAccountPicker() {
-        var input = document.getElementById('adminRuleAccountSearch');
+        var toggle = document.getElementById('adminRuleAccountToggle');
         var dropdown = document.getElementById('adminRuleAccountDropdown');
+        var searchInput = document.getElementById('adminRuleAccountSearch');
+        var allCheck = document.getElementById('adminRuleAccountAll');
 
-        input.addEventListener('input', function() {
-            clearTimeout(accountSearchTimer);
-            var q = input.value.trim();
-            if (q.length < 1) {
+        toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isOpen = !dropdown.classList.contains('d-none');
+            if (isOpen) {
                 dropdown.classList.add('d-none');
-                return;
-            }
-            accountSearchTimer = setTimeout(function() {
-                fetch('/admin/api/accounts?search=' + encodeURIComponent(q))
-                    .then(function(r) { return r.json(); })
-                    .then(function(result) {
-                        if (!result.success || !result.data.length) {
-                            dropdown.innerHTML = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">No accounts found</div>';
-                            dropdown.classList.remove('d-none');
-                            return;
-                        }
-                        var html = '';
-                        result.data.forEach(function(acct) {
-                            var alreadySelected = state.selectedAccounts.some(function(s) { return s.id === acct.id; });
-                            if (!alreadySelected) {
-                                html += '<div class="account-picker-option" data-id="' + escapeHtml(acct.id) + '" data-name="' + escapeHtml(acct.name) + '">';
-                                html += '<span class="acct-name">' + escapeHtml(acct.name) + '</span>';
-                                html += '<span class="acct-id">#' + escapeHtml(acct.id) + '</span>';
-                                html += '</div>';
-                            }
-                        });
-                        if (!html) html = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">All matches already selected</div>';
-                        dropdown.innerHTML = html;
-                        dropdown.classList.remove('d-none');
-
-                        dropdown.querySelectorAll('.account-picker-option[data-id]').forEach(function(opt) {
-                            opt.addEventListener('click', function() {
-                                var id = this.getAttribute('data-id');
-                                var name = this.getAttribute('data-name');
-                                state.selectedAccounts.push({ id: id, name: name });
-                                renderAccountTags();
-                                input.value = '';
-                                dropdown.classList.add('d-none');
-                            });
-                        });
-                    })
-                    .catch(function() {
-                        dropdown.classList.add('d-none');
-                    });
-            }, 300);
-        });
-
-        input.addEventListener('blur', function() {
-            setTimeout(function() { dropdown.classList.add('d-none'); }, 200);
-        });
-
-        input.addEventListener('focus', function() {
-            if (input.value.trim().length >= 1 && dropdown.innerHTML) {
+                toggle.classList.remove('open');
+            } else {
                 dropdown.classList.remove('d-none');
+                toggle.classList.add('open');
+                searchInput.value = '';
+                searchInput.focus();
+                loadAccountList('');
             }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.account-picker')) {
+                dropdown.classList.add('d-none');
+                toggle.classList.remove('open');
+            }
+        });
+
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(accountSearchTimer);
+            var q = searchInput.value.trim();
+            accountSearchTimer = setTimeout(function() {
+                loadAccountList(q);
+            }, 250);
+        });
+
+        allCheck.addEventListener('click', function() {
+            state.selectedAccounts = [];
+            updateAccountPickerUI();
         });
     }
 
-    function renderAccountTags() {
-        var container = document.getElementById('adminRuleAccountTags');
-        if (!state.selectedAccounts.length) {
-            container.innerHTML = '';
+    function loadAccountList(search) {
+        var listEl = document.getElementById('adminRuleAccountList');
+        fetch('/admin/api/accounts?search=' + encodeURIComponent(search))
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (!result.success) return;
+                allAccountsCache = result.data || [];
+                renderAccountOptions();
+            })
+            .catch(function() {
+                listEl.innerHTML = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">Failed to load</div>';
+            });
+    }
+
+    function renderAccountOptions() {
+        var listEl = document.getElementById('adminRuleAccountList');
+        if (!allAccountsCache.length) {
+            listEl.innerHTML = '<div class="account-picker-option" style="color: #9ca3af; cursor: default;">No accounts found</div>';
             return;
         }
         var html = '';
-        state.selectedAccounts.forEach(function(acct, idx) {
-            html += '<span class="account-tag">';
-            html += escapeHtml(acct.name);
-            html += ' <span class="remove-tag" data-idx="' + idx + '">&times;</span>';
-            html += '</span>';
+        allAccountsCache.forEach(function(acct) {
+            var isChecked = state.selectedAccounts.some(function(s) { return s.id === acct.id; });
+            html += '<div class="account-picker-option" data-id="' + escapeHtml(acct.id) + '" data-name="' + escapeHtml(acct.name) + '">';
+            html += '<input type="checkbox"' + (isChecked ? ' checked' : '') + '>';
+            html += '<span class="acct-name">' + escapeHtml(acct.name) + '</span>';
+            html += '<span class="acct-id">#' + escapeHtml(acct.id) + '</span>';
+            html += '</div>';
         });
-        container.innerHTML = html;
-        container.querySelectorAll('.remove-tag').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var idx = parseInt(this.getAttribute('data-idx'));
-                state.selectedAccounts.splice(idx, 1);
-                renderAccountTags();
+        listEl.innerHTML = html;
+
+        listEl.querySelectorAll('.account-picker-option[data-id]').forEach(function(opt) {
+            opt.addEventListener('click', function() {
+                var id = this.getAttribute('data-id');
+                var name = this.getAttribute('data-name');
+                var cb = this.querySelector('input[type="checkbox"]');
+                var idx = state.selectedAccounts.findIndex(function(s) { return s.id === id; });
+                if (idx !== -1) {
+                    state.selectedAccounts.splice(idx, 1);
+                    cb.checked = false;
+                } else {
+                    state.selectedAccounts.push({ id: id, name: name });
+                    cb.checked = true;
+                }
+                updateAccountPickerUI();
             });
         });
+    }
+
+    function updateAccountPickerUI() {
+        var toggleText = document.getElementById('adminRuleAccountToggleText');
+        var allCb = document.getElementById('adminRuleAccountAll').querySelector('input[type="checkbox"]');
+        if (state.selectedAccounts.length === 0) {
+            toggleText.textContent = 'All Accounts';
+            allCb.checked = true;
+        } else if (state.selectedAccounts.length === 1) {
+            toggleText.textContent = state.selectedAccounts[0].name;
+            allCb.checked = false;
+        } else {
+            toggleText.textContent = state.selectedAccounts.length + ' accounts selected';
+            allCb.checked = false;
+        }
+        renderAccountOptions();
     }
 
     function apiGet(url) {
@@ -1055,8 +1110,9 @@
     function openAdminRuleModal(rule) {
         document.getElementById('adminRuleModalTitle').textContent = rule ? 'Edit Alert Rule' : 'Add Alert Rule';
         document.getElementById('adminRuleEditId').value = rule ? rule.id : '';
-        document.getElementById('adminRuleAccountSearch').value = '';
         document.getElementById('adminRuleAccountDropdown').classList.add('d-none');
+        document.getElementById('adminRuleAccountToggle').classList.remove('open');
+        document.getElementById('adminRuleAccountSearch').value = '';
         if (rule) {
             document.getElementById('adminRuleCategory').value = rule.category;
             updateAdminTriggerKeys();
@@ -1085,7 +1141,7 @@
             });
             state.selectedAccounts = [];
         }
-        renderAccountTags();
+        updateAccountPickerUI();
         var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('adminRuleModal'));
         modal.show();
     }
