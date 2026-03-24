@@ -5,13 +5,13 @@
 > **Base (origin/main):** `7dbecea6` — Update breadcrumb navigation links
 > **Total commits on branch:** Run `git rev-list --count origin/main..HEAD` to verify
 > **Date:** 2026-03-24 (review fixes applied)
-> **Review status:** External review completed — 5 valid issues fixed, 3 invalid claims rejected with evidence (see Appendix A)
+> **Review status:** 3 external review rounds completed — all valid issues fixed, invalid claims rejected with evidence (see Appendix A)
 
 ---
 
 ## 1. WHAT WAS BUILT — COMPLETE COMMIT LOG
 
-8 commits deliver the full rules-based alerting engine backend. All have been code-reviewed and fix-iterated.
+8 engine commits deliver the full rules-based alerting engine backend. All have been code-reviewed and fix-iterated. The branch also contains additional review/prompt update commits — run `git rev-list --count origin/main..HEAD` to see the total (currently 18+).
 
 | # | Commit | Date | Summary |
 |---|--------|------|---------|
@@ -41,7 +41,7 @@ grep -c "'trigger_key'" config/alerting.php
 
 # Migration files
 ls database/migrations/*alert* database/migrations/*notification*
-# Expected: 8 files (2 notification + 6 alert)
+# Expected: 9 files (4 notification + 5 alert)
 
 # Controllers
 ls app/Http/Controllers/Api/V1/Alert*.php app/Http/Controllers/Admin/AdminAlert*.php app/Http/Controllers/Admin/AdminNotification*.php app/Http/Controllers/NotificationController.php
@@ -51,9 +51,9 @@ ls app/Http/Controllers/Api/V1/Alert*.php app/Http/Controllers/Admin/AdminAlert*
 ls tests/Unit/*Alert*.php
 # Expected: 2 files (SubAccountAlertingTest.php, SecurityAlertingTest.php)
 
-# Total files changed vs origin/main
+# Total files changed vs origin/main (will grow as review fixes are added)
 git diff --stat origin/main..HEAD | tail -1
-# Expected: 95 files changed, 7237 insertions(+), 97 deletions(-)
+# Baseline at engine completion: 95 files changed, 7237 insertions(+), 97 deletions(-)
 ```
 
 ---
@@ -301,6 +301,8 @@ User action (e.g. security setting change)
 > **Note:** `muted_until` is returned as ISO 8601 format (`"2026-03-19T16:00:00+00:00"`) or `null` on both `GET` and `PUT` endpoints. Parse with `new Date()`.
 
 **AlertChannelConfig** (`GET /api/v1/alerts/channels`) — sensitive values masked via `safe_config`:
+
+Webhook channel (URL hidden, HMAC masked):
 ```json
 {
   "id": 1,
@@ -314,6 +316,34 @@ User action (e.g. security setting change)
 }
 ```
 
+Slack channel (URL returned unmasked):
+```json
+{
+  "id": 2,
+  "channel": "slack",
+  "config": {
+    "slack_webhook_url": "https://hooks.slack.com/services/T00/B00/xxxx"
+  },
+  "is_enabled": true,
+  "updated_at": "2026-03-19T16:00:00"
+}
+```
+
+Teams channel (URL returned unmasked):
+```json
+{
+  "id": 3,
+  "channel": "teams",
+  "config": {
+    "teams_webhook_url": "https://outlook.office.com/webhook/xxxx"
+  },
+  "is_enabled": true,
+  "updated_at": "2026-03-19T16:00:00"
+}
+```
+
+> **Note:** Unlike the generic webhook channel, Slack and Teams URLs are returned **unmasked** in the API response via `safe_config`. Display them in editable form fields. Only the generic `webhook_url` is hidden (replaced with `webhook_url_set: true`) and `hmac_secret` is masked (last 4 chars).
+
 ### RED Zone Response Shapes (Admin)
 
 Admin controllers return **raw Eloquent models** (not toPortalArray). Key differences from GREEN zone:
@@ -321,7 +351,7 @@ Admin controllers return **raw Eloquent models** (not toPortalArray). Key differ
 - Dates in default Eloquent format (`"2026-03-19 16:00:00"`) not ISO 8601 — parse with `new Date()` which handles both
 - `$hidden` fields (like AlertChannelConfig `config`) are excluded from JSON serialization
 
-**AdminNotification** (`GET /api/notifications/` admin):
+**AdminNotification** (`GET /admin/api/notifications/`):
 ```json
 {
   "id": 1,
@@ -344,7 +374,7 @@ Admin controllers return **raw Eloquent models** (not toPortalArray). Key differ
 }
 ```
 
-**Admin AlertRule** (`GET /api/alerts/rules`) — returns raw model, not paginated:
+**Admin AlertRule** (`GET /admin/api/alerts/rules`) — returns raw model, not paginated:
 ```json
 {
   "id": 1,
@@ -367,7 +397,7 @@ Admin controllers return **raw Eloquent models** (not toPortalArray). Key differ
 }
 ```
 
-**Admin Dashboard** (`GET /api/alerts/dashboard`):
+**Admin Dashboard** (`GET /admin/api/alerts/dashboard`):
 ```json
 {
   "success": true,
@@ -728,3 +758,13 @@ No action needed — already addressed in a prior update.
 | 2 | Section 8 admin header path missing `/admin` prefix (`/api/notifications` → `/admin/api/notifications`) | Medium | Fixed — added `/admin` prefix |
 | 3 | Header metadata hardcodes "12 commits" but branch has 17+ | Low | Fixed — replaced with generic `git rev-list --count` verification pattern |
 | 4 | No test coverage for `muted_until` ISO 8601 serialization or `isCurrentlyMuted()` edge cases | Low | Fixed — added `tests/Unit/AlertPreferenceTest.php` with 10 test cases |
+
+### ROUND 3 REVIEW SUMMARY TABLE
+
+| # | Finding | Severity | Action |
+|---|---------|----------|--------|
+| 1 | RED zone model shape headings missing `/admin` prefix (3 headings in Section 4) | Medium | Fixed — corrected all 3 headings to include `/admin/api/` |
+| 2 | Trailing slash inconsistency between notification and alert routes | Cosmetic | Skipped — Laravel normalises trailing slashes, zero functional impact |
+| 3 | Migration count says "8 files (2 notification + 6 alert)", actual is 9 (4 notification + 5 alert) | Medium | Fixed — corrected count and breakdown |
+| 4 | "8 commits" in Section 1 but `git rev-list --count` returns 18 (includes review/prompt commits) | Low | Fixed — added clarifying note distinguishing engine commits from total branch commits |
+| 5 | No Slack/Teams channel config shapes; `safe_config` passes their URLs through unmasked unlike webhook | Medium | Fixed — added Slack and Teams example shapes with note explaining masking differences |
