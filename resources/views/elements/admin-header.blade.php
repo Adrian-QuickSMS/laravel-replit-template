@@ -19,7 +19,7 @@
                             <div id="adminNotifDropdown" class="widget-media dlab-scroll p-3" style="max-height: 350px; overflow-y: auto;">
                                 <div class="text-muted text-center py-3 small">No new notifications</div>
                             </div>
-                            <a class="all-notification" href="{{ route('admin.security.audit-logs') }}">View all activity</a>
+                            <a class="all-notification" href="{{ route('admin.management.notification-centre') }}">View all notifications</a>
                         </div>
                     </li>
                     
@@ -69,49 +69,54 @@
 <script>
 (function() {
     function loadAdminNotifications() {
-        fetch('/admin/api/notifications?unread=1')
-            .then(function(r) { return r.json(); })
+        fetch('/admin/api/notifications/?per_page=5&unread=1')
+            .then(function(r) {
+                if (!r.ok) throw new Error('[NotificationCentre] Admin bell fetch failed: ' + r.status);
+                return r.json();
+            })
             .then(function(result) {
                 if (!result.success) return;
                 var items = result.data || [];
+                var unreadCount = result.unread_count || 0;
                 var countEl = document.getElementById('adminNotifCount');
                 var dropdownEl = document.getElementById('adminNotifDropdown');
                 var markAllBtn = document.getElementById('adminMarkAllRead');
 
-                if (items.length > 0) {
-                    countEl.textContent = items.length;
+                if (unreadCount > 0) {
+                    countEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
                     countEl.style.display = 'inline-block';
                     if (markAllBtn) markAllBtn.style.display = 'inline-block';
+                } else {
+                    countEl.style.display = 'none';
+                    if (markAllBtn) markAllBtn.style.display = 'none';
+                }
 
+                if (items.length > 0) {
                     var html = '<ul class="timeline">';
-                    items.forEach(function(n) {
+                    items.slice(0, 5).forEach(function(n) {
                         var icon = 'fa-bell';
                         var mediaClass = 'media-info';
-                        if (n.type === 'SENDERID_CUSTOMER_RESPONDED') {
-                            icon = 'fa-reply';
-                            mediaClass = 'media-success';
-                        } else if (n.type === 'SENDERID_SUBMITTED') {
-                            icon = 'fa-paper-plane';
-                            mediaClass = 'media-warning';
-                        }
+                        var severity = n.severity || 'info';
+                        if (severity === 'critical') { icon = 'fa-exclamation-circle'; mediaClass = 'media-danger'; }
+                        else if (severity === 'warning') { icon = 'fa-exclamation-triangle'; mediaClass = 'media-warning'; }
+                        var isUnread = !n.read_at;
                         html += '<li>';
-                        html += '<a href="' + (n.deep_link || '#') + '" class="timeline-panel admin-notif-link" data-uuid="' + n.uuid + '" style="text-decoration: none; color: inherit;">';
+                        html += '<a href="' + (n.deep_link || '#') + '" class="timeline-panel admin-notif-link" data-uuid="' + n.uuid + '" style="text-decoration: none; color: inherit;' + (isUnread ? ' font-weight: 600;' : '') + '">';
                         html += '<div class="media me-2 ' + mediaClass + '"><i class="fas ' + icon + '"></i></div>';
                         html += '<div class="media-body">';
-                        html += '<h6 class="mb-1">' + escapeAdminHtml(n.title || n.type) + '</h6>';
-                        html += '<small class="d-block">' + escapeAdminHtml(n.message || '') + '</small>';
+                        html += '<h6 class="mb-1" style="font-size: 0.85rem;">' + escapeAdminHtml(n.title || n.type) + '</h6>';
+                        html += '<small class="d-block text-muted">' + escapeAdminHtml(n.body || '') + '</small>';
+                        html += '<small class="d-block text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;">' + formatTimeAgo(n.created_at) + '</small>';
                         html += '</div>';
                         html += '</a></li>';
                     });
                     html += '</ul>';
                     dropdownEl.innerHTML = html;
                 } else {
-                    countEl.style.display = 'none';
-                    if (markAllBtn) markAllBtn.style.display = 'none';
                     dropdownEl.innerHTML = '<div class="text-muted text-center py-3 small">No new notifications</div>';
                 }
             })
-            .catch(function() {});
+            .catch(function(err) { console.warn(err.message || err); });
     }
 
     function escapeAdminHtml(str) {
@@ -121,7 +126,22 @@
         return div.innerHTML;
     }
 
+    function formatTimeAgo(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr);
+        var now = new Date();
+        var diffMs = now - d;
+        var diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'Just now';
+        if (diffMin < 60) return diffMin + 'm ago';
+        var diffHr = Math.floor(diffMin / 60);
+        if (diffHr < 24) return diffHr + 'h ago';
+        var diffDay = Math.floor(diffHr / 24);
+        return diffDay + 'd ago';
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('[NotificationCentre] Admin bell initialized');
         loadAdminNotifications();
         setInterval(loadAdminNotifications, 60000);
 
@@ -137,7 +157,10 @@
                         'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
                         'Content-Type': 'application/json'
                     }
-                }).then(function() { loadAdminNotifications(); });
+                }).then(function(r) {
+                    if (!r.ok) throw new Error('[NotificationCentre] Mark all read failed');
+                    loadAdminNotifications();
+                }).catch(function(err) { console.warn(err.message || err); });
             });
         }
     });

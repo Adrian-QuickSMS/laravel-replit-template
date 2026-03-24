@@ -511,59 +511,23 @@
                         </div>
                         <ul class="navbar-nav header-right">
                                                         <li class="nav-item dropdown notification_dropdown">
-                                <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" id="customerNotificationBell">
                                                                         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                                 <path d="M23.3333 19.8333H23.1187C23.2568 19.4597 23.3295 19.065 23.3333 18.6666V12.8333C23.3294 10.7663 22.6402 8.75902 21.3735 7.12565C20.1068 5.49228 18.3343 4.32508 16.3333 3.80679V3.49996C16.3333 2.88112 16.0875 2.28763 15.6499 1.85004C15.2123 1.41246 14.6188 1.16663 14 1.16663C13.3812 1.16663 12.7877 1.41246 12.3501 1.85004C11.9125 2.28763 11.6667 2.88112 11.6667 3.49996V3.80679C9.66574 4.32508 7.89317 5.49228 6.6265 7.12565C5.35983 8.75902 4.67058 10.7663 4.66667 12.8333V18.6666C4.67053 19.065 4.74316 19.4597 4.88133 19.8333H4.66667C4.35725 19.8333 4.0605 19.9562 3.84171 20.175C3.62292 20.3938 3.5 20.6905 3.5 21C3.5 21.3094 3.62292 21.6061 3.84171 21.8249C4.0605 22.0437 4.35725 22.1666 4.66667 22.1666H23.3333C23.6428 22.1666 23.9395 22.0437 24.1583 21.8249C24.3771 21.6061 24.5 21.3094 24.5 21C24.5 20.6905 24.3771 20.3938 24.1583 20.175C23.9395 19.9562 23.6428 19.8333 23.3333 19.8333Z" fill="#717579"/>
                                                                                 <path d="M9.9819 24.5C10.3863 25.2088 10.971 25.7981 11.6766 26.2079C12.3823 26.6178 13.1838 26.8337 13.9999 26.8337C14.816 26.8337 15.6175 26.6178 16.3232 26.2079C17.0288 25.7981 17.6135 25.2088 18.0179 24.5H9.9819Z" fill="#717579"/>
                                                                         </svg>
-                                    <span id="enforcement-notification-badge" class="badge light text-white bg-warning rounded-circle">3</span>
+                                    <span id="customerNotifCount" class="badge light text-white bg-warning rounded-circle" style="display: none;">0</span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end" style="width: 340px;">
-                                    <div class="card-header border-0 pb-0">
-                                        <h6 class="mb-0"><i class="fas fa-bell me-2" style="color: #886cc0;"></i>Enforcement Alerts</h6>
+                                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0"><i class="fas fa-bell me-2" style="color: #886cc0;"></i>Notifications</h6>
+                                        <button class="btn btn-link btn-sm p-0 text-muted" id="customerMarkAllRead" style="display: none; font-size: 0.75rem;">Mark all read</button>
                                     </div>
-                                    <div id="enforcement-notification-list" class="widget-media dlab-scroll p-3" style="max-height: 380px; overflow-y: auto;">
-                                        <ul class="timeline" id="notification-timeline">
-                                            <li>
-                                                <div class="timeline-panel" style="border-left: 3px solid #f59e0b; padding-left: 12px;">
-                                                    <div class="media me-2 media-warning" style="background: #fef3c7;">
-                                                        <i class="fas fa-exclamation-triangle" style="color: #d97706;"></i>
-                                                    </div>
-                                                    <div class="media-body">
-                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Spend Cap Warning</h6>
-                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">Marketing Department at 85% of monthly cap</p>
-                                                        <small class="d-block text-muted">10 minutes ago</small>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div class="timeline-panel" style="border-left: 3px solid #ef4444; padding-left: 12px;">
-                                                    <div class="media me-2 media-danger" style="background: #fee2e2;">
-                                                        <i class="fas fa-exclamation-circle" style="color: #dc2626;"></i>
-                                                    </div>
-                                                    <div class="media-body">
-                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Spend Cap Reached</h6>
-                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">Customer Support hit 100% of monthly cap</p>
-                                                        <small class="d-block text-muted">2 hours ago</small>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div class="timeline-panel" style="border-left: 3px solid #ec4899; padding-left: 12px;">
-                                                    <div class="media me-2" style="background: #fce7f3;">
-                                                        <i class="fas fa-ban" style="color: #be185d;"></i>
-                                                    </div>
-                                                    <div class="media-body">
-                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Campaign Blocked</h6>
-                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">"Flash Sale Alert" blocked - limit exceeded</p>
-                                                        <small class="d-block text-muted">Yesterday</small>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        </ul>
+                                    <div id="customerNotifDropdown" class="widget-media dlab-scroll p-3" style="max-height: 380px; overflow-y: auto;">
+                                        <div class="text-muted text-center py-3 small">No new notifications</div>
                                     </div>
                                     <div class="card-footer text-center border-top py-2">
-                                        <a href="{{ url('/account/users-access') }}" class="text-primary" style="font-size: 0.8rem;">View All Notifications <i class="fas fa-arrow-right ms-1"></i></a>
+                                        <a href="{{ route('account.notification-centre') }}" class="text-primary" style="font-size: 0.8rem;">View All Notifications <i class="fas fa-arrow-right ms-1"></i></a>
                                     </div>
                                 </div>
                             </li>
@@ -603,4 +567,105 @@
                                 </nav>
                         </div>
                 </div>
-      
+
+<script>
+(function() {
+    function loadCustomerNotifications() {
+        fetch('/api/notifications/?per_page=5&unread=1')
+            .then(function(r) {
+                if (!r.ok) throw new Error('[NotificationCentre] Customer bell fetch failed: ' + r.status);
+                return r.json();
+            })
+            .then(function(result) {
+                if (!result.success) return;
+                var items = result.data || [];
+                var unreadCount = result.unread_count || 0;
+                var countEl = document.getElementById('customerNotifCount');
+                var dropdownEl = document.getElementById('customerNotifDropdown');
+                var markAllBtn = document.getElementById('customerMarkAllRead');
+
+                if (unreadCount > 0) {
+                    countEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    countEl.style.display = 'inline-block';
+                    if (markAllBtn) markAllBtn.style.display = 'inline-block';
+                } else {
+                    countEl.style.display = 'none';
+                    if (markAllBtn) markAllBtn.style.display = 'none';
+                }
+
+                if (items.length > 0) {
+                    var html = '<ul class="timeline">';
+                    items.slice(0, 5).forEach(function(n) {
+                        var borderColor = '#886cc0';
+                        var icon = 'fa-bell';
+                        var iconColor = '#886cc0';
+                        var bgColor = '#f3e8ff';
+                        var severity = n.severity || 'info';
+                        if (severity === 'critical') { borderColor = '#ef4444'; icon = 'fa-exclamation-circle'; iconColor = '#dc2626'; bgColor = '#fee2e2'; }
+                        else if (severity === 'warning') { borderColor = '#f59e0b'; icon = 'fa-exclamation-triangle'; iconColor = '#d97706'; bgColor = '#fef3c7'; }
+                        var isUnread = !n.read_at;
+                        html += '<li>';
+                        html += '<div class="timeline-panel" style="border-left: 3px solid ' + borderColor + '; padding-left: 12px;' + (isUnread ? ' font-weight: 600;' : '') + '">';
+                        html += '<div class="media me-2" style="background: ' + bgColor + ';"><i class="fas ' + icon + '" style="color: ' + iconColor + ';"></i></div>';
+                        html += '<div class="media-body">';
+                        html += '<h6 class="mb-1" style="font-size: 0.85rem;">' + escapeHtml(n.title || n.type) + '</h6>';
+                        html += '<p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">' + escapeHtml(n.body || '') + '</p>';
+                        html += '<small class="d-block text-muted">' + formatTimeAgo(n.created_at) + '</small>';
+                        html += '</div></div></li>';
+                    });
+                    html += '</ul>';
+                    dropdownEl.innerHTML = html;
+                } else {
+                    dropdownEl.innerHTML = '<div class="text-muted text-center py-3 small">No new notifications</div>';
+                }
+            })
+            .catch(function(err) { console.warn(err.message || err); });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function formatTimeAgo(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr);
+        var now = new Date();
+        var diffMs = now - d;
+        var diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'Just now';
+        if (diffMin < 60) return diffMin + 'm ago';
+        var diffHr = Math.floor(diffMin / 60);
+        if (diffHr < 24) return diffHr + 'h ago';
+        var diffDay = Math.floor(diffHr / 24);
+        return diffDay + 'd ago';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[NotificationCentre] Customer bell initialized');
+        loadCustomerNotifications();
+        setInterval(loadCustomerNotifications, 60000);
+
+        var markAllBtn = document.getElementById('customerMarkAllRead');
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                fetch('/api/notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(function(r) {
+                    if (!r.ok) throw new Error('[NotificationCentre] Mark all read failed');
+                    loadCustomerNotifications();
+                }).catch(function(err) { console.warn(err.message || err); });
+            });
+        }
+    });
+})();
+</script>

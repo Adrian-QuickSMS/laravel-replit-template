@@ -110,6 +110,9 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickS
     Route::get('/account/sub-accounts/{subId}/users/{userId}', 'userDetail')->name('account.users.detail');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
     Route::get('/account/security', 'securitySettings')->name('account.security');
+    Route::get('/account/notification-centre', function () {
+        return view('quicksms.account.notification-centre');
+    })->name('account.notification-centre');
     Route::post('/account/security/country-request', 'submitCountryRequest')->name('account.security.country-request');
     Route::get('/api/country-permissions', 'getCountryPermissions')->name('api.country-permissions');
     Route::post('/api/country-permissions/check', 'checkCountryPermission')->name('api.country-permissions.check');
@@ -861,6 +864,9 @@ Route::prefix('admin')->group(function () {
 
             // Pricing Management — view + API
             Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
+            Route::get('/management/notification-centre', function () {
+                return view('admin.management.notification-centre', ['page_title' => 'Notification Centre']);
+            })->name('admin.management.notification-centre');
 
             Route::prefix('api/pricing')->controller(\App\Http\Controllers\Admin\PricingManagementController::class)->group(function () {
                 Route::get('/services', 'services')->name('admin.api.pricing.services');
