@@ -231,6 +231,26 @@
 .dash-card.critical .count { color: #dc2626; }
 .dash-card.warning .count { color: #d97706; }
 .dash-card.info .count { color: #2563eb; }
+.nc-card .form-check-input:checked {
+    background-color: #886cc0;
+    border-color: #886cc0;
+}
+.nc-card .form-check-input:focus {
+    border-color: #886cc0;
+    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.25);
+}
+.nc-card .btn-primary,
+#adminBtnAddRule,
+#adminBtnSaveRule {
+    background-color: #886cc0;
+    border-color: #886cc0;
+}
+.nc-card .btn-primary:hover,
+#adminBtnAddRule:hover,
+#adminBtnSaveRule:hover {
+    background-color: #7559a8;
+    border-color: #7559a8;
+}
 </style>
 @endpush
 
