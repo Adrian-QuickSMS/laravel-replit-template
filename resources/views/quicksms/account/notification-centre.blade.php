@@ -403,11 +403,11 @@
                     <select class="form-select" id="ruleTriggerKey"></select>
                 </div>
                 <div class="row mb-3" id="ruleOperatorValueRow">
-                    <div class="col-6">
+                    <div class="col-6" id="ruleOperatorCol">
                         <label class="form-label">Operator</label>
                         <select class="form-select" id="ruleOperator"></select>
                     </div>
-                    <div class="col-6">
+                    <div class="col-6" id="ruleValueCol">
                         <label class="form-label" id="ruleCondValueLabel">Value</label>
                         <input type="number" class="form-control" id="ruleCondValue" placeholder="e.g. 80">
                     </div>
@@ -532,8 +532,17 @@
         'campaign_roi': 'ROI (%)',
         'daily_message_volume': 'Message Count',
         'api_error_rate': 'Error Rate (%)',
-        'api_latency': 'Latency (ms)'
+        'api_latency': 'Latency (ms)',
+        'sub_account_spend_cap_approaching': 'Within (% of cap)',
+        'sub_account_volume_cap_approaching': 'Within (% of cap)',
+        'sub_account_daily_limit_approaching': 'Within (% of cap)'
     };
+
+    var CAP_REACHED_TRIGGERS = [
+        'sub_account_spend_cap',
+        'sub_account_volume_cap',
+        'sub_account_daily_limit'
+    ];
 
     function channelTags(channels) {
         if (!channels || !channels.length) return '<span class="text-muted">—</span>';
@@ -841,11 +850,23 @@
     function updateCondValueLabel() {
         var tk = document.getElementById('ruleTriggerKey').value;
         var isEvent = (getTriggerType(tk) === 'event');
+        var isCapReached = (CAP_REACHED_TRIGGERS.indexOf(tk) !== -1);
+        var isApproaching = (tk.indexOf('_approaching') !== -1);
         var row = document.getElementById('ruleOperatorValueRow');
-        if (isEvent) {
+        var opCol = document.getElementById('ruleOperatorCol');
+        var valCol = document.getElementById('ruleValueCol');
+        if (isEvent || isCapReached) {
             row.classList.add('d-none');
+        } else if (isApproaching) {
+            row.classList.remove('d-none');
+            opCol.classList.add('d-none');
+            valCol.classList.remove('col-6');
+            valCol.classList.add('col-12');
         } else {
             row.classList.remove('d-none');
+            opCol.classList.remove('d-none');
+            valCol.classList.remove('col-12');
+            valCol.classList.add('col-6');
         }
         document.getElementById('ruleCondValueLabel').textContent = TRIGGER_VALUE_LABELS[tk] || 'Value';
     }
