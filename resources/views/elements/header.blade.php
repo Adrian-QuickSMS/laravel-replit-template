@@ -616,7 +616,8 @@
                     html += '</ul>';
                     dropdownEl.innerHTML = html;
 
-                    if (autoOpen && unreadCount > 0) {
+                    if (autoOpen && unreadCount > 0 && !sessionStorage.getItem('qsms_notif_alerts_shown')) {
+                        sessionStorage.setItem('qsms_notif_alerts_shown', '1');
                         showNotificationAlerts(items);
                     }
                 } else {
@@ -624,6 +625,19 @@
                 }
             })
             .catch(function(err) { console.warn(err.message || err); });
+    }
+
+    function markNotificationRead(notifId) {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        fetch('/api/notifications/' + notifId + '/read', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                'Content-Type': 'application/json'
+            }
+        }).then(function() {
+            loadCustomerNotifications(false);
+        }).catch(function(err) { console.warn('[NotificationCentre] Mark read failed:', err); });
     }
 
     function showNotificationAlerts(items) {
@@ -643,18 +657,34 @@
         items.slice(0, 5).forEach(function(n) {
             var severity = n.severity || 'info';
             var config = severityMap[severity] || severityMap.info;
+            var notifId = n.id || '';
 
             var alertDiv = document.createElement('div');
             alertDiv.className = 'alert ' + config.alertClass + ' left-icon-big alert-dismissible fade show';
+            alertDiv.setAttribute('data-notif-id', notifId);
             alertDiv.style.cssText = 'margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease; background-color: ' + config.bg + '; opacity: 1;';
-            alertDiv.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="btn-close"><span><i class="mdi mdi-btn-close"></i></span></button>' +
-                '<div class="media">' +
+
+            var closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('aria-label', 'btn-close');
+            closeBtn.innerHTML = '<span><i class="mdi mdi-btn-close"></i></span>';
+            closeBtn.addEventListener('click', function() {
+                if (notifId) markNotificationRead(notifId);
+                alertDiv.classList.remove('show');
+                setTimeout(function() { alertDiv.remove(); }, 300);
+            });
+
+            var contentDiv = document.createElement('div');
+            contentDiv.innerHTML = '<div class="media">' +
                 '<div class="alert-left-icon-big"><span><i class="' + config.icon + '"></i></span></div>' +
                 '<div class="media-body">' +
                 '<h6 class="mt-1 mb-2">' + escapeHtml(n.title || n.type) + '</h6>' +
                 '<p class="mb-0">' + escapeHtml(n.body || '') + '</p>' +
                 '</div></div>';
 
+            alertDiv.appendChild(closeBtn);
+            alertDiv.appendChild(contentDiv.firstChild);
             container.appendChild(alertDiv);
         });
 
