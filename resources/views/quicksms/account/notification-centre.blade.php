@@ -1153,6 +1153,67 @@
             });
     }
 
+    function renderChannelCards(channels) {
+        var el = document.getElementById('channelsList');
+        var html = '';
+
+        html += '<div class="channel-cfg-card">';
+        html += '<div class="d-flex justify-content-between align-items-center">';
+        html += '<h6 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>In App</h6>';
+        html += '<span class="pref-pill active" style="cursor: default;">Always On</span>';
+        html += '</div>';
+        html += '<p style="font-size: 0.82rem; color: #6b7280; margin: 0.5rem 0 0;">In-app notifications appear in your notification bell and Notification Centre.</p>';
+        html += '</div>';
+
+        html += '<div class="channel-cfg-card">';
+        html += '<div class="d-flex justify-content-between align-items-center">';
+        html += '<h6 class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i>Email</h6>';
+        html += '<span class="pref-pill active" style="cursor: default;">Active</span>';
+        html += '</div>';
+        html += '<p style="font-size: 0.82rem; color: #6b7280; margin: 0.5rem 0 0;">Email notifications are sent to your account email address.</p>';
+        html += '</div>';
+
+        var channelDefs = [
+            { key: 'webhook', icon: 'fa-plug', label: 'Webhook', color: 'text-warning', desc: 'Receive notifications via HTTP webhook to your server.' },
+            { key: 'slack', icon: 'fa-hashtag', label: 'Slack', color: 'text-success', desc: 'Send notifications to a Slack channel.' },
+            { key: 'teams', icon: 'fa-users', label: 'Microsoft Teams', color: 'text-info', desc: 'Send notifications to a Microsoft Teams channel.' },
+            { key: 'sms', icon: 'fa-mobile-alt', label: 'SMS', color: 'text-danger', desc: 'Receive critical notifications via SMS.' }
+        ];
+
+        channelDefs.forEach(function(cd) {
+            var existing = channels ? channels.find(function(c) { return c.channel === cd.key; }) : null;
+            var isEnabled = existing && existing.is_enabled;
+            html += '<div class="channel-cfg-card" data-channel="' + cd.key + '">';
+            html += '<div class="d-flex justify-content-between align-items-center">';
+            html += '<h6 class="mb-0"><i class="fas ' + cd.icon + ' me-2 ' + cd.color + '"></i>' + cd.label + '</h6>';
+            html += '<span class="pref-pill' + (isEnabled ? ' active' : '') + '" style="cursor: default;">' + (isEnabled ? 'Active' : 'Not configured') + '</span>';
+            html += '</div>';
+            html += '<p style="font-size: 0.82rem; color: #6b7280; margin: 0.5rem 0 0;">' + cd.desc + '</p>';
+
+            if (cd.key === 'webhook') {
+                html += '<div class="mt-2"><label class="form-label" style="font-size: 0.8rem;">Webhook URL</label>';
+                html += '<input type="url" class="form-control form-control-sm channel-webhook-url" placeholder="https://your-server.com/webhook" data-channel="webhook">';
+                html += '</div>';
+            } else if (cd.key === 'slack') {
+                html += '<div class="mt-2"><label class="form-label" style="font-size: 0.8rem;">Slack Webhook URL</label>';
+                html += '<input type="url" class="form-control form-control-sm channel-slack-url" placeholder="https://hooks.slack.com/services/..." data-channel="slack">';
+                html += '</div>';
+            } else if (cd.key === 'teams') {
+                html += '<div class="mt-2"><label class="form-label" style="font-size: 0.8rem;">Teams Webhook URL</label>';
+                html += '<input type="url" class="form-control form-control-sm channel-teams-url" placeholder="https://outlook.office.com/webhook/..." data-channel="teams">';
+                html += '</div>';
+            } else if (cd.key === 'sms') {
+                html += '<div class="mt-2"><label class="form-label" style="font-size: 0.8rem;">Phone Number</label>';
+                html += '<input type="tel" class="form-control form-control-sm channel-sms-phone" placeholder="+44 7xxx xxx xxx" data-channel="sms">';
+                html += '</div>';
+            }
+
+            html += '</div>';
+        });
+
+        el.innerHTML = html;
+    }
+
     function loadChannels() {
         var el = document.getElementById('channelsList');
         el.innerHTML = '<div class="nc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
@@ -1263,8 +1324,8 @@
 
             })
             .catch(function(err) {
-                console.error(err.message);
-                el.innerHTML = '<div class="nc-error"><i class="fas fa-exclamation-triangle"></i><p>Failed to load channels</p></div>';
+                console.error('[NotificationCentre] Channels API unavailable, using static fallback');
+                renderChannelCards(null);
             });
     }
 
