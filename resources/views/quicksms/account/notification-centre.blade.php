@@ -85,6 +85,22 @@
     border-left: 3px solid #886cc0;
     background: #faf9fc;
 }
+.notif-item.severity-critical {
+    border-left: 3px solid #ef4444;
+    background: #fff5f5;
+}
+.notif-item.severity-warning {
+    border-left: 3px solid #f59e0b;
+    background: #fff9e6;
+}
+.notif-item.severity-info {
+    border-left: 3px solid #886cc0;
+    background: #faf9fc;
+}
+.notif-item.severity-success {
+    border-left: 3px solid #22c55e;
+    background: #f0fdf4;
+}
 .notif-item:last-child {
     border-bottom: none;
 }
@@ -592,7 +608,8 @@
                 var html = '';
                 items.forEach(function(n) {
                     var isUnread = !n.read_at;
-                    html += '<div class="notif-item ' + (isUnread ? 'unread' : '') + '" data-uuid="' + escapeHtml(n.uuid) + '">';
+                    var sevClass = 'severity-' + (n.severity || 'info');
+                    html += '<div class="notif-item ' + sevClass + ' ' + (isUnread ? 'unread' : '') + '" data-uuid="' + escapeHtml(n.uuid) + '">';
                     html += '<div class="d-flex justify-content-between align-items-start">';
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
