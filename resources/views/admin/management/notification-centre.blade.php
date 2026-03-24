@@ -39,8 +39,8 @@
     font-size: 0.9rem;
 }
 .nc-tabs .nav-link.active {
-    color: #886cc0;
-    border-bottom: 2px solid #886cc0;
+    color: #1e3a5f;
+    border-bottom: 2px solid #1e3a5f;
     background: transparent;
 }
 .nc-tabs .nav-link:hover:not(.active) {
@@ -346,19 +346,22 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1" style="background: transparent; padding: 0;">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" style="color: #6c757d; text-decoration: none;">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="#" style="color: #6c757d; text-decoration: none;">Management</a></li>
-                    <li class="breadcrumb-item active" style="font-weight: 500;">Notification Centre</li>
-                </ol>
-            </nav>
-            <h4 class="mb-0" style="font-weight: 600; color: #374151;">Notification Centre</h4>
-        </div>
+<div class="page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="#">Management</a></li>
+        <li class="breadcrumb-item active">Notification Centre</li>
+    </ol>
+</div>
+
+<div class="page-header">
+    <div>
+        <h2>Notification Centre</h2>
+        <p>Manage alert rules, view notifications and history</p>
     </div>
+</div>
+
+<div class="container-fluid">
 
     <div class="nc-card">
         <ul class="nav nc-tabs px-3 pt-2" id="adminNcTabs" role="tablist">
