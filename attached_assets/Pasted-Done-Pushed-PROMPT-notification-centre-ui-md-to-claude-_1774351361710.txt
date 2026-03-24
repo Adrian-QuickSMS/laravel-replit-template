@@ -1,0 +1,39 @@
+Done. Pushed `PROMPT-notification-centre-ui.md` to `claude/review-alerting-engine-EonJJ`.
+
+Here's what the prompt covers:
+
+**Section 1 — What was built:** All 8 commits listed with exact SHAs, file counts, and what each fixed. Includes shell commands to verify the backend is current (not stale).
+
+**Section 2 — What to build:** Two Notification Centre views:
+- **Customer Portal** → Account > Notification Centre (4 tabs: Notifications, Alert Rules, Preferences, Channels)
+- **Admin Console** → Management > Notification Centre (4 tabs: Notifications, Alert Rules, History/Analytics, System Config)
+- Plus header notification bells for both consoles
+
+**Section 3 — All 28 API endpoints** listed with methods, paths, controllers, and purpose. All already wired in `routes/web.php`.
+
+**Section 4 — Data structures:** Every model shape, category key, frequency option, severity colour, and channel name.
+
+**Section 5 — Hard guardrails:** Explicit list of 24 files that must NOT be modified (all backend code), plus the CLAUDE.md rules that apply.
+
+**Section 6 — Anti-drift:** Clear "Do NOT" and "Do" lists preventing scope creep (no new controllers, no new packages, no WebSockets, etc.).
+
+**Section 7 — Verification checklist:** 20-item checklist covering both consoles, sidebar, security, and error handling.
+
+**Section 8 — Reference files:** Which existing views to read for pattern matching (tab layouts, table styles, sidebar structure, header bar).
+
+Background research agent completed — its findings confirm everything already incorporated into the prompt. The prompt is committed and pushed.
+
+**Summary of `PROMPT-notification-centre-ui.md`:**
+
+The document is 461 lines across 8 sections:
+
+1. **What was built** — 8 commits itemised with SHAs, plus 6 shell commands to verify the backend is current
+2. **What to build** — Customer portal (Account > Notification Centre, 4 tabs) + Admin console (Management > Notification Centre, 4 tabs) + header notification bells
+3. **API endpoints** — All 28 existing endpoints in two tables (16 customer, 12 admin)
+4. **Data structures** — Every model shape, category key, frequency, severity colour, and channel
+5. **Hard guardrails** — 24 files explicitly listed as DO NOT MODIFY, with reasons
+6. **Anti-drift rules** — 12 "Do NOT" + 12 "Do" directives preventing scope creep
+7. **Verification checklist** — 20 items across customer portal, admin console, sidebar, and security
+8. **Reference files** — 6 existing views to read for pattern matching
+
+All background research is complete. The prompt has already been committed and pushed — everything from both research agents confirms the prompt accurately reflects the current codebase state. No updates needed.
