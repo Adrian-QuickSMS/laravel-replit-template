@@ -722,14 +722,16 @@
                     html += '<div class="form-check form-switch">';
                     html += '<input class="form-check-input rule-toggle" type="checkbox" data-id="' + r.id + '" ' + (r.is_enabled ? 'checked' : '') + '>';
                     html += '</div>';
-                    if (!r.is_system_default) {
-                        html += '<div class="dropdown action-dropdown">';
-                        html += '<button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>';
-                        html += '<ul class="dropdown-menu dropdown-menu-end">';
+                    html += '<div class="dropdown action-dropdown">';
+                    html += '<button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>';
+                    html += '<ul class="dropdown-menu dropdown-menu-end">';
+                    if (r.is_system_default) {
+                        html += '<li><a class="dropdown-item rule-edit" href="#" data-id="' + r.id + '"><i class="fas fa-copy me-2"></i>Override</a></li>';
+                    } else {
                         html += '<li><a class="dropdown-item rule-edit" href="#" data-id="' + r.id + '"><i class="fas fa-edit me-2"></i>Edit</a></li>';
                         html += '<li><a class="dropdown-item rule-delete text-danger" href="#" data-id="' + r.id + '"><i class="fas fa-trash me-2"></i>Delete</a></li>';
-                        html += '</ul></div>';
                     }
+                    html += '</ul></div>';
                     html += '</div></div>';
                 });
                 el.innerHTML = html;
