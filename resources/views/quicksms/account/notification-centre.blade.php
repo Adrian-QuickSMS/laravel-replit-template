@@ -67,11 +67,11 @@
 }
 .category-chip {
     font-size: 0.7rem;
-    padding: 0.15rem 0.45rem;
+    padding: 0.15rem 0.55rem;
     border-radius: 1rem;
     background: #f3f4f6;
     color: #6b7280;
-    font-weight: 500;
+    font-weight: 600;
 }
 .notif-item {
     padding: 1rem;
@@ -444,6 +444,27 @@
     var OPERATORS = @json(config('alerting.condition_operators'));
     var DEFAULTS = @json(config('alerting.defaults'));
 
+    var CATEGORY_COLORS = {
+        'billing': { bg: '#fef3c7', color: '#92400e' },
+        'messaging': { bg: '#dbeafe', color: '#1e40af' },
+        'compliance': { bg: '#fce7f3', color: '#9d174d' },
+        'security': { bg: '#fee2e2', color: '#991b1b' },
+        'system': { bg: '#e0e7ff', color: '#3730a3' },
+        'campaign': { bg: '#d1fae5', color: '#065f46' },
+        'sub_account': { bg: '#ede9fe', color: '#5b21b6' },
+        'fraud': { bg: '#fee2e2', color: '#991b1b' },
+        'platform_health': { bg: '#cffafe', color: '#155e75' },
+        'customer_risk': { bg: '#ffedd5', color: '#9a3412' },
+        'commercial': { bg: '#fef9c3', color: '#854d0e' },
+        'compliance_legal': { bg: '#fce7f3', color: '#9d174d' }
+    };
+
+    function categoryChip(categoryKey) {
+        var label = CATEGORIES[categoryKey] || categoryKey;
+        var colors = CATEGORY_COLORS[categoryKey] || { bg: '#f3f4f6', color: '#6b7280' };
+        return '<span class="category-chip" style="background: ' + colors.bg + '; color: ' + colors.color + ';">' + escapeHtml(label) + '</span>';
+    }
+
     var OPERATOR_LABELS = {
         'lt': 'Less than', 'gt': 'Greater than', 'lte': 'Less than or equal',
         'gte': 'Greater than or equal', 'eq': 'Equals', 'drops_by': 'Drops by', 'increases_by': 'Increases by'
@@ -614,7 +635,7 @@
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
                     html += severityBadge(n.severity);
-                    html += '<span class="category-chip">' + escapeHtml(CATEGORIES[n.category] || n.category) + '</span>';
+                    html += categoryChip(n.category);
                     html += '<small class="text-muted">' + formatTimeAgo(n.created_at) + '</small>';
                     html += '</div>';
                     html += '<h6 class="mb-1" style="font-size: 0.9rem; font-weight: ' + (isUnread ? '600' : '400') + ';">' + escapeHtml(n.title) + '</h6>';
@@ -682,7 +703,7 @@
                     html += '<div class="flex-grow-1">';
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
                     html += '<strong style="font-size: 0.9rem;">' + escapeHtml(getTriggerTitle(r.trigger_key)) + '</strong>';
-                    html += '<span class="category-chip">' + escapeHtml(CATEGORIES[r.category] || r.category) + '</span>';
+                    html += categoryChip(r.category);
                     if (r.is_system_default) html += '<span class="category-chip" style="background: #ede9fe; color: #7c3aed;">System Default</span>';
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-2" style="font-size: 0.8rem; color: #6b7280;">';
