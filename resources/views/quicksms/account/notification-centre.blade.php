@@ -408,7 +408,7 @@
                         <select class="form-select" id="ruleOperator"></select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Value</label>
+                        <label class="form-label" id="ruleCondValueLabel">Value</label>
                         <input type="number" class="form-control" id="ruleCondValue" placeholder="e.g. 80">
                     </div>
                 </div>
@@ -521,6 +521,17 @@
     var CHANNEL_LABELS = {
         'in_app': 'In App', 'email': 'Email', 'sms': 'SMS',
         'webhook': 'Webhook', 'slack': 'Slack', 'teams': 'Teams'
+    };
+
+    var TRIGGER_VALUE_LABELS = {
+        'credit_balance_percentage': 'Balance (£)',
+        'spend_rate': 'Spend Change (%)',
+        'delivery_rate': 'Delivery Rate (%)',
+        'failed_messages': 'Message Count',
+        'campaign_roi': 'ROI (%)',
+        'daily_message_volume': 'Message Count',
+        'api_error_rate': 'Error Rate (%)',
+        'api_latency': 'Latency (ms)'
     };
 
     function channelTags(channels) {
@@ -816,6 +827,12 @@
 
         updateTriggerKeys();
         catSelect.addEventListener('change', updateTriggerKeys);
+        document.getElementById('ruleTriggerKey').addEventListener('change', updateCondValueLabel);
+    }
+
+    function updateCondValueLabel() {
+        var tk = document.getElementById('ruleTriggerKey').value;
+        document.getElementById('ruleCondValueLabel').textContent = TRIGGER_VALUE_LABELS[tk] || 'Value';
     }
 
     function updateTriggerKeys() {
@@ -836,6 +853,7 @@
             opt.textContent = 'No triggers for this category';
             tkSelect.appendChild(opt);
         }
+        updateCondValueLabel();
     }
 
     function openRuleModal(rule) {
@@ -845,6 +863,7 @@
             document.getElementById('ruleCategory').value = rule.category;
             updateTriggerKeys();
             document.getElementById('ruleTriggerKey').value = rule.trigger_key;
+            updateCondValueLabel();
             document.getElementById('ruleOperator').value = rule.condition_operator || 'gte';
             document.getElementById('ruleCondValue').value = rule.condition_value || '';
             document.getElementById('ruleFrequency').value = rule.frequency || 'instant';
