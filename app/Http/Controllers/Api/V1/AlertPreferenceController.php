@@ -31,7 +31,7 @@ class AlertPreferenceController extends Controller
                 'label' => $label,
                 'channels' => $pref ? $pref->channels : ['in_app', 'email'],
                 'is_muted' => $pref ? $pref->isCurrentlyMuted() : false,
-                'muted_until' => $pref?->muted_until,
+                'muted_until' => $pref?->muted_until?->toIso8601String(),
             ];
         }
 
