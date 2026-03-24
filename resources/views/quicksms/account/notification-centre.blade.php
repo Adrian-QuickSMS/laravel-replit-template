@@ -706,7 +706,6 @@
                     html += '<div class="d-flex align-items-center gap-2 mb-1">';
                     html += '<strong style="font-size: 0.9rem;">' + escapeHtml(getTriggerTitle(r.trigger_key)) + '</strong>';
                     html += categoryChip(r.category);
-                    if (r.is_system_default) html += '<span class="category-chip" style="background: #ede9fe; color: #7c3aed;">System Default</span>';
                     html += '</div>';
                     html += '<div class="d-flex align-items-center gap-2" style="font-size: 0.8rem; color: #6b7280;">';
                     if (r.condition_operator && r.condition_value !== null) {
