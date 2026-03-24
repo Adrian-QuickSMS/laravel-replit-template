@@ -1,0 +1,724 @@
+ustomer Monitoring Alert Rule Library (Non-Financial)
+Tier 1 — Delivery Health (Critical Core Rules)
+1. Delivery Rate %
+
+Metric
+
+delivery_rate
+
+Operator
+
+<
+
+Value
+
+90
+
+Unit
+
+percent
+
+Window
+
+5 minutes rolling
+
+Scope
+
+customer
+customer + network
+customer + country
+
+Severity
+
+Warning
+
+Purpose
+
+Detect delivery degradation early.
+
+2. Delivery Rate Baseline Deviation
+
+Metric
+
+delivery_rate_delta
+
+Operator
+
+Value
+
+7
+
+Unit
+
+percent deviation vs baseline
+
+Window
+
+5 minutes vs last 24h baseline
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect abnormal behaviour even when still above 90%.
+
+3. Network-Level Delivery Deviation
+
+Metric
+
+network_delivery_delta
+
+Operator
+
+Value
+
+8
+
+Unit
+
+percent deviation
+
+Window
+
+5 minutes
+
+Scope
+
+customer + network
+
+Severity
+
+Warning
+
+Purpose
+
+Detect single-network filtering or routing issues.
+
+4. Country-Level Delivery Deviation
+
+Metric
+
+country_delivery_delta
+
+Operator
+
+Value
+
+10
+
+Unit
+
+percent deviation
+
+Window
+
+5 minutes
+
+Scope
+
+customer + country
+
+Severity
+
+Warning
+
+Purpose
+
+Detect international routing problems.
+
+Tier 2 — Platform Processing Performance
+5. Platform Processing Time
+
+Measures:
+
+submit → exit QuickSMS platform
+
+Metric
+
+platform_processing_time
+
+Operator
+
+Value
+
+3
+
+Unit
+
+seconds
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect queue congestion or routing slowdown.
+
+6. Platform Processing Time (Critical Threshold)
+
+Metric
+
+platform_processing_time
+
+Operator
+
+Value
+
+8
+
+Unit
+
+seconds
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Critical
+
+Purpose
+
+Detect serious platform bottlenecks affecting delivery speed.
+
+Tier 3 — Queue Behaviour Monitoring
+7. Outbound Queue Depth
+
+Metric
+
+queued_messages_outbound
+
+Operator
+
+Value
+
+2000
+
+Unit
+
+messages
+
+Window
+
+instant
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect customer-specific backlog buildup.
+
+8. Queue Growth Rate
+
+Metric
+
+queue_growth_rate
+
+Operator
+
+Value
+
+15
+
+Unit
+
+percent per minute
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Critical
+
+Purpose
+
+Detect runaway backlog before delivery failure occurs.
+
+9. Oldest Queued Message Age
+
+Metric
+
+oldest_queued_message_age
+
+Operator
+
+Value
+
+30
+
+Unit
+
+seconds
+
+Window
+
+instant
+
+Scope
+
+customer
+
+Severity
+
+Critical
+
+Purpose
+
+Better indicator than queue size alone.
+
+Tier 4 — Pending Status Monitoring
+10. Pending Message Rate
+
+Metric
+
+pending_rate
+
+Operator
+
+Value
+
+5
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect supplier or routing delay.
+
+11. Pending Message Rate (Critical)
+
+Metric
+
+pending_rate
+
+Operator
+
+Value
+
+10
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Critical
+
+Purpose
+
+Detect serious routing failure risk.
+
+Tier 5 — DLR Processing Monitoring
+12. Queued DLR Count
+
+Metric
+
+queued_dlr_count
+
+Operator
+
+Value
+
+1000
+
+Unit
+
+messages
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect callback or supplier reporting delays.
+
+13. Missing DLR Percentage
+
+Metric
+
+missing_dlr_rate
+
+Operator
+
+Value
+
+3
+
+Unit
+
+percent
+
+Window
+
+10 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect callback pipeline problems.
+
+Tier 6 — Submission Behaviour Monitoring
+14. Submission Rejection Rate
+
+Metric
+
+submission_rejection_rate
+
+Operator
+
+Value
+
+1
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect invalid sender / blocked country / filtering issues.
+
+15. Sender ID Rejection Rate
+
+Metric
+
+senderid_rejection_rate
+
+Operator
+
+Value
+
+2
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer + sender
+
+Severity
+
+Warning
+
+Purpose
+
+Detect sender registration or filtering problems.
+
+Tier 7 — Customer Integration Monitoring
+16. Customer API Error Rate
+
+Metric
+
+customer_api_error_rate
+
+Operator
+
+Value
+
+2
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect integration failures.
+
+17. Customer API Latency
+
+Metric
+
+customer_api_latency
+
+Operator
+
+Value
+
+1200
+
+Unit
+
+milliseconds
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect degraded integration responsiveness.
+
+Tier 8 — Traffic Behaviour Monitoring
+18. Traffic Spike Detection
+
+Metric
+
+traffic_volume_delta
+
+Operator
+
+Value
+
+200
+
+Unit
+
+percent baseline
+
+Window
+
+3 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect runaway campaigns or compromised keys.
+
+19. Traffic Drop Detection
+
+Metric
+
+traffic_volume_delta
+
+Operator
+
+<
+
+Value
+
+50
+
+Unit
+
+percent baseline
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Info / Warning
+
+Purpose
+
+Detect customer outage or integration break.
+
+Tier 9 — Webhook / Callback Monitoring
+20. Webhook Failure Rate
+
+Metric
+
+webhook_failure_rate
+
+Operator
+
+Value
+
+5
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect downstream delivery reporting failures.
+
+21. DLR Callback Delay
+
+Metric
+
+dlr_callback_latency
+
+Operator
+
+Value
+
+15
+
+Unit
+
+seconds
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect callback endpoint slowdown.
+
+Tier 10 — RCS Monitoring (If Enabled)
+22. RCS Fallback Rate
+
+Metric
+
+rcs_fallback_rate
+
+Operator
+
+Value
+
+20
+
+Unit
+
+percent
+
+Window
+
+5 minutes
+
+Scope
+
+customer
+
+Severity
+
+Warning
+
+Purpose
+
+Detect RCS availability degradation.

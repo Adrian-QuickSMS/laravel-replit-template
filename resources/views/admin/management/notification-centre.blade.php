@@ -597,7 +597,28 @@
         'supplier_network_delivery_delta': 'Deviation (%)',
         'supplier_senderid_rejection_rate': 'Rejection Rate (%)',
         'supplier_country_delivery_delta': 'Deviation (%)',
-        'supplier_missing_dlr_rate': 'Missing Rate (%)'
+        'supplier_missing_dlr_rate': 'Missing Rate (%)',
+        'delivery_rate_delta': 'Deviation (%)',
+        'network_delivery_delta': 'Deviation (%)',
+        'country_delivery_delta': 'Deviation (%)',
+        'pending_rate': 'Pending Rate (%)',
+        'pending_rate_critical': 'Pending Rate (%)',
+        'missing_dlr_rate': 'Missing Rate (%)',
+        'submission_rejection_rate': 'Rejection Rate (%)',
+        'senderid_rejection_rate': 'Rejection Rate (%)',
+        'rcs_fallback_rate': 'Fallback Rate (%)',
+        'platform_processing_time': 'Time (seconds)',
+        'platform_processing_time_critical': 'Time (seconds)',
+        'queued_messages_outbound': 'Message Count',
+        'queue_growth_rate': '% per Minute',
+        'oldest_queued_message_age': 'Age (seconds)',
+        'queued_dlr_count': 'Message Count',
+        'customer_api_error_rate': 'Error Rate (%)',
+        'customer_api_latency': 'Latency (ms)',
+        'webhook_failure_rate': 'Failure Rate (%)',
+        'dlr_callback_latency': 'Latency (seconds)',
+        'traffic_volume_spike': 'Change (% of baseline)',
+        'traffic_volume_drop': 'Change (% of baseline)'
     };
 
     var CAP_REACHED_TRIGGERS = [
