@@ -151,17 +151,17 @@ POST   /api/notifications/{uuid}/dismiss → NotificationController@dismiss
 **Admin Console (RED zone) — inside admin middleware group:**
 
 ```
-GET    /api/alerts/rules                 → AdminAlertRuleController@index
-POST   /api/alerts/rules                 → AdminAlertRuleController@store
-PUT    /api/alerts/rules/{id}            → AdminAlertRuleController@update
-DELETE /api/alerts/rules/{id}            → AdminAlertRuleController@destroy
-GET    /api/alerts/history               → AdminAlertRuleController@history
-GET    /api/alerts/dashboard             → AdminAlertRuleController@dashboard
-GET    /api/notifications/               → AdminNotificationController@index
-POST   /api/notifications/mark-all-read  → AdminNotificationController@markAllRead
-POST   /api/notifications/{uuid}/read    → AdminNotificationController@markRead
-POST   /api/notifications/{uuid}/dismiss → AdminNotificationController@dismiss
-POST   /api/notifications/{uuid}/resolve → AdminNotificationController@resolve
+GET    /admin/api/alerts/rules                 → AdminAlertRuleController@index
+POST   /admin/api/alerts/rules                 → AdminAlertRuleController@store
+PUT    /admin/api/alerts/rules/{id}            → AdminAlertRuleController@update
+DELETE /admin/api/alerts/rules/{id}            → AdminAlertRuleController@destroy
+GET    /admin/api/alerts/history               → AdminAlertRuleController@history
+GET    /admin/api/alerts/dashboard             → AdminAlertRuleController@dashboard
+GET    /admin/api/notifications/               → AdminNotificationController@index
+POST   /admin/api/notifications/mark-all-read  → AdminNotificationController@markAllRead
+POST   /admin/api/notifications/{uuid}/read    → AdminNotificationController@markRead
+POST   /admin/api/notifications/{uuid}/dismiss → AdminNotificationController@dismiss
+POST   /admin/api/notifications/{uuid}/resolve → AdminNotificationController@resolve
 ```
 
 ### Controllers (all exist — DO NOT RE-CREATE)
@@ -298,6 +298,8 @@ User action (e.g. security setting change)
 }
 ```
 
+> **Note:** `muted_until` format differs between endpoints — `GET .../preferences` returns Eloquent-serialized datetime (`"2026-03-19 16:00:00"`), while `PUT .../preferences` returns ISO 8601 (`"2026-03-19T16:00:00+00:00"`). Parse with `new Date()` which handles both formats.
+
 **AlertChannelConfig** (`GET /api/v1/alerts/channels`) — sensitive values masked via `safe_config`:
 ```json
 {
@@ -431,22 +433,22 @@ Admin controllers return **raw Eloquent models** (not toPortalArray). Key differ
 
 **Tabs:**
 
-1. **Notifications** — from `GET /api/notifications/` (admin routes)
+1. **Notifications** — from `GET /admin/api/notifications/` (admin routes)
    - Admin categories: fraud, platform_health, customer_risk, commercial, compliance_legal
    - Extra action: "Resolve" button (timestamp when resolved)
    - Same severity badges as customer
 
-2. **Alert Rules** — from `/api/alerts/rules`
+2. **Alert Rules** — from `/admin/api/alerts/rules`
    - System default management
    - Create admin-specific rules
    - Toggle on/off, edit channels/frequency/cooldown
    - Action menu pattern for row actions
 
-3. **Dashboard** — from `/api/alerts/dashboard`
+3. **Dashboard** — from `/admin/api/alerts/dashboard`
    - Summary cards: total today, by severity, by category
    - Recent alerts feed
 
-4. **History** — from `/api/alerts/history`
+4. **History** — from `/admin/api/alerts/history`
    - Full table, all columns
    - Filters: trigger_key, severity, status, tenant_id, date range
 
@@ -473,8 +475,8 @@ Add after line 55 (Pricing):
 
 **Admin header** (`resources/views/elements/admin-header.blade.php`):
 - Line 22: Change "View all activity" href from `{{ route('admin.security.audit-logs') }}` to `{{ route('admin.management.notification-centre') }}`
-- Wire `#adminNotifCount` badge and `#adminNotifDropdown` to poll `GET /api/notifications/` and show 5 most recent unread
-- Wire `#adminMarkAllRead` to `POST /api/notifications/mark-all-read`
+- Wire `#adminNotifCount` badge and `#adminNotifDropdown` to poll `GET /admin/api/notifications/` and show 5 most recent unread
+- Wire `#adminMarkAllRead` to `POST /admin/api/notifications/mark-all-read`
 
 **Customer header** (`resources/views/elements/header.blade.php`):
 - Existing enforcement bell at lines 513-526 can be adapted or a new bell added
@@ -676,59 +678,44 @@ Both `NotificationController@index` and `AdminNotificationController@index` retu
 
 ---
 
-### REJECTED CLAIMS (3 invalid issues)
+### CLAIMS NOT APPLICABLE TO CURRENT VERSION (3 issues)
 
-#### Rejected #1: "Customer default count says '24', actual is 23"
-**Reviewer claim:** "Section 5 guardrails table says: config/alerting.php — Fully configured — 550 lines, 24 customer defaults, 8 admin defaults"
-**Verdict:** INVALID — reviewer is reading stale data.
+These three claims reference text that does not appear in the current (or any committed) version of this prompt. The underlying concerns were valid and have been addressed — see the fixes above.
 
-**Evidence:**
-- Line 17 of this prompt says: `"config/alerting.php with 23 customer + 8 admin default rules"` — already correct
-- Line 180 says: `"23 customer defaults, 8 admin defaults"` — already correct
-- The fix commit `2c572bce` (2026-03-19) corrected the old prompt from "25" to "23"
-- The new prompt was written with the correct number from the start
-- Verified against `config/alerting.php`: exactly 23 entries in `customer_defaults` array, 8 in `admin_defaults`
+#### #1: "Customer default count says '24'"
+**Reviewer claim:** The prompt says "24 customer defaults, 8 admin defaults."
 
-**Why the reviewer got this wrong:** The reviewer appears to have been looking at an intermediate version of the prompt (possibly the v1 from commit `ad40797d`) rather than the current version. The "24" number never appeared in any committed version — the old prompt said "25", which was fixed to "23" in `2c572bce`, and this prompt has always said "23".
+**Git history verification:** The number "24" never appeared in any committed version of this file:
+- `ad40797d` and `e1ecc4ab`: said "25 customer defaults"
+- `2c572bce` onwards: corrected to "23 customer defaults"
 
-**No fix needed.** The prompt already has the correct count.
+The prompt has said "23" since 2026-03-19. No action needed — count is already correct.
 
-#### Rejected #2: "HEAD verification command is wrong — says commit 3124b502"
-**Reviewer claim:** "Section 1 says: git log --oneline -1 → Expected: 3124b502 Fix alerting engine review findings... But the actual HEAD is 3df0dbeb (this prompt commit). A builder running the verification will see a mismatch."
-**Verdict:** INVALID — already fixed before the review was conducted.
+#### #2: "HEAD verification hardcodes commit 3124b502"
+**Reviewer claim:** The prompt hardcodes an expected commit hash that doesn't match HEAD.
 
-**Evidence:**
-- Line 4 reads: `"HEAD: Latest commit on branch (run git log -1 --oneline to verify)"` — no specific commit hash is hardcoded
-- This was deliberately changed to be generic so it remains valid as new commits are added
-- The reviewer is describing a version of the prompt that no longer exists
+**Current state:** Line 4 reads `"HEAD: Latest commit on branch (run git log -1 --oneline to verify)"` — no commit hash is hardcoded. This was changed to a generic pattern that remains valid as commits are added.
 
-**No fix needed.** The prompt already uses a generic, always-valid verification pattern.
+No action needed — already addressed in a prior update.
 
-#### Rejected #3: "Pagination format description is wrong — guardrail #10"
-**Reviewer claim:** "Section 5 guardrail #10 says: 'Pagination: API endpoints return Laravel-style { data: [], current_page, last_page, per_page, total }' — Actual format has pagination fields nested inside a pagination key, not flat at root."
-**Verdict:** INVALID — the text being critiqued does not exist in this prompt.
+#### #3: "Pagination guardrail #10 describes wrong format"
+**Reviewer claim:** A guardrail #10 says "Pagination: API endpoints return Laravel-style { data: [], current_page, last_page, per_page, total }" with fields flat at root.
 
-**Evidence:**
-- Section 6 (guardrails) has two tables: "NEVER DO" (22 rules) and "ALWAYS DO" (9 rules)
-- Neither table has a rule #10 about pagination format
-- A `grep` for "current_page", "per_page", and "pagination" returns zero matches in the prompt prior to our fix
-- The prompt simply never documented pagination format at all — it didn't have wrong documentation, it had no documentation
+**Git history verification:** No version of this file has ever contained a pagination guardrail with "Laravel-style" text. The ALWAYS DO table has 9 rules, none about pagination. The prompt previously had *no* pagination documentation at all — not incorrect documentation, just missing documentation.
 
-**Why the reviewer got this wrong:** The reviewer may have been referencing a draft or discussion document that contained this text, or may have confused this prompt with another document. The claim describes a specific guardrail with specific text that has never existed in any committed version of this file.
-
-**What we did instead:** While the specific claim is invalid (the wrong text doesn't exist), the *underlying concern* is legitimate — the prompt should document the pagination format. We added the complete "API Response Formats" subsection (Fix #2 above) which documents the correct nested format. The reviewer's recommendation was right even though their diagnosis was wrong.
+**Action taken:** While the specific text cited doesn't exist, the underlying gap was real. We added the complete "API Response Formats" subsection (Fix #2 above) documenting the correct nested `{ success, data, pagination: {...} }` structure. The reviewer identified a genuine need even though the diagnosis referenced non-existent text.
 
 ---
 
-### SUMMARY TABLE
+### ROUND 1 REVIEW SUMMARY TABLE
 
-| # | Reviewer Claim | Verdict | Action |
-|---|---------------|---------|--------|
-| 1 | Customer defaults says "24" | INVALID — already says "23" | None needed |
+| # | Reviewer Claim | Status | Action |
+|---|---------------|--------|--------|
+| 1 | Customer defaults says "24" | Already correct ("23") | None needed |
 | 2 | Endpoint count says "28" | VALID — should be "27" | Fixed |
-| 3 | Pagination guardrail #10 is wrong | INVALID — doesn't exist | Added missing docs instead |
+| 3 | Pagination guardrail #10 is wrong | Text doesn't exist; gap was real | Added missing docs |
 | 4 | `unread_count` not documented | VALID | Fixed — added to response format section |
 | 5 | Admin uses raw Eloquent, not toPortalArray | VALID — documentation gap | Fixed — added RED zone shapes |
-| 6 | HEAD verification hardcodes wrong commit | INVALID — already generic | None needed |
+| 6 | HEAD verification hardcodes wrong commit | Already generic | None needed |
 | 7 | Missing AlertHistory/Preference/Channel shapes | VALID | Fixed — added all shapes |
-| 8 | "7 categories" ambiguous / preferences lists 6 | VALID (6→7 fix needed) | Fixed — added `sub_account` |
+| 8 | Preferences lists 6 categories, should be 7 | VALID | Fixed — added `sub_account` |
