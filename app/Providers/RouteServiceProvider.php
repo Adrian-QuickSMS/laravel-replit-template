@@ -33,8 +33,8 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            // Billing API routes — customer portal + webhooks (stateless, no session)
-            Route::middleware('api')
+            // Billing API routes — customer portal (session-based auth like other portal APIs)
+            Route::middleware('web')
                 ->group(base_path('routes/api_billing.php'));
 
             // Admin billing API routes — session-based (needs web middleware for cookies/CSRF)

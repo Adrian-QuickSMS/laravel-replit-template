@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // Customer Portal — Billing APIs
 // Middleware: auth + tenant scope + rate limiting
-Route::prefix('api/v1')->middleware(['auth:customer', 'throttle:120,1'])->group(function () {
+Route::prefix('api/v1')->middleware(['customer.auth', 'throttle:120,1'])->group(function () {
 
     // Balance
     Route::get('/balance', [\App\Http\Controllers\Api\V1\BalanceController::class, 'show']);
