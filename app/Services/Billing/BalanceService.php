@@ -84,7 +84,7 @@ class BalanceService
         ?string $subAccountId = null,
         bool $isPostpay = false
     ): LedgerEntry {
-        return DB::transaction(function () use ($accountId, $amount, $currency, $productType, $messageLogId, $subAccountId, $isPostpay) {
+        $result = DB::transaction(function () use ($accountId, $amount, $currency, $productType, $messageLogId, $subAccountId, $isPostpay) {
             $balance = AccountBalance::lockForAccount($accountId);
 
             // Check sufficient balance
@@ -119,14 +119,38 @@ class BalanceService
                     ->increment('spending_used_current_period', $amount);
             }
 
+            // Capture effective_available BEFORE recalculation (for threshold-crossing detection)
+            $previousEffective = $balance->effective_available;
+
             $balance->recalculateEffectiveAvailable();
             $balance->save();
+
+            $newEffective = $balance->effective_available;
 
             // Check balance alerts (async-safe: won't block message send)
             $this->alertService->checkAlerts($accountId, $balance);
 
-            return $entry;
+            return ['entry' => $entry, 'previousEffective' => $previousEffective, 'newEffective' => $newEffective];
         });
+
+        // Auto top-up threshold crossing check — runs AFTER transaction commits
+        // to avoid extending the account_balances lock hold time
+        try {
+            if (!$isPostpay) {
+                app(AutoTopUpService::class)->evaluateAutoTopUp(
+                    $accountId,
+                    $result['previousEffective'],
+                    $result['newEffective']
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Auto top-up evaluation error in deductForMessage', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $result['entry'];
     }
 
     /**

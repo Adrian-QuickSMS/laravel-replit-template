@@ -62,6 +62,14 @@ return [
         'max_per_day' => (int)env('AUTO_TOPUP_MAX_PER_DAY', 3),
         'min_amount' => '5.00',
         'max_amount' => '50000.00',
+        'max_daily_cap' => '100000.00',
+        'default_retry_attempts' => 2,
+        'default_retry_delay_minutes' => 10,
+        'default_consecutive_failure_limit' => 3,
+        // VAT rate is NOT configured here — it is determined per-account
+        // from account.vat_registered and account.vat_reverse_charges,
+        // using the same logic as InvoiceService::getVatRate().
+        // See: AutoTopUpService::getVatRateForAccount()
     ],
 
     /*

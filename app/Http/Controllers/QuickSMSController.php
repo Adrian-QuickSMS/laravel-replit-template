@@ -2376,6 +2376,44 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function autoTopUp()
+    {
+        $accountId = session('customer_tenant_id');
+        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+
+        return view('quicksms.payments.auto-topup', [
+            'page_title' => 'Auto Top-Up',
+            'account_id' => $accountId,
+            'stripe_key' => config('services.stripe.key'),
+            'is_prepay' => $account && $account->billing_type === 'prepay',
+        ]);
+    }
+
+    public function autoTopUpCompleteAction(string $eventId)
+    {
+        $accountId = session('customer_tenant_id');
+        $event = \App\Models\Billing\AutoTopUpEvent::where('id', $eventId)
+            ->where('account_id', $accountId)
+            ->where('status', 'requires_action')
+            ->first();
+
+        if (!$event) {
+            return redirect()->route('payments.auto-topup')->with('error', 'Payment action not found or already completed.');
+        }
+
+        // Retrieve client_secret from Stripe API on demand (not stored in DB for security)
+        $clientSecret = app(\App\Services\Billing\AutoTopUpService::class)->getClientSecretForEvent($event);
+
+        return view('quicksms.payments.auto-topup', [
+            'page_title' => 'Complete Payment',
+            'account_id' => $accountId,
+            'stripe_key' => config('services.stripe.key'),
+            'is_prepay' => true,
+            'complete_action_event' => $event,
+            'client_secret' => $clientSecret,
+        ]);
+    }
+
     public function management()
     {
         return view('quicksms.placeholder', [

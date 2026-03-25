@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Services\AntiFloodService;
+use App\Services\Billing\AutoTopUpService;
+use App\Services\Billing\AutoTopUpNotificationService;
 use App\Services\CountryPermissionCacheService;
 use App\Services\CountryPermissionCheckService;
 use App\Services\DataMaskingService;
@@ -30,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(OutOfHoursService::class);
         $this->app->scoped(DataMaskingService::class);
         $this->app->scoped(IpAllowlistService::class);
+
+        // Billing — Auto Top-Up services (scoped for Octane safety)
+        $this->app->scoped(AutoTopUpNotificationService::class);
+        $this->app->scoped(AutoTopUpService::class);
     }
 
     /**
