@@ -44,12 +44,13 @@ class AutoTopUpAdminController extends Controller
             };
         }
 
-        // Search
+        // Search (escape LIKE metacharacters to prevent wildcard injection)
         if ($search = $request->input('search')) {
-            $query->whereHas('account', function ($q) use ($search) {
-                $q->where('company_name', 'ilike', "%{$search}%")
-                    ->orWhere('account_number', 'ilike', "%{$search}%")
-                    ->orWhere('email', 'ilike', "%{$search}%");
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $search);
+            $query->whereHas('account', function ($q) use ($escaped) {
+                $q->where('company_name', 'ilike', "%{$escaped}%")
+                    ->orWhere('account_number', 'ilike', "%{$escaped}%")
+                    ->orWhere('email', 'ilike', "%{$escaped}%");
             });
         }
 

@@ -248,7 +248,27 @@ This module depends on tables created by **earlier migrations** (not included in
 | `notifications` | Pre-existing | In-app notification delivery |
 | `accounts.stripe_customer_id` | `2026_02_20_000001_add_billing_fields_to_accounts.php` | Stripe Customer ID (migration adds idempotently if missing) |
 
-**IMPORTANT:** If `processed_stripe_events` does not exist, the Stripe webhook controller will throw 500 on every event. Verify this table exists before deploying.
+### Account Model Column Dependencies
+
+The auto top-up trigger and VAT calculation depend on these columns existing on the `accounts` table:
+
+| Column | Type | Used By | Impact If Missing |
+|--------|------|---------|-------------------|
+| `billing_type` | string | `evaluateAutoTopUp()` | Auto top-up silently never triggers (caught in try/catch) |
+| `vat_registered` | boolean | `getVatRateForAccount()` | VAT calculation fails; auto top-up silently never triggers |
+| `vat_reverse_charges` | boolean | `getVatRateForAccount()` | VAT calculation fails; auto top-up silently never triggers |
+| `stripe_customer_id` | string | `setupPaymentMethod()` | Payment method setup fails with error |
+
+These columns are created by `2026_02_20_000001_add_billing_fields_to_accounts.php`. If that migration has not run, the entire auto top-up feature will silently fail (no errors visible to customers, only in logs).
+
+**IMPORTANT:** Verify these columns exist before deploying:
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'accounts' AND column_name IN ('billing_type', 'vat_registered', 'vat_reverse_charges', 'stripe_customer_id');
+-- Must return all 4 rows
+```
+
+**IMPORTANT:** If `processed_stripe_events` does not exist, the Stripe webhook controller will throw 500 on every event.
 
 ---
 
@@ -426,6 +446,7 @@ Before considering this feature complete, verify:
 ### Pre-deploy Verification
 - [ ] `php artisan migrate --force` completes without errors on fresh and existing DB
 - [ ] Verify `processed_stripe_events` table exists (dependency from earlier migration)
+- [ ] Verify Account model columns exist: `billing_type`, `vat_registered`, `vat_reverse_charges`, `stripe_customer_id` (see SQL check in External Dependencies)
 - [ ] Verify `DB_USERNAME` role has `BYPASSRLS` (see RLS Verification above)
 - [ ] Queue workers are running (jobs won't process without them)
 - [ ] Scheduler is running (`billing:expire-stale-auto-topups` is hourly)

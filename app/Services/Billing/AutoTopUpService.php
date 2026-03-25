@@ -242,6 +242,19 @@ class AutoTopUpService
     {
         $event = AutoTopUpEvent::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
+        // Fallback: if webhook arrives before job has written the PI ID to the event,
+        // look up by event_id stored in PaymentIntent metadata
+        if (!$event) {
+            $metadataEventId = $eventData['data']['object']['metadata']['event_id'] ?? null;
+            if ($metadataEventId) {
+                $event = AutoTopUpEvent::find($metadataEventId);
+                if ($event) {
+                    // Backfill the PI ID that the job hasn't written yet
+                    $event->update(['stripe_payment_intent_id' => $paymentIntentId]);
+                }
+            }
+        }
+
         if (!$event) {
             Log::warning('Auto top-up event not found for PI', ['pi_id' => $paymentIntentId]);
             return;
@@ -328,6 +341,17 @@ class AutoTopUpService
     public function handlePaymentFailure(string $paymentIntentId, array $eventData): void
     {
         $event = AutoTopUpEvent::where('stripe_payment_intent_id', $paymentIntentId)->first();
+
+        // Fallback lookup by event_id in PI metadata (webhook ordering race)
+        if (!$event) {
+            $metadataEventId = $eventData['data']['object']['metadata']['event_id'] ?? null;
+            if ($metadataEventId) {
+                $event = AutoTopUpEvent::find($metadataEventId);
+                if ($event) {
+                    $event->update(['stripe_payment_intent_id' => $paymentIntentId]);
+                }
+            }
+        }
 
         if (!$event || in_array($event->status, [AutoTopUpEvent::STATUS_FAILED, AutoTopUpEvent::STATUS_SUCCEEDED])) {
             return;
@@ -587,6 +611,7 @@ class AutoTopUpService
             'stripe_customer_id' => $session->customer,
             'stripe_payment_method_id' => $paymentMethod->id,
             'idempotency_key' => 'pm-added-' . $sessionId,
+            'metadata' => $config->admin_locked ? ['admin_locked_at_time_of_setup' => true] : null,
             'completed_at' => now(),
         ]);
 

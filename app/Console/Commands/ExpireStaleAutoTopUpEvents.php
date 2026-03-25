@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Billing\AutoTopUpConfig;
 use App\Models\Billing\AutoTopUpEvent;
-use App\Models\Notification;
+use App\Services\Billing\AutoTopUpNotificationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -12,7 +13,7 @@ class ExpireStaleAutoTopUpEvents extends Command
     protected $signature = 'billing:expire-stale-auto-topups {--hours=24 : Hours after which requires_action events expire}';
     protected $description = 'Expire auto top-up events stuck in requires_action or pending status';
 
-    public function handle(): int
+    public function handle(AutoTopUpNotificationService $notificationService): int
     {
         $hours = (int) $this->option('hours');
         $cutoff = now()->subHours($hours);
@@ -31,17 +32,11 @@ class ExpireStaleAutoTopUpEvents extends Command
                 'failure_message' => "Payment authentication expired after {$hours} hours.",
             ]);
 
-            // Notify customer
+            // Notify via notification service — respects lock status in message wording
             try {
-                Notification::create([
-                    'tenant_id' => $event->account_id,
-                    'type' => 'auto_topup_action_expired',
-                    'severity' => 'warning',
-                    'category' => 'billing',
-                    'title' => 'Auto Top-Up Payment Expired',
-                    'body' => "Your auto top-up payment of £{$event->topup_amount} required authentication but expired. A new top-up will be triggered when your balance next falls below your threshold.",
-                    'deep_link' => '/payments/auto-topup',
-                ]);
+                $config = AutoTopUpConfig::where('account_id', $event->account_id)->first();
+                $isLocked = $config && $config->admin_locked;
+                $notificationService->notifyActionExpired($event, $isLocked);
             } catch (\Throwable $e) {
                 Log::error('Failed to notify expired auto top-up', ['event_id' => $event->id]);
             }
