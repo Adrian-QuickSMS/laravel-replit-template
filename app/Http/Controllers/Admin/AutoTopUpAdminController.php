@@ -55,8 +55,25 @@ class AutoTopUpAdminController extends Controller
 
         $configs = $query->orderByDesc('updated_at')->paginate($request->integer('per_page', 25));
 
-        $items = $configs->getCollection()->map(function ($config) {
-            $dailyStats = $this->autoTopUpService->getDailyStats($config->account_id);
+        // Batch load daily stats for all accounts on this page (avoids N+1)
+        $accountIds = $configs->getCollection()->pluck('account_id')->toArray();
+        $today = now()->utc()->startOfDay();
+        $dailyStatsMap = [];
+        if (!empty($accountIds)) {
+            $rows = \App\Models\Billing\AutoTopUpEvent::whereIn('account_id', $accountIds)
+                ->where('created_at', '>=', $today)
+                ->where('status', \App\Models\Billing\AutoTopUpEvent::STATUS_SUCCEEDED)
+                ->where('event_type', \App\Models\Billing\AutoTopUpEvent::TYPE_PAYMENT_SUCCEEDED)
+                ->selectRaw('account_id, COUNT(*) as count, COALESCE(SUM(topup_amount), 0) as value')
+                ->groupBy('account_id')
+                ->get();
+            foreach ($rows as $row) {
+                $dailyStatsMap[$row->account_id] = ['count' => (int) $row->count, 'value' => $row->value];
+            }
+        }
+
+        $items = $configs->getCollection()->map(function ($config) use ($dailyStatsMap) {
+            $dailyStats = $dailyStatsMap[$config->account_id] ?? ['count' => 0, 'value' => '0.0000'];
 
             return [
                 'id' => $config->id,

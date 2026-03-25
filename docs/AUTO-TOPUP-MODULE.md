@@ -165,7 +165,7 @@ When auto-disable triggers (3 consecutive failures), the shared `processFailureA
 
 ## FILE INVENTORY
 
-### New Files (17)
+### New Files (18)
 
 | File | Purpose |
 |------|---------|
@@ -186,8 +186,9 @@ When auto-disable triggers (3 consecutive failures), the shared `processFailureA
 | `resources/views/emails/billing/auto-topup-disabled.blade.php` | Disabled email template |
 | `resources/views/quicksms/payments/auto-topup.blade.php` | Customer portal page |
 | `resources/views/admin/billing/auto-topup.blade.php` | Admin management page |
+| `app/Console/Commands/ExpireStaleAutoTopUpEvents.php` | Scheduled: expires stuck requires_action/pending events |
 
-### Modified Files (11)
+### Modified Files (12)
 
 | File | What Changed |
 |------|--------------|
@@ -202,6 +203,33 @@ When auto-disable triggers (3 consecutive failures), the shared `processFailureA
 | `routes/web.php` | Customer portal + admin page routes |
 | `config/billing.php` | Extended auto_topup config block |
 | `app/Providers/AppServiceProvider.php` | Scoped service registration |
+| `app/Console/Kernel.php` | Added hourly `billing:expire-stale-auto-topups` schedule |
+
+---
+
+## EXTERNAL DEPENDENCIES
+
+This module depends on tables created by **earlier migrations** (not included in this branch):
+
+| Table | Created By | Purpose |
+|-------|-----------|---------|
+| `processed_stripe_events` | `2026_02_20_000007_create_payment_tables.php` | Webhook idempotency — prevents double-processing Stripe events |
+| `payments` | `2026_02_20_000007_create_payment_tables.php` | Payment records (uses `stripe_auto_topup` payment method type) |
+| `account_balances` | `2026_02_20_000003_create_ledger_tables.php` | Cached account balance with `lockForAccount()` |
+| `ledger_entries` / `ledger_lines` | `2026_02_20_000003_create_ledger_tables.php` | Immutable double-entry ledger |
+| `invoices` | `2026_02_20_000006_create_invoice_tables.php` | Invoice generation |
+| `notifications` | Pre-existing | In-app notification delivery |
+| `accounts.stripe_customer_id` | `2026_02_20_000001_add_billing_fields_to_accounts.php` | Stripe Customer ID (migration adds idempotently if missing) |
+
+**IMPORTANT:** If `processed_stripe_events` does not exist, the Stripe webhook controller will throw 500 on every event. Verify this table exists before deploying.
+
+---
+
+## SCHEDULED TASKS
+
+| Schedule | Command | Purpose |
+|----------|---------|---------|
+| Hourly | `billing:expire-stale-auto-topups` | Expires `requires_action` events after 24h (Stripe PI expiry), and cleans up orphaned pending/processing events |
 
 ---
 

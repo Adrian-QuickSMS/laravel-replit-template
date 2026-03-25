@@ -790,9 +790,18 @@ class AutoTopUpService
 
     /**
      * Update auto top-up configuration.
+     * The service owns the invariant: cannot enable without a valid payment method.
      */
     public function updateConfig(string $accountId, array $data, string $userId): AutoTopUpConfig
     {
+        // Service-level guard: cannot enable without a valid payment method
+        if (!empty($data['enabled']) && $data['enabled']) {
+            $existing = AutoTopUpConfig::where('account_id', $accountId)->first();
+            if (!$existing || !$existing->hasValidPaymentMethod()) {
+                throw new \InvalidArgumentException('Cannot enable auto top-up without a valid payment method.');
+            }
+        }
+
         $config = AutoTopUpConfig::updateOrCreate(
             ['account_id' => $accountId],
             array_merge($data, ['updated_by_user_id' => $userId])
