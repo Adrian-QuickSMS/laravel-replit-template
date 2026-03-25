@@ -84,7 +84,7 @@ class BalanceService
         ?string $subAccountId = null,
         bool $isPostpay = false
     ): LedgerEntry {
-        return DB::transaction(function () use ($accountId, $amount, $currency, $productType, $messageLogId, $subAccountId, $isPostpay) {
+        $result = DB::transaction(function () use ($accountId, $amount, $currency, $productType, $messageLogId, $subAccountId, $isPostpay) {
             $balance = AccountBalance::lockForAccount($accountId);
 
             // Check sufficient balance
