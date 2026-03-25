@@ -126,11 +126,14 @@ return new class extends Migration
 
                 $table->foreign('account_id')->references('id')->on('accounts');
                 $table->foreign('config_id')->references('id')->on('auto_topup_configs');
-                $table->foreign('retry_of_event_id')->references('id')->on('auto_topup_events');
                 $table->index('account_id');
                 $table->index(['account_id', 'created_at']);
                 $table->index(['account_id', 'status']);
                 $table->index('stripe_payment_intent_id');
+            });
+
+            Schema::table('auto_topup_events', function (Blueprint $table) {
+                $table->foreign('retry_of_event_id')->references('id')->on('auto_topup_events');
             });
 
             // UUID auto-generation trigger
