@@ -4,7 +4,6 @@ namespace App\Services\Billing;
 
 use App\Models\Account;
 use App\Models\Billing\Payment;
-use App\Models\Billing\AutoTopUpConfig;
 use App\Models\Billing\FinancialAuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -60,11 +59,17 @@ class StripeCheckoutService
     {
         $session = $event['data']['object'];
         $metadata = $session['metadata'] ?? [];
+        $type = $metadata['type'] ?? 'top_up';
+
+        // Delegate setup-mode sessions to AutoTopUpService
+        if ($type === 'auto_topup_setup' || ($session['mode'] ?? '') === 'setup') {
+            app(AutoTopUpService::class)->handleSetupComplete($session['id']);
+            return;
+        }
 
         $accountId = $metadata['account_id'] ?? null;
         $amount = $metadata['amount'] ?? null;
         $currency = strtoupper($metadata['currency'] ?? 'GBP');
-        $type = $metadata['type'] ?? 'top_up';
 
         if (!$accountId || !$amount) {
             Log::error('Stripe checkout webhook: missing metadata', ['session' => $session['id']]);
@@ -115,7 +120,8 @@ class StripeCheckoutService
     }
 
     /**
-     * Handle payment_intent.succeeded (for auto top-ups and DD).
+     * Handle payment_intent.succeeded (for DD collections only).
+     * Auto top-up success is now handled by AutoTopUpService.
      */
     public function handlePaymentIntentSucceeded(array $event): void
     {
@@ -127,37 +133,16 @@ class StripeCheckoutService
 
         if (!$accountId) return;
 
-        $amount = bcdiv((string)$paymentIntent['amount'], '100', 4);
-        $currency = strtoupper($paymentIntent['currency']);
-        $idempotencyKey = "stripe-pi-{$paymentIntent['id']}";
-
+        // Delegate auto top-up to AutoTopUpService
         if ($type === 'auto_topup') {
-            DB::transaction(function () use ($accountId, $amount, $currency, $idempotencyKey, $paymentIntent) {
-                $account = Account::findOrFail($accountId);
+            app(AutoTopUpService::class)->handlePaymentSuccess($paymentIntent['id'], $event);
+            return;
+        }
 
-                $this->balanceService->processTopUp(
-                    $accountId, $amount, $currency, $idempotencyKey,
-                    'stripe_payment', $paymentIntent['id'],
-                    ['auto_topup' => true]
-                );
-
-                Payment::create([
-                    'account_id' => $accountId,
-                    'payment_method' => 'stripe_auto_topup',
-                    'stripe_payment_intent_id' => $paymentIntent['id'],
-                    'currency' => $currency,
-                    'amount' => $amount,
-                    'status' => 'succeeded',
-                    'paid_at' => now(),
-                ]);
-
-                $this->invoiceService->createTopUpInvoice($account, $amount, $currency);
-
-                AutoTopUpConfig::where('account_id', $accountId)
-                    ->update(['last_triggered_at' => now()]);
-            });
-        } elseif ($type === 'dd_collection') {
-            // Direct Debit collection for postpay
+        if ($type === 'dd_collection') {
+            $amount = bcdiv((string)$paymentIntent['amount'], '100', 4);
+            $currency = strtoupper($paymentIntent['currency']);
+            $idempotencyKey = "stripe-pi-{$paymentIntent['id']}";
             $invoiceId = $metadata['invoice_id'] ?? null;
 
             DB::transaction(function () use ($accountId, $amount, $currency, $idempotencyKey, $paymentIntent, $invoiceId) {
@@ -190,74 +175,5 @@ class StripeCheckoutService
                 }
             });
         }
-    }
-
-    /**
-     * Trigger auto top-up if conditions are met.
-     */
-    public function checkAutoTopUp(string $accountId): void
-    {
-        $config = AutoTopUpConfig::where('account_id', $accountId)
-            ->where('enabled', true)
-            ->first();
-
-        if (!$config) return;
-
-        $balance = $this->balanceService->getBalance($accountId);
-
-        if (bccomp($balance->effective_available, $config->threshold_amount, 4) >= 0) {
-            return; // Balance above threshold
-        }
-
-        // Check daily limit
-        $todayCount = Payment::where('account_id', $accountId)
-            ->where('payment_method', 'stripe_auto_topup')
-            ->whereDate('created_at', today())
-            ->count();
-
-        if ($todayCount >= $config->max_topups_per_day) {
-            Log::warning('Auto top-up daily limit reached', ['account' => $accountId]);
-            return;
-        }
-
-        // Create off-session PaymentIntent
-        try {
-            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
-
-            $stripe->paymentIntents->create([
-                'amount' => (int)bcmul($config->topup_amount, '100', 0),
-                'currency' => strtolower($balance->currency),
-                'customer' => $config->stripe_customer_id,
-                'payment_method' => $config->stripe_payment_method_id,
-                'off_session' => true,
-                'confirm' => true,
-                'metadata' => [
-                    'account_id' => $accountId,
-                    'type' => 'auto_topup',
-                    'amount' => $config->topup_amount,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Auto top-up failed', [
-                'account' => $accountId,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
-     * Get or update auto top-up configuration.
-     */
-    public function getAutoTopUpConfig(string $accountId): ?AutoTopUpConfig
-    {
-        return AutoTopUpConfig::where('account_id', $accountId)->first();
-    }
-
-    public function updateAutoTopUpConfig(string $accountId, array $data): AutoTopUpConfig
-    {
-        return AutoTopUpConfig::updateOrCreate(
-            ['account_id' => $accountId],
-            $data
-        );
     }
 }

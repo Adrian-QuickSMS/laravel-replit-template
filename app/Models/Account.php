@@ -317,6 +317,11 @@ class Account extends Model
         return $this->hasOne(AccountFlags::class, 'account_id');
     }
 
+    public function autoTopUpConfig(): HasOne
+    {
+        return $this->hasOne(\App\Models\Billing\AutoTopUpConfig::class, 'account_id');
+    }
+
     /**
      * API tokens belonging to this account
      */
