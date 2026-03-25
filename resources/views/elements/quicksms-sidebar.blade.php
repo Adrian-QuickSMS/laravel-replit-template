@@ -59,7 +59,7 @@
                 </ul>
             </li>
             
-            <li data-nav="purchase" class="{{ request()->routeIs('purchase') || request()->routeIs('purchase.*') ? 'mm-active' : '' }}">
+            <li data-nav="purchase" class="{{ request()->routeIs('purchase') || request()->routeIs('purchase.*') || request()->routeIs('payments.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="nav-text">Purchase</span>
@@ -67,6 +67,7 @@
                 <ul aria-expanded="false">
                     <li data-subnav="messages"><a href="{{ route('purchase.messages') }}" class="{{ request()->routeIs('purchase.messages') ? 'mm-active' : '' }}">Messages</a></li>
                     <li data-subnav="numbers"><a href="{{ route('purchase.numbers') }}" class="{{ request()->routeIs('purchase.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
+                    <li data-subnav="auto-topup"><a href="{{ route('payments.auto-topup') }}" class="{{ request()->routeIs('payments.auto-topup') ? 'mm-active' : '' }}">Auto Top-Up</a></li>
                 </ul>
             </li>
             
