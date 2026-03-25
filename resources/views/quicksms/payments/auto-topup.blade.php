@@ -5,9 +5,11 @@
 @push('styles')
 <style>
 .auto-topup-container { min-height: calc(100vh - 200px); }
-.config-card { border: none; border-radius: 0.75rem; }
-.config-card .card-header { background: #f8f9fa; border-bottom: 1px solid #e5e7eb; font-weight: 600; padding: 1rem 1.5rem; }
-.config-card .card-body { padding: 1.5rem; }
+.section-card { background: #fff; border-radius: 0.75rem; border: none; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.section-card-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 0.75rem; }
+.section-card-header i { color: #886cc0; font-size: 1.1rem; }
+.section-card-header h6 { margin: 0; font-weight: 600; color: #374151; }
+.section-card-body { padding: 1.5rem; }
 .form-label { font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
 .form-text { color: #6b7280; font-size: 0.8rem; }
 .pm-display { display: flex; align-items: center; gap: 12px; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
@@ -122,11 +124,13 @@
     </div>
 
     <div class="row">
-        <!-- Section 2: Configuration -->
         <div class="col-lg-8">
-            <div class="card config-card mb-4">
-                <div class="card-header"><i class="fas fa-cog me-2"></i>Configuration</div>
-                <div class="card-body">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <i class="fas fa-cog"></i>
+                    <h6>Configuration</h6>
+                </div>
+                <div class="section-card-body">
                     <form id="autoTopUpForm">
                         <div class="mb-3">
                             <div class="form-check form-switch">
@@ -222,13 +226,15 @@
                 </div>
             </div>
 
-            <!-- Section 4: Activity Log -->
-            <div class="card config-card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-history me-2"></i>Recent Activity</span>
+            <div class="section-card">
+                <div class="section-card-header" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-history"></i>
+                        <h6>Recent Activity</h6>
+                    </div>
                     <button class="btn btn-sm btn-outline-secondary" id="refreshActivity"><i class="fas fa-sync-alt"></i></button>
                 </div>
-                <div class="card-body p-0">
+                <div class="section-card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 activity-table">
                             <thead>
@@ -249,11 +255,13 @@
             </div>
         </div>
 
-        <!-- Section 3: Payment Method -->
         <div class="col-lg-4">
-            <div class="card config-card mb-4">
-                <div class="card-header"><i class="fas fa-credit-card me-2"></i>Payment Method</div>
-                <div class="card-body">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <i class="fas fa-credit-card"></i>
+                    <h6>Payment Method</h6>
+                </div>
+                <div class="section-card-body">
                     <div id="pmSection">
                         <div id="pmDisplay" style="display:none;">
                             <div class="pm-display mb-3">
@@ -283,9 +291,12 @@
                 </div>
             </div>
 
-            <div class="card config-card mb-4">
-                <div class="card-header"><i class="fas fa-info-circle me-2"></i>How It Works</div>
-                <div class="card-body">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h6>How It Works</h6>
+                </div>
+                <div class="section-card-body">
                     <ol class="small text-muted mb-0" style="padding-left: 1.25rem;">
                         <li class="mb-2">Set your balance threshold and top-up amount</li>
                         <li class="mb-2">When your balance drops below the threshold, we automatically charge your card</li>
