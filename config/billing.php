@@ -66,7 +66,10 @@ return [
         'default_retry_attempts' => 2,
         'default_retry_delay_minutes' => 10,
         'default_consecutive_failure_limit' => 3,
-        'vat_rate' => '20.00',
+        // VAT rate is NOT configured here — it is determined per-account
+        // from account.vat_registered and account.vat_reverse_charges,
+        // using the same logic as InvoiceService::getVatRate().
+        // See: AutoTopUpService::getVatRateForAccount()
     ],
 
     /*

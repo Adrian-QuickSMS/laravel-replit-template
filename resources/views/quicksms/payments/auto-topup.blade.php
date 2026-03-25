@@ -262,7 +262,7 @@
                         <li class="mb-2">Set your balance threshold and top-up amount</li>
                         <li class="mb-2">When your balance drops below the threshold, we automatically charge your card</li>
                         <li class="mb-2">Credit is added to your account once payment is confirmed</li>
-                        <li class="mb-2">VAT (20%) is added to the top-up amount</li>
+                        <li class="mb-2">VAT is added where applicable based on your account's tax status</li>
                         <li>Daily limits and cooldowns prevent excessive charges</li>
                     </ol>
                 </div>
@@ -324,6 +324,7 @@
     const API_BASE = '/api/v1/topup/auto-topup';
     let currentConfig = null;
     let dailyStats = null;
+    let vatInfo = { vat_applicable: false, vat_rate: '0.00' };
 
     // HTML escape helper to prevent XSS
     function esc(str) {
@@ -390,6 +391,7 @@
             const resp = await apiFetch(API_BASE);
             currentConfig = resp.data;
             dailyStats = resp.daily_stats;
+            vatInfo = resp.vat || vatInfo;
             renderStatus();
             renderForm();
             renderPaymentMethod();
@@ -474,10 +476,16 @@
             preview.style.display = 'none';
             return;
         }
-        const vat = amount * 0.20;
+        const rate = parseFloat(vatInfo.vat_rate) / 100;
+        const vat = amount * rate;
         const total = amount + vat;
-        document.getElementById('vatBreakdown').innerHTML =
-            `£${amount.toFixed(2)} + £${vat.toFixed(2)} VAT = <strong>£${total.toFixed(2)} total charge</strong>`;
+        if (vatInfo.vat_applicable) {
+            document.getElementById('vatBreakdown').innerHTML =
+                `£${amount.toFixed(2)} + £${vat.toFixed(2)} VAT (${parseFloat(vatInfo.vat_rate).toFixed(0)}%) = <strong>£${total.toFixed(2)} total charge</strong>`;
+        } else {
+            document.getElementById('vatBreakdown').innerHTML =
+                `<strong>£${amount.toFixed(2)} total charge</strong> (VAT not applicable)`;
+        }
         preview.style.display = 'block';
     }
 

@@ -120,20 +120,27 @@ Route::middleware(['permission:view_billing'])->group(function () {
 
 **NEVER:** Remove this middleware or move routes outside the permission group. This would allow any authenticated user (including `readonly` or `user` roles) to configure automatic payments.
 
-### 7. VAT Is Net + 20% on Top
+### 7. VAT Follows Account Tax Status (Same Logic as InvoiceService)
 
-When a customer configures a top-up amount of £100:
-- Net credit to balance: £100
-- VAT: £20
-- Total Stripe charge: £120
+VAT is determined **per-account** using the same rule as `InvoiceService::getVatRate()`:
+- `account.vat_registered && !account.vat_reverse_charges` → **20% UK VAT**
+- Otherwise → **0% (VAT not applicable)**
 
-The `topup_amount` field is the NET amount. VAT is calculated in `triggerAutoTopUp()`:
+This means:
+- VAT-registered UK businesses pay net + 20% VAT
+- Non-VAT-registered customers pay net only (no VAT)
+- Reverse-charge eligible customers (non-UK B2B) pay net only (no VAT)
+
+The `topup_amount` field is always the NET amount. VAT is calculated in `triggerAutoTopUp()` via `getVatRateForAccount()`:
 ```php
+$vatRate = $this->getVatRateForAccount($account); // 20.00 or 0.00
 $vatAmount = bcmul($config->topup_amount, bcdiv($vatRate, '100', 6), 4);
 $totalCharge = bcadd($config->topup_amount, $vatAmount, 4);
 ```
 
-**NEVER:** Change this to treat `topup_amount` as gross (VAT-inclusive). The existing invoice system expects net amounts.
+**NEVER:** Hardcode a VAT rate. Always use `getVatRateForAccount()` which mirrors `InvoiceService::getVatRate()`.
+
+**NEVER:** Change `topup_amount` to be gross (VAT-inclusive). The existing invoice system expects net amounts.
 
 ### 8. Prepay Accounts Only
 
@@ -355,7 +362,8 @@ In `config/billing.php` → `auto_topup`:
 | `default_retry_attempts` | 2 | Default retries per failure |
 | `default_retry_delay_minutes` | 10 | Default retry delay |
 | `default_consecutive_failure_limit` | 3 | Default auto-disable threshold |
-| `vat_rate` | 20.00 | VAT percentage (UK standard) |
+
+VAT rate is NOT in this config block. It is determined per-account from `account.vat_registered` and `account.vat_reverse_charges` via `AutoTopUpService::getVatRateForAccount()`, using the same logic as `InvoiceService::getVatRate()`. The actual rates come from `config('billing.vat.uk_rate')` (20.00) and `config('billing.vat.default_rate')` (0.00).
 
 ---
 
