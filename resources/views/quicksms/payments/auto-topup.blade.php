@@ -604,19 +604,27 @@
             notify_requires_action: document.getElementById('notifyRequiresAction').checked,
         };
 
+        console.log('[AutoTopUp] Saving settings:', data);
+
         try {
             const resp = await apiFetch(API_BASE, {
                 method: 'PUT',
                 body: JSON.stringify(data),
             });
 
+            console.log('[AutoTopUp] Save response:', resp);
+
             if (resp.success) {
                 currentConfig = resp.data;
                 renderStatus();
                 renderForm();
+                loadActivity();
                 showToast('Settings saved successfully.', 'success');
+            } else {
+                showToast(resp.message || 'Failed to save settings.', 'danger');
             }
         } catch (e) {
+            console.error('[AutoTopUp] Save error:', e);
             const msg = e.message || (e.errors ? Object.values(e.errors).flat().join(', ') : 'Failed to save settings.');
             showToast(msg, 'danger');
         } finally {
