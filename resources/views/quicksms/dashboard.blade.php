@@ -588,7 +588,7 @@
 #tile-inbound,
 #tile-messages-today,
 #tile-delivery-rate {
-    background-color: #f5f5f7 !important;
+    background-color: #fff !important;
     border: none !important;
 }
 
