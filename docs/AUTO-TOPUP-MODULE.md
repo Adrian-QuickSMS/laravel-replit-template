@@ -3,7 +3,7 @@
 ## Branch & Merge Instructions
 
 **Branch:** `claude/review-auto-topup-spec-QOpll`
-**Commits:** 6 commits (feature + review fixes + critical fix + docs + Replit review fixes + VAT fix)
+**Commits:** 8 commits (feature + review fixes + critical fix + docs + Replit R1 fixes + VAT fix + doc update + Replit R2 fixes)
 **Base:** `main`
 **Files changed:** 30 files, ~3,600 lines added/modified
 
