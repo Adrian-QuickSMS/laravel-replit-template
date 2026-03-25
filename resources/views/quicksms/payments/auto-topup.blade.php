@@ -5,6 +5,7 @@
 @push('styles')
 <style>
 .auto-topup-container { min-height: calc(100vh - 200px); }
+.alert-pastel-primary { background-color: #ede8f5; border: 1px solid #d5c8e8; color: #4a3570; }
 .section-card { background: #fff; border-radius: 0.75rem; border: none; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .section-card-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 0.75rem; }
 .section-card-header i { color: #886cc0; font-size: 1.1rem; }
@@ -322,7 +323,7 @@
             <div class="modal-body">
                 <p>Please review your Auto Top-Up settings before saving:</p>
                 <div class="confirm-summary" id="confirmSummary"></div>
-                <div class="alert alert-info mt-3 mb-0">
+                <div class="alert alert-pastel-primary mt-3 mb-0">
                     <small><i class="fas fa-info-circle me-1"></i> By enabling Auto Top-Up, you authorise QuickSMS to automatically charge your saved payment method when your balance falls below the configured threshold.</small>
                 </div>
             </div>
