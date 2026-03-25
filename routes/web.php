@@ -697,6 +697,7 @@ Route::prefix('admin')->group(function () {
             // Auto Top-Up Admin Management
             Route::get('/billing/auto-topup', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'index'])->name('admin.billing.auto-topup');
             Route::get('/api/billing/auto-topup', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'apiIndex'])->name('admin.api.billing.auto-topup');
+            Route::get('/api/billing/auto-topup/{accountId}/config', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'apiConfig'])->name('admin.api.billing.auto-topup.config');
             Route::get('/api/billing/auto-topup/{accountId}/events', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'apiEvents'])->name('admin.api.billing.auto-topup.events');
             Route::post('/api/billing/auto-topup/{accountId}/disable', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'adminDisable'])->name('admin.api.billing.auto-topup.disable');
             Route::post('/api/billing/auto-topup/{accountId}/unlock', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'adminUnlock'])->name('admin.api.billing.auto-topup.unlock');

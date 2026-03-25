@@ -110,6 +110,40 @@ class AutoTopUpAdminController extends Controller
     }
 
     /**
+     * GET /admin/api/billing/auto-topup/{accountId}/config
+     * Get auto top-up config for a specific account (admin view).
+     */
+    public function apiConfig(string $accountId): JsonResponse
+    {
+        $config = AutoTopUpConfig::where('account_id', $accountId)->first();
+
+        if (!$config) {
+            return response()->json(['success' => true, 'data' => null]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'enabled' => $config->enabled,
+                'threshold_amount' => $config->threshold_amount,
+                'topup_amount' => $config->topup_amount,
+                'max_topups_per_day' => $config->max_topups_per_day,
+                'daily_topup_cap' => $config->daily_topup_cap,
+                'min_minutes_between_topups' => $config->min_minutes_between_topups,
+                'card_brand' => $config->card_brand,
+                'card_last4' => $config->card_last4,
+                'has_payment_method' => $config->hasValidPaymentMethod(),
+                'consecutive_failure_count' => $config->consecutive_failure_count,
+                'admin_locked' => $config->admin_locked,
+                'admin_locked_reason' => $config->admin_locked_reason,
+                'last_triggered_at' => $config->last_triggered_at?->toIso8601String(),
+                'last_successful_topup_at' => $config->last_successful_topup_at?->toIso8601String(),
+                'updated_at' => $config->updated_at?->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
      * GET /admin/api/billing/auto-topup/{accountId}/events
      * Event history for a specific account (admin view with Stripe refs).
      */

@@ -814,6 +814,71 @@
                 </div>
             </div>
 
+            <div class="billing-card mt-3" id="autoTopUpAdminCard">
+                <div class="billing-card-header">
+                    <h6><i class="fas fa-sync-alt me-2"></i>Auto Top-Up</h6>
+                </div>
+                <div class="billing-card-body" id="autoTopUpAdminBody">
+                    <div id="autoTopUpLoading" class="text-center py-3">
+                        <i class="fas fa-spinner fa-spin me-1"></i> Loading...
+                    </div>
+                    <div id="autoTopUpNotConfigured" style="display: none;">
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
+                            <p class="mb-0 small">Auto top-up has not been configured for this account.</p>
+                        </div>
+                    </div>
+                    <div id="autoTopUpConfigured" style="display: none;">
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Status</span>
+                            <span class="billing-setting-value" id="atStatusDisplay">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Trigger Below</span>
+                            <span class="billing-setting-value" id="atThreshold">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Top-Up Amount</span>
+                            <span class="billing-setting-value" id="atTopupAmount">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Max Per Day</span>
+                            <span class="billing-setting-value" id="atMaxPerDay">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Daily Cap</span>
+                            <span class="billing-setting-value" id="atDailyCap">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Payment Method</span>
+                            <span class="billing-setting-value" id="atPaymentMethod">—</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Failures</span>
+                            <span class="billing-setting-value" id="atFailures">0</span>
+                        </div>
+                        <div class="billing-setting-row">
+                            <span class="billing-setting-label">Last Triggered</span>
+                            <span class="billing-setting-value" id="atLastTriggered">Never</span>
+                        </div>
+
+                        <div id="atLockedBanner" class="mt-3 p-2 rounded" style="background: rgba(220,53,69,0.1); display: none;">
+                            <small class="text-danger"><i class="fas fa-lock me-1"></i><strong>Locked by admin:</strong> <span id="atLockedReason"></span></small>
+                        </div>
+
+                        <hr class="my-3">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="atDisableBtn" onclick="autoTopUpAdminDisable()">
+                                <i class="fas fa-ban me-1"></i>Disable &amp; Lock
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="atUnlockBtn" onclick="autoTopUpAdminUnlock()" style="display: none;">
+                                <i class="fas fa-unlock me-1"></i>Unlock
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="billing-card mt-3">
                 <div class="billing-card-header">
                     <h6><i class="fas fa-gavel me-2"></i>Overdue Enforcement</h6>
@@ -2597,5 +2662,146 @@ function saveEnforcement() {
             btn.innerHTML = '<i class="fas fa-check me-1"></i>Save Enforcement Settings';
         });
 }
+
+var autoTopUpConfig = null;
+
+function loadAutoTopUpAdmin() {
+    var token = document.querySelector('meta[name="csrf-token"]');
+    var tokenValue = token ? token.getAttribute('content') : '';
+
+    fetch('/admin/api/billing/auto-topup/' + accountId + '/config', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': tokenValue }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(resp) {
+        document.getElementById('autoTopUpLoading').style.display = 'none';
+        if (!resp.success || !resp.data) {
+            document.getElementById('autoTopUpNotConfigured').style.display = 'block';
+            return;
+        }
+        autoTopUpConfig = resp.data;
+        renderAutoTopUpAdmin();
+    })
+    .catch(function() {
+        document.getElementById('autoTopUpLoading').style.display = 'none';
+        document.getElementById('autoTopUpNotConfigured').style.display = 'block';
+    });
+}
+
+function fmtGBP(val) {
+    if (val === null || val === undefined) return '—';
+    return '\u00A3' + parseFloat(val).toFixed(2);
+}
+
+function renderAutoTopUpAdmin() {
+    if (!autoTopUpConfig) return;
+    document.getElementById('autoTopUpConfigured').style.display = 'block';
+
+    var statusHtml;
+    if (autoTopUpConfig.admin_locked) {
+        statusHtml = '<span class="pill-status pill-suspended"><i class="fas fa-lock me-1"></i>Locked</span>';
+    } else if (autoTopUpConfig.enabled) {
+        statusHtml = '<span class="pill-status pill-live"><i class="fas fa-check-circle me-1"></i>Enabled</span>';
+    } else {
+        statusHtml = '<span class="pill-status pill-test"><i class="fas fa-minus-circle me-1"></i>Disabled</span>';
+    }
+    document.getElementById('atStatusDisplay').innerHTML = statusHtml;
+
+    document.getElementById('atThreshold').textContent = fmtGBP(autoTopUpConfig.threshold_amount);
+    document.getElementById('atTopupAmount').textContent = fmtGBP(autoTopUpConfig.topup_amount);
+    document.getElementById('atMaxPerDay').textContent = autoTopUpConfig.max_topups_per_day || '—';
+    document.getElementById('atDailyCap').textContent = autoTopUpConfig.daily_topup_cap ? fmtGBP(autoTopUpConfig.daily_topup_cap) : 'No limit';
+
+    if (autoTopUpConfig.card_brand && autoTopUpConfig.card_last4) {
+        var brand = autoTopUpConfig.card_brand.charAt(0).toUpperCase() + autoTopUpConfig.card_brand.slice(1);
+        document.getElementById('atPaymentMethod').textContent = brand + ' ending ' + autoTopUpConfig.card_last4;
+    } else {
+        document.getElementById('atPaymentMethod').innerHTML = '<span class="text-muted">None</span>';
+    }
+
+    document.getElementById('atFailures').textContent = autoTopUpConfig.consecutive_failure_count || '0';
+
+    if (autoTopUpConfig.last_triggered_at) {
+        document.getElementById('atLastTriggered').textContent = new Date(autoTopUpConfig.last_triggered_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } else {
+        document.getElementById('atLastTriggered').textContent = 'Never';
+    }
+
+    if (autoTopUpConfig.admin_locked) {
+        document.getElementById('atLockedBanner').style.display = 'block';
+        document.getElementById('atLockedReason').textContent = autoTopUpConfig.admin_locked_reason || 'No reason provided';
+        document.getElementById('atDisableBtn').style.display = 'none';
+        document.getElementById('atUnlockBtn').style.display = 'inline-block';
+    } else {
+        document.getElementById('atLockedBanner').style.display = 'none';
+        document.getElementById('atDisableBtn').style.display = autoTopUpConfig.enabled ? 'inline-block' : 'none';
+        document.getElementById('atUnlockBtn').style.display = 'none';
+    }
+}
+
+function autoTopUpAdminDisable() {
+    var reason = prompt('Reason for disabling and locking auto top-up:');
+    if (!reason) return;
+
+    var token = document.querySelector('meta[name="csrf-token"]');
+    var tokenValue = token ? token.getAttribute('content') : '';
+
+    var btn = document.getElementById('atDisableBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Locking...';
+
+    fetch('/admin/api/billing/auto-topup/' + accountId + '/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': tokenValue },
+        body: JSON.stringify({ reason: reason })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(resp) {
+        if (resp.success) {
+            showToast('Auto top-up disabled and locked', 'success');
+            loadAutoTopUpAdmin();
+        } else {
+            showToast(resp.message || 'Failed to lock', 'error');
+        }
+    })
+    .catch(function(err) { showToast('Request failed: ' + err.message, 'error'); })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-ban me-1"></i>Disable & Lock';
+    });
+}
+
+function autoTopUpAdminUnlock() {
+    if (!confirm('Unlock auto top-up for this account? The customer will be able to re-enable it.')) return;
+
+    var token = document.querySelector('meta[name="csrf-token"]');
+    var tokenValue = token ? token.getAttribute('content') : '';
+
+    var btn = document.getElementById('atUnlockBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Unlocking...';
+
+    fetch('/admin/api/billing/auto-topup/' + accountId + '/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': tokenValue },
+        body: JSON.stringify({})
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(resp) {
+        if (resp.success) {
+            showToast('Auto top-up unlocked', 'success');
+            loadAutoTopUpAdmin();
+        } else {
+            showToast(resp.message || 'Failed to unlock', 'error');
+        }
+    })
+    .catch(function(err) { showToast('Request failed: ' + err.message, 'error'); })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-unlock me-1"></i>Unlock';
+    });
+}
+
+loadAutoTopUpAdmin();
 </script>
 @endpush
