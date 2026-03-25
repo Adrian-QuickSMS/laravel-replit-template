@@ -132,6 +132,22 @@ class AutoTopUpNotificationService
         }
     }
 
+    public function notifyActionExpired(AutoTopUpEvent $event, bool $isAdminLocked = false): void
+    {
+        $body = $isAdminLocked
+            ? "Your auto top-up payment of £{$event->topup_amount} required authentication but expired. Auto Top-Up is currently disabled by support — please contact us for assistance."
+            : "Your auto top-up payment of £{$event->topup_amount} required authentication but expired. A new top-up will be triggered when your balance next falls below your threshold.";
+
+        $this->createInAppNotification(
+            $event->account_id,
+            'auto_topup_action_expired',
+            'warning',
+            'Auto Top-Up Payment Expired',
+            $body,
+            '/payments/auto-topup'
+        );
+    }
+
     public function notifyPaymentMethodRemoved(string $accountId): void
     {
         $this->createInAppNotification(
