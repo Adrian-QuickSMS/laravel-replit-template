@@ -3,9 +3,9 @@
 ## Branch & Merge Instructions
 
 **Branch:** `claude/review-auto-topup-spec-QOpll`
-**Commits:** 3 commits (feature + review fixes + critical fix)
+**Commits:** 6 commits (feature + review fixes + critical fix + docs + Replit review fixes + VAT fix)
 **Base:** `main`
-**Files changed:** 28 files, ~3,400 lines added/modified
+**Files changed:** 30 files, ~3,600 lines added/modified
 
 ### Merge Command
 ```bash
@@ -21,6 +21,26 @@ php -l app/Services/Billing/AutoTopUpService.php
 php -l app/Services/Billing/BalanceService.php
 php -l app/Http/Controllers/Api/V1/TopUpController.php
 ```
+
+### CRITICAL: RLS Verification for CLI & Queue Workers
+
+The `auto_topup_events` and `auto_topup_configs` tables have Row Level Security (RLS) enabled. RLS filters all rows when `app.current_tenant_id` is not set — which is the case for:
+- Scheduled commands (e.g. `billing:expire-stale-auto-topups`)
+- Queue workers processing `ProcessAutoTopUpJob` / `RetryAutoTopUpJob`
+- The admin console queries
+
+**This works correctly IF** the database user (`DB_USERNAME` in `.env`) has `BYPASSRLS` privilege, or is a superuser, or is the `svc_red` role. Verify this is the case:
+
+```sql
+-- Run as superuser to check:
+SELECT rolname, rolbypassrls, rolsuper FROM pg_roles WHERE rolname = '<your DB_USERNAME>';
+-- At least one of rolbypassrls or rolsuper must be TRUE
+```
+
+If the CLI/queue user does NOT bypass RLS, scheduled commands and jobs will silently find zero rows and do nothing. In that case, add `DB::statement("SET ROLE svc_red");` at the start of:
+- `ExpireStaleAutoTopUpEvents::handle()`
+- `ProcessAutoTopUpJob::handle()`
+- `RetryAutoTopUpJob::handle()`
 
 ---
 
@@ -403,20 +423,41 @@ These files were modified as part of this module. Do not revert or significantly
 
 Before considering this feature complete, verify:
 
+### Pre-deploy Verification
 - [ ] `php artisan migrate --force` completes without errors on fresh and existing DB
-- [ ] Customer portal: `/payments/auto-topup` loads for prepay account owner
-- [ ] Customer portal: shows "only available for prepay" for postpay accounts
+- [ ] Verify `processed_stripe_events` table exists (dependency from earlier migration)
+- [ ] Verify `DB_USERNAME` role has `BYPASSRLS` (see RLS Verification above)
+- [ ] Queue workers are running (jobs won't process without them)
+- [ ] Scheduler is running (`billing:expire-stale-auto-topups` is hourly)
+
+### Customer Portal
+- [ ] `/payments/auto-topup` loads for prepay account owner
+- [ ] Shows "only available for prepay" for postpay accounts
 - [ ] "Add Payment Method" redirects to Stripe Checkout and returns with card saved
 - [ ] Enable auto top-up with valid settings → confirmation modal → save succeeds
 - [ ] Admin-locked accounts show locked banner, form disabled
+- [ ] VAT preview shows 20% for VAT-registered accounts
+- [ ] VAT preview shows "VAT not applicable" for non-VAT-registered or reverse-charge accounts
+- [ ] `view_billing` permission required (non-billing users get 403)
+- [ ] Activity log shows events with escaped content (no XSS)
+
+### Trigger & Payment Flow
 - [ ] Simulate balance deduction below threshold → event created, job dispatched
 - [ ] Stripe `payment_intent.succeeded` webhook → balance credited, payment + invoice created
 - [ ] Stripe `payment_intent.payment_failed` webhook → failure logged, notification sent
 - [ ] 3 consecutive failures → auto-disable, single "disabled" notification (not "disabled" + "failed")
 - [ ] Daily count limit prevents excess top-ups
 - [ ] Cooldown timer prevents rapid-fire charges
+- [ ] Failed job marks event as failed (not left orphaned in pending)
+
+### Admin Console
 - [ ] Admin can view all accounts, filter by status
 - [ ] Admin can disable/lock with reason → customer sees locked banner
 - [ ] Admin can unlock → customer can re-enable
-- [ ] `view_billing` permission required (non-billing users get 403)
-- [ ] Activity log shows events with escaped content (no XSS)
+- [ ] Event history modal shows Stripe PI IDs for support
+
+### VAT Correctness
+- [ ] VAT-registered UK business (not reverse charge): Stripe charges net + 20% VAT
+- [ ] Non-VAT-registered customer: Stripe charges net only (0% VAT)
+- [ ] Reverse-charge eligible customer: Stripe charges net only (0% VAT)
+- [ ] Invoice created by `createTopUpInvoice()` matches the VAT applied to the Stripe charge
