@@ -93,16 +93,23 @@ class AutoTopUpService
             return;
         }
 
-        // Acquire PG advisory lock (non-blocking)
+        // Acquire PG transaction-level advisory lock (auto-releases on transaction end)
         $lockKey = crc32("auto_topup_{$accountId}");
-        $lockAcquired = DB::selectOne("SELECT pg_try_advisory_lock(?) as locked", [$lockKey]);
 
-        if (!$lockAcquired || !$lockAcquired->locked) {
-            Log::info('Auto top-up lock not acquired, another process handling', ['account' => $accountId]);
-            return;
-        }
+        DB::transaction(function () use ($accountId, $config, $currentBalance, $dailyStats, $lockKey) {
+            $lockAcquired = DB::selectOne("SELECT pg_try_advisory_xact_lock(?) as locked", [$lockKey]);
 
-        try {
+            if (!$lockAcquired || !$lockAcquired->locked) {
+                Log::info('Auto top-up lock not acquired, another process handling', ['account' => $accountId]);
+                return;
+            }
+
+            // Re-check pending inside lock to prevent TOCTOU
+            $hasPending = AutoTopUpEvent::forAccount($accountId)->pending()->exists();
+            if ($hasPending) {
+                return;
+            }
+
             $vatRate = config('billing.auto_topup.vat_rate', '20.00');
             $vatAmount = bcmul($config->topup_amount, bcdiv($vatRate, '100', 6), 4);
             $totalCharge = bcadd($config->topup_amount, $vatAmount, 4);
@@ -129,9 +136,7 @@ class AutoTopUpService
             $config->update(['last_triggered_at' => now()]);
 
             ProcessAutoTopUpJob::dispatch($event->id);
-        } finally {
-            DB::statement("SELECT pg_advisory_unlock(?)", [$lockKey]);
-        }
+        });
     }
 
     /**
@@ -306,13 +311,13 @@ class AutoTopUpService
     }
 
     /**
-     * Handle failed payment (called from webhook or sync error).
+     * Handle failed payment (called from webhook).
      */
     public function handlePaymentFailure(string $paymentIntentId, array $eventData): void
     {
         $event = AutoTopUpEvent::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
-        if (!$event || $event->status === AutoTopUpEvent::STATUS_FAILED) {
+        if (!$event || in_array($event->status, [AutoTopUpEvent::STATUS_FAILED, AutoTopUpEvent::STATUS_SUCCEEDED])) {
             return;
         }
 
@@ -329,29 +334,7 @@ class AutoTopUpService
 
         $config = AutoTopUpConfig::find($event->config_id);
         if ($config) {
-            $config->incrementFailureCount();
-
-            // Check auto-disable threshold
-            if ($config->shouldAutoDisable()) {
-                $config->update(['enabled' => false]);
-
-                AutoTopUpEvent::create([
-                    'account_id' => $event->account_id,
-                    'config_id' => $config->id,
-                    'event_type' => AutoTopUpEvent::TYPE_AUTO_DISABLED,
-                    'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
-                    'idempotency_key' => 'auto-disable-' . $event->account_id . '-' . now()->timestamp,
-                    'metadata' => ['reason' => 'consecutive_failures', 'failure_count' => $config->consecutive_failure_count],
-                    'completed_at' => now(),
-                ]);
-
-                $this->notificationService->notifyAutoDisabled($config);
-            } else {
-                // Schedule retry if applicable
-                $this->scheduleRetryIfApplicable($event, $config);
-            }
-
-            $this->notificationService->notifyFailure($config, $event);
+            $this->processFailureAndMaybeDisable($event, $config);
         }
 
         try {
@@ -368,19 +351,16 @@ class AutoTopUpService
 
     /**
      * Handle requires_action from synchronous PaymentIntent response.
+     * Does NOT store client_secret in DB — it is retrieved from Stripe when needed.
      */
     private function handleRequiresAction(AutoTopUpEvent $event, AutoTopUpConfig $config, $paymentIntent): void
     {
-        $clientSecret = $paymentIntent->client_secret;
         $actionUrl = config('app.url') . '/payments/auto-topup/complete-action/' . $event->id;
 
         $event->update([
             'event_type' => AutoTopUpEvent::TYPE_REQUIRES_ACTION,
             'status' => AutoTopUpEvent::STATUS_REQUIRES_ACTION,
             'requires_action_url' => $actionUrl,
-            'metadata' => array_merge($event->metadata ?? [], [
-                'client_secret' => $clientSecret,
-            ]),
         ]);
 
         try {
@@ -395,6 +375,12 @@ class AutoTopUpService
      */
     private function handlePaymentError(AutoTopUpEvent $event, AutoTopUpConfig $config, string $code, string $message): void
     {
+        // Guard: if already processed (e.g., webhook arrived first), skip
+        $event->refresh();
+        if (in_array($event->status, [AutoTopUpEvent::STATUS_FAILED, AutoTopUpEvent::STATUS_SUCCEEDED])) {
+            return;
+        }
+
         Log::error('Auto top-up payment error', [
             'event_id' => $event->id,
             'account_id' => $event->account_id,
@@ -410,26 +396,7 @@ class AutoTopUpService
             'completed_at' => now(),
         ]);
 
-        $config->incrementFailureCount();
-
-        if ($config->shouldAutoDisable()) {
-            $config->update(['enabled' => false]);
-
-            AutoTopUpEvent::create([
-                'account_id' => $event->account_id,
-                'config_id' => $config->id,
-                'event_type' => AutoTopUpEvent::TYPE_AUTO_DISABLED,
-                'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
-                'idempotency_key' => 'auto-disable-' . $event->account_id . '-' . now()->timestamp,
-                'metadata' => ['reason' => 'consecutive_failures', 'failure_count' => $config->consecutive_failure_count],
-                'completed_at' => now(),
-            ]);
-
-            $this->notificationService->notifyAutoDisabled($config);
-        } else {
-            $this->scheduleRetryIfApplicable($event, $config);
-            $this->notificationService->notifyFailure($config, $event);
-        }
+        $this->processFailureAndMaybeDisable($event, $config);
 
         try {
             FinancialAuditLog::record(
@@ -440,6 +407,37 @@ class AutoTopUpService
             );
         } catch (\Throwable $e) {
             Log::error('Auto top-up failure audit log failed', ['event_id' => $event->id]);
+        }
+    }
+
+    /**
+     * Shared logic: increment failure count, auto-disable if threshold met,
+     * schedule retry if applicable, and send appropriate notification.
+     * Sends EITHER failure notification OR auto-disabled notification, never both.
+     */
+    private function processFailureAndMaybeDisable(AutoTopUpEvent $event, AutoTopUpConfig $config): void
+    {
+        $config->incrementFailureCount();
+
+        if ($config->shouldAutoDisable()) {
+            $config->update(['enabled' => false]);
+
+            AutoTopUpEvent::create([
+                'account_id' => $event->account_id,
+                'config_id' => $config->id,
+                'event_type' => AutoTopUpEvent::TYPE_AUTO_DISABLED,
+                'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
+                'idempotency_key' => 'auto-disable-' . $event->account_id . '-' . Str::random(12),
+                'metadata' => ['reason' => 'consecutive_failures', 'failure_count' => $config->consecutive_failure_count],
+                'completed_at' => now(),
+            ]);
+
+            // Only send auto-disabled notification (not failure notification)
+            $this->notificationService->notifyAutoDisabled($config);
+        } else {
+            $this->scheduleRetryIfApplicable($event, $config);
+            // Only send failure notification when NOT auto-disabling
+            $this->notificationService->notifyFailure($config, $event);
         }
     }
 
@@ -593,6 +591,30 @@ class AutoTopUpService
     }
 
     /**
+     * Retrieve the Stripe client_secret for a requires_action event.
+     * Fetched from Stripe API on demand rather than stored in DB.
+     */
+    public function getClientSecretForEvent(AutoTopUpEvent $event): ?string
+    {
+        if (!$event->stripe_payment_intent_id) {
+            return null;
+        }
+
+        try {
+            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+            $pi = $stripe->paymentIntents->retrieve($event->stripe_payment_intent_id);
+            return $pi->client_secret;
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve PI client_secret', [
+                'event_id' => $event->id,
+                'pi_id' => $event->stripe_payment_intent_id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Remove the stored payment method and disable auto top-up.
      */
     public function removePaymentMethod(string $accountId, string $userId): void
@@ -632,7 +654,7 @@ class AutoTopUpService
             'event_type' => AutoTopUpEvent::TYPE_PAYMENT_METHOD_REMOVED,
             'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
             'stripe_payment_method_id' => $oldPm,
-            'idempotency_key' => 'pm-removed-' . $accountId . '-' . now()->timestamp,
+            'idempotency_key' => 'pm-removed-' . $accountId . '-' . Str::random(12),
             'completed_at' => now(),
         ]);
 
@@ -671,7 +693,7 @@ class AutoTopUpService
             'event_type' => AutoTopUpEvent::TYPE_PAYMENT_METHOD_REMOVED,
             'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
             'stripe_payment_method_id' => $paymentMethodId,
-            'idempotency_key' => 'pm-detached-' . $paymentMethodId . '-' . now()->timestamp,
+            'idempotency_key' => 'pm-detached-' . $paymentMethodId . '-' . Str::random(12),
             'metadata' => ['source' => 'stripe_webhook'],
             'completed_at' => now(),
         ]);
@@ -689,20 +711,20 @@ class AutoTopUpService
             return;
         }
 
-        $config->update([
+        $config->forceFill([
             'enabled' => false,
             'admin_locked' => true,
             'admin_locked_reason' => $reason,
             'admin_locked_at' => now(),
             'admin_locked_by' => $adminUserId,
-        ]);
+        ])->save();
 
         AutoTopUpEvent::create([
             'account_id' => $accountId,
             'config_id' => $config->id,
             'event_type' => AutoTopUpEvent::TYPE_ADMIN_DISABLED,
             'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
-            'idempotency_key' => 'admin-disable-' . $accountId . '-' . now()->timestamp,
+            'idempotency_key' => 'admin-disable-' . $accountId . '-' . Str::random(12),
             'metadata' => ['reason' => $reason, 'admin_user_id' => $adminUserId],
             'completed_at' => now(),
         ]);
@@ -731,19 +753,19 @@ class AutoTopUpService
             return;
         }
 
-        $config->update([
+        $config->forceFill([
             'admin_locked' => false,
             'admin_locked_reason' => null,
             'admin_locked_at' => null,
             'admin_locked_by' => null,
-        ]);
+        ])->save();
 
         AutoTopUpEvent::create([
             'account_id' => $accountId,
             'config_id' => $config->id,
             'event_type' => AutoTopUpEvent::TYPE_ADMIN_UNLOCKED,
             'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
-            'idempotency_key' => 'admin-unlock-' . $accountId . '-' . now()->timestamp,
+            'idempotency_key' => 'admin-unlock-' . $accountId . '-' . Str::random(12),
             'metadata' => ['admin_user_id' => $adminUserId],
             'completed_at' => now(),
         ]);
@@ -781,7 +803,7 @@ class AutoTopUpService
             'config_id' => $config->id,
             'event_type' => AutoTopUpEvent::TYPE_CONFIG_UPDATED,
             'status' => AutoTopUpEvent::STATUS_SUCCEEDED,
-            'idempotency_key' => 'config-update-' . $accountId . '-' . now()->timestamp,
+            'idempotency_key' => 'config-update-' . $accountId . '-' . Str::random(12),
             'metadata' => ['changes' => $data],
             'completed_at' => now(),
         ]);

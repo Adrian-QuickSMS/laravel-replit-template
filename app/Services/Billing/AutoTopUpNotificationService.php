@@ -55,13 +55,15 @@ class AutoTopUpNotificationService
         }
 
         // Admin notification for failures
-        $this->createAdminNotification(
-            'auto_topup_failure',
-            'warning',
-            "Auto Top-Up Failed: {$account->company_name}",
-            "Auto top-up of £{$event->topup_amount} failed for account {$account->company_name}. Failure count: {$config->consecutive_failure_count}.",
-            ['account_id' => $config->account_id, 'event_id' => $event->id]
-        );
+        if ($account) {
+            $this->createAdminNotification(
+                'auto_topup_failure',
+                'warning',
+                "Auto Top-Up Failed: {$account->company_name}",
+                "Auto top-up of £{$event->topup_amount} failed for account {$account->company_name}. Failure count: {$config->consecutive_failure_count}.",
+                ['account_id' => $config->account_id, 'event_id' => $event->id]
+            );
+        }
     }
 
     public function notifyRequiresAction(AutoTopUpConfig $config, AutoTopUpEvent $event): void
@@ -81,7 +83,8 @@ class AutoTopUpNotificationService
             );
         }
 
-        if ($account) {
+        // Requires action email is always sent (critical notification) but respects notify_requires_action preference
+        if ($config->notify_requires_action && $account) {
             $this->sendEmail($account->email, new AutoTopUpRequiresActionMail($event, $account));
         }
     }
@@ -101,15 +104,15 @@ class AutoTopUpNotificationService
 
         if ($account) {
             $this->sendEmail($account->email, new AutoTopUpDisabledMail($account, 'consecutive_failures'));
-        }
 
-        $this->createAdminNotification(
-            'auto_topup_auto_disabled',
-            'warning',
-            "Auto Top-Up Auto-Disabled: {$account->company_name}",
-            "Auto top-up was automatically disabled for {$account->company_name} after {$config->consecutive_failure_count} consecutive failures.",
-            ['account_id' => $config->account_id]
-        );
+            $this->createAdminNotification(
+                'auto_topup_auto_disabled',
+                'warning',
+                "Auto Top-Up Auto-Disabled: {$account->company_name}",
+                "Auto top-up was automatically disabled for {$account->company_name} after {$config->consecutive_failure_count} consecutive failures.",
+                ['account_id' => $config->account_id]
+            );
+        }
     }
 
     public function notifyAdminDisabled(AutoTopUpConfig $config): void

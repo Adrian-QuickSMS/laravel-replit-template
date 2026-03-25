@@ -13,6 +13,10 @@ class AutoTopUpConfig extends Model
 
     protected $table = 'auto_topup_configs';
 
+    /**
+     * Only customer-settable and system-settable fields are fillable.
+     * Admin lock fields use forceFill() in AutoTopUpService::adminDisable/adminUnlock.
+     */
     protected $fillable = [
         'account_id',
         'enabled',
@@ -38,11 +42,9 @@ class AutoTopUpConfig extends Model
         'consecutive_failure_count',
         'last_triggered_at',
         'last_successful_topup_at',
-        'admin_locked',
-        'admin_locked_reason',
-        'admin_locked_at',
-        'admin_locked_by',
         'updated_by_user_id',
+        // admin_locked, admin_locked_reason, admin_locked_at, admin_locked_by
+        // are NOT fillable — use forceFill() in admin service methods
     ];
 
     protected $casts = [

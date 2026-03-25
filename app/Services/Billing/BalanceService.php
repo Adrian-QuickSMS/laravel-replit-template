@@ -119,6 +119,7 @@ class BalanceService
                     ->increment('spending_used_current_period', $amount);
             }
 
+            // Capture effective_available BEFORE recalculation (for threshold-crossing detection)
             $previousEffective = $balance->effective_available;
 
             $balance->recalculateEffectiveAvailable();
@@ -129,20 +130,27 @@ class BalanceService
             // Check balance alerts (async-safe: won't block message send)
             $this->alertService->checkAlerts($accountId, $balance);
 
-            // Check auto top-up threshold crossing (must not block message send)
-            try {
-                if (!$isPostpay) {
-                    app(AutoTopUpService::class)->evaluateAutoTopUp($accountId, $previousEffective, $newEffective);
-                }
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Auto top-up evaluation error in deductForMessage', [
-                    'account_id' => $accountId,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-
-            return $entry;
+            return ['entry' => $entry, 'previousEffective' => $previousEffective, 'newEffective' => $newEffective];
         });
+
+        // Auto top-up threshold crossing check — runs AFTER transaction commits
+        // to avoid extending the account_balances lock hold time
+        try {
+            if (!$isPostpay) {
+                app(AutoTopUpService::class)->evaluateAutoTopUp(
+                    $accountId,
+                    $result['previousEffective'],
+                    $result['newEffective']
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Auto top-up evaluation error in deductForMessage', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $result['entry'];
     }
 
     /**

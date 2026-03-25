@@ -2401,13 +2401,16 @@ class QuickSMSController extends Controller
             return redirect()->route('payments.auto-topup')->with('error', 'Payment action not found or already completed.');
         }
 
+        // Retrieve client_secret from Stripe API on demand (not stored in DB for security)
+        $clientSecret = app(\App\Services\Billing\AutoTopUpService::class)->getClientSecretForEvent($event);
+
         return view('quicksms.payments.auto-topup', [
             'page_title' => 'Complete Payment',
             'account_id' => $accountId,
             'stripe_key' => config('services.stripe.key'),
             'is_prepay' => true,
             'complete_action_event' => $event,
-            'client_secret' => $event->metadata['client_secret'] ?? null,
+            'client_secret' => $clientSecret,
         ]);
     }
 
