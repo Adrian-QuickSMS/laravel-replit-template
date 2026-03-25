@@ -61,6 +61,10 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickS
     Route::get('/purchase', 'purchase')->name('purchase');
     Route::get('/purchase/messages', 'purchaseMessages')->name('purchase.messages');
     Route::get('/purchase/numbers', 'purchaseNumbers')->name('purchase.numbers');
+
+    // Payments — Auto Top-Up
+    Route::get('/payments/auto-topup', 'autoTopUp')->name('payments.auto-topup');
+    Route::get('/payments/auto-topup/complete-action/{eventId}', 'autoTopUpCompleteAction')->name('payments.auto-topup.complete-action');
     
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');
@@ -689,6 +693,13 @@ Route::prefix('admin')->group(function () {
 
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
+
+            // Auto Top-Up Admin Management
+            Route::get('/billing/auto-topup', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'index'])->name('admin.billing.auto-topup');
+            Route::get('/api/billing/auto-topup', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'apiIndex'])->name('admin.api.billing.auto-topup');
+            Route::get('/api/billing/auto-topup/{accountId}/events', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'apiEvents'])->name('admin.api.billing.auto-topup.events');
+            Route::post('/api/billing/auto-topup/{accountId}/disable', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'adminDisable'])->name('admin.api.billing.auto-topup.disable');
+            Route::post('/api/billing/auto-topup/{accountId}/unlock', [\App\Http\Controllers\Admin\AutoTopUpAdminController::class, 'adminUnlock'])->name('admin.api.billing.auto-topup.unlock');
             
             Route::get('/security/audit-logs', 'securityAuditLogs')->name('admin.security.audit-logs');
             Route::get('/security/country-controls', 'securityCountryControls')->name('admin.security.country-controls');

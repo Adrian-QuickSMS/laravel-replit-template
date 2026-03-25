@@ -119,11 +119,27 @@ class BalanceService
                     ->increment('spending_used_current_period', $amount);
             }
 
+            $previousEffective = $balance->effective_available;
+
             $balance->recalculateEffectiveAvailable();
             $balance->save();
 
+            $newEffective = $balance->effective_available;
+
             // Check balance alerts (async-safe: won't block message send)
             $this->alertService->checkAlerts($accountId, $balance);
+
+            // Check auto top-up threshold crossing (must not block message send)
+            try {
+                if (!$isPostpay) {
+                    app(AutoTopUpService::class)->evaluateAutoTopUp($accountId, $previousEffective, $newEffective);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Auto top-up evaluation error in deductForMessage', [
+                    'account_id' => $accountId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return $entry;
         });

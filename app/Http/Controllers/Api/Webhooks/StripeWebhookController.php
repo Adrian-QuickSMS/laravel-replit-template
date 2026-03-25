@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Webhooks;
 
 use App\Http\Controllers\Controller;
+use App\Services\Billing\AutoTopUpService;
 use App\Services\Billing\StripeCheckoutService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -38,6 +39,7 @@ class StripeWebhookController extends Controller
                 'checkout.session.completed' => $this->stripeService->handleCheckoutCompleted($event->toArray()),
                 'payment_intent.succeeded' => $this->stripeService->handlePaymentIntentSucceeded($event->toArray()),
                 'payment_intent.payment_failed' => $this->handlePaymentFailed($event->toArray()),
+                'payment_method.detached' => $this->handlePaymentMethodDetached($event->toArray()),
                 default => Log::info('Unhandled Stripe event', ['type' => $event->type]),
             };
 
@@ -61,13 +63,29 @@ class StripeWebhookController extends Controller
     private function handlePaymentFailed(array $event): void
     {
         $pi = $event['data']['object'];
-        $accountId = $pi['metadata']['account_id'] ?? null;
+        $metadata = $pi['metadata'] ?? [];
+        $accountId = $metadata['account_id'] ?? null;
+        $type = $metadata['type'] ?? null;
 
         Log::warning('Stripe payment failed', [
             'payment_intent' => $pi['id'],
             'account_id' => $accountId,
+            'type' => $type,
         ]);
 
-        // Notification dispatched here in production
+        // Delegate auto top-up failures to AutoTopUpService
+        if ($type === 'auto_topup') {
+            app(AutoTopUpService::class)->handlePaymentFailure($pi['id'], $event);
+        }
+    }
+
+    private function handlePaymentMethodDetached(array $event): void
+    {
+        $pm = $event['data']['object'];
+        $pmId = $pm['id'] ?? null;
+
+        if ($pmId) {
+            app(AutoTopUpService::class)->handlePaymentMethodDetached($pmId);
+        }
     }
 }
