@@ -19,6 +19,11 @@ return new class extends Migration
 
         // 2. Extend auto_topup_configs with new columns
         if (Schema::hasTable('auto_topup_configs')) {
+            DB::statement('ALTER TABLE auto_topup_configs ALTER COLUMN threshold_amount DROP NOT NULL');
+            DB::statement('ALTER TABLE auto_topup_configs ALTER COLUMN topup_amount DROP NOT NULL');
+            DB::statement('ALTER TABLE auto_topup_configs ALTER COLUMN stripe_customer_id DROP NOT NULL');
+            DB::statement('ALTER TABLE auto_topup_configs ALTER COLUMN stripe_payment_method_id DROP NOT NULL');
+
             Schema::table('auto_topup_configs', function (Blueprint $table) {
                 if (!Schema::hasColumn('auto_topup_configs', 'daily_topup_cap')) {
                     $table->decimal('daily_topup_cap', 10, 4)->nullable()->after('max_topups_per_day')
