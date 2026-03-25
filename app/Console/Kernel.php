@@ -44,6 +44,12 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping()
             ->onOneServer();
+
+        // Auto Top-Up — Expire stale requires_action and stuck events (hourly)
+        $schedule->command('billing:expire-stale-auto-topups')
+            ->hourly()
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     /**

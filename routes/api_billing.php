@@ -18,7 +18,8 @@ Route::prefix('api/v1')->middleware(['auth:customer', 'throttle:120,1'])->group(
         Route::get('/topup/auto-topup', [\App\Http\Controllers\Api\V1\TopUpController::class, 'getAutoTopUp']);
         Route::put('/topup/auto-topup', [\App\Http\Controllers\Api\V1\TopUpController::class, 'updateAutoTopUp']);
         Route::post('/topup/auto-topup/disable', [\App\Http\Controllers\Api\V1\TopUpController::class, 'disableAutoTopUp']);
-        Route::post('/topup/auto-topup/setup-payment-method', [\App\Http\Controllers\Api\V1\TopUpController::class, 'setupPaymentMethod']);
+        Route::post('/topup/auto-topup/setup-payment-method', [\App\Http\Controllers\Api\V1\TopUpController::class, 'setupPaymentMethod'])
+            ->middleware('throttle:10,1'); // Tighter limit: 10 Stripe sessions per minute
         Route::post('/topup/auto-topup/payment-method/remove', [\App\Http\Controllers\Api\V1\TopUpController::class, 'removePaymentMethod']);
         Route::get('/topup/auto-topup/events', [\App\Http\Controllers\Api\V1\TopUpController::class, 'listEvents']);
     });
