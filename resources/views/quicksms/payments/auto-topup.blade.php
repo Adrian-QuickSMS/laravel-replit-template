@@ -5,16 +5,6 @@
 @push('styles')
 <style>
 .auto-topup-container { min-height: calc(100vh - 200px); }
-.status-card { border: none; border-radius: 0.75rem; overflow: hidden; }
-.status-header { padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
-.status-header.enabled { background: linear-gradient(135deg, #059669, #10b981); }
-.status-header.disabled { background: linear-gradient(135deg, #6b7280, #9ca3af); }
-.status-header.locked { background: linear-gradient(135deg, #dc2626, #ef4444); }
-.status-header h5, .status-header .status-label { color: #fff; margin: 0; }
-.status-body { padding: 1.5rem; }
-.status-stat { text-align: center; padding: 0.75rem; }
-.status-stat .value { font-size: 1.25rem; font-weight: 700; color: #1f2937; }
-.status-stat .label { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
 .config-card { border: none; border-radius: 0.75rem; }
 .config-card .card-header { background: #f8f9fa; border-bottom: 1px solid #e5e7eb; font-weight: 600; padding: 1rem 1.5rem; }
 .config-card .card-body { padding: 1.5rem; }
@@ -40,13 +30,16 @@
 @endpush
 
 @section('content')
-<div class="auto-topup-container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-1">Auto Top-Up</h2>
-            <p class="text-muted mb-0">Automatically top up your account when your balance falls below a threshold.</p>
-        </div>
+<div class="container-fluid">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="javascript:void(0)">Purchase</a></li>
+            <li class="breadcrumb-item active"><a href="javascript:void(0)">Auto Top-Up</a></li>
+        </ol>
     </div>
+</div>
+<div class="container-fluid auto-topup-container">
 
     @if(!($is_prepay ?? true))
     <div class="alert alert-warning">
@@ -55,8 +48,7 @@
     </div>
     @else
 
-    <!-- Locked Banner -->
-    <div id="lockedBanner" class="locked-banner" style="display:none;">
+    <div id="lockedBanner" class="locked-banner d-none">
         <i class="fas fa-lock"></i>
         <div>
             <strong>Auto Top-Up has been locked by support.</strong>
@@ -65,29 +57,65 @@
         </div>
     </div>
 
-    <!-- Section 1: Status Overview -->
-    <div class="card status-card mb-4" id="statusCard">
-        <div class="status-header disabled" id="statusHeader">
-            <h5><i class="fas fa-bolt me-2"></i>Auto Top-Up</h5>
-            <span class="status-label badge bg-white text-dark" id="statusBadge">Not Configured</span>
+    <div class="row">
+        <div class="col-xl-3 col-lg-6 col-sm-6 mb-4">
+            <div class="widget-stat card" id="statusCard">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-primary text-primary" id="statusIcon">
+                            <i class="fas fa-bolt"></i>
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Status</p>
+                            <h4 class="mb-0" id="statusBadge">Not Configured</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="status-body">
-            <div class="row" id="statusStats">
-                <div class="col-md-3 status-stat">
-                    <div class="value" id="statThreshold">—</div>
-                    <div class="label">Trigger Below</div>
+        <div class="col-xl-3 col-lg-6 col-sm-6 mb-4">
+            <div class="widget-stat card">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-warning text-warning">
+                            <i class="fas fa-sterling-sign"></i>
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Trigger Below</p>
+                            <h4 class="mb-0" id="statThreshold">—</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3 status-stat">
-                    <div class="value" id="statAmount">—</div>
-                    <div class="label">Top-Up Amount</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-sm-6 mb-4">
+            <div class="widget-stat card">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-success text-success">
+                            <i class="fas fa-arrow-up"></i>
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Top-Up Amount</p>
+                            <h4 class="mb-0" id="statAmount">—</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3 status-stat">
-                    <div class="value" id="statDailyCount">—</div>
-                    <div class="label">Today's Top-Ups</div>
-                </div>
-                <div class="col-md-3 status-stat">
-                    <div class="value" id="statDailyValue">—</div>
-                    <div class="label">Today's Value</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-sm-6 mb-4">
+            <div class="widget-stat card">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-info text-info">
+                            <i class="fas fa-chart-line"></i>
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Today's Top-Ups</p>
+                            <h4 class="mb-0" id="statDailyCount">—</h4>
+                            <small class="text-muted" id="statDailyValue"></small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -401,22 +429,23 @@
     }
 
     function renderStatus() {
-        const header = document.getElementById('statusHeader');
         const badge = document.getElementById('statusBadge');
+        const icon = document.getElementById('statusIcon');
+        const lockedBanner = document.getElementById('lockedBanner');
 
         if (currentConfig?.admin_locked) {
-            header.className = 'status-header locked';
             badge.textContent = 'Locked';
-            document.getElementById('lockedBanner').style.display = 'flex';
+            icon.className = 'me-3 bgl-danger text-danger';
+            lockedBanner.classList.remove('d-none');
             document.getElementById('lockedReason').textContent = currentConfig.admin_locked_reason || '';
         } else if (currentConfig?.enabled) {
-            header.className = 'status-header enabled';
             badge.textContent = 'Enabled';
-            document.getElementById('lockedBanner').style.display = 'none';
+            icon.className = 'me-3 bgl-success text-success';
+            lockedBanner.classList.add('d-none');
         } else {
-            header.className = 'status-header disabled';
             badge.textContent = currentConfig ? 'Disabled' : 'Not Configured';
-            document.getElementById('lockedBanner').style.display = 'none';
+            icon.className = 'me-3 bgl-primary text-primary';
+            lockedBanner.classList.add('d-none');
         }
 
         document.getElementById('statThreshold').textContent = currentConfig ? fmt(currentConfig.threshold_amount) : '—';
@@ -424,9 +453,10 @@
         document.getElementById('statDailyCount').textContent = dailyStats
             ? `${dailyStats.count} of ${currentConfig?.max_topups_per_day || '—'}`
             : '—';
-        document.getElementById('statDailyValue').textContent = dailyStats
+        const dailyValueEl = document.getElementById('statDailyValue');
+        dailyValueEl.textContent = dailyStats
             ? `${fmt(dailyStats.value)} of ${currentConfig?.daily_topup_cap ? fmt(currentConfig.daily_topup_cap) : '—'}`
-            : '—';
+            : '';
     }
 
     function renderForm() {
