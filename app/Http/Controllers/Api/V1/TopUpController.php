@@ -50,12 +50,14 @@ class TopUpController extends Controller
     {
         $accountId = $request->user()->account_id ?? session('customer_tenant_id');
         $config = $this->autoTopUpService->getConfig($accountId);
+        $vatInfo = $this->autoTopUpService->getVatInfo($accountId);
 
         if (!$config) {
             return response()->json([
                 'success' => true,
                 'data' => null,
                 'daily_stats' => ['count' => 0, 'value' => '0.00'],
+                'vat' => $vatInfo,
             ]);
         }
 
@@ -65,6 +67,7 @@ class TopUpController extends Controller
             'success' => true,
             'data' => $config->toPortalArray(),
             'daily_stats' => $dailyStats,
+            'vat' => $vatInfo,
         ]);
     }
 

@@ -45,7 +45,7 @@ class AutoTopUpService
 
             // Threshold-crossing: was above (or at), now below
             if (bccomp($previousBalance, $threshold, 4) >= 0 && bccomp($currentBalance, $threshold, 4) < 0) {
-                $this->triggerAutoTopUp($accountId, $config, $currentBalance);
+                $this->triggerAutoTopUp($accountId, $account, $config, $currentBalance);
             }
         } catch (\Throwable $e) {
             Log::error('Auto top-up evaluation failed', [
@@ -56,9 +56,21 @@ class AutoTopUpService
     }
 
     /**
+     * Determine VAT rate for an account using the same logic as InvoiceService.
+     * Rule: VAT-registered AND NOT reverse-charge eligible → 20%. Otherwise → 0%.
+     */
+    private function getVatRateForAccount(Account $account): string
+    {
+        if ($account->vat_registered && !$account->vat_reverse_charges) {
+            return config('billing.vat.uk_rate', '20.00');
+        }
+        return config('billing.vat.default_rate', '0.00');
+    }
+
+    /**
      * Trigger an auto top-up: validate conditions, create event, dispatch job.
      */
-    private function triggerAutoTopUp(string $accountId, AutoTopUpConfig $config, string $currentBalance): void
+    private function triggerAutoTopUp(string $accountId, Account $account, AutoTopUpConfig $config, string $currentBalance): void
     {
         // Check daily limits
         $dailyStats = $this->getDailyStats($accountId);
@@ -96,7 +108,7 @@ class AutoTopUpService
         // Acquire PG transaction-level advisory lock (auto-releases on transaction end)
         $lockKey = crc32("auto_topup_{$accountId}");
 
-        DB::transaction(function () use ($accountId, $config, $currentBalance, $dailyStats, $lockKey) {
+        DB::transaction(function () use ($accountId, $account, $config, $currentBalance, $dailyStats, $lockKey) {
             $lockAcquired = DB::selectOne("SELECT pg_try_advisory_xact_lock(?) as locked", [$lockKey]);
 
             if (!$lockAcquired || !$lockAcquired->locked) {
@@ -110,7 +122,7 @@ class AutoTopUpService
                 return;
             }
 
-            $vatRate = config('billing.auto_topup.vat_rate', '20.00');
+            $vatRate = $this->getVatRateForAccount($account);
             $vatAmount = bcmul($config->topup_amount, bcdiv($vatRate, '100', 6), 4);
             $totalCharge = bcadd($config->topup_amount, $vatAmount, 4);
 
@@ -827,5 +839,21 @@ class AutoTopUpService
         }
 
         return $config;
+    }
+
+    /**
+     * Get VAT info for an account (for customer portal display).
+     */
+    public function getVatInfo(string $accountId): array
+    {
+        $account = Account::find($accountId);
+        if (!$account) {
+            return ['vat_applicable' => false, 'vat_rate' => '0.00'];
+        }
+        $rate = $this->getVatRateForAccount($account);
+        return [
+            'vat_applicable' => bccomp($rate, '0', 2) > 0,
+            'vat_rate' => $rate,
+        ];
     }
 }
