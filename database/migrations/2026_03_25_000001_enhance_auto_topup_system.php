@@ -226,13 +226,9 @@ return new class extends Migration
             });
         }
 
-        // Remove stripe_customer_id from accounts
-        if (Schema::hasTable('accounts') && Schema::hasColumn('accounts', 'stripe_customer_id')) {
-            Schema::table('accounts', function (Blueprint $table) {
-                $table->dropIndex(['stripe_customer_id']);
-                $table->dropColumn('stripe_customer_id');
-            });
-        }
+        // Note: stripe_customer_id on accounts is NOT dropped here because it was
+        // created by an earlier migration (2026_02_20_000001_add_billing_fields_to_accounts).
+        // This migration only adds it idempotently if missing.
 
         // Remove RLS policy from auto_topup_configs
         DB::unprepared("DROP POLICY IF EXISTS auto_topup_configs_tenant_isolation ON auto_topup_configs");

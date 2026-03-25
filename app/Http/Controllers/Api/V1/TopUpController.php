@@ -96,13 +96,14 @@ class TopUpController extends Controller
         $minAmount = config('billing.auto_topup.min_amount', '5.00');
         $maxAmount = config('billing.auto_topup.max_amount', '50000.00');
         $maxPerDay = config('billing.auto_topup.max_per_day', 3);
+        $maxDailyCap = config('billing.auto_topup.max_daily_cap', '100000.00');
 
         $validator = Validator::make($request->all(), [
             'enabled' => 'required|boolean',
-            'threshold_amount' => 'required_if:enabled,true|nullable|numeric|min:1',
+            'threshold_amount' => "required_if:enabled,true|nullable|numeric|min:1|max:{$maxAmount}",
             'topup_amount' => "required_if:enabled,true|nullable|numeric|min:{$minAmount}|max:{$maxAmount}",
             'max_topups_per_day' => "sometimes|integer|min:1|max:{$maxPerDay}",
-            'daily_topup_cap' => 'sometimes|nullable|numeric|min:0',
+            'daily_topup_cap' => "sometimes|nullable|numeric|min:0|max:{$maxDailyCap}",
             'min_minutes_between_topups' => 'sometimes|integer|min:0',
             'notify_email_success' => 'sometimes|boolean',
             'notify_email_failure' => 'sometimes|boolean',
@@ -126,7 +127,7 @@ class TopUpController extends Controller
         }
 
         // Validate daily_topup_cap >= topup_amount if both set
-        $topupAmount = $request->input('topup_amount', $existingConfig->topup_amount ?? 0);
+        $topupAmount = $request->input('topup_amount', $existingConfig?->topup_amount ?? 0);
         $dailyCap = $request->input('daily_topup_cap');
         if ($dailyCap !== null && bccomp($dailyCap, $topupAmount, 4) < 0) {
             return response()->json([
@@ -219,7 +220,7 @@ class TopUpController extends Controller
 
         $events = AutoTopUpEvent::forAccount($accountId)
             ->orderByDesc('created_at')
-            ->limit($request->integer('limit', 50))
+            ->limit(min($request->integer('limit', 50), 100))
             ->get()
             ->map(fn ($e) => $e->toPortalArray());
 

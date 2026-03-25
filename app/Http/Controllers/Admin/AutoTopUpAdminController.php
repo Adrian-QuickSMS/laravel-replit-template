@@ -119,7 +119,10 @@ class AutoTopUpAdminController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $adminUserId = session('admin_user_id', 'system');
+        $adminUserId = session('admin_user_id');
+        if (!$adminUserId) {
+            return response()->json(['success' => false, 'message' => 'Admin session not found.'], 401);
+        }
 
         $this->autoTopUpService->adminDisable($accountId, $adminUserId, $request->input('reason'));
 
@@ -132,7 +135,10 @@ class AutoTopUpAdminController extends Controller
      */
     public function adminUnlock(Request $request, string $accountId): JsonResponse
     {
-        $adminUserId = session('admin_user_id', 'system');
+        $adminUserId = session('admin_user_id');
+        if (!$adminUserId) {
+            return response()->json(['success' => false, 'message' => 'Admin session not found.'], 401);
+        }
 
         $this->autoTopUpService->adminUnlock($accountId, $adminUserId);
 

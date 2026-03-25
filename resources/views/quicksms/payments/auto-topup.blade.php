@@ -134,7 +134,7 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label" for="maxPerDay">Max Top-Ups Per Day</label>
                                     <select class="form-select" id="maxPerDay" name="max_topups_per_day">
-                                        @for($i = 1; $i <= 10; $i++)
+                                        @for($i = 1; $i <= config('billing.auto_topup.max_per_day', 3); $i++)
                                         <option value="{{ $i }}" {{ $i === 3 ? 'selected' : '' }}>{{ $i }}</option>
                                         @endfor
                                     </select>
@@ -325,6 +325,14 @@
     let currentConfig = null;
     let dailyStats = null;
 
+    // HTML escape helper to prevent XSS
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
+
     // Helpers
     function fmt(amount) {
         if (amount === null || amount === undefined) return '—';
@@ -486,11 +494,11 @@
 
             tbody.innerHTML = resp.data.map(e => `
                 <tr>
-                    <td class="small">${fmtDate(e.created_at)}</td>
-                    <td>${eventLabel(e.event_type)}</td>
-                    <td>${e.topup_amount ? fmt(e.topup_amount) : '—'}</td>
-                    <td><span class="badge badge-${e.status}">${e.status}</span></td>
-                    <td class="small text-muted">${e.failure_message || (e.requires_action_url ? '<a href="' + e.requires_action_url + '">Complete payment</a>' : '—')}</td>
+                    <td class="small">${esc(fmtDate(e.created_at))}</td>
+                    <td>${esc(eventLabel(e.event_type))}</td>
+                    <td>${e.topup_amount ? esc(fmt(e.topup_amount)) : '—'}</td>
+                    <td><span class="badge badge-${esc(e.status)}">${esc(e.status)}</span></td>
+                    <td class="small text-muted">${esc(e.failure_message) || (e.requires_action_url ? '<a href="' + encodeURI(e.requires_action_url) + '">Complete payment</a>' : '—')}</td>
                 </tr>
             `).join('');
         } catch (e) {
@@ -559,7 +567,7 @@
                 showToast('Settings saved successfully.', 'success');
             }
         } catch (e) {
-            const msg = e.message || e.errors ? Object.values(e.errors).flat().join(', ') : 'Failed to save settings.';
+            const msg = e.message || (e.errors ? Object.values(e.errors).flat().join(', ') : 'Failed to save settings.');
             showToast(msg, 'danger');
         } finally {
             btn.disabled = false;
@@ -608,7 +616,7 @@
         const container = document.querySelector('.auto-topup-container');
         const alert = document.createElement('div');
         alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        alert.innerHTML = `${esc(message)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
         container.insertBefore(alert, container.firstChild);
         setTimeout(() => alert.remove(), 5000);
     }

@@ -33,9 +33,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(DataMaskingService::class);
         $this->app->scoped(IpAllowlistService::class);
 
-        // Billing — Auto Top-Up services
-        $this->app->singleton(AutoTopUpNotificationService::class);
-        $this->app->singleton(AutoTopUpService::class);
+        // Billing — Auto Top-Up services (scoped for Octane safety)
+        $this->app->scoped(AutoTopUpNotificationService::class);
+        $this->app->scoped(AutoTopUpService::class);
     }
 
     /**

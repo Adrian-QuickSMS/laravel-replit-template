@@ -146,6 +146,12 @@
     let selectedAccountId = null;
 
     function fmt(v) { return v != null ? '£' + parseFloat(v).toFixed(2) : '—'; }
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
     function fmtDate(iso) {
         if (!iso) return '—';
         const d = new Date(iso);
@@ -171,14 +177,14 @@
         try {
             const resp = await apiFetch(`${API_BASE}?${params}`);
             renderTable(resp.data);
-            renderStats(resp.data);
+            renderStats(resp.data, resp.meta);
         } catch (e) {
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load data.</td></tr>';
         }
     }
 
-    function renderStats(items) {
-        document.getElementById('statTotal').textContent = items.length;
+    function renderStats(items, meta) {
+        document.getElementById('statTotal').textContent = meta?.total ?? items.length;
         document.getElementById('statEnabled').textContent = items.filter(i => i.enabled && !i.admin_locked).length;
         document.getElementById('statLocked').textContent = items.filter(i => i.admin_locked).length;
         document.getElementById('statFailed').textContent = items.filter(i => i.consecutive_failure_count > 0).length;
@@ -200,28 +206,28 @@
         tbody.innerHTML = items.map(item => `
             <tr>
                 <td>
-                    <div class="fw-semibold">${item.account_name || '—'}</div>
-                    <small class="text-muted">${item.account_number || ''}</small>
+                    <div class="fw-semibold">${esc(item.account_name) || '—'}</div>
+                    <small class="text-muted">${esc(item.account_number) || ''}</small>
                 </td>
                 <td>${statusBadge(item)}</td>
-                <td>${fmt(item.threshold_amount)}</td>
-                <td>${fmt(item.topup_amount)}</td>
+                <td>${esc(fmt(item.threshold_amount))}</td>
+                <td>${esc(fmt(item.topup_amount))}</td>
                 <td>
-                    <small>${item.daily_stats.count} / ${item.max_topups_per_day}</small><br>
-                    <small class="text-muted">${fmt(item.daily_stats.value)}${item.daily_topup_cap ? ' / ' + fmt(item.daily_topup_cap) : ''}</small>
+                    <small>${esc(item.daily_stats.count)} / ${esc(item.max_topups_per_day)}</small><br>
+                    <small class="text-muted">${esc(fmt(item.daily_stats.value))}${item.daily_topup_cap ? ' / ' + esc(fmt(item.daily_topup_cap)) : ''}</small>
                 </td>
-                <td><small>${item.card_brand ? item.card_brand + ' …' + item.card_last4 : '—'}</small></td>
-                <td>${item.consecutive_failure_count > 0 ? '<span class="badge badge-failed">' + item.consecutive_failure_count + '</span>' : '0'}</td>
-                <td><small>${fmtDate(item.last_successful_topup_at)}</small></td>
+                <td><small>${item.card_brand ? esc(item.card_brand) + ' …' + esc(item.card_last4) : '—'}</small></td>
+                <td>${item.consecutive_failure_count > 0 ? '<span class="badge badge-failed">' + esc(item.consecutive_failure_count) + '</span>' : '0'}</td>
+                <td><small>${esc(fmtDate(item.last_successful_topup_at))}</small></td>
                 <td>
                     <div class="dropdown action-menu">
                         <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="viewEvents('${item.account_id}', '${item.account_name || ''}');return false;"><i class="fas fa-history me-2"></i>View Events</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="viewEvents('${esc(item.account_id)}', '${esc(item.account_name || '')}');return false;"><i class="fas fa-history me-2"></i>View Events</a></li>
                             <li><hr class="dropdown-divider"></li>
                             ${item.admin_locked
-                                ? `<li><a class="dropdown-item" href="#" onclick="unlockAccount('${item.account_id}');return false;"><i class="fas fa-unlock me-2"></i>Unlock</a></li>`
-                                : `<li><a class="dropdown-item text-danger" href="#" onclick="disableAccount('${item.account_id}', '${item.account_name || ''}');return false;"><i class="fas fa-lock me-2"></i>Disable &amp; Lock</a></li>`
+                                ? `<li><a class="dropdown-item" href="#" onclick="unlockAccount('${esc(item.account_id)}');return false;"><i class="fas fa-unlock me-2"></i>Unlock</a></li>`
+                                : `<li><a class="dropdown-item text-danger" href="#" onclick="disableAccount('${esc(item.account_id)}', '${esc(item.account_name || '')}');return false;"><i class="fas fa-lock me-2"></i>Disable &amp; Lock</a></li>`
                             }
                         </ul>
                     </div>
@@ -245,13 +251,13 @@
             }
             tbody.innerHTML = resp.data.map(e => `
                 <tr>
-                    <td>${fmtDate(e.created_at)}</td>
-                    <td>${e.event_type}</td>
-                    <td><span class="badge badge-${e.status}">${e.status}</span></td>
-                    <td>${e.topup_amount ? fmt(e.topup_amount) : '—'}</td>
-                    <td><small class="text-muted">${e.stripe_payment_intent_id || '—'}</small></td>
-                    <td><small>${e.failure_code || '—'}</small></td>
-                    <td><small>${e.failure_message || '—'}</small></td>
+                    <td>${esc(fmtDate(e.created_at))}</td>
+                    <td>${esc(e.event_type)}</td>
+                    <td><span class="badge badge-${esc(e.status)}">${esc(e.status)}</span></td>
+                    <td>${e.topup_amount ? esc(fmt(e.topup_amount)) : '—'}</td>
+                    <td><small class="text-muted">${esc(e.stripe_payment_intent_id) || '—'}</small></td>
+                    <td><small>${esc(e.failure_code) || '—'}</small></td>
+                    <td><small>${esc(e.failure_message) || '—'}</small></td>
                 </tr>
             `).join('');
         } catch (e) {
