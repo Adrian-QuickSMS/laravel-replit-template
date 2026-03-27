@@ -1,0 +1,2790 @@
+<!-- QuickSMS API Documentation V2 — Squarespace Code Block Embed -->
+<!-- NOTE: This code may not render correctly in the Squarespace editor. Preview or publish the page to see it properly. -->
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   QuickSMS API Documentation — Scoped CSS
+   All selectors scoped to #qsapi-docs-root
+   All class names prefixed with qsapi-
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. CSS Reset (scoped)
+   ------------------------------------------------------------ */
+#qsapi-docs-root,
+#qsapi-docs-root *,
+#qsapi-docs-root *::before,
+#qsapi-docs-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+#qsapi-docs-root {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--qsapi-text-dark);
+  background: var(--qsapi-body-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#qsapi-docs-root a {
+  color: var(--qsapi-primary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+#qsapi-docs-root a:hover {
+  color: var(--qsapi-primary-hover);
+  text-decoration: underline;
+}
+
+#qsapi-docs-root img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#qsapi-docs-root button {
+  font-family: inherit;
+}
+
+#qsapi-docs-root h1,
+#qsapi-docs-root h2,
+#qsapi-docs-root h3,
+#qsapi-docs-root h4,
+#qsapi-docs-root h5,
+#qsapi-docs-root h6 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ------------------------------------------------------------
+   2. CSS Custom Properties
+   ------------------------------------------------------------ */
+#qsapi-docs-root {
+  --qsapi-primary: #886CC0;
+  --qsapi-primary-hover: #6c4bae;
+  --qsapi-primary-dark: #402c67;
+  --qsapi-secondary: #FFA7D7;
+  --qsapi-success: #09BD3C;
+  --qsapi-warning: #FFBF00;
+  --qsapi-danger: #FC2E53;
+  --qsapi-info: #3065D0;
+
+  --qsapi-body-bg: #f3f0f9;
+  --qsapi-card-bg: #fff;
+  --qsapi-border: #e6e6e6;
+
+  --qsapi-text-dark: #333;
+  --qsapi-text-muted: #888;
+  --qsapi-heading: #1a1a2e;
+
+  --qsapi-font-code: 'JetBrains Mono', 'Fira Code', monospace;
+  --qsapi-font-base: 'Roboto', sans-serif;
+
+  --qsapi-radius: 0.625rem;
+  --qsapi-shadow: 0 0 2.5rem rgba(82, 63, 105, 0.1);
+
+  --qsapi-gradient: linear-gradient(212.43deg, #886CC0 19.43%, #AA6CC0 87.63%);
+
+  --qsapi-code-bg: #1a1b2e;
+  --qsapi-code-color: #e2e4f0;
+
+  --qsapi-callout-info-bg: rgba(48, 101, 208, 0.06);
+  --qsapi-callout-warning-bg: rgba(255, 191, 0, 0.06);
+  --qsapi-callout-success-bg: rgba(9, 189, 60, 0.06);
+  --qsapi-callout-danger-bg: rgba(252, 46, 83, 0.06);
+}
+
+/* Dark mode overrides */
+#qsapi-docs-root.qsapi-dark {
+  --qsapi-body-bg: #161717;
+  --qsapi-card-bg: #202020;
+  --qsapi-border: #2B2B2B;
+
+  --qsapi-text-dark: #d4d4d4;
+  --qsapi-text-muted: #888;
+  --qsapi-heading: #e8e8e8;
+
+  --qsapi-code-bg: #0d0e1a;
+
+  --qsapi-callout-info-bg: rgba(48, 101, 208, 0.1);
+  --qsapi-callout-warning-bg: rgba(255, 191, 0, 0.1);
+  --qsapi-callout-success-bg: rgba(9, 189, 60, 0.1);
+  --qsapi-callout-danger-bg: rgba(252, 46, 83, 0.1);
+}
+
+/* ------------------------------------------------------------
+   3. Layout
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+#qsapi-docs-root .qsapi-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid var(--qsapi-border);
+  background: var(--qsapi-card-bg);
+  padding: 1rem;
+  z-index: 100;
+}
+
+#qsapi-docs-root .qsapi-main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#qsapi-docs-root .qsapi-mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--qsapi-card-bg);
+  border-bottom: 1px solid var(--qsapi-border);
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+/* ------------------------------------------------------------
+   4. Hero Banner
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-hero {
+  background: var(--qsapi-gradient);
+  color: #fff;
+  padding: 3rem 2rem;
+  border-radius: var(--qsapi-radius);
+  margin-bottom: 2rem;
+}
+
+#qsapi-docs-root .qsapi-hero h2 {
+  color: #fff;
+  font-size: 2rem;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+#qsapi-docs-root .qsapi-hero-subtitle {
+  opacity: 0.9;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
+#qsapi-docs-root .qsapi-hero-meta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+#qsapi-docs-root .qsapi-hero-chip {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.8rem;
+  font-family: var(--qsapi-font-code);
+}
+
+/* ------------------------------------------------------------
+   5. Sidebar Components
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--qsapi-primary);
+}
+
+#qsapi-docs-root .qsapi-sidebar-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--qsapi-border);
+  border-radius: var(--qsapi-radius);
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  font-family: var(--qsapi-font-base);
+  background: var(--qsapi-card-bg);
+  color: var(--qsapi-text-dark);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#qsapi-docs-root .qsapi-sidebar-search:focus {
+  border-color: var(--qsapi-primary);
+  box-shadow: 0 0 0 3px rgba(136, 108, 192, 0.15);
+}
+
+#qsapi-docs-root .qsapi-sidebar-group {
+  margin-bottom: 1rem;
+}
+
+#qsapi-docs-root .qsapi-sidebar-group-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--qsapi-text-muted);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+#qsapi-docs-root .qsapi-sidebar-link {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--qsapi-text-dark);
+  text-decoration: none;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+  line-height: 1.4;
+}
+
+#qsapi-docs-root .qsapi-sidebar-link:hover {
+  background: rgba(136, 108, 192, 0.08);
+  text-decoration: none;
+}
+
+#qsapi-docs-root .qsapi-sidebar-link.qsapi-active {
+  background: rgba(136, 108, 192, 0.12);
+  color: var(--qsapi-primary);
+  font-weight: 600;
+}
+
+#qsapi-docs-root .qsapi-version-pill {
+  display: inline-flex;
+  gap: 0;
+  border-radius: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--qsapi-border);
+  margin: 1rem 0;
+}
+
+#qsapi-docs-root .qsapi-version-btn {
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--qsapi-text-muted);
+  transition: all 0.15s;
+}
+
+#qsapi-docs-root .qsapi-version-btn:hover {
+  color: var(--qsapi-text-dark);
+}
+
+#qsapi-docs-root .qsapi-version-btn.qsapi-active {
+  background: var(--qsapi-primary);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   6. Section Cards
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-section {
+  background: var(--qsapi-card-bg);
+  border-radius: var(--qsapi-radius);
+  box-shadow: var(--qsapi-shadow);
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  scroll-margin-top: 1.5rem;
+}
+
+#qsapi-docs-root .qsapi-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--qsapi-heading);
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--qsapi-border);
+}
+
+#qsapi-docs-root .qsapi-section h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--qsapi-heading);
+  margin: 1.5rem 0 0.75rem;
+}
+
+#qsapi-docs-root .qsapi-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--qsapi-heading);
+}
+
+#qsapi-docs-root .qsapi-section p {
+  line-height: 1.7;
+  margin: 0 0 1rem;
+  color: var(--qsapi-text-dark);
+}
+
+#qsapi-docs-root .qsapi-section ul,
+#qsapi-docs-root .qsapi-section ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+  line-height: 1.7;
+  color: var(--qsapi-text-dark);
+}
+
+/* ------------------------------------------------------------
+   7. Code Blocks
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-code-wrap {
+  position: relative;
+  margin: 1rem 0;
+}
+
+#qsapi-docs-root .qsapi-code {
+  background: var(--qsapi-code-bg);
+  color: var(--qsapi-code-color);
+  padding: 1.25rem;
+  border-radius: var(--qsapi-radius);
+  overflow-x: auto;
+  font-family: var(--qsapi-font-code);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre;
+  tab-size: 2;
+}
+
+#qsapi-docs-root .qsapi-code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.7rem;
+  font-family: var(--qsapi-font-base);
+  transition: all 0.15s;
+}
+
+#qsapi-docs-root .qsapi-code-copy:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+#qsapi-docs-root .qsapi-code-copy.qsapi-copied {
+  background: rgba(9, 189, 60, 0.3);
+  color: #09BD3C;
+}
+
+/* Syntax highlighting */
+#qsapi-docs-root .qsapi-ck { color: #c678dd; }
+#qsapi-docs-root .qsapi-cs { color: #98c379; }
+#qsapi-docs-root .qsapi-cn { color: #d19a66; }
+#qsapi-docs-root .qsapi-cc { color: #5c6370; font-style: italic; }
+#qsapi-docs-root .qsapi-cp { color: #61afef; }
+#qsapi-docs-root .qsapi-cb { color: #d19a66; }
+#qsapi-docs-root .qsapi-cu { color: #56b6c2; }
+
+/* ------------------------------------------------------------
+   8. Tables
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1rem 0;
+  border-radius: var(--qsapi-radius);
+  overflow: hidden;
+  border: 1px solid var(--qsapi-border);
+}
+
+#qsapi-docs-root .qsapi-table th {
+  background: var(--qsapi-body-bg);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--qsapi-text-dark);
+  border-bottom: 2px solid var(--qsapi-border);
+  white-space: nowrap;
+}
+
+#qsapi-docs-root .qsapi-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--qsapi-border);
+  color: var(--qsapi-text-dark);
+  vertical-align: top;
+}
+
+#qsapi-docs-root .qsapi-table tr:last-child td {
+  border-bottom: none;
+}
+
+#qsapi-docs-root .qsapi-table code {
+  background: rgba(136, 108, 192, 0.08);
+  color: var(--qsapi-primary-dark);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-family: var(--qsapi-font-code);
+}
+
+/* ------------------------------------------------------------
+   9. Badges
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+#qsapi-docs-root .qsapi-badge-required {
+  background: rgba(252, 46, 83, 0.12);
+  color: #d32f4a;
+}
+
+#qsapi-docs-root .qsapi-badge-optional {
+  background: rgba(136, 108, 192, 0.12);
+  color: #886CC0;
+}
+
+#qsapi-docs-root .qsapi-badge-post {
+  background: rgba(9, 189, 60, 0.15);
+  color: #09BD3C;
+}
+
+#qsapi-docs-root .qsapi-badge-get {
+  background: rgba(48, 101, 208, 0.15);
+  color: #3065D0;
+}
+
+#qsapi-docs-root .qsapi-badge-success {
+  background: rgba(9, 189, 60, 0.12);
+  color: #09BD3C;
+}
+
+#qsapi-docs-root .qsapi-badge-warning {
+  background: rgba(255, 191, 0, 0.15);
+  color: #cc9900;
+}
+
+#qsapi-docs-root .qsapi-badge-danger {
+  background: rgba(252, 46, 83, 0.12);
+  color: #FC2E53;
+}
+
+#qsapi-docs-root .qsapi-badge-coming {
+  background: rgba(136, 108, 192, 0.1);
+  color: #886CC0;
+  border: 1px dashed #886CC0;
+}
+
+/* ------------------------------------------------------------
+   10. Callout Boxes
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-callout {
+  padding: 1rem 1.25rem;
+  border-radius: var(--qsapi-radius);
+  margin: 1rem 0;
+  border-left: 4px solid;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+#qsapi-docs-root .qsapi-callout-info {
+  border-color: #3065D0;
+  background: var(--qsapi-callout-info-bg);
+}
+
+#qsapi-docs-root .qsapi-callout-warning {
+  border-color: #FFBF00;
+  background: var(--qsapi-callout-warning-bg);
+}
+
+#qsapi-docs-root .qsapi-callout-success {
+  border-color: #09BD3C;
+  background: var(--qsapi-callout-success-bg);
+}
+
+#qsapi-docs-root .qsapi-callout-danger {
+  border-color: #FC2E53;
+  background: var(--qsapi-callout-danger-bg);
+}
+
+#qsapi-docs-root .qsapi-callout strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* ------------------------------------------------------------
+   11. Tabs (code examples)
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-tabs {
+  margin: 1rem 0;
+}
+
+#qsapi-docs-root .qsapi-tab-header {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--qsapi-border);
+  overflow-x: auto;
+}
+
+#qsapi-docs-root .qsapi-tab-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--qsapi-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+#qsapi-docs-root .qsapi-tab-btn:hover {
+  color: var(--qsapi-text-dark);
+}
+
+#qsapi-docs-root .qsapi-tab-btn.qsapi-active {
+  color: var(--qsapi-primary);
+  border-bottom-color: var(--qsapi-primary);
+}
+
+#qsapi-docs-root .qsapi-tab-panel {
+  display: none;
+}
+
+#qsapi-docs-root .qsapi-tab-panel.qsapi-active {
+  display: block;
+}
+
+/* ------------------------------------------------------------
+   12. Endpoint Display
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-endpoint {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--qsapi-body-bg);
+  border-radius: var(--qsapi-radius);
+  margin: 1rem 0;
+  font-family: var(--qsapi-font-code);
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+#qsapi-docs-root .qsapi-endpoint-method {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+#qsapi-docs-root .qsapi-endpoint-url {
+  color: var(--qsapi-text-dark);
+  word-break: break-all;
+}
+
+/* ------------------------------------------------------------
+   13. Interactive Try-It Console
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-tryit {
+  background: var(--qsapi-body-bg);
+  border-radius: var(--qsapi-radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border: 1px solid var(--qsapi-border);
+}
+
+#qsapi-docs-root .qsapi-tryit-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--qsapi-heading);
+}
+
+#qsapi-docs-root .qsapi-tryit-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  margin-bottom: 0.75rem;
+}
+
+#qsapi-docs-root .qsapi-tryit-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--qsapi-text-dark);
+  padding-top: 0.6rem;
+}
+
+#qsapi-docs-root .qsapi-tryit-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--qsapi-border);
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: var(--qsapi-card-bg);
+  color: var(--qsapi-text-dark);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#qsapi-docs-root .qsapi-tryit-input:focus {
+  border-color: var(--qsapi-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(136, 108, 192, 0.15);
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle .qsapi-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--qsapi-border);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle input:checked + .qsapi-toggle-track {
+  background: var(--qsapi-primary);
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle .qsapi-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+#qsapi-docs-root .qsapi-tryit-toggle input:checked + .qsapi-toggle-track::after {
+  transform: translateX(20px);
+}
+
+#qsapi-docs-root .qsapi-tryit-btn {
+  background: var(--qsapi-primary);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--qsapi-radius);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--qsapi-font-base);
+  transition: background 0.15s;
+}
+
+#qsapi-docs-root .qsapi-tryit-btn:hover {
+  background: var(--qsapi-primary-hover);
+}
+
+#qsapi-docs-root .qsapi-tryit-output {
+  margin-top: 1rem;
+}
+
+#qsapi-docs-root .qsapi-tryit-divider {
+  border: none;
+  border-top: 1px solid var(--qsapi-border);
+  margin: 1rem 0;
+  padding-top: 1rem;
+}
+
+/* ------------------------------------------------------------
+   14. Coming Soon Cards
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-coming-card {
+  border: 2px dashed rgba(136, 108, 192, 0.3);
+  border-radius: var(--qsapi-radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  opacity: 0.85;
+  position: relative;
+}
+
+#qsapi-docs-root .qsapi-coming-card h4 {
+  margin: 0 0 0.5rem;
+}
+
+#qsapi-docs-root .qsapi-coming-ribbon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(136, 108, 192, 0.1);
+  color: #886CC0;
+  border: 1px dashed #886CC0;
+  padding: 0.2rem 0.65rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ------------------------------------------------------------
+   15. Status Flow Diagram
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0;
+  padding: 1rem;
+}
+
+#qsapi-docs-root .qsapi-flow-box {
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--qsapi-radius);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: center;
+  min-width: 100px;
+}
+
+#qsapi-docs-root .qsapi-flow-arrow {
+  color: var(--qsapi-text-muted);
+  font-size: 1.2rem;
+}
+
+/* ------------------------------------------------------------
+   16. Migration Banner (V1)
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-migration-banner {
+  background: linear-gradient(135deg, rgba(136, 108, 192, 0.08), rgba(48, 101, 208, 0.08));
+  border: 1px solid rgba(136, 108, 192, 0.2);
+  border-radius: var(--qsapi-radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ------------------------------------------------------------
+   17. Dark Mode Toggle
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-dark-toggle {
+  background: transparent;
+  border: 1px solid var(--qsapi-border);
+  border-radius: var(--qsapi-radius);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--qsapi-text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s;
+  font-family: var(--qsapi-font-base);
+}
+
+#qsapi-docs-root .qsapi-dark-toggle:hover {
+  background: rgba(136, 108, 192, 0.08);
+}
+
+/* ------------------------------------------------------------
+   18. Scroll-to-top Button
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-scroll-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--qsapi-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  z-index: 200;
+}
+
+#qsapi-docs-root .qsapi-scroll-top:hover {
+  background: var(--qsapi-primary-hover);
+}
+
+#qsapi-docs-root .qsapi-scroll-top.qsapi-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ------------------------------------------------------------
+   19. Responsive Breakpoints
+   ------------------------------------------------------------ */
+
+/* Sidebar overlay (always in DOM, hidden by default) */
+#qsapi-docs-root .qsapi-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 150;
+}
+
+@media (max-width: 1024px) {
+  #qsapi-docs-root .qsapi-sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    box-shadow: none;
+    width: 260px;
+  }
+
+  #qsapi-docs-root .qsapi-sidebar.qsapi-open {
+    transform: translateX(280px);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+
+  #qsapi-docs-root .qsapi-mobile-header {
+    display: flex;
+  }
+
+  #qsapi-docs-root .qsapi-main {
+    padding: 1rem;
+  }
+
+  #qsapi-docs-root .qsapi-sidebar-overlay.qsapi-open {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  #qsapi-docs-root .qsapi-section {
+    padding: 1rem 1.25rem;
+  }
+
+  #qsapi-docs-root .qsapi-hero {
+    padding: 2rem 1.25rem;
+  }
+
+  #qsapi-docs-root .qsapi-table {
+    font-size: 0.8rem;
+  }
+
+  #qsapi-docs-root .qsapi-table th,
+  #qsapi-docs-root .qsapi-table td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  #qsapi-docs-root .qsapi-tryit-row {
+    grid-template-columns: 1fr;
+  }
+
+  #qsapi-docs-root .qsapi-endpoint {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #qsapi-docs-root .qsapi-hero-meta {
+    flex-direction: column;
+  }
+}
+
+/* ------------------------------------------------------------
+   20. Dark Mode Overrides
+   ------------------------------------------------------------ */
+#qsapi-docs-root.qsapi-dark .qsapi-sidebar {
+  background: #1a1a1a;
+  border-color: #2B2B2B;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-mobile-header {
+  background: #1a1a1a;
+  border-color: #2B2B2B;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-tryit-input {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #e0e0e0;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-table th {
+  background: #1a1a1a;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-code {
+  background: #0d0e1a;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-sidebar-search {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #e0e0e0;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-callout-info {
+  background: rgba(48, 101, 208, 0.1);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-callout-warning {
+  background: rgba(255, 191, 0, 0.1);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-callout-success {
+  background: rgba(9, 189, 60, 0.1);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-callout-danger {
+  background: rgba(252, 46, 83, 0.1);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-required {
+  background: rgba(252, 46, 83, 0.18);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-optional {
+  background: rgba(136, 108, 192, 0.18);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-post {
+  background: rgba(9, 189, 60, 0.2);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-get {
+  background: rgba(48, 101, 208, 0.2);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-success {
+  background: rgba(9, 189, 60, 0.18);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-warning {
+  background: rgba(255, 191, 0, 0.2);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-danger {
+  background: rgba(252, 46, 83, 0.18);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-badge-coming {
+  background: rgba(136, 108, 192, 0.15);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-migration-banner {
+  background: linear-gradient(135deg, rgba(136, 108, 192, 0.12), rgba(48, 101, 208, 0.12));
+  border-color: rgba(136, 108, 192, 0.3);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-coming-card {
+  border-color: rgba(136, 108, 192, 0.4);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-tryit {
+  background: #1a1a1a;
+  border-color: #2B2B2B;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-table code {
+  background: rgba(136, 108, 192, 0.15);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-endpoint {
+  background: #1a1a1a;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-version-pill {
+  border-color: #3a3a3a;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-version-btn {
+  color: #888;
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-version-btn:hover {
+  color: #ccc;
+}
+
+/* ------------------------------------------------------------
+   21. Utility Classes
+   ------------------------------------------------------------ */
+#qsapi-docs-root .qsapi-hidden {
+  display: none;
+}
+
+#qsapi-docs-root .qsapi-mt-1 { margin-top: 0.5rem; }
+#qsapi-docs-root .qsapi-mt-2 { margin-top: 1rem; }
+#qsapi-docs-root .qsapi-mt-3 { margin-top: 1.5rem; }
+
+#qsapi-docs-root .qsapi-mb-1 { margin-bottom: 0.5rem; }
+#qsapi-docs-root .qsapi-mb-2 { margin-bottom: 1rem; }
+#qsapi-docs-root .qsapi-mb-3 { margin-bottom: 1.5rem; }
+
+#qsapi-docs-root .qsapi-text-center {
+  text-align: center;
+}
+
+#qsapi-docs-root .qsapi-text-muted {
+  color: var(--qsapi-text-muted);
+}
+
+#qsapi-docs-root .qsapi-inline-code {
+  background: rgba(136, 108, 192, 0.08);
+  color: var(--qsapi-primary-dark);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-family: var(--qsapi-font-code);
+}
+
+#qsapi-docs-root.qsapi-dark .qsapi-inline-code {
+  background: rgba(136, 108, 192, 0.15);
+}
+</style>
+
+<div id="qsapi-docs-root">
+  <div class="qsapi-layout">
+
+    <!-- ============ SIDEBAR ============ -->
+    <nav class="qsapi-sidebar" id="qsapi-sidebar" aria-label="Documentation navigation">
+      <div class="qsapi-sidebar-title">QuickSMS API</div>
+      <input type="text" class="qsapi-sidebar-search" id="qsapi-search" placeholder="Search docs..." aria-label="Search documentation">
+
+      <div class="qsapi-version-pill">
+        <button class="qsapi-version-btn qsapi-active" data-version="v2">V2 (Current)</button>
+        <button class="qsapi-version-btn" data-version="v1">V1 (Legacy)</button>
+      </div>
+
+      <!-- V2 Navigation -->
+      <div id="qsapi-nav-v2">
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Getting Started</div>
+          <a href="#quick-start" class="qsapi-sidebar-link">Quick Start</a>
+          <a href="#authentication" class="qsapi-sidebar-link">Authentication</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Sending Messages</div>
+          <a href="#send-message" class="qsapi-sidebar-link">Send a Message</a>
+          <a href="#responses" class="qsapi-sidebar-link">Understanding Responses</a>
+          <a href="#encoding" class="qsapi-sidebar-link">Message Encoding</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Delivery &amp; Lifecycle</div>
+          <a href="#webhooks" class="qsapi-sidebar-link">Delivery Webhooks</a>
+          <a href="#lifecycle" class="qsapi-sidebar-link">Message Lifecycle</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Reliability</div>
+          <a href="#retry" class="qsapi-sidebar-link">Retry Strategy</a>
+          <a href="#rate-limits" class="qsapi-sidebar-link">Rate Limits</a>
+          <a href="#idempotency" class="qsapi-sidebar-link">Idempotency</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Advanced Features</div>
+          <a href="#smart-routing" class="qsapi-sidebar-link">Smart Routing (RCS)</a>
+          <a href="#failover-sender" class="qsapi-sidebar-link">SMS Failover Sender</a>
+          <a href="#out-of-hours" class="qsapi-sidebar-link">Out-of-Hours Sending</a>
+          <a href="#anti-flood" class="qsapi-sidebar-link">Anti-Flood Protection</a>
+          <a href="#country-restrictions" class="qsapi-sidebar-link">Country Restrictions</a>
+          <a href="#sandbox" class="qsapi-sidebar-link">Sandbox Mode</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Security</div>
+          <a href="#webhook-security" class="qsapi-sidebar-link">Webhook Security</a>
+          <a href="#security-practices" class="qsapi-sidebar-link">Best Practices</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Reference</div>
+          <a href="#errors" class="qsapi-sidebar-link">Error Handling</a>
+          <a href="#health" class="qsapi-sidebar-link">Health Endpoint</a>
+          <a href="#code-examples" class="qsapi-sidebar-link">Code Examples</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Roadmap</div>
+          <a href="#coming-soon" class="qsapi-sidebar-link">Coming Soon</a>
+        </div>
+      </div>
+
+      <!-- V1 Navigation (hidden by default) -->
+      <div id="qsapi-nav-v1" style="display:none">
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Sending</div>
+          <a href="#v1-send" class="qsapi-sidebar-link">Send RCS/SMS Message</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Receipts</div>
+          <a href="#v1-dlr" class="qsapi-sidebar-link">Delivery Receipt</a>
+          <a href="#v1-seen" class="qsapi-sidebar-link">Seen Receipt (RCS)</a>
+        </div>
+        <div class="qsapi-sidebar-group">
+          <div class="qsapi-sidebar-group-title">Inbound</div>
+          <a href="#v1-incoming" class="qsapi-sidebar-link">Incoming Messages</a>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--qsapi-border)">
+        <button class="qsapi-dark-toggle" id="qsapi-dark-toggle" aria-label="Toggle dark mode">
+          <span id="qsapi-dark-icon">&#9789;</span> <span id="qsapi-dark-label">Dark</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Header -->
+    <div class="qsapi-mobile-header">
+      <button class="qsapi-hamburger" id="qsapi-hamburger" aria-label="Open navigation">&#9776;</button>
+      <span style="font-weight:600;color:var(--qsapi-primary)">QuickSMS API</span>
+      <button class="qsapi-dark-toggle" id="qsapi-dark-toggle-mobile" aria-label="Toggle dark mode">&#9789;</button>
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="qsapi-sidebar-overlay" id="qsapi-overlay"></div>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="qsapi-main">
+
+      <!-- HERO -->
+      <section class="qsapi-hero">
+        <h2>QuickSMS API Documentation</h2>
+        <p class="qsapi-hero-subtitle">Send SMS and RCS messages globally with delivery tracking, smart routing, and real-time webhooks.</p>
+        <div class="qsapi-hero-meta">
+          <span class="qsapi-hero-chip" id="qsapi-base-url">https://api.quicksms.com/v1</span>
+          <span class="qsapi-hero-chip">HTTPS only</span>
+          <span class="qsapi-hero-chip" id="qsapi-version-display">Version 2.0 &middot; March 2026</span>
+        </div>
+        <div style="margin-top:1rem">
+          <div class="qsapi-version-pill">
+            <button class="qsapi-version-btn qsapi-active" data-version="v2">V2 (Current)</button>
+            <button class="qsapi-version-btn" data-version="v1">V1 (Legacy)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ V2 CONTENT ============ -->
+      <div id="qsapi-v2-content">
+
+      <!-- QUICK START -->
+      <section class="qsapi-section" id="quick-start">
+        <h2>Quick Start</h2>
+        <p>Send your first SMS in under two minutes.</p>
+
+        <h3>Prerequisites</h3>
+        <p>A QuickSMS account with an active API connection, an API key (starts with <code>qs_live_</code> or <code>qs_test_</code>), and at least one approved sender ID.</p>
+
+        <h3>Send a Test Message</h3>
+        <p>Use your <code>qs_test_</code> key to send in sandbox mode. No credits are deducted and no real SMS is delivered.</p>
+
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
+  -H <span class="qsapi-cs">"Authorization: Bearer qs_test_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
+  -d <span class="qsapi-cs">'{
+    "MSISDN": "447700900001",
+    "msg": "Hello from QuickSMS!",
+    "sender": "MyApp"
+  }'</span></pre></div>
+
+        <div class="qsapi-callout qsapi-callout-info">
+          <strong>Test mode restrictions</strong>
+          Test accounts (<code>qs_test_</code> keys) can only send to numbers in your approved test allowlist. Add test numbers in the QuickSMS portal. The text <em>"This is a QuickSMS test message"</em> is automatically appended.
+        </div>
+
+        <h3>Expected Response</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"sandbox"</span>: <span class="qsapi-cb">true</span>,
+    <span class="qsapi-cp">"total"</span>: <span class="qsapi-cn">1</span>,
+    <span class="qsapi-cp">"accepted"</span>: <span class="qsapi-cn">1</span>,
+    <span class="qsapi-cp">"rejected"</span>: <span class="qsapi-cn">0</span>,
+    <span class="qsapi-cp">"messages"</span>: [{
+        <span class="qsapi-cp">"quicksms_id"</span>: <span class="qsapi-cs">"msg_80fac5c752941b27"</span>,
+        <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447700900001"</span>,
+        <span class="qsapi-cp">"sender"</span>: <span class="qsapi-cs">"MyApp"</span>,
+        <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"ACCEPTED"</span>,
+        <span class="qsapi-cp">"channel"</span>: <span class="qsapi-cs">"SMS"</span>,
+        <span class="qsapi-cp">"encoding"</span>: <span class="qsapi-cs">"GSM-7"</span>,
+        <span class="qsapi-cp">"message_parts"</span>: <span class="qsapi-cn">1</span>
+    }],
+    <span class="qsapi-cp">"created_at"</span>: <span class="qsapi-cs">"2026-03-26T12:00:00+00:00"</span>
+}</pre></div>
+
+        <h3>Switch to Production</h3>
+        <p>Replace your <code>qs_test_</code> key with your <code>qs_live_</code> key. Ensure your sender ID is approved for the destination country. Credits will be deducted per message segment.</p>
+      </section>
+
+      <!-- AUTHENTICATION -->
+      <section class="qsapi-section" id="authentication">
+        <h2>Authentication</h2>
+        <p>All API requests require a valid API key in the <code>Authorization</code> header.</p>
+
+        <h3>Bearer Token (Recommended)</h3>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Bearer qs_live_EXAMPLE_KEY_REPLACE_ME</pre></div>
+
+        <h3>Basic Authentication</h3>
+        <p>For backwards compatibility. Send your API key as the username with an empty password.</p>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Basic base64(qs_live_EXAMPLE_KEY_REPLACE_ME:)</pre></div>
+
+        <div class="qsapi-callout qsapi-callout-info">
+          <strong>Note</strong>
+          The header value must be the Base64 encoding of <code>your_api_key:</code> (note the trailing colon). The password field is ignored.
+        </div>
+
+        <h3>API Key Types</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Prefix</th><th>Environment</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>qs_live_</code></td><td>Production</td><td>Sends real messages. Deducts credits.</td></tr>
+            <tr><td><code>qs_test_</code></td><td>Test</td><td>Forces sandbox mode. Can only send to approved test numbers.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Connection Status</h3>
+        <p>Only <code>active</code> connections can send messages.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Status</th><th>Can Send?</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>draft</code></td><td>No</td><td>Created but not yet activated</td></tr>
+            <tr><td><code>active</code></td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Fully operational</td></tr>
+            <tr><td><code>suspended</code></td><td>No</td><td>Temporarily disabled by admin</td></tr>
+            <tr><td><code>archived</code></td><td>No</td><td>Permanently disabled</td></tr>
+          </tbody>
+        </table>
+
+        <h3>IP Allowlisting</h3>
+        <p>Optionally restrict access to specific IPs. Unlisted IPs receive <code>403</code> with error code <code>IP_NOT_ALLOWED</code>. Configure in the QuickSMS portal.</p>
+
+        <h3>Brute-Force Protection</h3>
+        <p>After <strong>10</strong> consecutive failed auth attempts from the same IP within 60 seconds, that IP is locked out for <strong>5 minutes</strong>. The response includes a <code>Retry-After</code> header.</p>
+
+        <h3>Best Practices</h3>
+        <ul>
+          <li>Store API keys in environment variables or a secrets manager &mdash; never commit to source control.</li>
+          <li>Use <code>qs_test_</code> keys in development/staging; reserve <code>qs_live_</code> keys for production.</li>
+          <li>If a key may be compromised, rotate it immediately in the QuickSMS portal.</li>
+          <li>Enable IP allowlisting in production.</li>
+        </ul>
+      </section>
+
+      <!-- SEND A MESSAGE -->
+      <section class="qsapi-section" id="send-message">
+        <h2>Send a Message</h2>
+        <p>Send an SMS or RCS message to a single recipient. The API validates, prices, and queues the message in a single request.</p>
+
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-post">POST</span>
+          <span class="qsapi-endpoint-url">https://api.quicksms.com/v1/messages</span>
+        </div>
+
+        <h3>Request Headers</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Header</th><th></th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>Authorization</code></td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td><code>Bearer qs_live_xxx</code> or <code>Basic base64(qs_live_xxx:)</code></td></tr>
+            <tr><td><code>Content-Type</code></td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td><code>application/json</code></td></tr>
+            <tr><td><code>Idempotency-Key</code></td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Unique key (max 128 chars) to prevent duplicate sends</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Request Body</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>MSISDN</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td>Recipient phone number. International format, digits only, no <code>+</code> prefix. 7&ndash;15 digits. E.g. <code>447700900000</code></td></tr>
+            <tr><td><code>msg</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td>Message content. 1&ndash;1,530 characters.</td></tr>
+            <tr><td><code>sender</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td>Sender ID. Must be pre-registered and approved.</td></tr>
+            <tr><td><code>smart_routing</code></td><td>boolean</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Enable RCS with SMS fallback. Default <code>false</code>.</td></tr>
+            <tr><td><code>sms_failover_sender</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>SMS sender ID to use if RCS falls back to SMS.</td></tr>
+            <tr><td><code>expiry</code></td><td>integer</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Validity in seconds. Min 60, max 259,200 (72h). Default 172,800 (48h).</td></tr>
+            <tr><td><code>customer_id</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Your reference. Max 128 chars. Returned in DLR webhooks.</td></tr>
+            <tr><td><code>metadata</code></td><td>object</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Key-value pairs. Max 10 keys, each value max 256 chars.</td></tr>
+            <tr><td><code>sandbox</code></td><td>boolean</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Force sandbox mode. Default <code>false</code>.</td></tr>
+            <tr><td><code>callback_url</code></td><td>string</td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Per-message DLR webhook URL. Max 2,048 chars.</td></tr>
+          </tbody>
+        </table>
+
+        <h4>MSISDN Format</h4>
+        <p>MSISDN (Mobile Station International Subscriber Directory Number) is the international phone number format used by telecom APIs. Digits only, country code prefix, no <code>+</code>.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Example</th><th>Country</th></tr></thead>
+          <tbody>
+            <tr><td><code>447700900000</code></td><td>United Kingdom (+44)</td></tr>
+            <tr><td><code>353871234567</code></td><td>Ireland (+353)</td></tr>
+            <tr><td><code>12025551234</code></td><td>United States (+1)</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Sender ID Formats</h4>
+        <table class="qsapi-table">
+          <thead><tr><th>Type</th><th>Rules</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Alphanumeric</td><td>Max 11 chars. Must contain at least one letter.</td><td><code>MyStore</code></td></tr>
+            <tr><td>Numeric</td><td>Max 15 digits.</td><td><code>447700900000</code></td></tr>
+            <tr><td>RCS agent</td><td>Max 25 chars. Only when <code>smart_routing</code> is <code>true</code>.</td><td><code>MyBrandAgent</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Example Request</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
+  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_EXAMPLE_KEY_REPLACE_ME"</span> \
+  -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
+  -H <span class="qsapi-cs">"Idempotency-Key: order-12345-sms"</span> \
+  -d <span class="qsapi-cs">'{
+    "MSISDN": "447700900000",
+    "msg": "Your order #12345 has been dispatched.",
+    "sender": "MyStore",
+    "customer_id": "cust_abc123",
+    "metadata": { "order_id": "12345", "type": "dispatch_notification" },
+    "callback_url": "https://example.com/webhooks/sms"
+  }'</span></pre></div>
+
+        <!-- TRY IT CONSOLE -->
+        <h3>Try It</h3>
+        <div class="qsapi-tryit" id="qsapi-tryit">
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">API Key</label>
+            <input class="qsapi-tryit-input" id="tryit-key" value="qs_test_your_key_here" placeholder="qs_test_...">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">MSISDN <span class="qsapi-badge qsapi-badge-required">Required</span></label>
+            <input class="qsapi-tryit-input" id="tryit-msisdn" value="447700900001" placeholder="447700900000">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">msg <span class="qsapi-badge qsapi-badge-required">Required</span></label>
+            <input class="qsapi-tryit-input" id="tryit-msg" value="Hello from QuickSMS!" placeholder="Your message">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">sender <span class="qsapi-badge qsapi-badge-required">Required</span></label>
+            <input class="qsapi-tryit-input" id="tryit-sender" value="MyApp" placeholder="MySender">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">customer_id</label>
+            <input class="qsapi-tryit-input" id="tryit-custid" placeholder="Optional reference">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">callback_url</label>
+            <input class="qsapi-tryit-input" id="tryit-callback" placeholder="https://example.com/webhook">
+          </div>
+          <div class="qsapi-tryit-row">
+            <label class="qsapi-tryit-label">sandbox</label>
+            <select class="qsapi-tryit-input" id="tryit-sandbox"><option value="true" selected>true</option><option value="false">false</option></select>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:1rem">
+            <button class="qsapi-tryit-btn" id="tryit-build">Build cURL</button>
+            <button class="qsapi-tryit-btn" id="tryit-send" style="background:var(--qsapi-success)">Send (Simulated)</button>
+          </div>
+          <div class="qsapi-tryit-output" id="tryit-output" style="display:none">
+            <div class="qsapi-tryit-divider"></div>
+            <h4 id="tryit-output-title">Generated cURL</h4>
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code" id="tryit-result"></pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- UNDERSTANDING RESPONSES -->
+      <section class="qsapi-section" id="responses">
+        <h2>Understanding Responses</h2>
+        <p>Every send request returns one of three outcomes.</p>
+
+        <h3>Success &mdash; Message Queued</h3>
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-success">202 Accepted</span>
+          <span>Message queued for delivery</span>
+        </div>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"sandbox"</span>: <span class="qsapi-cb">false</span>,
+    <span class="qsapi-cp">"total"</span>: <span class="qsapi-cn">1</span>,
+    <span class="qsapi-cp">"accepted"</span>: <span class="qsapi-cn">1</span>,
+    <span class="qsapi-cp">"rejected"</span>: <span class="qsapi-cn">0</span>,
+    <span class="qsapi-cp">"messages"</span>: [{
+        <span class="qsapi-cp">"quicksms_id"</span>: <span class="qsapi-cs">"msg_80fac5c752941b27"</span>,
+        <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447700900000"</span>,
+        <span class="qsapi-cp">"sender"</span>: <span class="qsapi-cs">"MyStore"</span>,
+        <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"ACCEPTED"</span>,
+        <span class="qsapi-cp">"channel"</span>: <span class="qsapi-cs">"SMS"</span>,
+        <span class="qsapi-cp">"encoding"</span>: <span class="qsapi-cs">"GSM-7"</span>,
+        <span class="qsapi-cp">"message_parts"</span>: <span class="qsapi-cn">1</span>,
+        <span class="qsapi-cp">"customer_id"</span>: <span class="qsapi-cs">"cust_abc123"</span>
+    }],
+    <span class="qsapi-cp">"created_at"</span>: <span class="qsapi-cs">"2026-03-26T12:00:00+00:00"</span>
+}</pre></div>
+        <div class="qsapi-callout qsapi-callout-success"><strong>What to do next</strong> Store the <code>quicksms_id</code>. If you configured a <code>callback_url</code>, you will receive a delivery receipt when the message reaches a final status. There is no need to poll.</div>
+
+        <h3>Success &mdash; Message Held</h3>
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-warning">202 Accepted</span>
+          <span>Held by out-of-hours restriction</span>
+        </div>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"sandbox"</span>: <span class="qsapi-cb">false</span>,
+    <span class="qsapi-cp">"messages"</span>: [{
+        <span class="qsapi-cp">"quicksms_id"</span>: <span class="qsapi-cs">"msg_80fac5c752941b27"</span>,
+        <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"HELD"</span>,
+        <span class="qsapi-cp">"scheduled_send_at"</span>: <span class="qsapi-cs">"2026-03-27T08:00:00+00:00"</span>
+    }]
+}</pre></div>
+        <div class="qsapi-callout qsapi-callout-info"><strong>What to do next</strong> No action required. The message will be sent automatically at <code>scheduled_send_at</code>. Credits are reserved immediately.</div>
+
+        <h3>Rejection &mdash; Message Not Sent</h3>
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-danger">422 Unprocessable Entity</span>
+          <span>Validation failed</span>
+        </div>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"messages"</span>: [{
+        <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447700900000"</span>,
+        <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"REJECTED"</span>,
+        <span class="qsapi-cp">"error"</span>: {
+            <span class="qsapi-cp">"code"</span>: <span class="qsapi-cs">"CONTENT_BLOCKED"</span>,
+            <span class="qsapi-cp">"message"</span>: <span class="qsapi-cs">"Message content was blocked by the content filter."</span>
+        }
+    }]
+}</pre></div>
+        <div class="qsapi-callout qsapi-callout-danger"><strong>What to do next</strong> Check the <code>error.code</code> field and refer to the <a href="#errors">Error Handling</a> section for corrective action.</div>
+
+        <h3>Response Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>sandbox</code></td><td>boolean</td><td>Whether sandbox mode was used</td></tr>
+            <tr><td><code>total</code></td><td>integer</td><td>Total messages in the request</td></tr>
+            <tr><td><code>accepted</code> / <code>rejected</code></td><td>integer</td><td>Counts of accepted and rejected messages</td></tr>
+            <tr><td><code>messages[].quicksms_id</code></td><td>string</td><td>Unique message ID (<code>msg_{16 hex}</code>). Only present when accepted.</td></tr>
+            <tr><td><code>messages[].status</code></td><td>string</td><td><code>ACCEPTED</code>, <code>HELD</code>, or <code>REJECTED</code></td></tr>
+            <tr><td><code>messages[].channel</code></td><td>string</td><td><code>SMS</code> or <code>RCS</code></td></tr>
+            <tr><td><code>messages[].encoding</code></td><td>string</td><td><code>GSM-7</code> or <code>UCS-2</code>. <code>null</code> for RCS.</td></tr>
+            <tr><td><code>messages[].message_parts</code></td><td>integer</td><td>SMS segment count. Always <code>1</code> for RCS.</td></tr>
+            <tr><td><code>messages[].scheduled_send_at</code></td><td>string</td><td>ISO 8601. Only when status is <code>HELD</code>.</td></tr>
+            <tr><td><code>messages[].error</code></td><td>object</td><td><code>code</code> and <code>message</code>. Only when <code>REJECTED</code>.</td></tr>
+            <tr><td><code>created_at</code></td><td>string</td><td>ISO 8601 timestamp</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- MESSAGE ENCODING -->
+      <section class="qsapi-section" id="encoding">
+        <h2>Message Encoding</h2>
+        <p>The API automatically selects the most efficient encoding for your message content.</p>
+
+        <h3>GSM-7 (Standard)</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Segments</th><th>Characters</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Up to 160</td></tr>
+            <tr><td>2</td><td>161&ndash;306</td></tr>
+            <tr><td>3</td><td>307&ndash;459</td></tr>
+            <tr><td>N</td><td>&lceil;length &divide; 153&rceil;</td></tr>
+          </tbody>
+        </table>
+
+        <h3>UCS-2 (Unicode)</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Segments</th><th>Characters</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Up to 70</td></tr>
+            <tr><td>2</td><td>71&ndash;134</td></tr>
+            <tr><td>3</td><td>135&ndash;201</td></tr>
+            <tr><td>N</td><td>&lceil;length &divide; 67&rceil;</td></tr>
+          </tbody>
+        </table>
+
+        <div class="qsapi-callout qsapi-callout-warning">
+          <strong>Cost impact</strong>
+          Cost is per segment. A single emoji forces UCS-2 (70-char limit instead of 160). RCS messages are always billed as 1 part regardless of length.
+        </div>
+
+        <div class="qsapi-callout qsapi-callout-info" style="background:rgba(136,108,192,0.06);border-color:var(--qsapi-primary)">
+          <strong>SMS &amp; RCS Character Counter</strong>
+          Try our free <a href="https://www.quicksms.com/sms-character-counter" target="_blank" rel="noopener">SMS &amp; RCS Character Counter</a> to check encoding, segment count, and cost before sending.
+        </div>
+      </section>
+
+      <!-- DELIVERY WEBHOOKS -->
+      <section class="qsapi-section" id="webhooks">
+        <h2>Delivery Webhooks (DLR)</h2>
+        <p>When a message reaches a final delivery status, QuickSMS sends a POST request to your configured callback URL.</p>
+
+        <h3>Callback URL Priority</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Priority</th><th>Source</th><th>How to Configure</th></tr></thead>
+          <tbody>
+            <tr><td>1 (highest)</td><td>Per-message <code>callback_url</code></td><td>Include in the send request body</td></tr>
+            <tr><td>2</td><td>Connection-level URL</td><td>Set in the QuickSMS portal</td></tr>
+          </tbody>
+        </table>
+        <p>If neither is configured, no webhook is delivered.</p>
+
+        <h3>Webhook Headers</h3>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">POST {your_callback_url}
+Content-Type: application/json
+X-QuickSMS-Timestamp: 1711468800
+X-QuickSMS-Event: dlr
+X-QuickSMS-Delivery-Attempt: 1
+X-QuickSMS-Signature: sha256=5d7a8c3e...</pre></div>
+
+        <h3>Webhook Payload</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"quicksms_id"</span>: <span class="qsapi-cs">"msg_80fac5c752941b27"</span>,
+    <span class="qsapi-cp">"customer_id"</span>: <span class="qsapi-cs">"cust_abc123"</span>,
+    <span class="qsapi-cp">"channel"</span>: <span class="qsapi-cs">"SMS"</span>,
+    <span class="qsapi-cp">"message_status"</span>: <span class="qsapi-cs">"DELIVERED"</span>,
+    <span class="qsapi-cp">"status_code"</span>: <span class="qsapi-cn">0</span>,
+    <span class="qsapi-cp">"message_parts"</span>: <span class="qsapi-cn">1</span>,
+    <span class="qsapi-cp">"message_sent_time"</span>: <span class="qsapi-cs">"2026-03-26T12:00:01+00:00"</span>,
+    <span class="qsapi-cp">"delivery_receipt_time"</span>: <span class="qsapi-cs">"2026-03-26T12:00:03+00:00"</span>,
+    <span class="qsapi-cp">"read_receipt"</span>: <span class="qsapi-cb">null</span>,
+    <span class="qsapi-cp">"read_receipt_timestamp"</span>: <span class="qsapi-cb">null</span>,
+    <span class="qsapi-cp">"done_time"</span>: <span class="qsapi-cs">"2026-03-26T12:00:03+00:00"</span>,
+    <span class="qsapi-cp">"metadata"</span>: { <span class="qsapi-cp">"order_id"</span>: <span class="qsapi-cs">"12345"</span> }
+}</pre></div>
+
+        <h3>Payload Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>quicksms_id</code></td><td>string</td><td>Message ID from send response</td></tr>
+            <tr><td><code>customer_id</code></td><td>string|null</td><td>Your reference (if provided)</td></tr>
+            <tr><td><code>channel</code></td><td>string</td><td>Actual channel: <code>SMS</code> or <code>RCS</code>. May differ from original if RCS fell back.</td></tr>
+            <tr><td><code>message_status</code></td><td>string</td><td>Final delivery status</td></tr>
+            <tr><td><code>status_code</code></td><td>integer</td><td>GSM status code</td></tr>
+            <tr><td><code>message_parts</code></td><td>integer</td><td>Segment count</td></tr>
+            <tr><td><code>read_receipt</code></td><td>bool|null</td><td><code>true</code> if read (RCS only). <code>null</code> for SMS.</td></tr>
+            <tr><td><code>read_receipt_timestamp</code></td><td>string|null</td><td>ISO 8601 &mdash; when read (RCS only)</td></tr>
+            <tr><td><code>done_time</code></td><td>string</td><td>ISO 8601 &mdash; when message reached final status</td></tr>
+            <tr><td><code>metadata</code></td><td>object|null</td><td>Your metadata (if provided)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Retry Policy</h3>
+        <p>Return any <code>2xx</code> to acknowledge. Failures are retried with exponential backoff:</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Attempt</th><th>Delay</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Immediate</td></tr>
+            <tr><td>2</td><td>30 seconds</td></tr>
+            <tr><td>3</td><td>2 minutes</td></tr>
+            <tr><td>4</td><td>10 minutes</td></tr>
+            <tr><td>5</td><td>1 hour</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-warning"><strong>After 5 failed attempts</strong> the webhook is dropped. Message status is unaffected &mdash; check the portal.</div>
+
+        <h3>Best Practices</h3>
+        <ul>
+          <li><strong>Respond quickly.</strong> Return <code>200</code> immediately and process asynchronously.</li>
+          <li><strong>Handle duplicates.</strong> Use <code>quicksms_id</code> as a deduplication key.</li>
+          <li><strong>Verify signatures.</strong> Validate <code>X-QuickSMS-Signature</code> before processing.</li>
+        </ul>
+      </section>
+
+      <!-- MESSAGE LIFECYCLE -->
+      <section class="qsapi-section" id="lifecycle">
+        <h2>Message Lifecycle</h2>
+        <p>A message moves through distinct statuses from submission to final delivery.</p>
+
+        <h3>Send Response Statuses</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Status</th><th>Meaning</th><th>Next Step</th></tr></thead>
+          <tbody>
+            <tr><td><code>ACCEPTED</code></td><td>Queued for delivery</td><td>Wait for DLR webhook</td></tr>
+            <tr><td><code>HELD</code></td><td>Delayed by out-of-hours rules</td><td>Auto-dispatched at <code>scheduled_send_at</code></td></tr>
+            <tr><td><code>REJECTED</code></td><td>Failed validation &mdash; not sent</td><td>Check <code>error.code</code> and fix</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Delivery Statuses (via Webhook)</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Status</th><th>Final?</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>PENDING</code></td><td>No</td><td>Awaiting carrier confirmation</td></tr>
+            <tr><td><code>DELIVERED</code></td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Confirmed delivered to handset</td></tr>
+            <tr><td><code>UNDELIVERED</code></td><td><span class="qsapi-badge qsapi-badge-danger">Yes</span></td><td>Delivery failed (e.g. phone off)</td></tr>
+            <tr><td><code>EXPIRED</code></td><td><span class="qsapi-badge qsapi-badge-warning">Yes</span></td><td>Validity period elapsed</td></tr>
+            <tr><td><code>REJECTED</code></td><td><span class="qsapi-badge qsapi-badge-danger">Yes</span></td><td>Rejected by carrier</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Status Flow</h3>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">Send Response              Delivery Webhook
+─────────────              ─────────────────
+
+  ACCEPTED ──────────────▶ PENDING
+                              │
+                              ├──▶ DELIVERED
+                              ├──▶ UNDELIVERED
+                              ├──▶ EXPIRED
+                              └──▶ REJECTED
+
+  HELD ───(at scheduled)──▶ PENDING ──▶ (same as above)
+
+  REJECTED                  (no webhook — message was never sent)</pre></div>
+
+        <h3>GSM Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>0</code></td><td>Delivered successfully</td></tr>
+            <tr><td><code>1</code></td><td>Invalid destination number</td></tr>
+            <tr><td><code>13</code></td><td>Rejected by operator</td></tr>
+            <tr><td><code>27</code></td><td>Absent subscriber (phone off or out of range)</td></tr>
+            <tr><td><code>32</code></td><td>Network error</td></tr>
+            <tr><td><code>255</code></td><td>Unknown / expired</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- RETRY STRATEGY -->
+      <section class="qsapi-section" id="retry">
+        <h2>Retry Strategy</h2>
+        <p>Not all errors should be retried. Use the HTTP status code to decide.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Status</th><th>Retry?</th><th>Strategy</th></tr></thead>
+          <tbody>
+            <tr><td><code>429</code></td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Wait for <code>Retry-After</code> header value, then retry.</td></tr>
+            <tr><td><code>500</code></td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Retry with exponential backoff.</td></tr>
+            <tr><td><code>503</code></td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Service degraded. Retry with backoff.</td></tr>
+            <tr><td><code>400&ndash;422</code></td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Fix the request before resending.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Recommended Backoff</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Attempt</th><th>Base Delay</th><th>With Jitter</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>1 second</td><td>0.8&ndash;1.2s</td></tr>
+            <tr><td>2</td><td>2 seconds</td><td>1.6&ndash;2.4s</td></tr>
+            <tr><td>3</td><td>4 seconds</td><td>3.2&ndash;4.8s</td></tr>
+            <tr><td>4</td><td>8 seconds</td><td>6.4&ndash;9.6s</td></tr>
+            <tr><td>5</td><td>16 seconds</td><td>12.8&ndash;19.2s</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-info"><strong>Stop after 5 attempts.</strong> Log the failure with the <code>request_id</code>. Always include the same <code>Idempotency-Key</code> when retrying sends to guarantee at-most-once delivery.</div>
+      </section>
+
+      <!-- RATE LIMITS -->
+      <section class="qsapi-section" id="rate-limits">
+        <h2>Rate Limits</h2>
+        <p>Applied per API connection using a 60-second sliding window. Default: <strong>1,000 requests per minute</strong>.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Header</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>X-RateLimit-Limit</code></td><td>Maximum requests per minute</td></tr>
+            <tr><td><code>X-RateLimit-Remaining</code></td><td>Requests remaining in current window</td></tr>
+            <tr><td><code>X-RateLimit-Reset</code></td><td>Unix timestamp when the window resets</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-info"><strong>Monitoring guidance</strong> Monitor <code>X-RateLimit-Remaining</code>. Throttle when below 10% of your limit. On <code>429</code>, wait for <code>Retry-After</code> seconds. Ramp up gradually after reset.</div>
+      </section>
+
+      <!-- IDEMPOTENCY -->
+      <section class="qsapi-section" id="idempotency">
+        <h2>Idempotency</h2>
+        <p>Include an <code>Idempotency-Key</code> header (max 128 chars) to prevent duplicate sends.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Scenario</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Same key + same payload</td><td>Returns cached <code>202</code>. No duplicate send.</td></tr>
+            <tr><td>Same key + different payload</td><td><code>409 Conflict</code> &mdash; <code>IDEMPOTENCY_CONFLICT</code></td></tr>
+            <tr><td>New key</td><td>Normal processing</td></tr>
+            <tr><td>Key exceeds 128 chars</td><td><code>422</code> validation error</td></tr>
+          </tbody>
+        </table>
+        <p>Keys are scoped to your API connection and cached for <strong>24 hours</strong>.</p>
+        <div class="qsapi-callout qsapi-callout-success"><strong>Strategy</strong> Tie keys to your business event (e.g. <code>order-12345-dispatch-sms</code>) rather than random UUIDs. This makes retries naturally use the same key.</div>
+      </section>
+
+      <!-- SMART ROUTING -->
+      <section class="qsapi-section" id="smart-routing">
+        <h2>Smart Routing (RCS)</h2>
+        <p>When <code>smart_routing</code> is <code>true</code> and the sender is an approved RCS agent:</p>
+        <ol>
+          <li>Message is routed via RCS</li>
+          <li>If the recipient doesn't support RCS, the system falls back to SMS automatically</li>
+          <li>Credits are adjusted &mdash; if SMS costs more, the difference is deducted; if less, refunded</li>
+          <li>DLR webhook <code>channel</code> field indicates which channel was actually used</li>
+          <li>RCS is billed per message (always 1 part), not per segment</li>
+        </ol>
+        <div class="qsapi-callout qsapi-callout-info"><strong>Read receipts</strong> RCS supports read receipts. The DLR webhook includes <code>read_receipt: true</code> and <code>read_receipt_timestamp</code> when a recipient reads an RCS message. These are <code>null</code> for SMS.</div>
+      </section>
+
+      <!-- SMS FAILOVER SENDER -->
+      <section class="qsapi-section" id="failover-sender">
+        <h2>SMS Failover Sender</h2>
+        <p>When an RCS message falls back to SMS, the sender ID is resolved in this order:</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Priority</th><th>Source</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>1 (highest)</td><td><code>sms_failover_sender</code> field</td><td>Explicit sender ID in the API request</td></tr>
+            <tr><td>2</td><td>Default registered sender</td><td>Sender marked <code>is_default = true</code> on your account</td></tr>
+            <tr><td>3</td><td>First approved sender</td><td>First approved sender on your account</td></tr>
+            <tr><td>4 (last resort)</td><td>Sanitised agent name</td><td>RCS agent name stripped of non-alphanumeric chars, truncated to 11 chars</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-warning"><strong>Important</strong> Always set a default sender on your account or provide <code>sms_failover_sender</code> explicitly. Without either, the fallback sender may not match your brand.</div>
+      </section>
+
+      <!-- OUT-OF-HOURS -->
+      <section class="qsapi-section" id="out-of-hours">
+        <h2>Out-of-Hours Sending</h2>
+        <p>Accounts can restrict dispatch to a defined business hours window. Configured per account in the portal.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Action</th><th>API Behaviour</th><th>Credits</th></tr></thead>
+          <tbody>
+            <tr><td><code>reject</code></td><td>Message rejected with <code>OUT_OF_HOURS</code>. Response includes the window and resume time.</td><td>Not deducted</td></tr>
+            <tr><td><code>hold</code></td><td>Accepted with status <code>HELD</code>. Dispatched when window opens. Includes <code>scheduled_send_at</code>.</td><td>Reserved immediately</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-info">Out-of-hours restrictions are bypassed in sandbox mode.</div>
+      </section>
+
+      <!-- ANTI-FLOOD -->
+      <section class="qsapi-section" id="anti-flood">
+        <h2>Anti-Flood Protection</h2>
+        <p>Prevents duplicate messages to the same recipient within a configurable window. A duplicate is the same account sending identical content to the same MSISDN within the window.</p>
+        <table class="qsapi-table">
+          <thead><tr><th>Mode</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>off</code></td><td>No duplicate checking</td></tr>
+            <tr><td><code>enforce</code></td><td>Duplicates rejected with <code>DUPLICATE_MESSAGE</code>. Response includes original message ID.</td></tr>
+            <tr><td><code>monitor</code></td><td>Duplicates logged but message still sent</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-info">Anti-flood is bypassed in sandbox mode. Window length configured per account in the portal.</div>
+      </section>
+
+      <!-- COUNTRY RESTRICTIONS -->
+      <section class="qsapi-section" id="country-restrictions">
+        <h2>Country Restrictions</h2>
+        <p>The recipient's country is determined by MSISDN prefix (e.g. <code>44</code> = UK, <code>353</code> = Ireland). Per-account overrides are checked first, then the platform-wide setting. Blocked destinations return <code>COUNTRY_NOT_ALLOWED</code>.</p>
+        <div class="qsapi-callout qsapi-callout-info">Configure in the portal under Security Settings. Contact support to request access to blocked destinations.</div>
+      </section>
+
+      <!-- SANDBOX MODE -->
+      <section class="qsapi-section" id="sandbox">
+        <h2>Sandbox Mode</h2>
+        <p>Simulates the full send-and-deliver flow without carrier delivery. No credits deducted.</p>
+
+        <h3>How to Activate</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Use a <code>qs_test_</code> key</td><td>Always forces sandbox mode</td></tr>
+            <tr><td>Set <code>"sandbox": true</code></td><td>Works with any key type</td></tr>
+            <tr><td>Connection environment = <code>test</code></td><td>Configured in the portal</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Differences from Production</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Behaviour</th><th>Production</th><th>Sandbox</th></tr></thead>
+          <tbody>
+            <tr><td>Real SMS/RCS delivery</td><td>Yes</td><td>No</td></tr>
+            <tr><td>Credits deducted</td><td>Yes</td><td>No</td></tr>
+            <tr><td>Anti-flood checks</td><td>Active</td><td>Bypassed</td></tr>
+            <tr><td>Out-of-hours checks</td><td>Active</td><td>Bypassed</td></tr>
+            <tr><td>Delivery webhooks</td><td>Real carrier DLR</td><td>Simulated after 3&ndash;5 seconds</td></tr>
+            <tr><td>RCS read receipts</td><td>From recipient device</td><td>Simulated after 5&ndash;10 seconds</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Simulated Delivery Outcomes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>MSISDN Ends In</th><th>Simulated Status</th><th>Status Code</th></tr></thead>
+          <tbody>
+            <tr><td><code>0000</code></td><td><code>UNDELIVERED</code></td><td>27 (Absent subscriber)</td></tr>
+            <tr><td><code>9999</code></td><td><code>EXPIRED</code></td><td>255</td></tr>
+            <tr><td>Anything else</td><td><code>DELIVERED</code></td><td>0</td></tr>
+          </tbody>
+        </table>
+        <div class="qsapi-callout qsapi-callout-success">Use these endings to test your webhook handler for different delivery outcomes.</div>
+      </section>
+
+      <!-- WEBHOOK SECURITY -->
+      <section class="qsapi-section" id="webhook-security">
+        <h2>Webhook Security</h2>
+        <p>When a signing secret is configured, every webhook includes an <code>X-QuickSMS-Signature</code> header with an HMAC-SHA256 signature.</p>
+
+        <h3>Verification Steps</h3>
+        <ol>
+          <li>Extract the <code>X-QuickSMS-Timestamp</code> header value</li>
+          <li>Get the raw request body (do not parse or re-serialize)</li>
+          <li>Concatenate: <code>{timestamp}.{body}</code></li>
+          <li>Compute HMAC-SHA256 using your signing secret as the key</li>
+          <li>Compare with the header signature using <strong>constant-time comparison</strong></li>
+          <li>Reject if timestamp is more than <strong>5 minutes</strong> old (replay protection)</li>
+        </ol>
+
+        <h3>Verification Examples</h3>
+        <div class="qsapi-tabs" data-tabgroup="webhook-verify">
+          <div class="qsapi-tab-header">
+            <button class="qsapi-tab-btn qsapi-active" data-tab="wh-node">Node.js</button>
+            <button class="qsapi-tab-btn" data-tab="wh-python">Python</button>
+            <button class="qsapi-tab-btn" data-tab="wh-php">PHP</button>
+          </div>
+          <div class="qsapi-tab-panel qsapi-active" data-tab="wh-node">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">const</span> crypto = require(<span class="qsapi-cs">'crypto'</span>);
+
+<span class="qsapi-ck">function</span> verifyWebhook(req, secret) {
+    <span class="qsapi-ck">const</span> timestamp = req.headers[<span class="qsapi-cs">'x-quicksms-timestamp'</span>];
+    <span class="qsapi-ck">const</span> signature = req.headers[<span class="qsapi-cs">'x-quicksms-signature'</span>];
+    <span class="qsapi-ck">const</span> body = req.rawBody;
+
+    <span class="qsapi-ck">if</span> (Math.abs(Date.now() / <span class="qsapi-cn">1000</span> - parseInt(timestamp)) > <span class="qsapi-cn">300</span>) {
+        <span class="qsapi-ck">throw new</span> Error(<span class="qsapi-cs">'Timestamp too old'</span>);
+    }
+
+    <span class="qsapi-ck">const</span> payload = <span class="qsapi-cs">`${timestamp}.${body}`</span>;
+    <span class="qsapi-ck">const</span> expected = <span class="qsapi-cs">'sha256='</span> +
+        crypto.createHmac(<span class="qsapi-cs">'sha256'</span>, secret).update(payload).digest(<span class="qsapi-cs">'hex'</span>);
+
+    <span class="qsapi-ck">if</span> (!crypto.timingSafeEqual(
+        Buffer.from(expected), Buffer.from(signature)
+    )) { <span class="qsapi-ck">throw new</span> Error(<span class="qsapi-cs">'Invalid signature'</span>); }
+
+    <span class="qsapi-ck">return</span> JSON.parse(body);
+}</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="wh-python">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">import</span> hmac, hashlib, time, json
+
+<span class="qsapi-ck">def</span> verify_webhook(request, secret):
+    timestamp = request.headers.get(<span class="qsapi-cs">'X-QuickSMS-Timestamp'</span>, <span class="qsapi-cs">''</span>)
+    signature = request.headers.get(<span class="qsapi-cs">'X-QuickSMS-Signature'</span>, <span class="qsapi-cs">''</span>)
+    body = request.get_data(as_text=<span class="qsapi-cb">True</span>)
+
+    <span class="qsapi-ck">if</span> abs(time.time() - int(timestamp)) > <span class="qsapi-cn">300</span>:
+        <span class="qsapi-ck">raise</span> ValueError(<span class="qsapi-cs">'Timestamp too old'</span>)
+
+    payload = <span class="qsapi-cs">f'{timestamp}.{body}'</span>
+    expected = <span class="qsapi-cs">'sha256='</span> + hmac.new(
+        secret.encode(), payload.encode(), hashlib.sha256
+    ).hexdigest()
+
+    <span class="qsapi-ck">if not</span> hmac.compare_digest(expected, signature):
+        <span class="qsapi-ck">raise</span> ValueError(<span class="qsapi-cs">'Invalid signature'</span>)
+
+    <span class="qsapi-ck">return</span> json.loads(body)</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="wh-php">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">$secret    = <span class="qsapi-cs">'your_webhook_signing_secret'</span>;
+$timestamp = $_SERVER[<span class="qsapi-cs">'HTTP_X_QUICKSMS_TIMESTAMP'</span>] ?? <span class="qsapi-cs">''</span>;
+$signature = $_SERVER[<span class="qsapi-cs">'HTTP_X_QUICKSMS_SIGNATURE'</span>] ?? <span class="qsapi-cs">''</span>;
+$body      = file_get_contents(<span class="qsapi-cs">'php://input'</span>);
+
+<span class="qsapi-ck">if</span> (abs(time() - (int) $timestamp) > <span class="qsapi-cn">300</span>) {
+    http_response_code(<span class="qsapi-cn">401</span>); die(<span class="qsapi-cs">'Timestamp too old'</span>);
+}
+
+$payload  = <span class="qsapi-cs">"{$timestamp}.{$body}"</span>;
+$expected = <span class="qsapi-cs">'sha256='</span> . hash_hmac(<span class="qsapi-cs">'sha256'</span>, $payload, $secret);
+
+<span class="qsapi-ck">if</span> (!hash_equals($expected, $signature)) {
+    http_response_code(<span class="qsapi-cn">401</span>); die(<span class="qsapi-cs">'Invalid signature'</span>);
+}
+
+$data = json_decode($body, <span class="qsapi-cb">true</span>);
+http_response_code(<span class="qsapi-cn">200</span>);</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECURITY BEST PRACTICES -->
+      <section class="qsapi-section" id="security-practices">
+        <h2>Security Best Practices</h2>
+        <table class="qsapi-table">
+          <thead><tr><th>Practice</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Environment-specific keys</strong></td><td>Use <code>qs_test_</code> in dev/staging. <code>qs_live_</code> in production only.</td></tr>
+            <tr><td><strong>Store keys securely</strong></td><td>Environment variables or secrets manager. Never source control.</td></tr>
+            <tr><td><strong>Rotate compromised keys</strong></td><td>Rotate immediately in the QuickSMS portal.</td></tr>
+            <tr><td><strong>IP allowlisting</strong></td><td>Restrict production API access to known server IPs.</td></tr>
+            <tr><td><strong>Verify webhook signatures</strong></td><td>Always validate <code>X-QuickSMS-Signature</code> before processing.</td></tr>
+            <tr><td><strong>Timestamp freshness</strong></td><td>Reject webhooks with timestamps older than 5 minutes.</td></tr>
+            <tr><td><strong>HTTPS callback URLs</strong></td><td>Always configure webhook endpoints over HTTPS.</td></tr>
+            <tr><td><strong>Idempotency keys</strong></td><td>Protect against duplicate sends from network retries.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ERROR HANDLING -->
+      <section class="qsapi-section" id="errors">
+        <h2>Error Handling</h2>
+        <p>All errors return consistent JSON with a unique <code>request_id</code> for support troubleshooting.</p>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"error"</span>: {
+        <span class="qsapi-cp">"type"</span>: <span class="qsapi-cs">"validation_error"</span>,
+        <span class="qsapi-cp">"code"</span>: <span class="qsapi-cs">"INVALID_PHONE_NUMBER"</span>,
+        <span class="qsapi-cp">"message"</span>: <span class="qsapi-cs">"The MSISDN is not valid international format."</span>,
+        <span class="qsapi-cp">"param"</span>: <span class="qsapi-cs">"MSISDN"</span>,
+        <span class="qsapi-cp">"request_id"</span>: <span class="qsapi-cs">"req_a1b2c3d4"</span>
+    }
+}</pre></div>
+
+        <h3>HTTP Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Meaning</th><th>Retryable?</th><th>What to Do</th></tr></thead>
+          <tbody>
+            <tr><td><code>202</code></td><td>Accepted / held</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td><code>400</code></td><td>Bad request</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Fix request format or missing fields</td></tr>
+            <tr><td><code>401</code></td><td>Auth failed</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Check API key</td></tr>
+            <tr><td><code>403</code></td><td>Forbidden</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Check account status or IP allowlist</td></tr>
+            <tr><td><code>404</code></td><td>Not found</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Check URL path</td></tr>
+            <tr><td><code>409</code></td><td>Idempotency conflict</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Use a new key for different payloads</td></tr>
+            <tr><td><code>422</code></td><td>Validation failed</td><td><span class="qsapi-badge qsapi-badge-danger">No</span></td><td>Check error code and fix</td></tr>
+            <tr><td><code>429</code></td><td>Rate limited</td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Wait <code>Retry-After</code> seconds</td></tr>
+            <tr><td><code>500</code></td><td>Server error</td><td><span class="qsapi-badge qsapi-badge-success">Yes</span></td><td>Retry with backoff</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Message Rejection Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Description</th><th>What to Do</th></tr></thead>
+          <tbody>
+            <tr><td><code>SENDER_NOT_REGISTERED</code></td><td>Sender ID not approved</td><td>Register in the portal</td></tr>
+            <tr><td><code>TEST_NUMBER_NOT_APPROVED</code></td><td>Test: number not in allowlist</td><td>Add to test allowlist</td></tr>
+            <tr><td><code>COUNTRY_NOT_ALLOWED</code></td><td>Destination country blocked</td><td>Check country settings</td></tr>
+            <tr><td><code>INSUFFICIENT_CREDITS</code></td><td>Balance too low</td><td>Top up account</td></tr>
+            <tr><td><code>CONTENT_BLOCKED</code></td><td>Content filter triggered</td><td>Revise content or contact support</td></tr>
+            <tr><td><code>OUT_OF_HOURS</code></td><td>Outside business hours (reject mode)</td><td>Retry during hours or switch to hold</td></tr>
+            <tr><td><code>DUPLICATE_MESSAGE</code></td><td>Anti-flood: duplicate detected</td><td>Wait or change content</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Request-Level Error Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>HTTP</th><th>What to Do</th></tr></thead>
+          <tbody>
+            <tr><td><code>MISSING_FIELD</code></td><td>400</td><td>Add the missing field (check <code>param</code>)</td></tr>
+            <tr><td><code>BAD_REQUEST</code></td><td>400</td><td>Validate JSON format</td></tr>
+            <tr><td><code>INVALID_PHONE_NUMBER</code></td><td>422</td><td>Digits only, no +, 7&ndash;15 digits, non-zero start</td></tr>
+            <tr><td><code>CONTENT_TOO_LONG</code></td><td>422</td><td>Shorten to &le;1,530 chars</td></tr>
+            <tr><td><code>VALIDATION_ERROR</code></td><td>422</td><td>Check <code>message</code> field for detail</td></tr>
+            <tr><td><code>UNAUTHORIZED</code></td><td>401</td><td>Verify API key and header format</td></tr>
+            <tr><td><code>IP_NOT_ALLOWED</code></td><td>403</td><td>Add IP to allowlist in portal</td></tr>
+            <tr><td><code>ACCOUNT_INACTIVE</code></td><td>403</td><td>Contact admin or QuickSMS support</td></tr>
+            <tr><td><code>RATE_LIMITED</code></td><td>429</td><td>Wait <code>Retry-After</code> seconds</td></tr>
+            <tr><td><code>AUTH_RATE_LIMITED</code></td><td>429</td><td>Wait lockout; verify key is correct</td></tr>
+            <tr><td><code>IDEMPOTENCY_CONFLICT</code></td><td>409</td><td>Use a unique key per distinct message</td></tr>
+            <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Retry with backoff; contact support if persistent</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- HEALTH ENDPOINT -->
+      <section class="qsapi-section" id="health">
+        <h2>Health Endpoint</h2>
+        <p>Check the API's operational status. No authentication required.</p>
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-get">GET</span>
+          <span class="qsapi-endpoint-url">https://api.quicksms.com/v1/health</span>
+        </div>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0">
+          <div style="flex:1;min-width:200px">
+            <div class="qsapi-endpoint"><span class="qsapi-badge qsapi-badge-success">200 OK</span> <span>All systems operational</span></div>
+            <div class="qsapi-code-wrap"><pre class="qsapi-code">{ <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"healthy"</span> }</pre></div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div class="qsapi-endpoint"><span class="qsapi-badge qsapi-badge-warning">503 Service Unavailable</span></div>
+            <div class="qsapi-code-wrap"><pre class="qsapi-code">{ <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"degraded"</span> }</pre></div>
+          </div>
+        </div>
+        <p>Use this endpoint for uptime monitoring. A <code>200</code> means all critical services are operational. A <code>503</code> indicates temporary degradation &mdash; retry with backoff.</p>
+      </section>
+
+      <!-- CODE EXAMPLES -->
+      <section class="qsapi-section" id="code-examples">
+        <h2>Code Examples</h2>
+        <div class="qsapi-tabs" data-tabgroup="code-examples">
+          <div class="qsapi-tab-header">
+            <button class="qsapi-tab-btn qsapi-active" data-tab="ex-curl">cURL</button>
+            <button class="qsapi-tab-btn" data-tab="ex-php">PHP</button>
+            <button class="qsapi-tab-btn" data-tab="ex-python">Python</button>
+            <button class="qsapi-tab-btn" data-tab="ex-node">Node.js</button>
+            <button class="qsapi-tab-btn" data-tab="ex-csharp">C#</button>
+          </div>
+
+          <div class="qsapi-tab-panel qsapi-active" data-tab="ex-curl">
+            <h4>Basic SMS</h4>
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
+  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
+  -d <span class="qsapi-cs">'{ "MSISDN": "447700900000", "msg": "Hello from QuickSMS!", "sender": "MyApp" }'</span></pre></div>
+
+            <h4>RCS with SMS Fallback</h4>
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
+  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
+  -d <span class="qsapi-cs">'{
+    "MSISDN": "447700900000",
+    "msg": "Your parcel is out for delivery!",
+    "sender": "MyBrandAgent",
+    "smart_routing": true,
+    "sms_failover_sender": "MyBrand",
+    "callback_url": "https://example.com/webhooks/dlr"
+  }'</span></pre></div>
+          </div>
+
+          <div class="qsapi-tab-panel" data-tab="ex-php">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">$ch = curl_init(<span class="qsapi-cs">'https://api.quicksms.com/v1/messages'</span>);
+curl_setopt_array($ch, [
+    CURLOPT_POST           => <span class="qsapi-cb">true</span>,
+    CURLOPT_RETURNTRANSFER => <span class="qsapi-cb">true</span>,
+    CURLOPT_HTTPHEADER     => [
+        <span class="qsapi-cs">'Authorization: Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Content-Type: application/json'</span>,
+        <span class="qsapi-cs">'Idempotency-Key: order-12345-sms'</span>,
+    ],
+    CURLOPT_POSTFIELDS => json_encode([
+        <span class="qsapi-cs">'MSISDN'</span> => <span class="qsapi-cs">'447700900000'</span>,
+        <span class="qsapi-cs">'msg'</span>    => <span class="qsapi-cs">'Hello from QuickSMS!'</span>,
+        <span class="qsapi-cs">'sender'</span> => <span class="qsapi-cs">'MyApp'</span>,
+    ]),
+]);
+$response = curl_exec($ch);
+$status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+$data = json_decode($response, <span class="qsapi-cb">true</span>);
+
+<span class="qsapi-ck">if</span> ($status === <span class="qsapi-cn">202</span>) {
+    $msg = $data[<span class="qsapi-cs">'messages'</span>][<span class="qsapi-cn">0</span>];
+    echo <span class="qsapi-cs">"Sent: {$msg['quicksms_id']} — Status: {$msg['status']}"</span>;
+} <span class="qsapi-ck">else</span> {
+    echo <span class="qsapi-cs">"Error: "</span> . ($data[<span class="qsapi-cs">'error'</span>][<span class="qsapi-cs">'message'</span>] ?? $data[<span class="qsapi-cs">'messages'</span>][<span class="qsapi-cn">0</span>][<span class="qsapi-cs">'error'</span>][<span class="qsapi-cs">'message'</span>]);
+}</pre></div>
+          </div>
+
+          <div class="qsapi-tab-panel" data-tab="ex-python">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">import</span> requests
+
+response = requests.post(
+    <span class="qsapi-cs">'https://api.quicksms.com/v1/messages'</span>,
+    headers={
+        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Idempotency-Key'</span>: <span class="qsapi-cs">'order-12345-sms'</span>,
+    },
+    json={
+        <span class="qsapi-cs">'MSISDN'</span>: <span class="qsapi-cs">'447700900000'</span>,
+        <span class="qsapi-cs">'msg'</span>: <span class="qsapi-cs">'Hello from QuickSMS!'</span>,
+        <span class="qsapi-cs">'sender'</span>: <span class="qsapi-cs">'MyApp'</span>,
+    }
+)
+
+<span class="qsapi-ck">if</span> response.status_code == <span class="qsapi-cn">202</span>:
+    msg = response.json()[<span class="qsapi-cs">'messages'</span>][<span class="qsapi-cn">0</span>]
+    print(<span class="qsapi-cs">f"Sent: {msg['quicksms_id']} — Status: {msg['status']}"</span>)
+<span class="qsapi-ck">elif</span> response.status_code == <span class="qsapi-cn">422</span>:
+    err = response.json()[<span class="qsapi-cs">'messages'</span>][<span class="qsapi-cn">0</span>][<span class="qsapi-cs">'error'</span>]
+    print(<span class="qsapi-cs">f"Rejected: {err['code']} — {err['message']}"</span>)
+<span class="qsapi-ck">else</span>:
+    print(<span class="qsapi-cs">f"Error: {response.json()['error']['message']}"</span>)
+
+print(<span class="qsapi-cs">f"Rate limit remaining: {response.headers.get('X-RateLimit-Remaining')}"</span>)</pre></div>
+          </div>
+
+          <div class="qsapi-tab-panel" data-tab="ex-node">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">const</span> response = <span class="qsapi-ck">await</span> fetch(<span class="qsapi-cs">'https://api.quicksms.com/v1/messages'</span>, {
+    method: <span class="qsapi-cs">'POST'</span>,
+    headers: {
+        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Content-Type'</span>: <span class="qsapi-cs">'application/json'</span>,
+        <span class="qsapi-cs">'Idempotency-Key'</span>: <span class="qsapi-cs">'order-12345-sms'</span>,
+    },
+    body: JSON.stringify({
+        MSISDN: <span class="qsapi-cs">'447700900000'</span>,
+        msg: <span class="qsapi-cs">'Hello from QuickSMS!'</span>,
+        sender: <span class="qsapi-cs">'MyApp'</span>,
+    }),
+});
+<span class="qsapi-ck">const</span> data = <span class="qsapi-ck">await</span> response.json();
+
+<span class="qsapi-ck">if</span> (response.status === <span class="qsapi-cn">202</span>) {
+    <span class="qsapi-ck">const</span> msg = data.messages[<span class="qsapi-cn">0</span>];
+    console.log(<span class="qsapi-cs">`Sent: ${msg.quicksms_id} — Status: ${msg.status}`</span>);
+} <span class="qsapi-ck">else</span> {
+    console.log(<span class="qsapi-cs">`Error: ${data.error?.message || data.messages?.[0]?.error?.message}`</span>);
+}</pre></div>
+          </div>
+
+          <div class="qsapi-tab-panel" data-tab="ex-csharp">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">using var</span> client = <span class="qsapi-ck">new</span> HttpClient();
+client.DefaultRequestHeaders.Add(<span class="qsapi-cs">"Authorization"</span>, <span class="qsapi-cs">"Bearer qs_live_your_key_here"</span>);
+client.DefaultRequestHeaders.Add(<span class="qsapi-cs">"Idempotency-Key"</span>, <span class="qsapi-cs">"order-12345-sms"</span>);
+
+<span class="qsapi-ck">var</span> payload = <span class="qsapi-ck">new</span> {
+    MSISDN = <span class="qsapi-cs">"447700900000"</span>,
+    msg = <span class="qsapi-cs">"Hello from QuickSMS!"</span>,
+    sender = <span class="qsapi-cs">"MyApp"</span>
+};
+<span class="qsapi-ck">var</span> response = <span class="qsapi-ck">await</span> client.PostAsJsonAsync(
+    <span class="qsapi-cs">"https://api.quicksms.com/v1/messages"</span>, payload);
+<span class="qsapi-ck">var</span> json = <span class="qsapi-ck">await</span> response.Content.ReadAsStringAsync();
+
+Console.WriteLine(response.StatusCode == System.Net.HttpStatusCode.Accepted
+    ? <span class="qsapi-cs">$"Sent: {json}"</span>
+    : <span class="qsapi-cs">$"Error ({(int)response.StatusCode}): {json}"</span>);</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMING SOON -->
+      <section class="qsapi-section" id="coming-soon">
+        <h2>Coming Soon</h2>
+        <p>These features are planned but not yet available in V2.</p>
+
+        <div class="qsapi-coming-card">
+          <span class="qsapi-badge qsapi-badge-coming qsapi-coming-ribbon">COMING SOON</span>
+          <h4>Batch/Bulk Sending</h4>
+          <p>Send messages to multiple recipients in a single API request. Ideal for campaigns and high-volume transactional messaging.</p>
+        </div>
+
+        <div class="qsapi-coming-card">
+          <span class="qsapi-badge qsapi-badge-coming qsapi-coming-ribbon">COMING SOON</span>
+          <h4>Inbound Messages (Two-Way SMS)</h4>
+          <p>Receive incoming SMS replies and keyword-triggered messages via webhook. Enables conversational messaging, OTP confirmation, and customer support flows.</p>
+          <p><strong>Available now in V1</strong> &mdash; <a href="#v1-incoming" class="qsapi-v1-link">View V1 Inbound Docs</a> | <a href="https://www.quicksms.com/api-guide" target="_blank" rel="noopener">V1 API Guide</a></p>
+        </div>
+
+        <div class="qsapi-coming-card">
+          <span class="qsapi-badge qsapi-badge-coming qsapi-coming-ribbon">COMING SOON</span>
+          <h4>Message Scheduling</h4>
+          <p>Schedule messages for future delivery. Perfect for appointment reminders and time-zone-aware campaigns.</p>
+        </div>
+      </section>
+
+      </div><!-- /qsapi-v2-content -->
+
+      <!-- ============ V1 CONTENT ============ -->
+      <div id="qsapi-v1-content" style="display:none">
+
+      <!-- MIGRATION BANNER -->
+      <div class="qsapi-callout qsapi-callout-info" style="background:linear-gradient(135deg,rgba(136,108,192,0.08),rgba(48,101,208,0.08));border-color:var(--qsapi-primary)">
+        <strong>V1 is supported but we recommend V2 for all new integrations.</strong>
+        V2 offers Bearer token auth, idempotency, smart routing, sandbox mode, webhook signing, structured JSON error responses, and rate limit headers. <a href="#quick-start" class="qsapi-v2-link">Switch to V2 docs</a>
+      </div>
+
+      <!-- V1: SENDING -->
+      <section class="qsapi-section" id="v1-send">
+        <h2>1. Sending an RCS/SMS Message</h2>
+        <p>An RCS/SMS request must contain all information required to route a message through the system to the handset.</p>
+
+        <div class="qsapi-endpoint">
+          <span class="qsapi-badge qsapi-badge-post">POST</span>
+          <span class="qsapi-endpoint-url">https://api.quicksms.com/rcs/v2/api</span>
+        </div>
+
+        <p>Authentication: HTTP <strong>Basic Authorization</strong> header (username:password).</p>
+
+        <h3>Required Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Request Type</td><td><code>reqType</code></td><td><code>BULK</code></td></tr>
+            <tr><td>Number to send to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Message</td><td><code>msg</code></td><td><code>Hello World</code></td></tr>
+            <tr><td>Sender</td><td><code>sender</code></td><td><code>TestSender</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Optional Parameters</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Multipart allowed (&gt;160 characters)</td><td><code>multi</code></td><td><code>true</code></td></tr>
+            <tr><td>Custom ID (returned with receipt)</td><td><code>cid</code></td><td><code>123456</code></td></tr>
+            <tr><td>Receipt Delivery URL</td><td><code>Delurl</code></td><td><code>www.receipts.co.uk</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Example Request</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">POST https://api.quicksms.com/rcs/v2/api
+Content-Type: application/json
+Authorization: Basic &lt;base64 encoded username:password&gt;
+
+{
+  <span class="qsapi-cp">"reqType"</span>: <span class="qsapi-cs">"BULK"</span>,
+  <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
+  <span class="qsapi-cp">"msg"</span>: <span class="qsapi-cs">"test message"</span>,
+  <span class="qsapi-cp">"sender"</span>: <span class="qsapi-cs">"TestSender"</span>
+}</pre></div>
+
+        <h3>Successful Response</h3>
+        <p>On submission of a complete request the server responds with a reference ID.</p>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">HTTP 200 OK
+
+{ <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"42"</span> }</pre></div>
+
+        <div class="qsapi-callout qsapi-callout-info">
+          <strong>RCS Notes</strong>
+          A message will only be sent by RCS if the Sender ID has been pre-registered; otherwise it will be sent as a standard SMS. An RCS message will be attempted for 10 seconds before failing over to SMS.
+        </div>
+
+        <h3>Failed Response</h3>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">HTTP 400 Bad Request
+
+{ <span class="qsapi-cp">"Error"</span>: <span class="qsapi-cn">206</span>, <span class="qsapi-cp">"Description"</span>: <span class="qsapi-cs">"Invalid username or password"</span> }</pre></div>
+
+        <h3>Error Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>200</code></td><td>Request was not received through HTTPS</td></tr>
+            <tr><td><code>201</code></td><td>Request was not made through HTTP POST</td></tr>
+            <tr><td><code>202</code></td><td>Username and/or Password not set or not in correct format</td></tr>
+            <tr><td><code>203</code></td><td>Request type not set</td></tr>
+            <tr><td><code>204</code></td><td>Invalid request type sent</td></tr>
+            <tr><td><code>205</code></td><td>Missing required field</td></tr>
+            <tr><td><code>206</code></td><td>Username or password incorrect</td></tr>
+            <tr><td><code>207</code></td><td>Invalid MSISDN</td></tr>
+            <tr><td><code>208</code></td><td>Master account does not have enough credits available</td></tr>
+            <tr><td><code>209</code></td><td>Message too long</td></tr>
+            <tr><td><code>210</code></td><td>Sender too long</td></tr>
+            <tr><td><code>220</code></td><td>API temporarily disabled due to too many failed logins</td></tr>
+            <tr><td><code>221</code></td><td>API permanently disabled due to too many failed logins</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Code Examples</h3>
+        <div class="qsapi-tabs" data-tabgroup="v1-code">
+          <div class="qsapi-tab-header">
+            <button class="qsapi-tab-btn qsapi-active" data-tab="v1-curl">cURL</button>
+            <button class="qsapi-tab-btn" data-tab="v1-python">Python</button>
+            <button class="qsapi-tab-btn" data-tab="v1-node">Node.js</button>
+            <button class="qsapi-tab-btn" data-tab="v1-php">PHP</button>
+            <button class="qsapi-tab-btn" data-tab="v1-java">Java</button>
+            <button class="qsapi-tab-btn" data-tab="v1-csharp">C#</button>
+          </div>
+          <div class="qsapi-tab-panel qsapi-active" data-tab="v1-curl">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl --location <span class="qsapi-cs">'https://api.quicksms.com/rcs/v2/api'</span> \
+  --header <span class="qsapi-cs">'Content-Type: application/json'</span> \
+  --header <span class="qsapi-cs">'Authorization: Basic BASE64_ENCODED_USER:PASS'</span> \
+  --data <span class="qsapi-cs">'{
+    "reqType": "BULK",
+    "MSISDN": "447000000000",
+    "msg": "Test message",
+    "sender": "QuickSMS"
+  }'</span></pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="v1-python">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">import</span> requests
+<span class="qsapi-ck">from</span> requests.auth <span class="qsapi-ck">import</span> HTTPBasicAuth
+
+url = <span class="qsapi-cs">"https://api.quicksms.com/rcs/v2/api"</span>
+payload = {
+    <span class="qsapi-cs">"reqType"</span>: <span class="qsapi-cs">"BULK"</span>,
+    <span class="qsapi-cs">"MSISDN"</span>: <span class="qsapi-cs">"447000000000"</span>,
+    <span class="qsapi-cs">"msg"</span>: <span class="qsapi-cs">"Test message"</span>,
+    <span class="qsapi-cs">"sender"</span>: <span class="qsapi-cs">"QuickSMS"</span>
+}
+response = requests.post(url, json=payload, auth=HTTPBasicAuth(<span class="qsapi-cs">'your_user'</span>, <span class="qsapi-cs">'your_pass'</span>))
+print(response.status_code, response.text)</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="v1-node">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">const</span> auth = Buffer.from(<span class="qsapi-cs">'your_user:your_pass'</span>).toString(<span class="qsapi-cs">'base64'</span>);
+
+<span class="qsapi-ck">const</span> res = <span class="qsapi-ck">await</span> fetch(<span class="qsapi-cs">'https://api.quicksms.com/rcs/v2/api'</span>, {
+    method: <span class="qsapi-cs">'POST'</span>,
+    headers: {
+        <span class="qsapi-cs">'Content-Type'</span>: <span class="qsapi-cs">'application/json'</span>,
+        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">`Basic ${auth}`</span>
+    },
+    body: JSON.stringify({
+        reqType: <span class="qsapi-cs">'BULK'</span>, MSISDN: <span class="qsapi-cs">'447000000000'</span>,
+        msg: <span class="qsapi-cs">'Test message'</span>, sender: <span class="qsapi-cs">'QuickSMS'</span>
+    })
+});
+console.log(<span class="qsapi-ck">await</span> res.json());</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="v1-php">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL => <span class="qsapi-cs">"https://api.quicksms.com/rcs/v2/api"</span>,
+    CURLOPT_RETURNTRANSFER => <span class="qsapi-cb">true</span>,
+    CURLOPT_POST => <span class="qsapi-cb">true</span>,
+    CURLOPT_HTTPHEADER => [
+        <span class="qsapi-cs">"Content-Type: application/json"</span>,
+        <span class="qsapi-cs">"Authorization: Basic "</span> . base64_encode(<span class="qsapi-cs">"your_user:your_pass"</span>)
+    ],
+    CURLOPT_POSTFIELDS => json_encode([
+        <span class="qsapi-cs">"reqType"</span> => <span class="qsapi-cs">"BULK"</span>,
+        <span class="qsapi-cs">"MSISDN"</span> => <span class="qsapi-cs">"447000000000"</span>,
+        <span class="qsapi-cs">"msg"</span> => <span class="qsapi-cs">"Test message"</span>,
+        <span class="qsapi-cs">"sender"</span> => <span class="qsapi-cs">"QuickSMS"</span>
+    ])
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+echo $response;</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="v1-java">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">import</span> java.net.HttpURLConnection;
+<span class="qsapi-ck">import</span> java.net.URL;
+<span class="qsapi-ck">import</span> java.util.Base64;
+<span class="qsapi-ck">import</span> java.io.OutputStream;
+
+<span class="qsapi-ck">public class</span> SendSMS {
+    <span class="qsapi-ck">public static void</span> main(String[] args) <span class="qsapi-ck">throws</span> Exception {
+        String basicAuth = <span class="qsapi-cs">"Basic "</span> + Base64.getEncoder()
+            .encodeToString(<span class="qsapi-cs">"your_user:your_pass"</span>.getBytes());
+
+        URL url = <span class="qsapi-ck">new</span> URL(<span class="qsapi-cs">"https://api.quicksms.com/rcs/v2/api"</span>);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(<span class="qsapi-cs">"POST"</span>);
+        conn.setRequestProperty(<span class="qsapi-cs">"Authorization"</span>, basicAuth);
+        conn.setRequestProperty(<span class="qsapi-cs">"Content-Type"</span>, <span class="qsapi-cs">"application/json"</span>);
+        conn.setDoOutput(<span class="qsapi-cb">true</span>);
+
+        String json = <span class="qsapi-cs">"{\"reqType\":\"BULK\",\"MSISDN\":\"447000000000\","</span>
+            + <span class="qsapi-cs">"\"msg\":\"Test message\",\"sender\":\"QuickSMS\"}"</span>;
+
+        <span class="qsapi-ck">try</span> (OutputStream os = conn.getOutputStream()) {
+            os.write(json.getBytes(<span class="qsapi-cs">"utf-8"</span>));
+        }
+        System.out.println(<span class="qsapi-cs">"HTTP "</span> + conn.getResponseCode());
+    }
+}</pre></div>
+          </div>
+          <div class="qsapi-tab-panel" data-tab="v1-csharp">
+            <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">using var</span> client = <span class="qsapi-ck">new</span> HttpClient();
+<span class="qsapi-ck">var</span> token = Convert.ToBase64String(
+    Encoding.ASCII.GetBytes(<span class="qsapi-cs">"your_user:your_pass"</span>));
+client.DefaultRequestHeaders.Authorization =
+    <span class="qsapi-ck">new</span> AuthenticationHeaderValue(<span class="qsapi-cs">"Basic"</span>, token);
+
+<span class="qsapi-ck">var</span> body = <span class="qsapi-cs">"{\"reqType\":\"BULK\",\"MSISDN\":\"447000000000\","</span>
+    + <span class="qsapi-cs">"\"msg\":\"Test message\",\"sender\":\"QuickSMS\"}"</span>;
+<span class="qsapi-ck">var</span> res = <span class="qsapi-ck">await</span> client.PostAsync(
+    <span class="qsapi-cs">"https://api.quicksms.com/rcs/v2/api"</span>,
+    <span class="qsapi-ck">new</span> StringContent(body, Encoding.UTF8, <span class="qsapi-cs">"application/json"</span>));
+
+Console.WriteLine((<span class="qsapi-ck">int</span>)res.StatusCode + <span class="qsapi-cs">" "</span>
+    + <span class="qsapi-ck">await</span> res.Content.ReadAsStringAsync());</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- V1: DELIVERY RECEIPT -->
+      <section class="qsapi-section" id="v1-dlr">
+        <h2>2. RCS/SMS Delivery Receipt</h2>
+        <p>Once the RCS/SMS message has been delivered, a POST request is made to the location defined in your API account.</p>
+
+        <h3>Delivery Receipt Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
+            <tr><td>Custom Reference</td><td><code>cid</code></td><td><code>1234-232-134</code></td></tr>
+            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Delivery Date and Time</td><td><code>deliverytime</code></td><td><code>2024-01-01 16:36:48</code></td></tr>
+            <tr><td>Status</td><td><code>status</code></td><td><code>3</code></td></tr>
+            <tr><td>Substatus</td><td><code>substatus</code></td><td><code>5</code></td></tr>
+          </tbody>
+        </table>
+        <p>Respond quickly (under 1 second) with a single line string: <code>RECEIVED</code>.</p>
+
+        <h3>Example Delivery Receipt</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">POST https://www.website.co.uk/receipts
+Content-Type: application/json
+
+{
+    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
+    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
+    <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"3"</span>,
+    <span class="qsapi-cp">"substatus"</span>: <span class="qsapi-cs">"5"</span>,
+    <span class="qsapi-cp">"deliverytime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>,
+    <span class="qsapi-cp">"cid"</span>: <span class="qsapi-cs">"customid"</span>
+}</pre></div>
+
+        <h3>Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>3</code></td><td>Successful Delivery</td></tr>
+            <tr><td><code>2</code></td><td>Undeliverable</td></tr>
+            <tr><td><code>4</code></td><td>Message delivery has expired</td></tr>
+            <tr><td><code>5</code></td><td>Message has been rejected by the network</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sub Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>2</code></td><td>Delivered to Operator</td></tr>
+            <tr><td><code>5</code></td><td>Delivered to handset</td></tr>
+            <tr><td><code>4</code></td><td>Rejected by operator and deemed undeliverable</td></tr>
+            <tr><td><code>9</code></td><td>Not delivered (invalid/unreachable destination)</td></tr>
+            <tr><td><code>15</code></td><td>Pending until validity expired or operator returns EXPIRED</td></tr>
+            <tr><td><code>29</code></td><td>Expired; delivery status unknown (no DR received)</td></tr>
+            <tr><td><code>6</code></td><td>Network experiencing problems</td></tr>
+            <tr><td><code>10</code></td><td>Rejected due to DND (Do Not Disturb)</td></tr>
+            <tr><td><code>14</code></td><td>Destination blocklisted (e.g., operator request)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- V1: SEEN RECEIPT -->
+      <section class="qsapi-section" id="v1-seen">
+        <h2>3. RCS Seen Receipt</h2>
+        <p>Once an <strong>RCS</strong> message has been seen, a POST request is made to the location defined in your API account.</p>
+        <div class="qsapi-callout qsapi-callout-info">Only RCS messages send a Seen Receipt.</div>
+
+        <h3>Seen Receipt Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
+            <tr><td>Custom Reference</td><td><code>CID</code></td><td><code>1234-232-134</code></td></tr>
+            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Seen Date and Time</td><td><code>seentime</code></td><td><code>2012-06-27 12:33:00</code></td></tr>
+          </tbody>
+        </table>
+        <p>Respond within ~1 second with <code>RECEIVED</code>.</p>
+
+        <h3>Example Seen Receipt</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">POST https://www.website.co.uk/seen-receipts
+Content-Type: application/json
+
+{
+    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
+    <span class="qsapi-cp">"CID"</span>: <span class="qsapi-cs">"1234-232-134"</span>,
+    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
+    <span class="qsapi-cp">"seentime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>
+}</pre></div>
+      </section>
+
+      <!-- V1: INCOMING MESSAGES -->
+      <section class="qsapi-section" id="v1-incoming">
+        <h2>4. Receiving Incoming Messages</h2>
+        <p>When an incoming message is received by the QuickSMS system, it is checked against a list of registered numbers and RCS senders. If a match is found, a POST request is made to your configured endpoint.</p>
+
+        <h3>Incoming Message Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Unique Reference</td><td><code>ID</code></td><td><code>42</code></td></tr>
+            <tr><td>Number/Sender message sent from</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Message</td><td><code>Message</code></td><td><code>Hello</code></td></tr>
+            <tr><td>Number message sent to</td><td><code>Number</code></td><td><code>44789011829</code></td></tr>
+            <tr><td>Received Date and Time</td><td><code>DateRecieved</code></td><td><code>2012-06-27 12:33:00</code></td></tr>
+          </tbody>
+        </table>
+        <p>Respond within ~1 second with <code>RECEIVED</code>.</p>
+
+        <h3>Example Incoming Message</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">POST https://www.website.co.uk/incoming.php
+Content-Type: application/json
+
+{
+    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"NotifyTest"</span>,
+    <span class="qsapi-cp">"Message"</span>: <span class="qsapi-cs">"Testing"</span>,
+    <span class="qsapi-cp">"Number"</span>: <span class="qsapi-cs">"44789100000"</span>,
+    <span class="qsapi-cp">"DateRecieved"</span>: <span class="qsapi-cs">"2024-01-28 11:54:32"</span>,
+    <span class="qsapi-cp">"ID"</span>: <span class="qsapi-cs">"MxJFwONIywR7yZysg7iAtDXQ"</span>
+}</pre></div>
+      </section>
+
+      </div><!-- /qsapi-v1-content -->
+
+      <!-- FOOTER -->
+      <footer style="text-align:center;padding:2rem 0;color:var(--qsapi-text-muted);font-size:0.8rem;border-top:1px solid var(--qsapi-border);margin-top:2rem">
+        QuickSMS API Documentation &middot; Version 2.0 &middot; March 2026
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Scroll to top -->
+  <button class="qsapi-scroll-top" id="qsapi-scroll-top" aria-label="Scroll to top">&#8593;</button>
+</div>
+
+
+<script>
+(function() {
+  var root = document.getElementById('qsapi-docs-root');
+  if (!root) return;
+
+  // === Dark Mode ===
+  var darkKey = 'qsapi-dark-mode';
+  function setDark(on) {
+    root.classList.toggle('qsapi-dark', on);
+    localStorage.setItem(darkKey, on ? '1' : '0');
+    var labels = root.querySelectorAll('#qsapi-dark-label');
+    labels.forEach(function(l) { l.textContent = on ? 'Light' : 'Dark'; });
+    var icons = root.querySelectorAll('#qsapi-dark-icon');
+    icons.forEach(function(i) { i.textContent = on ? '\u2600' : '\u263D'; });
+  }
+  var savedDark = localStorage.getItem(darkKey);
+  if (savedDark === '1' || (!savedDark && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+    setDark(true);
+  }
+  root.querySelectorAll('#qsapi-dark-toggle, #qsapi-dark-toggle-mobile').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      setDark(!root.classList.contains('qsapi-dark'));
+    });
+  });
+
+  // === Mobile Sidebar ===
+  var sidebar = root.querySelector('#qsapi-sidebar');
+  var overlay = root.querySelector('#qsapi-overlay');
+  var hamburger = root.querySelector('#qsapi-hamburger');
+  function openSidebar() {
+    sidebar.classList.add('qsapi-open');
+    overlay.classList.add('qsapi-open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('qsapi-open');
+    overlay.classList.remove('qsapi-open');
+  }
+  if (hamburger) hamburger.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // === Version Switcher ===
+  var v2Content = root.querySelector('#qsapi-v2-content');
+  var v1Content = root.querySelector('#qsapi-v1-content');
+  var navV2 = root.querySelector('#qsapi-nav-v2');
+  var navV1 = root.querySelector('#qsapi-nav-v1');
+  var baseUrl = root.querySelector('#qsapi-base-url');
+  var versionDisplay = root.querySelector('#qsapi-version-display');
+
+  function switchVersion(version) {
+    var isV2 = version === 'v2';
+    v2Content.style.display = isV2 ? '' : 'none';
+    v1Content.style.display = isV2 ? 'none' : '';
+    navV2.style.display = isV2 ? '' : 'none';
+    navV1.style.display = isV2 ? 'none' : '';
+    if (baseUrl) baseUrl.textContent = isV2 ? 'https://api.quicksms.com/v1' : 'https://api.quicksms.com/rcs/v2/api';
+    if (versionDisplay) versionDisplay.innerHTML = isV2 ? 'Version 2.0 &middot; March 2026' : 'Version 1.0 (Legacy)';
+    root.querySelectorAll('.qsapi-version-btn').forEach(function(btn) {
+      btn.classList.toggle('qsapi-active', btn.getAttribute('data-version') === version);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  root.querySelectorAll('.qsapi-version-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchVersion(btn.getAttribute('data-version'));
+    });
+  });
+
+  // Cross-version links (V2 coming soon -> V1 inbound)
+  root.querySelectorAll('.qsapi-v1-link').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchVersion('v1');
+      setTimeout(function() {
+        var target = root.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+  });
+  root.querySelectorAll('.qsapi-v2-link').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchVersion('v2');
+      setTimeout(function() {
+        var target = root.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+  });
+
+  // === Sidebar Scroll Tracking ===
+  var sidebarLinks = root.querySelectorAll('.qsapi-sidebar-link');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        sidebarLinks.forEach(function(link) {
+          link.classList.toggle('qsapi-active',
+            link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+  root.querySelectorAll('.qsapi-section[id]').forEach(function(section) {
+    observer.observe(section);
+  });
+
+  // === Smooth Scroll for Sidebar Links ===
+  sidebarLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      var href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        var target = root.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+          history.replaceState(null, '', href);
+        }
+        closeSidebar();
+      }
+    });
+  });
+
+  // === Tabs ===
+  root.querySelectorAll('.qsapi-tabs').forEach(function(tabGroup) {
+    var buttons = tabGroup.querySelectorAll('.qsapi-tab-btn');
+    var panels = tabGroup.querySelectorAll('.qsapi-tab-panel');
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var tabId = btn.getAttribute('data-tab');
+        buttons.forEach(function(b) { b.classList.remove('qsapi-active'); });
+        panels.forEach(function(p) { p.classList.remove('qsapi-active'); });
+        btn.classList.add('qsapi-active');
+        var panel = tabGroup.querySelector('.qsapi-tab-panel[data-tab="' + tabId + '"]');
+        if (panel) panel.classList.add('qsapi-active');
+      });
+    });
+  });
+
+  // === Code Copy ===
+  root.querySelectorAll('.qsapi-code-copy').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var code = btn.parentElement.querySelector('.qsapi-code');
+      if (!code) return;
+      var text = code.textContent || code.innerText;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('qsapi-copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('qsapi-copied');
+        }, 2000);
+      });
+    });
+  });
+
+  // === Search ===
+  var searchInput = root.querySelector('#qsapi-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var q = searchInput.value.toLowerCase().trim();
+      sidebarLinks.forEach(function(link) {
+        var text = link.textContent.toLowerCase();
+        link.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+      root.querySelectorAll('.qsapi-sidebar-group').forEach(function(group) {
+        var visibleLinks = group.querySelectorAll('.qsapi-sidebar-link:not([style*="display: none"])');
+        group.style.display = visibleLinks.length ? '' : 'none';
+      });
+    });
+  }
+
+  // === Scroll to Top ===
+  var scrollBtn = root.querySelector('#qsapi-scroll-top');
+  if (scrollBtn) {
+    window.addEventListener('scroll', function() {
+      scrollBtn.classList.toggle('qsapi-visible', window.scrollY > 400);
+    });
+    scrollBtn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // === Try It Console ===
+  var tryitBuild = root.querySelector('#tryit-build');
+  var tryitSend = root.querySelector('#tryit-send');
+  var tryitOutput = root.querySelector('#tryit-output');
+  var tryitResult = root.querySelector('#tryit-result');
+  var tryitTitle = root.querySelector('#tryit-output-title');
+
+  function getTryitValues() {
+    return {
+      key: root.querySelector('#tryit-key').value || 'qs_test_your_key_here',
+      msisdn: root.querySelector('#tryit-msisdn').value || '447700900001',
+      msg: root.querySelector('#tryit-msg').value || 'Hello from QuickSMS!',
+      sender: root.querySelector('#tryit-sender').value || 'MyApp',
+      customer_id: root.querySelector('#tryit-custid').value,
+      callback_url: root.querySelector('#tryit-callback').value,
+      sandbox: root.querySelector('#tryit-sandbox').value
+    };
+  }
+
+  function buildCurl(v) {
+    var parts = ['curl -X POST https://api.quicksms.com/v1/messages \\'];
+    parts.push('  -H "Authorization: Bearer ' + v.key + '" \\');
+    parts.push('  -H "Content-Type: application/json" \\');
+    var body = { MSISDN: v.msisdn, msg: v.msg, sender: v.sender };
+    if (v.customer_id) body.customer_id = v.customer_id;
+    if (v.callback_url) body.callback_url = v.callback_url;
+    if (v.sandbox === 'true') body.sandbox = true;
+    parts.push("  -d '" + JSON.stringify(body, null, 2) + "'");
+    return parts.join('\n');
+  }
+
+  function buildResponse(v) {
+    var hex = Math.random().toString(16).substr(2, 16);
+    return JSON.stringify({
+      sandbox: v.sandbox === 'true',
+      total: 1, accepted: 1, rejected: 0,
+      messages: [{
+        quicksms_id: 'msg_' + hex,
+        MSISDN: v.msisdn,
+        sender: v.sender,
+        status: 'ACCEPTED',
+        channel: 'SMS',
+        encoding: 'GSM-7',
+        message_parts: Math.ceil(v.msg.length / 160) || 1,
+        customer_id: v.customer_id || undefined
+      }],
+      created_at: new Date().toISOString()
+    }, null, 2);
+  }
+
+  if (tryitBuild) {
+    tryitBuild.addEventListener('click', function() {
+      tryitOutput.style.display = '';
+      tryitTitle.textContent = 'Generated cURL';
+      tryitResult.textContent = buildCurl(getTryitValues());
+    });
+  }
+  if (tryitSend) {
+    tryitSend.addEventListener('click', function() {
+      tryitOutput.style.display = '';
+      tryitTitle.textContent = 'Simulated Response (202 Accepted)';
+      tryitResult.textContent = buildResponse(getTryitValues());
+    });
+  }
+})();
+</script>
