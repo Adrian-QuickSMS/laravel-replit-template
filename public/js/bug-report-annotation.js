@@ -217,8 +217,9 @@ var BugReportAnnotation = (function() {
     }
 
     function addTextLabel(x, y) {
-        var text = prompt('Enter label text:');
+        var text = prompt('Enter label text (max 200 chars):');
         if (!text) return;
+        text = text.substring(0, 200);
 
         history.push({
             tool: 'text',

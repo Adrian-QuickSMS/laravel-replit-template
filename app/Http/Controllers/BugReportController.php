@@ -193,8 +193,9 @@ class BugReportController extends Controller
         // Sanitise page_url — strip query params that might contain tokens
         if (isset($metadata['page_url'])) {
             $parsed = parse_url($metadata['page_url']);
+            $port = isset($parsed['port']) ? ':' . $parsed['port'] : '';
             $metadata['page_url'] = ($parsed['scheme'] ?? 'https') . '://'
-                . ($parsed['host'] ?? '') . ($parsed['path'] ?? '/');
+                . ($parsed['host'] ?? '') . $port . ($parsed['path'] ?? '/');
         }
 
         return $metadata;

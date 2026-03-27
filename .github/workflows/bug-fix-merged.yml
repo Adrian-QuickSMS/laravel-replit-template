@@ -19,7 +19,7 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          REF=$(echo "$PR_BODY" | grep -oP 'BUG-\d{8}-[A-Za-z0-9]{6}' | head -1)
+          REF=$(echo "$PR_BODY" | grep -oP 'BUG-\d{8}-[A-Za-z0-9]{6,12}' | head -1)
           echo "reference=$REF" >> $GITHUB_OUTPUT
           echo "Bug reference: $REF"
 

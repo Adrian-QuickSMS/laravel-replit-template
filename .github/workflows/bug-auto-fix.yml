@@ -1,6 +1,7 @@
 name: Bug Auto-Fix (Claude Code)
 
 # Triggers when an issue is labelled 'auto-fix' (created by the bug report widget)
+# Prerequisites: Create these labels in the repo: bug-report, auto-fix, portal, ui, priority-high
 on:
   issues:
     types: [labeled]
@@ -28,7 +29,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           # Parse BUG-XXXXXXXX-XXXXXX reference from issue body (safe — no interpolation)
-          REF=$(echo "$ISSUE_BODY" | grep -oP 'BUG-\d{8}-[A-Za-z0-9]{6}' | head -1)
+          REF=$(echo "$ISSUE_BODY" | grep -oP 'BUG-\d{8}-[A-Za-z0-9]{6,12}' | head -1)
           echo "reference=$REF" >> $GITHUB_OUTPUT
           echo "Bug reference: $REF"
 

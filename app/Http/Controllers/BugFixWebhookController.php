@@ -40,7 +40,7 @@ class BugFixWebhookController extends Controller
 
         $validated = $request->validate([
             'event'     => 'required|in:' . implode(',', self::VALID_EVENTS),
-            'reference' => 'required|string|regex:/^BUG-\d{8}-[A-Za-z0-9]{6}$/',
+            'reference' => 'required|string|regex:/^BUG-\d{8}-[A-Za-z0-9]{6,12}$/',
             'pr_url'    => 'nullable|url|max:500',
             'pr_number' => 'nullable|integer',
             'message'   => 'nullable|string|max:1000',

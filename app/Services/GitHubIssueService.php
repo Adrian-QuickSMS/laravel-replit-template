@@ -198,7 +198,7 @@ class GitHubIssueService
         return [
             'success' => true,
             'isMockData' => true,
-            'issue_number' => crc32($reference) % 10000,
+            'issue_number' => abs(crc32($reference)) % 10000,
             'issue_url' => "https://github.com/{$this->repo}/issues/mock",
             'reference' => $reference,
         ];

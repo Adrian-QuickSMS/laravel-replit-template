@@ -583,11 +583,6 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:5,60'])
     ->post('/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
     ->name('api.bug-report.store');
 
-// Bug Report API — Admin Console (admin auth, rate-limited to 5 per hour)
-Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class, 'throttle:5,60'])
-    ->post('/admin/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
-    ->name('admin.api.bug-report.store');
-
 // Bug Fix Webhook (GitHub Actions callback — no auth, uses signature verification)
 Route::post('/api/webhooks/bug-fix-status', [\App\Http\Controllers\BugFixWebhookController::class, 'handle'])
     ->name('api.webhooks.bug-fix-status');
@@ -608,6 +603,11 @@ Route::prefix('admin')->group(function () {
         Route::post('/password/change', 'changePassword')->name('admin.password.change.submit');
     });
     
+    // Bug Report API — Admin Console (admin auth, rate-limited to 5 per hour)
+    Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class, 'throttle:5,60'])
+        ->post('/admin/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
+        ->name('admin.api.bug-report.store');
+
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
         ->controller(\App\Http\Controllers\AdminController::class)
         ->group(function () {
