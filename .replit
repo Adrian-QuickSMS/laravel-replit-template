@@ -19,6 +19,7 @@ DB_PORT = "5432"
 DB_USERNAME = "postgres"
 DB_PASSWORD = "password"
 APP_NAME = "QuickSMS"
+BUG_REPORT_WIDGET_ENABLED = "true"
 
 [userenv.development]
 ADMIN_DEV_AUTOLOGIN = "true"
