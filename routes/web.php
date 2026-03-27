@@ -604,8 +604,9 @@ Route::prefix('admin')->group(function () {
     });
     
     // Bug Report API — Admin Console (admin auth, rate-limited to 5 per hour)
+    // Path is /api/bug-report — the Route::prefix('admin') group already prepends /admin
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class, 'throttle:5,60'])
-        ->post('/admin/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
+        ->post('/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
         ->name('admin.api.bug-report.store');
 
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
