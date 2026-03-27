@@ -518,10 +518,24 @@ var BugReportService = {
         }
     }
 
+    // Safe init — hide button if widget fails to initialise
+    function safeInit() {
+        try {
+            init();
+        } catch (e) {
+            // Hide the floating button so it doesn't sit there broken
+            var btn = document.getElementById('bugReportBtn');
+            if (btn) btn.style.display = 'none';
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('[BugReportWidget] Failed to initialise:', e);
+            }
+        }
+    }
+
     // Initialise when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', safeInit);
     } else {
-        init();
+        safeInit();
     }
 })();

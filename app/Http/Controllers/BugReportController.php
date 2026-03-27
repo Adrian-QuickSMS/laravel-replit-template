@@ -48,6 +48,11 @@ class BugReportController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Gate: reject if widget is disabled (UI is hidden, but defend the route too)
+        if (!config('services.bug_report.enabled', false)) {
+            abort(404);
+        }
+
         $validated = $request->validate([
             'category'    => 'required|in:' . implode(',', self::VALID_CATEGORIES),
             'severity'    => 'required|in:' . implode(',', self::VALID_SEVERITIES),

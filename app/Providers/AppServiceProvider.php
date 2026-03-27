@@ -8,6 +8,8 @@ use App\Services\Billing\AutoTopUpNotificationService;
 use App\Services\CountryPermissionCacheService;
 use App\Services\CountryPermissionCheckService;
 use App\Services\DataMaskingService;
+use App\Services\GitHubIssueService;
+use App\Services\HubSpotTicketService;
 use App\Services\IpAllowlistService;
 use App\Services\OutOfHoursService;
 use Illuminate\Support\Facades\View;
@@ -36,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
         // Billing — Auto Top-Up services (scoped for Octane safety)
         $this->app->scoped(AutoTopUpNotificationService::class);
         $this->app->scoped(AutoTopUpService::class);
+
+        // Bug Report — scoped so config() values are fresh per request (Octane safety)
+        $this->app->scoped(HubSpotTicketService::class);
+        $this->app->scoped(GitHubIssueService::class);
     }
 
     /**

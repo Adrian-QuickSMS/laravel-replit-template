@@ -9,7 +9,7 @@ jobs:
   notify-hubspot:
     if: >
       github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.head.ref, 'auto-fix/')
+      startsWith(github.event.pull_request.head.ref, 'auto-fix/')
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
