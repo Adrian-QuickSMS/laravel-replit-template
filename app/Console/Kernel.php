@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Jobs\Alerting\DispatchBatchedAlertsJob;
 use App\Jobs\Alerting\PlatformHealthCheckJob;
+use App\Jobs\CleanBugReportTempFiles;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -47,6 +48,12 @@ class Kernel extends ConsoleKernel
 
         // Auto Top-Up — Expire stale requires_action and stuck events (hourly)
         $schedule->command('billing:expire-stale-auto-topups')
+            ->hourly()
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        // Bug Report — Clean stale temp screenshot files (hourly)
+        $schedule->job(new CleanBugReportTempFiles)
             ->hourly()
             ->withoutOverlapping()
             ->onOneServer();

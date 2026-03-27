@@ -578,6 +578,15 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/accou
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
+// Bug Report API — Customer Portal (session-based auth, rate-limited to 5 per hour)
+Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:5,60'])
+    ->post('/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
+    ->name('api.bug-report.store');
+
+// Bug Fix Webhook (GitHub Actions callback — no auth, uses signature verification)
+Route::post('/api/webhooks/bug-fix-status', [\App\Http\Controllers\BugFixWebhookController::class, 'handle'])
+    ->name('api.webhooks.bug-fix-status');
+
 Route::prefix('admin')->group(function () {
     Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
         Route::get('/login', 'showLogin')->name('admin.login');
@@ -594,6 +603,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/password/change', 'changePassword')->name('admin.password.change.submit');
     });
     
+    // Bug Report API — Admin Console (admin auth, rate-limited to 5 per hour)
+    // Path is /api/bug-report — the Route::prefix('admin') group already prepends /admin
+    Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class, 'throttle:5,60'])
+        ->post('/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
+        ->name('admin.api.bug-report.store');
+
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
         ->controller(\App\Http\Controllers\AdminController::class)
         ->group(function () {

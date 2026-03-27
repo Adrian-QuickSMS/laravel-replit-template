@@ -41,7 +41,10 @@
     <link href="{{ asset('css/admin-modal-design-system.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-breadcrumb-system.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/badge-chip-editor.css') }}" rel="stylesheet" type="text/css"/>
-    
+    @if(config('services.bug_report.enabled', false))
+    <link href="{{ asset('css/bug-report-widget.css') }}" rel="stylesheet" type="text/css"/>
+    @endif
+
     @stack('styles')
 
     <style>
@@ -96,7 +99,8 @@
         </div>
         
         @stack('modal')
-        
+        @include('partials.bug-report-widget')
+
         @include('elements.footer')
 
     </div>
@@ -117,6 +121,10 @@
     <script src="{{ asset('js/badge-chip-editor.js') }}"></script>
     <script src="{{ asset('js/admin-control-plane.js') }}"></script>
     <script src="{{ asset('js/quicksms-audit-logger.js') }}"></script>
+    @if(config('services.bug_report.enabled', false))
+    <script src="{{ asset('js/bug-report-annotation.js') }}"></script>
+    <script src="{{ asset('js/bug-report-widget.js') }}"></script>
+    @endif
     
     @stack('scripts')
 
