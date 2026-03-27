@@ -1,0 +1,203 @@
+Here's the prompt. Copy this directly into your Replit AI session:
+
+---
+
+## Code Review & Merge Request: Bug Report Widget (Phase 1)
+
+**Branch:** `claude/review-phase-1-design-9A2fw`  
+**Target:** `main`  
+**17 files changed, +2,848 lines, 5 commits**
+
+---
+
+### What this is
+
+A floating bug report widget for the QuickSMS portal (both Customer Portal and Admin Console). Users click a bottom-right button, fill a modal form, optionally attach/annotate a screenshot, and submit. The backend creates a HubSpot ticket. For certain categories, it also creates a GitHub issue that triggers a Claude Code auto-fix pipeline.
+
+This branch has been through **4 iterative code review passes** and **1 external Replit review**. All critical, high, and medium findings have been resolved.
+
+---
+
+### Commits (oldest → newest)
+
+| Commit | Description |
+|--------|-------------|
+| `b3f7822` | Initial implementation — widget UI, HubSpot service, GitHub service, webhook controller, GitHub Actions |
+| `6942327` | Review pass 1 — admin auth fix, feature flag, DI, HTTP timeouts, webhook hardening, file validation, audit logging, idempotency, metrics |
+| `a67edb6` | Review pass 2 — reference regex mismatch fix, scheduled cleanup job, port preservation, annotation text limit |
+| `1a6d6a0` | Review pass 3 — route double-prefix fix (`/admin/admin/...` → `/admin/...`) |
+| `378f85d` | Replit review feedback — feature flag in controller, scoped() service registration, startsWith branch filter, JS error boundary |
+
+---
+
+### New files (11)
+
+| File | Purpose |
+|------|---------|
+| `app/Http/Controllers/BugReportController.php` | Submission endpoint (portal + admin) |
+| `app/Http/Controllers/BugFixWebhookController.php` | GitHub Actions webhook receiver |
+| `app/Services/HubSpotTicketService.php` | HubSpot ticket CRUD, file upload, notes |
+| `app/Services/GitHubIssueService.php` | GitHub issue creation for auto-fix |
+| `app/Jobs/CleanBugReportTempFiles.php` | Hourly temp file cleanup |
+| `resources/views/partials/bug-report-widget.blade.php` | Blade partial (both layouts) |
+| `public/js/bug-report-widget.js` | Widget UI, service, console log buffer |
+| `public/js/bug-report-annotation.js` | Canvas annotation (freehand, arrow, rectangle, text) |
+| `public/css/bug-report-widget.css` | Widget + modal styles |
+| `.github/workflows/bug-auto-fix.yml` | Claude Code auto-fix pipeline |
+| `.github/workflows/bug-fix-merged.yml` | PR merge → HubSpot notification |
+
+### Modified files (6)
+
+| File | Change |
+|------|--------|
+| `routes/web.php` | 3 new routes: portal POST, admin POST, webhook POST |
+| `config/services.php` | `bug_report.enabled`, `bug_report.http_timeout`, `github.*` keys |
+| `app/Providers/AppServiceProvider.php` | `HubSpotTicketService` and `GitHubIssueService` registered as `scoped()` |
+| `app/Console/Kernel.php` | `CleanBugReportTempFiles` scheduled hourly |
+| `resources/views/layouts/quicksms.blade.php` | `@include('partials.bug-report-widget')` + CSS/JS assets |
+| `resources/views/layouts/admin.blade.php` | Same include + assets |
+
+---
+
+### Architecture
+
+```
+[Floating Button] → [Bootstrap 5 Modal]
+  Form: category, severity, title, description
+  Optional: screenshot upload/paste → canvas annotation
+  Auto-captured: URL, browser, OS, viewport, user, account
+  Console log buffer (last 50, sanitised)
+
+[JS BugReportService]
+  Portal → POST /api/bug-report        (customer.auth middleware)
+  Admin  → POST /admin/api/bug-report  (AdminAuthenticate middleware)
+
+[BugReportController]
+  Validates, sanitises, enriches metadata server-side
+  Strips query params from URLs (token safety)
+  Derives product area from URL path
+  Feature flag gate: abort(404) when disabled
+
+[HubSpotTicketService]
+  Creates ticket → uploads screenshot → attaches via notes
+  Mock mode when HUBSPOT_ACCESS_TOKEN is empty
+  10s timeout, metric logging
+
+[GitHubIssueService]
+  Creates issue for portal_bug/ui_layout categories
+  Labels: bug-report, auto-fix, portal, ui, priority-high
+  Mock mode when GITHUB_TOKEN is empty
+
+[GitHub Actions: bug-auto-fix.yml]
+  Triggers on 'auto-fix' label → Claude Code analyses + fixes
+  Creates draft PR → webhooks to app
+
+[GitHub Actions: bug-fix-merged.yml]
+  Triggers on auto-fix/* branch merge → webhook to app
+
+[BugFixWebhookController]
+  HMAC-SHA256 signature verification (always required)
+  Cache-based idempotency (1h TTL)
+  Updates HubSpot ticket stage + adds timeline note
+```
+
+---
+
+### Security measures
+
+- **Feature flag** — `BUG_REPORT_WIDGET_ENABLED=false` by default. Gates both Blade partial AND controller route
+- **Server-side metadata enrichment** — overrides all client-sent user/account data
+- **`|image` validation** — checks actual MIME type, not just extension
+- **File extension from `getMimeType()`** — not client filename
+- **URL sanitisation** — query params stripped, port preserved
+- **Console log sanitisation** — 10 regex patterns: JWT, Bearer, AWS keys, passwords, secrets, hex strings
+- **Webhook HMAC-SHA256** — always required, no dev bypass
+- **Idempotency** — Cache-based duplicate detection on webhooks
+- **HTTP timeouts** — 10s configurable on all external API calls
+- **GitHub Actions** — all untrusted inputs via `env:` blocks, draft PRs only
+- **Rate limit** — 5 submissions per 60 minutes per user
+- **Octane-safe** — services registered as `scoped()` in AppServiceProvider
+- **CSRF** — webhook route covered by existing `api/webhooks/*` exception in VerifyCsrfToken
+- **JS error boundary** — `safeInit()` wrapper hides button if widget fails to initialise
+
+---
+
+### Previous review findings — all resolved
+
+| Finding | Resolution |
+|---------|------------|
+| Admin widget PHP crash (`auth()->user()` null) | Blade detects admin session, controller enriches from `session('admin_auth')` |
+| GitHub Actions script injection | All untrusted inputs via `env:` blocks |
+| Admin route 404 (customer.auth blocking) | Separate `/admin/api/bug-report` route with AdminAuthenticate |
+| No HTTP timeouts | `Http::timeout(10)` via `client()` method, configurable |
+| Webhook signature bypass in dev | Always requires secret, no bypass |
+| File extension from client filename | Derived from `getMimeType()` via MIME_TO_EXTENSION map |
+| Reference regex mismatch (6 vs 10 chars) | Regex updated to `{6,12}`, grep patterns in workflows updated |
+| Cleanup job not scheduled | Added to `Console/Kernel.php` hourly |
+| URL sanitisation drops port | Port preserved in reconstruction |
+| Route double-prefix `/admin/admin/...` | Path corrected inside `prefix('admin')` group |
+| Feature flag doesn't gate routes | `abort(404)` in controller when flag is off |
+| Services not Octane-safe | Registered as `scoped()` in AppServiceProvider |
+| `contains` branch filter too loose | Changed to `startsWith` |
+| No JS error boundary | `safeInit()` wrapper with graceful degradation |
+| CSRF blocking webhook (Replit finding) | **Already covered** by existing `api/webhooks/*` exception — no fix needed |
+
+---
+
+### Environment variables required
+
+```env
+# Feature flag (must be true to enable — default is false)
+BUG_REPORT_WIDGET_ENABLED=true
+
+# HubSpot (existing token, new pipeline config)
+HUBSPOT_TICKET_PIPELINE_ID=0
+HUBSPOT_TICKET_PIPELINE_STAGE_ID=1
+
+# GitHub (for auto-fix issues)
+GITHUB_TOKEN=ghp_...
+GITHUB_WEBHOOK_SECRET=your-secret
+
+# Optional
+BUG_REPORT_HTTP_TIMEOUT=10
+```
+
+**GitHub Actions secrets** (repo settings):
+- `BUG_FIX_WEBHOOK_SECRET` — same as `GITHUB_WEBHOOK_SECRET`
+- `ANTHROPIC_API_KEY` — for Claude Code
+
+**GitHub Actions variables** (repo settings):
+- `APP_URL` — your app URL for webhook callbacks
+
+**GitHub repo labels** (create before enabling auto-fix):
+`bug-report`, `auto-fix`, `portal`, `ui`, `priority-high`
+
+---
+
+### What to verify before merging
+
+1. `BUG_REPORT_WIDGET_ENABLED=false` → widget is completely absent from DOM
+2. `BUG_REPORT_WIDGET_ENABLED=true` → widget renders on portal and admin pages
+3. Submit from portal → HubSpot ticket created (or structured log in mock mode)
+4. Submit from admin → same, with admin session context
+5. POST to `/api/bug-report` with flag off → 404
+6. `php artisan route:list --path=bug-report` → shows 2 routes (portal + admin)
+7. No CLAUDE.md violations: no new migrations, no new frameworks, no new auth, PostgreSQL only
+
+### What does NOT need testing for merge
+
+- HubSpot API integration (mock mode works without credentials)
+- GitHub Actions workflows (tested separately in CI)
+- Claude Code auto-fix pipeline (triggered by issue labels, not by widget code)
+
+---
+
+### Risk assessment
+
+**Risk: Low.** Module is entirely additive — no existing files modified beyond trivial layout includes and provider/kernel registrations. Feature-flagged off by default. Instant rollback by setting env var to false.
+
+**Recommendation: Safe to merge.**
+
+---
+
+Pull from branch `claude/review-phase-1-design-9A2fw` and merge to `main`.
