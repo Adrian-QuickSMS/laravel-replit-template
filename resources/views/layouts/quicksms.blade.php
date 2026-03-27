@@ -4,9 +4,12 @@
 <link href="{{ asset('css/quicksms-global-layout.css') }}" rel="stylesheet" type="text/css"/>
 <link href="{{ asset('css/quicksms-pastel.css') }}" rel="stylesheet" type="text/css"/>
 <link href="{{ asset('css/badge-chip-editor.css') }}?v=20260318f" rel="stylesheet" type="text/css"/>
+<link href="{{ asset('css/bug-report-widget.css') }}" rel="stylesheet" type="text/css"/>
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/bug-report-annotation.js') }}"></script>
+<script src="{{ asset('js/bug-report-widget.js') }}"></script>
 <script src="{{ asset('js/badge-chip-editor.js') }}?v=20260318f"></script>
 <script src="{{ asset('js/security-helpers.js') }}"></script>
 <script src="{{ asset('js/account-policy-service.js') }}"></script>
@@ -153,6 +156,10 @@
     }
 })();
 </script>
+@endpush
+
+@push('modal')
+    @include('partials.bug-report-widget')
 @endpush
 
 @section('sidebar')

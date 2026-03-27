@@ -1,0 +1,33 @@
+name: Bug Fix Merged — Notify HubSpot
+
+# Triggers when an auto-fix PR is merged
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify-hubspot:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.head.ref, 'auto-fix/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Extract bug reference from PR body
+        id: extract-ref
+        run: |
+          REF=$(echo "${{ github.event.pull_request.body }}" | grep -oP 'BUG-\d{8}-[A-Za-z0-9]{6}' | head -1)
+          echo "reference=$REF" >> $GITHUB_OUTPUT
+          echo "Bug reference: $REF"
+
+      - name: Notify HubSpot — PR Merged / Ready for Testing
+        if: steps.extract-ref.outputs.reference != ''
+        run: |
+          PAYLOAD='{"event":"pr_merged","reference":"${{ steps.extract-ref.outputs.reference }}","pr_url":"${{ github.event.pull_request.html_url }}","pr_number":${{ github.event.pull_request.number }},"message":"Fix has been merged and is ready for testing."}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac '${{ secrets.BUG_FIX_WEBHOOK_SECRET }}' | awk '{print $2}')
+          curl -s -X POST "${{ vars.APP_URL }}/api/webhooks/bug-fix-status" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+            -d "$PAYLOAD"
+        continue-on-error: true

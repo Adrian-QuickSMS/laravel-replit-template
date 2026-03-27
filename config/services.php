@@ -36,6 +36,14 @@ return [
         'api_key' => env('HUBSPOT_API_KEY'),
         'client_secret' => env('HUBSPOT_CLIENT_SECRET'),
         'webhook_secret' => env('HUBSPOT_WEBHOOK_SECRET'),
+        'ticket_pipeline_id' => env('HUBSPOT_TICKET_PIPELINE_ID', '0'),
+        'ticket_pipeline_stage_id' => env('HUBSPOT_TICKET_PIPELINE_STAGE_ID', '1'),
+    ],
+
+    'github' => [
+        'token' => env('GITHUB_TOKEN'),
+        'repo' => env('GITHUB_REPO', 'adrian-quicksms/laravel-replit-template'),
+        'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
     ],
 
     'stripe' => [
