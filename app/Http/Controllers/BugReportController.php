@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class BugReportController extends Controller
 {
-    private const AUTO_FIX_CATEGORIES = ['portal_bug', 'ui_layout'];
-
     private const VALID_CATEGORIES = [
         'portal_bug',
         'ui_layout',
@@ -29,6 +27,25 @@ class BugReportController extends Controller
 
     private const VALID_SEVERITIES = ['critical', 'high', 'medium', 'low'];
 
+    private const MIME_TO_EXTENSION = [
+        'image/png'  => 'png',
+        'image/jpeg' => 'jpg',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+    ];
+
+    private HubSpotTicketService $ticketService;
+    private GitHubIssueService $issueService;
+
+    public function __construct(HubSpotTicketService $ticketService, GitHubIssueService $issueService)
+    {
+        $this->ticketService = $ticketService;
+        $this->issueService = $issueService;
+    }
+
+    /**
+     * Handle bug report submission from both customer portal and admin console.
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -36,8 +53,8 @@ class BugReportController extends Controller
             'severity'    => 'required|in:' . implode(',', self::VALID_SEVERITIES),
             'title'       => 'required|string|min:5|max:200',
             'description' => 'required|string|min:20|max:5000',
-            'screenshot'  => 'nullable|file|max:5120|mimes:png,jpg,jpeg,gif,webp',
-            'annotated_screenshot' => 'nullable|file|max:5120|mimes:png,jpg,jpeg,gif,webp',
+            'screenshot'  => 'nullable|image|max:5120|mimes:png,jpg,jpeg,gif,webp',
+            'annotated_screenshot' => 'nullable|image|max:5120|mimes:png,jpg,jpeg,gif,webp',
             'console_logs' => 'nullable|string|max:50000',
             'metadata'    => 'required|json',
         ]);
@@ -54,35 +71,16 @@ class BugReportController extends Controller
             ], 422);
         }
 
-        // Enrich metadata from authenticated session (server-side, never trust client)
-        $user = $request->user();
-        if ($user) {
-            $metadata['reporter_name'] = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
-            $metadata['reporter_email'] = $user->email ?? '';
-            $account = $user->account ?? null;
-            if ($account) {
-                $metadata['account_id'] = $account->id ?? '';
-                $metadata['account_name'] = $account->company_name ?? $account->trading_name ?? '';
-            }
-        }
+        // Enrich metadata server-side — supports both customer and admin context
+        $metadata = $this->enrichMetadata($metadata, $request);
 
-        // Parse console logs
-        $consoleLogs = null;
-        if (!empty($validated['console_logs'])) {
-            $consoleLogs = json_decode($validated['console_logs'], true);
-            if (is_array($consoleLogs)) {
-                $consoleLogs = $this->sanitiseConsoleLogs($consoleLogs);
-            } else {
-                $consoleLogs = null;
-            }
-        }
+        // Parse and sanitise console logs
+        $consoleLogs = $this->parseConsoleLogs($validated['console_logs'] ?? null);
 
-        // Derive product area from page URL
+        // Derive product area from page URL server-side
         $productArea = $this->deriveProductArea($metadata['page_url'] ?? '');
 
-        // Build data payload for services
-        $ticketService = new HubSpotTicketService();
-        $reference = $ticketService->generateReference();
+        $reference = $this->ticketService->generateReference();
 
         $data = [
             'category'     => $validated['category'],
@@ -98,7 +96,21 @@ class BugReportController extends Controller
         ];
 
         // Create HubSpot ticket
-        $ticketResult = $ticketService->createTicket($data);
+        $ticketResult = $this->ticketService->createTicket($data);
+
+        // Log locally for audit trail regardless of HubSpot success
+        Log::channel('single')->info('BUG_REPORT_SUBMITTED', [
+            'reference'    => $reference,
+            'category'     => $validated['category'],
+            'severity'     => $validated['severity'],
+            'title'        => $validated['title'],
+            'reporter'     => $metadata['reporter_email'] ?? 'unknown',
+            'account_id'   => $metadata['account_id'] ?? 'unknown',
+            'product_area' => $productArea,
+            'page_url'     => $metadata['page_url'] ?? '',
+            'hubspot_success' => $ticketResult['success'] ?? false,
+            'hubspot_ticket_id' => $ticketResult['ticket_id'] ?? null,
+        ]);
 
         if (!$ticketResult['success']) {
             Log::error('Bug report: HubSpot ticket creation failed', [
@@ -114,29 +126,20 @@ class BugReportController extends Controller
 
         $ticketId = $ticketResult['ticket_id'];
 
-        // Handle screenshot uploads
-        $this->handleScreenshots($ticketService, $ticketId, $request);
+        // Handle screenshot uploads (non-blocking)
+        $this->handleScreenshots($ticketId, $request);
 
-        // Handle console logs as attachment
+        // Handle console logs as attachment (non-blocking)
         if ($consoleLogs && $ticketId) {
-            $this->attachConsoleLogs($ticketService, $ticketId, $consoleLogs, $reference);
+            $this->attachConsoleLogs($ticketId, $consoleLogs, $reference);
         }
 
-        // Create GitHub issue for auto-fixable categories
+        // Create GitHub issue for auto-fixable categories (non-blocking)
         $issueResult = null;
         if (GitHubIssueService::isAutoFixable($validated['category'])) {
             try {
-                $issueService = new GitHubIssueService();
-                $issueResult = $issueService->createIssue($data);
-
-                if ($issueResult['success'] ?? false) {
-                    Log::info('Bug report: GitHub issue created for auto-fix', [
-                        'reference' => $reference,
-                        'issue_number' => $issueResult['issue_number'] ?? null,
-                    ]);
-                }
+                $issueResult = $this->issueService->createIssue($data);
             } catch (\Throwable $e) {
-                // GitHub issue creation should never block the bug report
                 Log::warning('Bug report: GitHub issue creation failed (non-blocking)', [
                     'reference' => $reference,
                     'error' => $e->getMessage(),
@@ -153,7 +156,65 @@ class BugReportController extends Controller
         ]);
     }
 
-    private function handleScreenshots(HubSpotTicketService $service, ?string $ticketId, Request $request): void
+    /**
+     * Enrich metadata from authenticated session — supports both customer and admin context.
+     * Server-side values always override client-sent values to prevent spoofing.
+     */
+    private function enrichMetadata(array $metadata, Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user) {
+            // Customer portal context
+            $metadata['reporter_name'] = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            $metadata['reporter_email'] = $user->email ?? '';
+            try {
+                $account = $user->account;
+                if ($account) {
+                    $metadata['account_id'] = $account->id ?? '';
+                    $metadata['account_name'] = $account->company_name ?? $account->trading_name ?? '';
+                }
+            } catch (\Throwable $e) {
+                // Account relation may not exist
+            }
+            $metadata['context'] = 'portal';
+        } else {
+            // Admin console context — read from admin session
+            $adminSession = session('admin_auth');
+            if ($adminSession && ($adminSession['authenticated'] ?? false)) {
+                $metadata['reporter_name'] = $adminSession['name'] ?? 'Admin User';
+                $metadata['reporter_email'] = $adminSession['email'] ?? '';
+                $metadata['account_id'] = 'admin:' . ($adminSession['admin_id'] ?? '');
+                $metadata['account_name'] = 'QuickSMS Admin (' . ($adminSession['role'] ?? 'unknown') . ')';
+                $metadata['context'] = 'admin';
+            }
+        }
+
+        // Sanitise page_url — strip query params that might contain tokens
+        if (isset($metadata['page_url'])) {
+            $parsed = parse_url($metadata['page_url']);
+            $metadata['page_url'] = ($parsed['scheme'] ?? 'https') . '://'
+                . ($parsed['host'] ?? '') . ($parsed['path'] ?? '/');
+        }
+
+        return $metadata;
+    }
+
+    private function parseConsoleLogs(?string $raw): ?array
+    {
+        if (empty($raw)) {
+            return null;
+        }
+
+        $logs = json_decode($raw, true);
+        if (!is_array($logs)) {
+            return null;
+        }
+
+        return $this->sanitiseConsoleLogs($logs);
+    }
+
+    private function handleScreenshots(?string $ticketId, Request $request): void
     {
         if (!$ticketId) {
             return;
@@ -175,11 +236,14 @@ class BugReportController extends Controller
             try {
                 $tempPath = $file->store('temp/bug-reports', 'local');
                 $fullPath = Storage::disk('local')->path($tempPath);
-                $fileName = $field . '_' . now()->format('Ymd_His') . '.' . $file->getClientOriginalExtension();
 
-                $fileId = $service->uploadFile($fullPath, $fileName);
+                // Derive extension from actual mime type, not client-supplied filename
+                $ext = self::MIME_TO_EXTENSION[$file->getMimeType()] ?? 'png';
+                $fileName = $field . '_' . now()->format('Ymd_His') . '.' . $ext;
+
+                $fileId = $this->ticketService->uploadFile($fullPath, $fileName);
                 if ($fileId) {
-                    $service->attachFileToTicket($ticketId, $fileId, $label);
+                    $this->ticketService->attachFileToTicket($ticketId, $fileId, $label);
                 }
             } catch (\Throwable $e) {
                 Log::warning("Bug report: {$field} upload failed (non-blocking)", [
@@ -193,7 +257,7 @@ class BugReportController extends Controller
         }
     }
 
-    private function attachConsoleLogs(HubSpotTicketService $service, string $ticketId, array $logs, string $reference): void
+    private function attachConsoleLogs(string $ticketId, array $logs, string $reference): void
     {
         try {
             $content = json_encode($logs, JSON_PRETTY_PRINT);
@@ -201,9 +265,9 @@ class BugReportController extends Controller
             Storage::disk('local')->put($tempPath, $content);
             $fullPath = Storage::disk('local')->path($tempPath);
 
-            $fileId = $service->uploadFile($fullPath, "console_logs_{$reference}.json");
+            $fileId = $this->ticketService->uploadFile($fullPath, "console_logs_{$reference}.json");
             if ($fileId) {
-                $service->attachFileToTicket($ticketId, $fileId, 'Browser console logs');
+                $this->ticketService->attachFileToTicket($ticketId, $fileId, 'Browser console logs');
             }
 
             Storage::disk('local')->delete($tempPath);
@@ -215,16 +279,22 @@ class BugReportController extends Controller
     }
 
     /**
-     * Strip sensitive data from console log entries.
+     * Sanitise console log entries — deny-by-default approach.
+     * Only keeps level + truncated message + timestamp. Strips all JSON objects and redacts secrets.
      */
     private function sanitiseConsoleLogs(array $logs): array
     {
         $sensitivePatterns = [
             '/Bearer\s+[A-Za-z0-9\-._~+\/]+=*/i',
             '/api[_-]?key["\s:=]+["\']?[A-Za-z0-9\-._]+/i',
-            '/token["\s:=]+["\']?[A-Za-z0-9\-._]+/i',
+            '/token["\s:=]+["\']?[A-Za-z0-9\-._]{8,}/i',
             '/password["\s:=]+["\']?[^\s"\']+/i',
             '/cookie["\s:=]+["\']?[^\s"\']+/i',
+            '/secret["\s:=]+["\']?[^\s"\']+/i',
+            '/authorization["\s:=]+["\']?[^\s"\']+/i',
+            '/eyJ[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+/i', // JWT tokens
+            '/AKIA[A-Z0-9]{16}/i', // AWS access keys
+            '/[a-f0-9]{32,}/i', // Long hex strings (session IDs, hashes)
         ];
 
         $sanitised = [];
@@ -237,16 +307,17 @@ class BugReportController extends Controller
             if (is_array($message)) {
                 $message = json_encode($message);
             }
+            $message = (string) $message;
 
             // Redact sensitive patterns
             foreach ($sensitivePatterns as $pattern) {
-                $message = preg_replace($pattern, '[REDACTED]', $message);
+                $message = preg_replace($pattern, '[REDACTED]', $message) ?? $message;
             }
 
             $sanitised[] = [
-                'level' => $entry['level'] ?? 'log',
-                'message' => mb_substr((string) $message, 0, 1000),
-                'ts' => $entry['ts'] ?? null,
+                'level' => in_array($entry['level'] ?? '', ['log', 'warn', 'error', 'info']) ? $entry['level'] : 'log',
+                'message' => mb_substr($message, 0, 500),
+                'ts' => is_numeric($entry['ts'] ?? null) ? (int) $entry['ts'] : null,
             ];
         }
 
@@ -276,7 +347,6 @@ class BugReportController extends Controller
             '/flows'               => 'Flow Builder',
         ];
 
-        // Longest prefix match
         $bestMatch = 'Dashboard';
         $bestLen = 0;
 

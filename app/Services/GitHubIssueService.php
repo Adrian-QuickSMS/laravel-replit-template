@@ -9,8 +9,8 @@ class GitHubIssueService
 {
     private ?string $token;
     private string $repo;
+    private int $timeout;
 
-    // Only these categories trigger auto-fix via GitHub issue creation
     private const AUTO_FIX_CATEGORIES = ['portal_bug', 'ui_layout'];
 
     private array $categoryLabels = [
@@ -31,6 +31,7 @@ class GitHubIssueService
     {
         $this->token = config('services.github.token');
         $this->repo = config('services.github.repo', 'adrian-quicksms/laravel-replit-template');
+        $this->timeout = config('services.bug_report.http_timeout', 10);
     }
 
     public function isConfigured(): bool
@@ -65,7 +66,7 @@ class GitHubIssueService
             $body = $this->formatIssueBody($data, $reference);
             $labels = $this->getLabels($data);
 
-            $response = Http::withHeaders([
+            $response = Http::timeout($this->timeout)->withHeaders([
                 'Authorization' => 'Bearer ' . $this->token,
                 'Accept' => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
@@ -197,7 +198,7 @@ class GitHubIssueService
         return [
             'success' => true,
             'isMockData' => true,
-            'issue_number' => rand(100, 999),
+            'issue_number' => crc32($reference) % 10000,
             'issue_url' => "https://github.com/{$this->repo}/issues/mock",
             'reference' => $reference,
         ];

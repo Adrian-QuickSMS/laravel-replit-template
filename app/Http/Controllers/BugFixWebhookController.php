@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\HubSpotTicketService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class BugFixWebhookController extends Controller
@@ -17,15 +18,19 @@ class BugFixWebhookController extends Controller
         'pr_merged'   => 'ready_for_testing',
     ];
 
+    private HubSpotTicketService $ticketService;
+
+    public function __construct(HubSpotTicketService $ticketService)
+    {
+        $this->ticketService = $ticketService;
+    }
+
     /**
      * Handle status updates from GitHub Actions for bug auto-fixes.
-     *
-     * Called by the bug-auto-fix GitHub Actions workflow when Claude Code
-     * starts working, opens a PR, or when a PR is merged.
      */
     public function handle(Request $request): JsonResponse
     {
-        // Verify webhook signature
+        // Always verify webhook signature — no bypass in any environment
         if (!$this->verifySignature($request)) {
             Log::warning('Bug fix webhook: invalid signature', [
                 'ip' => $request->ip(),
@@ -44,23 +49,36 @@ class BugFixWebhookController extends Controller
         $event = $validated['event'];
         $reference = $validated['reference'];
 
+        // Idempotency check — prevent duplicate processing from webhook retries
+        $idempotencyKey = "bug_webhook:{$reference}:{$event}";
+        if (Cache::has($idempotencyKey)) {
+            Log::info('Bug fix webhook: duplicate ignored', [
+                'event' => $event,
+                'reference' => $reference,
+            ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Duplicate webhook — already processed',
+                'reference' => $reference,
+            ]);
+        }
+
+        // Mark as processed (TTL 1 hour)
+        Cache::put($idempotencyKey, true, 3600);
+
         Log::info('Bug fix webhook received', [
             'event' => $event,
             'reference' => $reference,
             'pr_url' => $validated['pr_url'] ?? null,
         ]);
 
-        $ticketService = new HubSpotTicketService();
-
         // Find the HubSpot ticket by reference
-        $ticketId = $ticketService->findTicketByReference($reference);
+        $ticketId = $this->ticketService->findTicketByReference($reference);
 
         if (!$ticketId) {
             Log::warning('Bug fix webhook: ticket not found for reference', [
                 'reference' => $reference,
             ]);
-            // Don't return error — the webhook should succeed even if ticket lookup fails
-            // This can happen in mock mode or if HubSpot is unconfigured
             return response()->json([
                 'success' => true,
                 'message' => 'Webhook received, but no matching HubSpot ticket found',
@@ -71,12 +89,12 @@ class BugFixWebhookController extends Controller
         // Update ticket stage
         $stage = self::EVENT_STAGE_MAP[$event] ?? null;
         if ($stage) {
-            $ticketService->updateTicketStage($ticketId, $stage);
+            $this->ticketService->updateTicketStage($ticketId, $stage);
         }
 
         // Add timeline note
         $noteBody = $this->buildNoteBody($event, $validated);
-        $ticketService->addTicketNote($ticketId, $noteBody);
+        $this->ticketService->addTicketNote($ticketId, $noteBody);
 
         Log::info('Bug fix webhook: HubSpot ticket updated', [
             'ticket_id' => $ticketId,
@@ -97,13 +115,10 @@ class BugFixWebhookController extends Controller
     {
         $secret = config('services.github.webhook_secret');
 
-        // If no secret is configured, reject all webhooks in production
+        // Always require a configured secret — no bypass in any environment
         if (empty($secret)) {
-            if (app()->environment('production')) {
-                return false;
-            }
-            // Allow in dev/testing without signature
-            return true;
+            Log::error('Bug fix webhook: GITHUB_WEBHOOK_SECRET not configured — rejecting all webhooks');
+            return false;
         }
 
         $signature = $request->header('X-Hub-Signature-256');
@@ -122,14 +137,14 @@ class BugFixWebhookController extends Controller
 
         switch ($event) {
             case 'fix_started':
-                return "🔧 **Claude Code Auto-Fix Started**\n\n"
+                return "**Claude Code Auto-Fix Started**\n\n"
                     . "Claude Code is analysing bug report {$reference} and attempting an automated fix.\n\n"
                     . ($data['message'] ?? '');
 
             case 'pr_opened':
                 $prUrl = $data['pr_url'] ?? '';
                 $prNum = $data['pr_number'] ?? '';
-                return "📋 **Pull Request Opened**\n\n"
+                return "**Pull Request Opened**\n\n"
                     . "Claude Code has opened PR #{$prNum} with a proposed fix for {$reference}.\n\n"
                     . "**PR URL:** {$prUrl}\n\n"
                     . "This is a **draft PR** — human review required before merging.\n\n"
@@ -138,7 +153,7 @@ class BugFixWebhookController extends Controller
             case 'pr_merged':
                 $prUrl = $data['pr_url'] ?? '';
                 $prNum = $data['pr_number'] ?? '';
-                return "✅ **Fix Merged — Ready for Testing**\n\n"
+                return "**Fix Merged — Ready for Testing**\n\n"
                     . "PR #{$prNum} for {$reference} has been merged.\n\n"
                     . "**PR URL:** {$prUrl}\n\n"
                     . "The fix is now deployed and ready for verification.\n\n"

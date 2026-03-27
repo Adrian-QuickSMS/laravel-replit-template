@@ -46,6 +46,11 @@ return [
         'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
     ],
 
+    'bug_report' => [
+        'enabled' => env('BUG_REPORT_WIDGET_ENABLED', false),
+        'http_timeout' => (int) env('BUG_REPORT_HTTP_TIMEOUT', 10),
+    ],
+
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),

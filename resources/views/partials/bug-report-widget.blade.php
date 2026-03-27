@@ -1,12 +1,51 @@
 {{-- Bug Report Widget — Floating button + Modal --}}
 {{-- Included in both quicksms.blade.php and admin.blade.php layouts --}}
+{{-- Gated by BUG_REPORT_WIDGET_ENABLED env var --}}
+
+@if(config('services.bug_report.enabled', false))
+@php
+    // Resolve user context for both customer portal and admin console
+    $bugReportUser = auth()->user();
+    $adminSession = session('admin_auth');
+
+    if ($bugReportUser) {
+        // Customer portal context
+        $bugReportName = trim(($bugReportUser->first_name ?? '') . ' ' . ($bugReportUser->last_name ?? ''));
+        $bugReportEmail = $bugReportUser->email ?? '';
+        $bugReportAccountId = $bugReportUser->tenant_id ?? session('customer_tenant_id', '');
+        $bugReportAccountName = '';
+        if ($bugReportUser->relationLoaded('account') || method_exists($bugReportUser, 'account')) {
+            try {
+                $acct = $bugReportUser->account;
+                $bugReportAccountName = $acct->company_name ?? $acct->trading_name ?? '';
+            } catch (\Throwable $e) {
+                $bugReportAccountName = '';
+            }
+        }
+        $bugReportContext = 'portal';
+    } elseif ($adminSession && ($adminSession['authenticated'] ?? false)) {
+        // Admin console context
+        $bugReportName = $adminSession['name'] ?? 'Admin User';
+        $bugReportEmail = $adminSession['email'] ?? '';
+        $bugReportAccountId = 'admin:' . ($adminSession['admin_id'] ?? '');
+        $bugReportAccountName = 'QuickSMS Admin (' . ($adminSession['role'] ?? 'unknown') . ')';
+        $bugReportContext = 'admin';
+    } else {
+        $bugReportName = '';
+        $bugReportEmail = '';
+        $bugReportAccountId = '';
+        $bugReportAccountName = '';
+        $bugReportContext = 'unknown';
+    }
+@endphp
 
 <div id="bugReportWidget"
-     data-user-name="{{ trim((auth()->user()->first_name ?? '') . ' ' . (auth()->user()->last_name ?? '')) }}"
-     data-user-email="{{ auth()->user()->email ?? '' }}"
-     data-account-id="{{ auth()->user()->tenant_id ?? session('customer_tenant_id', '') }}"
-     data-account-name="{{ auth()->user()->account->company_name ?? auth()->user()->account->trading_name ?? '' }}"
-     data-environment="{{ app()->environment() }}">
+     data-user-name="{{ e($bugReportName) }}"
+     data-user-email="{{ e($bugReportEmail) }}"
+     data-account-id="{{ e($bugReportAccountId) }}"
+     data-account-name="{{ e($bugReportAccountName) }}"
+     data-environment="{{ app()->environment() }}"
+     data-context="{{ $bugReportContext }}">
 
     {{-- Floating Bug Report Button --}}
     <button type="button" id="bugReportBtn" class="bug-report-fab" title="Report a Bug"
@@ -213,3 +252,4 @@
         </div>
     </div>
 </div>
+@endif

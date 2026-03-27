@@ -578,10 +578,15 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('api/accou
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
-// Bug Report API (session-based auth, rate-limited to 5 per hour)
+// Bug Report API — Customer Portal (session-based auth, rate-limited to 5 per hour)
 Route::middleware(['customer.auth', 'customer.ip_allowlist', 'throttle:5,60'])
     ->post('/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
     ->name('api.bug-report.store');
+
+// Bug Report API — Admin Console (admin auth, rate-limited to 5 per hour)
+Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class, 'throttle:5,60'])
+    ->post('/admin/api/bug-report', [\App\Http\Controllers\BugReportController::class, 'store'])
+    ->name('admin.api.bug-report.store');
 
 // Bug Fix Webhook (GitHub Actions callback — no auth, uses signature verification)
 Route::post('/api/webhooks/bug-fix-status', [\App\Http\Controllers\BugFixWebhookController::class, 'handle'])

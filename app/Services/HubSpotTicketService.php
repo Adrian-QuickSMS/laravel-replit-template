@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -15,9 +16,8 @@ class HubSpotTicketService
     private ?string $accessToken;
     private string $pipelineId;
     private string $pipelineStageId;
+    private int $timeout;
 
-    // HubSpot pipeline stage IDs — these are instance-specific defaults
-    // Override via HUBSPOT_TICKET_STAGE_* env vars if your HubSpot has different stage IDs
     private array $stageMap = [
         'new'               => '1',
         'in_progress'       => '2',
@@ -39,6 +39,7 @@ class HubSpotTicketService
         $this->accessToken = config('services.hubspot.access_token');
         $this->pipelineId = config('services.hubspot.ticket_pipeline_id', '0');
         $this->pipelineStageId = config('services.hubspot.ticket_pipeline_stage_id', '1');
+        $this->timeout = config('services.bug_report.http_timeout', 10);
     }
 
     public function isConfigured(): bool
@@ -47,11 +48,23 @@ class HubSpotTicketService
     }
 
     /**
+     * Build an authenticated HTTP client with timeout.
+     */
+    private function client(): PendingRequest
+    {
+        return Http::timeout($this->timeout)->withHeaders([
+            'Authorization' => 'Bearer ' . $this->accessToken,
+            'Content-Type' => 'application/json',
+        ]);
+    }
+
+    /**
      * Generate a unique bug reference ID.
+     * Uses 10 random chars to minimise collision risk.
      */
     public function generateReference(): string
     {
-        return 'BUG-' . now()->format('Ymd') . '-' . Str::random(6);
+        return 'BUG-' . now()->format('Ymd') . '-' . Str::random(10);
     }
 
     /**
@@ -68,15 +81,14 @@ class HubSpotTicketService
             return $this->getMockTicketResponse($data, $reference);
         }
 
+        $startTime = microtime(true);
+
         try {
             $ticketName = $this->formatTicketName($data);
             $ticketBody = $this->formatTicketBody($data, $reference);
             $priority = $this->severityToPriority[$data['severity'] ?? 'medium'] ?? 'MEDIUM';
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->post($this->ticketsUrl, [
+            $response = $this->client()->post($this->ticketsUrl, [
                 'properties' => [
                     'subject'            => $ticketName,
                     'content'            => $ticketBody,
@@ -85,6 +97,8 @@ class HubSpotTicketService
                     'hs_ticket_priority' => $priority,
                 ],
             ]);
+
+            $this->logMetric('hubspot.ticket.create', $response->status(), $startTime);
 
             if ($response->failed()) {
                 Log::error('HubSpot Ticket API error', [
@@ -115,6 +129,7 @@ class HubSpotTicketService
             ];
 
         } catch (\Exception $e) {
+            $this->logMetric('hubspot.ticket.create', 0, $startTime, $e->getMessage());
             Log::error('HubSpot Ticket API exception', [
                 'message' => $e->getMessage(),
                 'reference' => $reference,
@@ -137,8 +152,10 @@ class HubSpotTicketService
             return 'mock_file_' . Str::random(8);
         }
 
+        $startTime = microtime(true);
+
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout($this->timeout)->withHeaders([
                 'Authorization' => 'Bearer ' . $this->accessToken,
             ])->attach(
                 'file', file_get_contents($filePath), $fileName
@@ -149,6 +166,8 @@ class HubSpotTicketService
                 ]),
                 'folderPath' => '/bug-reports',
             ]);
+
+            $this->logMetric('hubspot.file.upload', $response->status(), $startTime);
 
             if ($response->failed()) {
                 Log::error('HubSpot File upload error', [
@@ -165,6 +184,7 @@ class HubSpotTicketService
             return $fileId;
 
         } catch (\Exception $e) {
+            $this->logMetric('hubspot.file.upload', 0, $startTime, $e->getMessage());
             Log::error('HubSpot File upload exception', ['message' => $e->getMessage()]);
             return null;
         }
@@ -180,11 +200,7 @@ class HubSpotTicketService
         }
 
         try {
-            // Create a note with the file attachment
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->post($this->notesUrl, [
+            $response = $this->client()->post($this->notesUrl, [
                 'properties' => [
                     'hs_note_body' => $noteBody ?: 'Screenshot attached to bug report',
                     'hs_attachment_ids' => $fileId,
@@ -205,16 +221,13 @@ class HubSpotTicketService
                 return false;
             }
 
-            // Associate the note with the ticket
-            $assocResponse = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->put("{$this->associationsUrl}/notes/{$noteId}/associations/tickets/{$ticketId}", [
-                [
+            $assocResponse = $this->client()->put(
+                "{$this->associationsUrl}/notes/{$noteId}/associations/tickets/{$ticketId}",
+                [[
                     'associationCategory' => 'HUBSPOT_DEFINED',
-                    'associationTypeId' => 18, // Note to Ticket
-                ],
-            ]);
+                    'associationTypeId' => 18,
+                ]]
+            );
 
             if ($assocResponse->failed()) {
                 Log::warning('HubSpot Note-Ticket association failed', [
@@ -254,10 +267,7 @@ class HubSpotTicketService
         $stageId = $this->stageMap[$stage] ?? $stage;
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->patch("{$this->ticketsUrl}/{$ticketId}", [
+            $response = $this->client()->patch("{$this->ticketsUrl}/{$ticketId}", [
                 'properties' => [
                     'hs_pipeline_stage' => $stageId,
                 ],
@@ -297,10 +307,7 @@ class HubSpotTicketService
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->post($this->notesUrl, [
+            $response = $this->client()->post($this->notesUrl, [
                 'properties' => [
                     'hs_note_body' => $body,
                 ],
@@ -317,15 +324,13 @@ class HubSpotTicketService
             $noteId = $response->json()['id'] ?? null;
 
             if ($noteId) {
-                Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $this->accessToken,
-                    'Content-Type' => 'application/json',
-                ])->put("{$this->associationsUrl}/notes/{$noteId}/associations/tickets/{$ticketId}", [
-                    [
+                $this->client()->put(
+                    "{$this->associationsUrl}/notes/{$noteId}/associations/tickets/{$ticketId}",
+                    [[
                         'associationCategory' => 'HUBSPOT_DEFINED',
                         'associationTypeId' => 18,
-                    ],
-                ]);
+                    ]]
+                );
             }
 
             Log::info('HubSpot note added to ticket', [
@@ -350,19 +355,19 @@ class HubSpotTicketService
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.hubapi.com/crm/v3/objects/tickets/search', [
-                'filterGroups' => [[
-                    'filters' => [[
-                        'propertyName' => 'content',
-                        'operator' => 'CONTAINS_TOKEN',
-                        'value' => $reference,
+            $response = $this->client()->post(
+                'https://api.hubapi.com/crm/v3/objects/tickets/search',
+                [
+                    'filterGroups' => [[
+                        'filters' => [[
+                            'propertyName' => 'content',
+                            'operator' => 'CONTAINS_TOKEN',
+                            'value' => $reference,
+                        ]],
                     ]],
-                ]],
-                'limit' => 1,
-            ]);
+                    'limit' => 1,
+                ]
+            );
 
             if ($response->failed()) {
                 return null;
@@ -377,9 +382,6 @@ class HubSpotTicketService
         }
     }
 
-    /**
-     * Format ticket name: [Category][Product Area][Severity] Title
-     */
     private function formatTicketName(array $data): string
     {
         $categoryLabels = [
@@ -404,9 +406,6 @@ class HubSpotTicketService
         return "[{$category}][{$productArea}][{$severity}] {$title}";
     }
 
-    /**
-     * Format structured ticket description body.
-     */
     private function formatTicketBody(array $data, string $reference): string
     {
         $metadata = $data['metadata'] ?? [];
@@ -448,5 +447,21 @@ class HubSpotTicketService
             'ticket_id' => 'mock_' . Str::random(8),
             'reference' => $reference,
         ];
+    }
+
+    /**
+     * Log API call metric for monitoring.
+     */
+    private function logMetric(string $operation, int $status, float $startTime, ?string $error = null): void
+    {
+        $duration = round((microtime(true) - $startTime) * 1000);
+
+        Log::channel('single')->info('BUG_REPORT_API_METRIC', [
+            'operation' => $operation,
+            'status' => $status,
+            'duration_ms' => $duration,
+            'error' => $error,
+            'success' => $status >= 200 && $status < 300,
+        ]);
     }
 }

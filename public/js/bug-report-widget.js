@@ -53,6 +53,7 @@
 var BugReportService = {
     config: {
         baseUrl: '/api/bug-report',
+        adminBaseUrl: '/admin/api/bug-report',
         maxFileSize: 5 * 1024 * 1024 // 5MB
     },
 
@@ -199,7 +200,12 @@ var BugReportService = {
             formData.append('annotated_screenshot', annotatedScreenshotFile);
         }
 
-        return fetch(this.config.baseUrl, {
+        // Use admin endpoint if in admin context
+        var widget = document.getElementById('bugReportWidget');
+        var context = widget ? widget.dataset.context : 'portal';
+        var url = context === 'admin' ? this.config.adminBaseUrl : this.config.baseUrl;
+
+        return fetch(url, {
             method: 'POST',
             headers: this._headers(),
             body: formData
@@ -433,6 +439,11 @@ var BugReportService = {
             }
 
             showToast('Bug report submitted! Reference: ' + (result.reference || ''), 'success');
+
+            // Clear console log buffer after successful submission
+            if (window.__bugReportConsoleBuf) {
+                window.__bugReportConsoleBuf = [];
+            }
 
             // Auto-close after 3 seconds
             setTimeout(function() {
