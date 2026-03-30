@@ -1559,16 +1559,18 @@ Authorization: Basic &lt;base64 encoded username:password&gt;
   if (overlay) overlay.addEventListener('click', closeSidebar);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && sidebar.classList.contains('qsapi-open')) closeSidebar(); });
 
-  // Squarespace container width detection — if container is narrow, force hamburger mode
+  // Squarespace container detection — only force hamburger when viewport is wide but container is narrow (embedded)
   function checkContainerWidth() {
-    var w = root.offsetWidth;
-    if (w < 900) {
+    var viewportW = window.innerWidth;
+    var containerW = root.offsetWidth;
+    // Viewport is wide enough for sidebar, but container is squeezed (Squarespace embed)
+    if (viewportW > 1024 && containerW < 900) {
       root.classList.add('qsapi-narrow');
     } else {
       root.classList.remove('qsapi-narrow');
     }
   }
-  checkContainerWidth();
+  requestAnimationFrame(checkContainerWidth);
   window.addEventListener('resize', checkContainerWidth);
 
   // Sidebar Scroll Tracking
