@@ -334,14 +334,14 @@
         <ol>
           <li><strong>Create a free test account</strong> at <a href="https://portal2.quicksms.com/signup" target="_blank" rel="noopener">portal2.quicksms.com/signup</a></li>
           <li><strong>Create an API connection</strong> in <a href="https://portal2.quicksms.com/management/api-connections/create" target="_blank" rel="noopener">Management &gt; API Connections</a></li>
-          <li>Copy your API key (starts with <code>qs_live_</code> or <code>qs_test_</code>)</li>
+          <li>Copy your API key (starts with <code>sk_live_</code> or <code>sk_test_</code>)</li>
         </ol>
 
         <h3>Send a Test Message</h3>
-        <p>Use your <code>qs_test_</code> key to send in sandbox mode. No credits are deducted and no real SMS is delivered.</p>
+        <p>Use your <code>sk_test_</code> key to send in sandbox mode. No credits are deducted and no real SMS is delivered.</p>
 
         <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
-  -H <span class="qsapi-cs">"Authorization: Bearer qs_test_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Authorization: Bearer sk_test_your_key_here"</span> \
   -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
   -d <span class="qsapi-cs">'{
     "MSISDN": "447700900001",
@@ -358,7 +358,7 @@
 
         <div class="qsapi-callout qsapi-callout-info">
           <strong>Test allowlist</strong>
-          Test accounts (<code>qs_test_</code> keys) can only send to numbers in your approved test allowlist. Add test numbers in <a href="https://portal2.quicksms.com/management/api-connections" target="_blank" rel="noopener">API Connections</a>. The text <em>"This is a QuickSMS test message"</em> is automatically appended.
+          Test accounts (<code>sk_test_</code> keys) can only send to numbers in your approved test allowlist. Add test numbers in <a href="https://portal2.quicksms.com/management/api-connections" target="_blank" rel="noopener">API Connections</a>. The text <em>"This is a QuickSMS test message"</em> is automatically appended.
         </div>
 
         <h3>Expected Response</h3>
@@ -380,7 +380,7 @@
 }</pre></div>
 
         <h3>Switch to Production</h3>
-        <p>Replace your <code>qs_test_</code> key with your <code>qs_live_</code> key. Ensure your sender ID is approved for the destination country. Credits will be deducted per message segment.</p>
+        <p>Replace your <code>sk_test_</code> key with your <code>sk_live_</code> key. Ensure your sender ID is approved for the destination country. Credits will be deducted per message segment.</p>
       </section>
 
       <!-- AUTHENTICATION -->
@@ -389,11 +389,11 @@
         <p>All API requests require a valid API key in the <code>Authorization</code> header.</p>
 
         <h3>Bearer Token (Recommended)</h3>
-        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Bearer qs_live_EXAMPLE_KEY_REPLACE_ME</pre></div>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Bearer sk_live_EXAMPLE_KEY_REPLACE_ME</pre></div>
 
         <h3>Basic Authentication</h3>
         <p>For backwards compatibility. Send your API key as the username with an empty password.</p>
-        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Basic base64(qs_live_EXAMPLE_KEY_REPLACE_ME:)</pre></div>
+        <div class="qsapi-code-wrap"><pre class="qsapi-code">Authorization: Basic base64(sk_live_EXAMPLE_KEY_REPLACE_ME:)</pre></div>
 
         <div class="qsapi-callout qsapi-callout-info">
           <strong>Note</strong>
@@ -404,8 +404,8 @@
         <table class="qsapi-table">
           <thead><tr><th>Prefix</th><th>Environment</th><th>Behaviour</th></tr></thead>
           <tbody>
-            <tr><td><code>qs_live_</code></td><td>Production</td><td>Sends real messages. Deducts credits.</td></tr>
-            <tr><td><code>qs_test_</code></td><td>Test</td><td>Forces sandbox mode. Can only send to approved test numbers.</td></tr>
+            <tr><td><code>sk_live_</code></td><td>Production</td><td>Sends real messages. Deducts credits.</td></tr>
+            <tr><td><code>sk_test_</code></td><td>Test</td><td>Forces sandbox mode. Can only send to approved test numbers.</td></tr>
           </tbody>
         </table>
 
@@ -430,7 +430,7 @@
         <h3>Best Practices</h3>
         <ul>
           <li>Store API keys in environment variables or a secrets manager &mdash; never commit to source control.</li>
-          <li>Use <code>qs_test_</code> keys in development/staging; reserve <code>qs_live_</code> keys for production.</li>
+          <li>Use <code>sk_test_</code> keys in development/staging; reserve <code>sk_live_</code> keys for production.</li>
           <li>If a key may be compromised, rotate it immediately in <a href="https://portal2.quicksms.com" target="_blank" rel="noopener">portal2.quicksms.com</a>.</li>
           <li>Enable IP allowlisting in production.</li>
         </ul>
@@ -450,7 +450,7 @@
         <table class="qsapi-table">
           <thead><tr><th>Header</th><th></th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>Authorization</code></td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td><code>Bearer qs_live_xxx</code> or <code>Basic base64(qs_live_xxx:)</code></td></tr>
+            <tr><td><code>Authorization</code></td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td><code>Bearer sk_live_xxx</code> or <code>Basic base64(sk_live_xxx:)</code></td></tr>
             <tr><td><code>Content-Type</code></td><td><span class="qsapi-badge qsapi-badge-required">Required</span></td><td><code>application/json</code></td></tr>
             <tr><td><code>Idempotency-Key</code></td><td><span class="qsapi-badge qsapi-badge-optional">Optional</span></td><td>Unique key (max 128 chars) to prevent duplicate sends</td></tr>
           </tbody>
@@ -496,7 +496,7 @@
 
         <h3>Example Request</h3>
         <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
-  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_EXAMPLE_KEY_REPLACE_ME"</span> \
+  -H <span class="qsapi-cs">"Authorization: Bearer sk_live_EXAMPLE_KEY_REPLACE_ME"</span> \
   -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
   -H <span class="qsapi-cs">"Idempotency-Key: order-12345-sms"</span> \
   -d <span class="qsapi-cs">'{
@@ -513,7 +513,7 @@
         <div class="qsapi-tryit" id="qsapi-tryit">
           <div class="qsapi-tryit-row">
             <label class="qsapi-tryit-label">API Key</label>
-            <input class="qsapi-tryit-input" id="tryit-key" value="qs_test_your_key_here" placeholder="qs_test_...">
+            <input class="qsapi-tryit-input" id="tryit-key" value="sk_test_your_key_here" placeholder="sk_test_...">
           </div>
           <div class="qsapi-tryit-row">
             <label class="qsapi-tryit-label">MSISDN <span class="qsapi-badge qsapi-badge-required">Required</span></label>
@@ -938,7 +938,7 @@ X-QuickSMS-Signature: sha256=5d7a8c3e...</pre></div>
         <table class="qsapi-table">
           <thead><tr><th>Method</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td>Use a <code>qs_test_</code> key</td><td>Always forces sandbox mode</td></tr>
+            <tr><td>Use a <code>sk_test_</code> key</td><td>Always forces sandbox mode</td></tr>
             <tr><td>Set <code>"sandbox": true</code></td><td>Works with any key type</td></tr>
             <tr><td>Connection environment = <code>test</code></td><td>Configured at <a href="https://portal2.quicksms.com/management/api-connections" target="_blank" rel="noopener">portal2.quicksms.com/management/api-connections</a></td></tr>
           </tbody>
@@ -1064,7 +1064,7 @@ http_response_code(<span class="qsapi-cn">200</span>);</pre></div>
         <table class="qsapi-table">
           <thead><tr><th>Practice</th><th>Detail</th></tr></thead>
           <tbody>
-            <tr><td><strong>Environment-specific keys</strong></td><td>Use <code>qs_test_</code> in dev/staging. <code>qs_live_</code> in production only.</td></tr>
+            <tr><td><strong>Environment-specific keys</strong></td><td>Use <code>sk_test_</code> in dev/staging. <code>sk_live_</code> in production only.</td></tr>
             <tr><td><strong>Store keys securely</strong></td><td>Environment variables or secrets manager. Never source control.</td></tr>
             <tr><td><strong>Rotate compromised keys</strong></td><td>Rotate immediately in <a href="https://portal2.quicksms.com" target="_blank" rel="noopener">portal2.quicksms.com</a>.</td></tr>
             <tr><td><strong>IP allowlisting</strong></td><td>Restrict production API access to known server IPs.</td></tr>
@@ -1177,13 +1177,13 @@ http_response_code(<span class="qsapi-cn">200</span>);</pre></div>
           <div class="qsapi-tab-panel qsapi-active" data-tab="ex-curl">
             <h4>Basic SMS</h4>
             <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
-  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Authorization: Bearer sk_live_your_key_here"</span> \
   -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
   -d <span class="qsapi-cs">'{ "MSISDN": "447700900000", "msg": "Hello from QuickSMS!", "sender": "MyApp" }'</span></pre></div>
 
             <h4>RCS with SMS Fallback</h4>
             <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">curl -X POST https://api.quicksms.com/v1/messages \
-  -H <span class="qsapi-cs">"Authorization: Bearer qs_live_your_key_here"</span> \
+  -H <span class="qsapi-cs">"Authorization: Bearer sk_live_your_key_here"</span> \
   -H <span class="qsapi-cs">"Content-Type: application/json"</span> \
   -d <span class="qsapi-cs">'{
     "MSISDN": "447700900000",
@@ -1201,7 +1201,7 @@ curl_setopt_array($ch, [
     CURLOPT_POST           => <span class="qsapi-cb">true</span>,
     CURLOPT_RETURNTRANSFER => <span class="qsapi-cb">true</span>,
     CURLOPT_HTTPHEADER     => [
-        <span class="qsapi-cs">'Authorization: Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Authorization: Bearer sk_live_your_key_here'</span>,
         <span class="qsapi-cs">'Content-Type: application/json'</span>,
         <span class="qsapi-cs">'Idempotency-Key: order-12345-sms'</span>,
     ],
@@ -1230,7 +1230,7 @@ $data = json_decode($response, <span class="qsapi-cb">true</span>);
 response = requests.post(
     <span class="qsapi-cs">'https://api.quicksms.com/v1/messages'</span>,
     headers={
-        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer sk_live_your_key_here'</span>,
         <span class="qsapi-cs">'Idempotency-Key'</span>: <span class="qsapi-cs">'order-12345-sms'</span>,
     },
     json={
@@ -1256,7 +1256,7 @@ print(<span class="qsapi-cs">f"Rate limit remaining: {response.headers.get('X-Ra
             <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">const</span> response = <span class="qsapi-ck">await</span> fetch(<span class="qsapi-cs">'https://api.quicksms.com/v1/messages'</span>, {
     method: <span class="qsapi-cs">'POST'</span>,
     headers: {
-        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer qs_live_your_key_here'</span>,
+        <span class="qsapi-cs">'Authorization'</span>: <span class="qsapi-cs">'Bearer sk_live_your_key_here'</span>,
         <span class="qsapi-cs">'Content-Type'</span>: <span class="qsapi-cs">'application/json'</span>,
         <span class="qsapi-cs">'Idempotency-Key'</span>: <span class="qsapi-cs">'order-12345-sms'</span>,
     },
@@ -1278,7 +1278,7 @@ print(<span class="qsapi-cs">f"Rate limit remaining: {response.headers.get('X-Ra
 
           <div class="qsapi-tab-panel" data-tab="ex-csharp">
             <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code"><span class="qsapi-ck">using var</span> client = <span class="qsapi-ck">new</span> HttpClient();
-client.DefaultRequestHeaders.Add(<span class="qsapi-cs">"Authorization"</span>, <span class="qsapi-cs">"Bearer qs_live_your_key_here"</span>);
+client.DefaultRequestHeaders.Add(<span class="qsapi-cs">"Authorization"</span>, <span class="qsapi-cs">"Bearer sk_live_your_key_here"</span>);
 client.DefaultRequestHeaders.Add(<span class="qsapi-cs">"Idempotency-Key"</span>, <span class="qsapi-cs">"order-12345-sms"</span>);
 
 <span class="qsapi-ck">var</span> payload = <span class="qsapi-ck">new</span> {
@@ -1664,7 +1664,7 @@ Authorization: Basic &lt;base64 encoded username:password&gt;
   var tryOut = root.querySelector('#tryit-output'), tryRes = root.querySelector('#tryit-result'), tryTitle = root.querySelector('#tryit-output-title');
   function getV() {
     return {
-      key: (root.querySelector('#tryit-key') || {}).value || 'qs_test_your_key_here',
+      key: (root.querySelector('#tryit-key') || {}).value || 'sk_test_your_key_here',
       msisdn: (root.querySelector('#tryit-msisdn') || {}).value || '447700900001',
       msg: (root.querySelector('#tryit-msg') || {}).value || 'Hello from QuickSMS!',
       sender: (root.querySelector('#tryit-sender') || {}).value || 'QuickSMS',
