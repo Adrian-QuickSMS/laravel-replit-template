@@ -190,12 +190,12 @@
         <a href="#send-message" class="qsapi-sidebar-link">Send a Message</a>
         <a href="#responses" class="qsapi-sidebar-link">Understanding Responses</a>
         <a href="#encoding" class="qsapi-sidebar-link">Message Encoding</a>
+        <a href="#v1-dlr" class="qsapi-sidebar-link">Delivery Receipts (V1)</a>
+        <a href="#v1-seen" class="qsapi-sidebar-link">Seen Receipts (V1)</a>
       </div>
       <div class="qsapi-sidebar-group">
         <div class="qsapi-sidebar-group-title">Receive Message (V1)</div>
         <a href="#incoming" class="qsapi-sidebar-link">Incoming Messages</a>
-        <a href="#v1-dlr" class="qsapi-sidebar-link">Delivery Receipts</a>
-        <a href="#v1-seen" class="qsapi-sidebar-link">Seen Receipts (RCS)</a>
       </div>
       <div class="qsapi-sidebar-group">
         <div class="qsapi-sidebar-group-title">Delivery &amp; Lifecycle</div>
@@ -617,6 +617,89 @@
         </div>
       </section>
 
+      <!-- V1 DELIVERY RECEIPT -->
+      <section class="qsapi-section" id="v1-dlr">
+        <h2>Delivery Receipts <span class="qsapi-badge qsapi-badge-v1">V1</span></h2>
+        <p>Once the RCS/SMS message has been delivered, a POST request is made to the location defined in your API account. Configure at <a href="https://portal2.quicksms.com/management/api-connections" target="_blank" rel="noopener">portal2.quicksms.com/management/api-connections</a>.</p>
+
+        <h3>Delivery Receipt Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
+            <tr><td>Custom Reference</td><td><code>cid</code></td><td><code>1234-232-134</code></td></tr>
+            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Delivery Date and Time</td><td><code>deliverytime</code></td><td><code>2024-01-01 16:36:48</code></td></tr>
+            <tr><td>Status</td><td><code>status</code></td><td><code>3</code></td></tr>
+            <tr><td>Substatus</td><td><code>substatus</code></td><td><code>5</code></td></tr>
+          </tbody>
+        </table>
+        <p>Respond quickly (under 1 second) with: <code>RECEIVED</code>.</p>
+
+        <h3>Example</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
+    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
+    <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"3"</span>,
+    <span class="qsapi-cp">"substatus"</span>: <span class="qsapi-cs">"5"</span>,
+    <span class="qsapi-cp">"deliverytime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>,
+    <span class="qsapi-cp">"cid"</span>: <span class="qsapi-cs">"customid"</span>
+}</pre></div>
+
+        <h3>Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>3</code></td><td>Successful Delivery</td></tr>
+            <tr><td><code>2</code></td><td>Undeliverable</td></tr>
+            <tr><td><code>4</code></td><td>Message delivery has expired</td></tr>
+            <tr><td><code>5</code></td><td>Message has been rejected by the network</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sub Status Codes</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><code>2</code></td><td>Delivered to Operator</td></tr>
+            <tr><td><code>5</code></td><td>Delivered to handset</td></tr>
+            <tr><td><code>4</code></td><td>Rejected by operator and deemed undeliverable</td></tr>
+            <tr><td><code>9</code></td><td>Not delivered (invalid/unreachable destination)</td></tr>
+            <tr><td><code>15</code></td><td>Pending until validity expired or operator returns EXPIRED</td></tr>
+            <tr><td><code>29</code></td><td>Expired; delivery status unknown (no DR received)</td></tr>
+            <tr><td><code>6</code></td><td>Network experiencing problems</td></tr>
+            <tr><td><code>10</code></td><td>Rejected due to DND (Do Not Disturb)</td></tr>
+            <tr><td><code>14</code></td><td>Destination blocklisted (e.g., operator request)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- V1 SEEN RECEIPT -->
+      <section class="qsapi-section" id="v1-seen">
+        <h2>RCS Seen Receipts <span class="qsapi-badge qsapi-badge-v1">V1</span></h2>
+        <p>Once an <strong>RCS</strong> message has been seen, a POST request is made to the location defined in your API account.</p>
+        <div class="qsapi-callout qsapi-callout-info">Only RCS messages send a Seen Receipt.</div>
+
+        <h3>Seen Receipt Fields</h3>
+        <table class="qsapi-table">
+          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
+            <tr><td>Custom Reference</td><td><code>CID</code></td><td><code>1234-232-134</code></td></tr>
+            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
+            <tr><td>Seen Date and Time</td><td><code>seentime</code></td><td><code>2012-06-27 12:33:00</code></td></tr>
+          </tbody>
+        </table>
+        <p>Respond within ~1 second with <code>RECEIVED</code>.</p>
+
+        <h3>Example</h3>
+        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
+    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
+    <span class="qsapi-cp">"CID"</span>: <span class="qsapi-cs">"1234-232-134"</span>,
+    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
+    <span class="qsapi-cp">"seentime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>
+}</pre></div>
+      </section>
       <!-- DELIVERY WEBHOOKS -->
       <section class="qsapi-section" id="webhooks">
         <h2>Delivery Webhooks (DLR)</h2>
@@ -1280,90 +1363,6 @@ Content-Type: application/json
     <span class="qsapi-cp">"Number"</span>: <span class="qsapi-cs">"44789100000"</span>,
     <span class="qsapi-cp">"DateRecieved"</span>: <span class="qsapi-cs">"2024-01-28 11:54:32"</span>,
     <span class="qsapi-cp">"ID"</span>: <span class="qsapi-cs">"MxJFwONIywR7yZysg7iAtDXQ"</span>
-}</pre></div>
-      </section>
-
-      <!-- V1 DELIVERY RECEIPT -->
-      <section class="qsapi-section" id="v1-dlr">
-        <h2>Delivery Receipts <span class="qsapi-badge qsapi-badge-v1">V1</span></h2>
-        <p>Once the RCS/SMS message has been delivered, a POST request is made to the location defined in your API account. Configure at <a href="https://portal2.quicksms.com/management/api-connections" target="_blank" rel="noopener">portal2.quicksms.com/management/api-connections</a>.</p>
-
-        <h3>Delivery Receipt Fields</h3>
-        <table class="qsapi-table">
-          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
-          <tbody>
-            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
-            <tr><td>Custom Reference</td><td><code>cid</code></td><td><code>1234-232-134</code></td></tr>
-            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
-            <tr><td>Delivery Date and Time</td><td><code>deliverytime</code></td><td><code>2024-01-01 16:36:48</code></td></tr>
-            <tr><td>Status</td><td><code>status</code></td><td><code>3</code></td></tr>
-            <tr><td>Substatus</td><td><code>substatus</code></td><td><code>5</code></td></tr>
-          </tbody>
-        </table>
-        <p>Respond quickly (under 1 second) with: <code>RECEIVED</code>.</p>
-
-        <h3>Example</h3>
-        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
-    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
-    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
-    <span class="qsapi-cp">"status"</span>: <span class="qsapi-cs">"3"</span>,
-    <span class="qsapi-cp">"substatus"</span>: <span class="qsapi-cs">"5"</span>,
-    <span class="qsapi-cp">"deliverytime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>,
-    <span class="qsapi-cp">"cid"</span>: <span class="qsapi-cs">"customid"</span>
-}</pre></div>
-
-        <h3>Status Codes</h3>
-        <table class="qsapi-table">
-          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
-          <tbody>
-            <tr><td><code>3</code></td><td>Successful Delivery</td></tr>
-            <tr><td><code>2</code></td><td>Undeliverable</td></tr>
-            <tr><td><code>4</code></td><td>Message delivery has expired</td></tr>
-            <tr><td><code>5</code></td><td>Message has been rejected by the network</td></tr>
-          </tbody>
-        </table>
-
-        <h3>Sub Status Codes</h3>
-        <table class="qsapi-table">
-          <thead><tr><th>Code</th><th>Explanation</th></tr></thead>
-          <tbody>
-            <tr><td><code>2</code></td><td>Delivered to Operator</td></tr>
-            <tr><td><code>5</code></td><td>Delivered to handset</td></tr>
-            <tr><td><code>4</code></td><td>Rejected by operator and deemed undeliverable</td></tr>
-            <tr><td><code>9</code></td><td>Not delivered (invalid/unreachable destination)</td></tr>
-            <tr><td><code>15</code></td><td>Pending until validity expired or operator returns EXPIRED</td></tr>
-            <tr><td><code>29</code></td><td>Expired; delivery status unknown (no DR received)</td></tr>
-            <tr><td><code>6</code></td><td>Network experiencing problems</td></tr>
-            <tr><td><code>10</code></td><td>Rejected due to DND (Do Not Disturb)</td></tr>
-            <tr><td><code>14</code></td><td>Destination blocklisted (e.g., operator request)</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- V1 SEEN RECEIPT -->
-      <section class="qsapi-section" id="v1-seen">
-        <h2>RCS Seen Receipts <span class="qsapi-badge qsapi-badge-v1">V1</span></h2>
-        <p>Once an <strong>RCS</strong> message has been seen, a POST request is made to the location defined in your API account.</p>
-        <div class="qsapi-callout qsapi-callout-info">Only RCS messages send a Seen Receipt.</div>
-
-        <h3>Seen Receipt Fields</h3>
-        <table class="qsapi-table">
-          <thead><tr><th>Information</th><th>POST Field</th><th>Example</th></tr></thead>
-          <tbody>
-            <tr><td>Unique Reference</td><td><code>reference</code></td><td><code>42</code></td></tr>
-            <tr><td>Custom Reference</td><td><code>CID</code></td><td><code>1234-232-134</code></td></tr>
-            <tr><td>Number message sent to</td><td><code>MSISDN</code></td><td><code>447123456789</code></td></tr>
-            <tr><td>Seen Date and Time</td><td><code>seentime</code></td><td><code>2012-06-27 12:33:00</code></td></tr>
-          </tbody>
-        </table>
-        <p>Respond within ~1 second with <code>RECEIVED</code>.</p>
-
-        <h3>Example</h3>
-        <div class="qsapi-code-wrap"><button class="qsapi-code-copy">Copy</button><pre class="qsapi-code">{
-    <span class="qsapi-cp">"reference"</span>: <span class="qsapi-cs">"564634E434D0586B0C957D97E556CAD"</span>,
-    <span class="qsapi-cp">"CID"</span>: <span class="qsapi-cs">"1234-232-134"</span>,
-    <span class="qsapi-cp">"MSISDN"</span>: <span class="qsapi-cs">"447891658396"</span>,
-    <span class="qsapi-cp">"seentime"</span>: <span class="qsapi-cs">"2024-01-01 16:36:48"</span>
 }</pre></div>
       </section>
 
