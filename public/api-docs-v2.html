@@ -158,17 +158,41 @@
 
 /* === 18. Responsive === */
 @media (max-width:1024px) {
-  #qsapi-docs-root .qsapi-sidebar { position:fixed; left:-280px; top:0; height:100vh; z-index:200; transition:left .25s; }
+  #qsapi-docs-root .qsapi-sidebar { position:fixed; left:-280px; top:0; height:100vh; z-index:200; transition:left .25s; width:280px; }
   #qsapi-docs-root .qsapi-sidebar.qsapi-open { left:0; }
   #qsapi-docs-root .qsapi-mobile-header { display:flex; }
-  #qsapi-docs-root .qsapi-main { padding:1rem; }
-  #qsapi-docs-root .qsapi-section { padding:1.25rem; }
-  #qsapi-docs-root .qsapi-info-card { flex-direction:column; align-items:flex-start; }
+  #qsapi-docs-root .qsapi-main { padding:1rem; max-width:100%; }
+  #qsapi-docs-root .qsapi-section { padding:1.25rem 1.25rem; }
+  #qsapi-docs-root .qsapi-info-card { flex-direction:column; align-items:flex-start; gap:1rem; }
+  #qsapi-docs-root .qsapi-heading-banner { padding:1.25rem 1.25rem; }
+  #qsapi-docs-root .qsapi-heading-banner h2 { font-size:1.25rem; }
+  #qsapi-docs-root .qsapi-heading-banner p { font-size:0.82rem; }
 }
 @media (max-width:640px) {
-  #qsapi-docs-root .qsapi-table { font-size:0.78rem; display:block; overflow-x:auto; }
-  #qsapi-docs-root .qsapi-tryit-row { flex-direction:column; align-items:stretch; }
+  #qsapi-docs-root .qsapi-main { padding:0.75rem; }
+  #qsapi-docs-root .qsapi-section { padding:1rem; }
+  #qsapi-docs-root .qsapi-section h2 { font-size:1.2rem; }
+  #qsapi-docs-root .qsapi-section h3 { font-size:1rem; }
+  #qsapi-docs-root .qsapi-heading-banner { padding:1rem; border-radius:0.4rem; }
+  #qsapi-docs-root .qsapi-heading-banner h2 { font-size:1.1rem; }
+  #qsapi-docs-root .qsapi-heading-banner p { font-size:0.78rem; }
+  #qsapi-docs-root .qsapi-info-card { padding:1rem; gap:0.75rem; }
+  #qsapi-docs-root .qsapi-table { font-size:0.75rem; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  #qsapi-docs-root .qsapi-table th, #qsapi-docs-root .qsapi-table td { padding:0.5rem 0.65rem; }
+  #qsapi-docs-root .qsapi-code { font-size:0.72rem; padding:0.85rem; }
+  #qsapi-docs-root .qsapi-endpoint { flex-direction:column; align-items:flex-start; gap:0.4rem; padding:0.65rem 0.85rem; }
+  #qsapi-docs-root .qsapi-endpoint-url { font-size:0.75rem; word-break:break-all; }
+  #qsapi-docs-root .qsapi-tryit { padding:1rem; }
+  #qsapi-docs-root .qsapi-tryit-row { flex-direction:column; align-items:stretch; gap:0.35rem; }
   #qsapi-docs-root .qsapi-tryit-label { min-width:auto; }
+  #qsapi-docs-root .qsapi-tryit-input { min-width:auto; }
+  #qsapi-docs-root .qsapi-tab-header { gap:0.25rem; }
+  #qsapi-docs-root .qsapi-tab-btn { padding:0.4rem 0.6rem; font-size:0.72rem; }
+  #qsapi-docs-root .qsapi-callout { padding:0.85rem 1rem; font-size:0.82rem; }
+  #qsapi-docs-root .qsapi-coming-card { padding:1rem; }
+  #qsapi-docs-root .qsapi-timeline { padding-left:1.5rem; }
+  #qsapi-docs-root .qsapi-timeline-dot { left:-1.25rem; width:10px; height:10px; }
+  #qsapi-docs-root .qsapi-scroll-top { bottom:1rem; right:1rem; width:36px; height:36px; font-size:1rem; }
 }
 
 /* === 19. Dark mode refinements === */
@@ -1523,9 +1547,11 @@ Authorization: Basic &lt;base64 encoded username:password&gt;
 
   // Mobile Sidebar
   var sidebar = root.querySelector('#qsapi-sidebar'), overlay = root.querySelector('#qsapi-overlay'), hamburger = root.querySelector('#qsapi-hamburger');
-  function closeSidebar() { sidebar.classList.remove('qsapi-open'); overlay.classList.remove('qsapi-open'); }
-  if (hamburger) hamburger.addEventListener('click', function() { sidebar.classList.add('qsapi-open'); overlay.classList.add('qsapi-open'); });
+  function closeSidebar() { sidebar.classList.remove('qsapi-open'); overlay.classList.remove('qsapi-open'); document.body.style.overflow = ''; }
+  function openSidebar() { sidebar.classList.add('qsapi-open'); overlay.classList.add('qsapi-open'); document.body.style.overflow = 'hidden'; }
+  if (hamburger) hamburger.addEventListener('click', openSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && sidebar.classList.contains('qsapi-open')) closeSidebar(); });
 
   // Sidebar Scroll Tracking
   var links = root.querySelectorAll('.qsapi-sidebar-link');
