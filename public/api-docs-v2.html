@@ -157,15 +157,17 @@
 #qsapi-docs-root .qsapi-hamburger { background:none; border:none; font-size:1.4rem; color:var(--qsapi-text-dark); }
 
 /* === 17b. Narrow container (Squarespace) — JS adds .qsapi-narrow when container < 900px === */
-#qsapi-docs-root.qsapi-narrow .qsapi-sidebar { position:fixed; left:-300px; top:0; width:280px; height:100vh; z-index:200; transition:left .25s ease; }
-#qsapi-docs-root.qsapi-narrow .qsapi-sidebar.qsapi-open { left:0; }
+#qsapi-docs-root.qsapi-narrow .qsapi-layout { display:block; }
+#qsapi-docs-root.qsapi-narrow .qsapi-sidebar { display:none; position:fixed; left:0; top:0; width:280px; height:100vh; z-index:200; }
+#qsapi-docs-root.qsapi-narrow .qsapi-sidebar.qsapi-open { display:block; }
 #qsapi-docs-root.qsapi-narrow .qsapi-mobile-header { display:flex; }
 #qsapi-docs-root.qsapi-narrow .qsapi-main { padding:1.5rem 1.5rem; }
 
 /* === 18. Responsive === */
 @media (max-width:1024px) {
-  #qsapi-docs-root .qsapi-sidebar { position:fixed; left:-300px; top:0; width:280px; height:100vh; z-index:200; transition:left .25s ease; }
-  #qsapi-docs-root .qsapi-sidebar.qsapi-open { left:0; }
+  #qsapi-docs-root .qsapi-layout { display:block; }
+  #qsapi-docs-root .qsapi-sidebar { display:none; position:fixed; left:0; top:0; width:280px; height:100vh; z-index:200; }
+  #qsapi-docs-root .qsapi-sidebar.qsapi-open { display:block; }
   #qsapi-docs-root .qsapi-mobile-header { display:flex; }
   #qsapi-docs-root .qsapi-main { padding:1rem; }
   #qsapi-docs-root .qsapi-section { padding:1.25rem; }
