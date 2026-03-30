@@ -39,7 +39,14 @@
 #qsapi-docs-root .qsapi-main { flex:1; min-width:0; padding:1.5rem 2rem; max-width:920px; margin:0 auto; }
 #qsapi-docs-root .qsapi-mobile-header { display:none; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--qsapi-card-bg); border-bottom:1px solid var(--qsapi-border); position:sticky; top:0; z-index:90; }
 
-/* === 4. API Info Card (replaces hero) === */
+/* === 4. Heading Banner (tryal-gradient style) === */
+#qsapi-docs-root .qsapi-heading-banner { background:#886CC0; position:relative; border-radius:var(--qsapi-radius); padding:1.5rem 2rem; margin-bottom:1.5rem; overflow:hidden; }
+#qsapi-docs-root .qsapi-heading-banner::after { content:''; position:absolute; top:0; left:0; height:100%; width:100%; background:linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.52) 100%); border-radius:var(--qsapi-radius); pointer-events:none; }
+#qsapi-docs-root .qsapi-heading-banner h2 { color:#fff; font-size:1.5rem; font-weight:600; margin:0 0 0.35rem; border:none; padding:0; position:relative; z-index:1; }
+#qsapi-docs-root .qsapi-heading-banner p { color:rgba(255,255,255,0.9); font-size:0.9rem; margin:0; position:relative; z-index:1; }
+#qsapi-docs-root.qsapi-dark .qsapi-heading-banner { background:#6c4bae; }
+
+/* === 5. API Info Card === */
 #qsapi-docs-root .qsapi-info-card { background:var(--qsapi-card-bg); border-radius:var(--qsapi-radius); box-shadow:var(--qsapi-shadow); padding:1.25rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; border-left:4px solid var(--qsapi-primary); }
 #qsapi-docs-root .qsapi-info-item { display:flex; flex-direction:column; gap:0.15rem; }
 #qsapi-docs-root .qsapi-info-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--qsapi-text-muted); font-weight:500; }
@@ -253,6 +260,12 @@
     <div class="qsapi-sidebar-overlay" id="qsapi-overlay"></div>
 
     <main class="qsapi-main">
+
+      <!-- HEADING BANNER -->
+      <div class="qsapi-heading-banner">
+        <h2>QuickSMS API Documentation</h2>
+        <p>Send SMS and RCS messages globally with delivery tracking, smart routing, and real-time webhooks.</p>
+      </div>
 
       <!-- API INFO CARD -->
       <div class="qsapi-info-card">
