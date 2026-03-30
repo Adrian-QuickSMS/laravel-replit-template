@@ -33,12 +33,11 @@
   --qsapi-callout-success-bg:rgba(9,189,60,0.1); --qsapi-callout-danger-bg:rgba(252,46,83,0.1);
 }
 
-/* === 3. Layout — sidebar always overlay for Squarespace compatibility === */
-#qsapi-docs-root .qsapi-layout { display:block; min-height:100vh; }
-#qsapi-docs-root .qsapi-sidebar { position:fixed; left:-300px; top:0; width:280px; height:100vh; overflow-y:auto; border-right:1px solid var(--qsapi-border); background:var(--qsapi-card-bg); padding:1rem; z-index:200; transition:left .25s ease; }
-#qsapi-docs-root .qsapi-sidebar.qsapi-open { left:0; }
-#qsapi-docs-root .qsapi-main { width:100%; max-width:920px; margin:0 auto; padding:1.5rem 2rem; }
-#qsapi-docs-root .qsapi-mobile-header { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--qsapi-card-bg); border-bottom:1px solid var(--qsapi-border); position:sticky; top:0; z-index:90; }
+/* === 3. Layout — sidebar visible on wide screens, overlay on narrow === */
+#qsapi-docs-root .qsapi-layout { display:flex; min-height:100vh; }
+#qsapi-docs-root .qsapi-sidebar { width:260px; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--qsapi-border); background:var(--qsapi-card-bg); padding:1rem; z-index:100; }
+#qsapi-docs-root .qsapi-main { flex:1; min-width:0; max-width:920px; margin:0 auto; padding:1.5rem 2rem; }
+#qsapi-docs-root .qsapi-mobile-header { display:none; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--qsapi-card-bg); border-bottom:1px solid var(--qsapi-border); position:sticky; top:0; z-index:90; }
 
 /* === 4. Heading Banner (tryal-gradient style) === */
 #qsapi-docs-root .qsapi-heading-banner { background:#886CC0; position:relative; border-radius:var(--qsapi-radius); padding:1.5rem 2rem; margin-bottom:1.5rem; overflow:hidden; }
@@ -157,8 +156,17 @@
 #qsapi-docs-root .qsapi-sidebar-overlay.qsapi-open { display:block; }
 #qsapi-docs-root .qsapi-hamburger { background:none; border:none; font-size:1.4rem; color:var(--qsapi-text-dark); }
 
+/* === 17b. Narrow container (Squarespace) — JS adds .qsapi-narrow when container < 900px === */
+#qsapi-docs-root.qsapi-narrow .qsapi-sidebar { position:fixed; left:-300px; top:0; width:280px; height:100vh; z-index:200; transition:left .25s ease; }
+#qsapi-docs-root.qsapi-narrow .qsapi-sidebar.qsapi-open { left:0; }
+#qsapi-docs-root.qsapi-narrow .qsapi-mobile-header { display:flex; }
+#qsapi-docs-root.qsapi-narrow .qsapi-main { padding:1.5rem 1.5rem; }
+
 /* === 18. Responsive === */
-@media (max-width:768px) {
+@media (max-width:1024px) {
+  #qsapi-docs-root .qsapi-sidebar { position:fixed; left:-300px; top:0; width:280px; height:100vh; z-index:200; transition:left .25s ease; }
+  #qsapi-docs-root .qsapi-sidebar.qsapi-open { left:0; }
+  #qsapi-docs-root .qsapi-mobile-header { display:flex; }
   #qsapi-docs-root .qsapi-main { padding:1rem; }
   #qsapi-docs-root .qsapi-section { padding:1.25rem; }
   #qsapi-docs-root .qsapi-info-card { flex-direction:column; align-items:flex-start; gap:1rem; }
@@ -1550,6 +1558,18 @@ Authorization: Basic &lt;base64 encoded username:password&gt;
   if (hamburger) hamburger.addEventListener('click', openSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && sidebar.classList.contains('qsapi-open')) closeSidebar(); });
+
+  // Squarespace container width detection — if container is narrow, force hamburger mode
+  function checkContainerWidth() {
+    var w = root.offsetWidth;
+    if (w < 900) {
+      root.classList.add('qsapi-narrow');
+    } else {
+      root.classList.remove('qsapi-narrow');
+    }
+  }
+  checkContainerWidth();
+  window.addEventListener('resize', checkContainerWidth);
 
   // Sidebar Scroll Tracking
   var links = root.querySelectorAll('.qsapi-sidebar-link');
