@@ -1,0 +1,580 @@
+<!-- SMS & RCS Character Counter — Squarespace Embed -->
+<!-- Paste this into a Squarespace Code Block (or Page Header Code Injection for SEO tags) -->
+
+<!-- SEO: Add these to Page Settings > Advanced > Page Header Code Injection -->
+<!--
+<meta name="description" content="Free SMS and RCS character counter. Instantly check character count, GSM-7 vs Unicode encoding, SMS fragment count, and RCS message type (Basic vs Single) for 228 destination countries. Built by QuickSMS.">
+<meta name="keywords" content="SMS character counter, RCS character counter, SMS fragment counter, GSM-7 encoding checker, Unicode SMS, SMS segment calculator, RCS messaging tool, free SMS tool">
+<link rel="canonical" href="https://www.quicksms.com/sms-character-counter">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.quicksms.com/sms-character-counter">
+<meta property="og:title" content="Free SMS & RCS Character Counter — Real-Time Fragment & Encoding Checker">
+<meta property="og:description" content="Instantly check SMS character count, GSM-7 vs Unicode encoding, fragment count, and RCS message type for 228 destination countries. Free tool by QuickSMS.">
+<meta property="og:image" content="https://www.quicksms.com/og-sms-character-counter.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="QuickSMS">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@quicksms">
+<meta name="twitter:title" content="Free SMS & RCS Character Counter | QuickSMS">
+<meta name="twitter:description" content="Real-time SMS character counter with GSM-7/Unicode detection, fragment counting, and RCS analysis for 228 countries.">
+<meta name="twitter:image" content="https://www.quicksms.com/og-sms-character-counter.png">
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"WebApplication","name":"SMS & RCS Character Counter","url":"https://www.quicksms.com/sms-character-counter","description":"Free real-time SMS and RCS character counter.","applicationCategory":"UtilityApplication","operatingSystem":"Web browser","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"provider":{"@type":"Organization","name":"QuickSMS","url":"https://www.quicksms.com"},"isAccessibleForFree":true},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many characters can an SMS message contain?","acceptedAnswer":{"@type":"Answer","text":"A standard SMS using GSM-7 encoding can contain 160 characters. Unicode drops to 70 characters per single message."}},{"@type":"Question","name":"What is an SMS fragment or segment?","acceptedAnswer":{"@type":"Answer","text":"When an SMS exceeds the single-message limit, it is split into fragments. GSM-7 concatenated: 153 chars per fragment. Unicode: 67 chars per fragment."}},{"@type":"Question","name":"What is the difference between GSM-7 and Unicode?","acceptedAnswer":{"@type":"Answer","text":"GSM-7: 160 chars per SMS. Unicode (UCS-2): 70 chars per SMS. A single emoji switches the entire message to Unicode."}},{"@type":"Question","name":"What is RCS Basic vs RCS Single?","acceptedAnswer":{"@type":"Answer","text":"RCS Basic: up to 160 characters. RCS Single: up to 3,072 characters as one billable message."}},{"@type":"Question","name":"Which characters count as two in GSM-7?","acceptedAnswer":{"@type":"Answer","text":"Extended GSM-7 characters { } [ ] \\ ^ ~ | and euro sign each count as two characters."}},{"@type":"Question","name":"Is RCS available in my country?","acceptedAnswer":{"@type":"Answer","text":"RCS for Business is available in over 60 countries. Select your destination country in the tool to check."}}]}]
+</script>
+-->
+
+<style>
+.scc-wrap{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#312a2a;line-height:1.6;max-width:1200px;margin:0 auto;padding:0 16px}
+.scc-wrap *{box-sizing:border-box}
+.scc-card{background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:20px;margin-bottom:14px}
+.scc-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:.3px}
+.scc-badge-purple{background:rgba(136,108,192,.12);color:#886CC0}
+.scc-badge-green{background:rgba(28,187,140,.12);color:#0d7a5f}
+.scc-badge-amber{background:rgba(204,153,0,.12);color:#92400e}
+.scc-badge-red{background:rgba(220,53,69,.12);color:#b91c1c}
+.scc-badge-pink{background:rgba(214,83,193,.12);color:#a855f7}
+.scc-badge-gray{background:rgba(108,117,125,.1);color:#6c757d}
+.scc-label{font-size:10px;font-weight:700;color:#737B8B;text-transform:uppercase;letter-spacing:.5px}
+.scc-hero{padding:32px 0 20px}
+.scc-hero h2{font-size:clamp(24px,3.5vw,36px);font-weight:800;line-height:1.15;margin:0 0 10px}
+.scc-hero h2 span{color:#886CC0}
+.scc-hero-sub{font-size:15px;color:#737B8B;max-width:680px;margin-bottom:16px}
+.scc-hero-stats{display:flex;gap:8px;flex-wrap:wrap}
+.scc-row{display:flex;gap:14px;flex-wrap:wrap}
+.scc-col-half{flex:1 1 calc(50% - 7px);min-width:300px}
+@media(max-width:700px){.scc-col-half{flex:1 1 100%}}
+.scc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.scc-stat-card{background:#f8f7fc;border-radius:8px;padding:10px 12px}
+.scc-stat-val{font-size:22px;font-weight:800;color:#312a2a}
+.scc-v-ok{color:#1cbb8c!important}
+.scc-v-warn{color:#cc9900!important}
+.scc-progress{height:6px;background:#e6e6e6;border-radius:100px;overflow:hidden;margin-bottom:4px}
+.scc-progress-fill{height:100%;border-radius:100px;transition:width .3s}
+.scc-fill-purple{background:#886CC0}
+.scc-fill-green{background:#1cbb8c}
+.scc-fill-amber{background:#cc9900}
+.scc-prog-label{display:flex;justify-content:space-between;font-size:11px;color:#737B8B}
+.scc-textarea{width:100%;min-height:160px;resize:vertical;padding:12px 14px 28px;border:1.5px solid #e6e6e6;border-radius:8px;background:#f8f7fc;color:#312a2a;font-family:inherit;font-size:14px;line-height:1.6;outline:none}
+.scc-textarea:focus{border-color:#886CC0}
+.scc-textarea-wrap{position:relative}
+.scc-char-overlay{position:absolute;bottom:8px;right:12px;font-size:11px;color:#737B8B;font-weight:600;pointer-events:none;font-family:monospace}
+.scc-btn{padding:5px 14px;border:1.5px solid #e6e6e6;background:#fff;color:#886CC0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.scc-btn:hover{border-color:#886CC0}
+.scc-btn-primary{background:#886CC0;color:#fff;border-color:#886CC0;text-decoration:none;display:inline-block;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700}
+.scc-btn-primary:hover{background:#6f42c1}
+.scc-select{padding:6px 10px;border-radius:8px;border:1.5px solid #e6e6e6;background:#fff;color:#312a2a;font-size:12px;font-family:inherit;outline:none}
+.scc-dest-combo{position:relative;width:260px;min-width:180px}
+.scc-dest-combo-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e6e6e6;border-radius:10px;max-height:260px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none}
+.scc-dest-combo-group{padding:6px 10px 2px;font-size:10px;font-weight:700;color:#737B8B;letter-spacing:.5px;text-transform:uppercase}
+.scc-dest-combo-opt{padding:8px 12px;font-size:13px;color:#312a2a;cursor:pointer}
+.scc-dest-combo-opt:hover,.scc-dest-combo-opt.hovered{background:#f8f7fc}
+.scc-dest-combo-opt.selected{font-weight:700;color:#886CC0}
+.scc-advisory{display:none}
+.scc-advisory.show{display:block}
+.scc-unicode-warn{display:none;padding:12px 14px;background:rgba(204,153,0,.07);border:1px solid rgba(204,153,0,.2);border-radius:8px;font-size:12px;color:#92400e;margin-bottom:14px}
+.scc-unicode-warn.show{display:block}
+.scc-rcs-nudge{display:none}
+.scc-rcs-nudge.show{display:flex}
+.scc-ns-val{display:block;font-size:22px;font-weight:800;color:#312a2a}
+.scc-ns-val.scc-ns-green{color:#1cbb8c}
+.scc-ns-lbl{font-size:10px;color:#737B8B;text-transform:uppercase;letter-spacing:.4px}
+.scc-seg-lbl{font-size:11px;font-weight:700;color:#737B8B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.scc-seg-fill-info{font-size:11px;color:#737B8B;font-family:monospace;white-space:nowrap}
+.scc-seg-grid{display:flex;flex-direction:column;gap:4px;max-width:100%}
+.scc-seg-row{display:flex;gap:2px;flex-wrap:nowrap}
+.scc-seg-row-label{font-size:10px;font-weight:600;color:#737B8B;font-family:monospace;margin-top:4px;margin-bottom:2px}
+.scc-seg-block{width:8px;height:8px;border-radius:2px;flex-shrink:0;background:#e6e6e6}
+.scc-seg-block.filled-gsm{background:#886CC0}
+.scc-seg-block.filled-uni{background:#cc9900}
+.scc-bb-grid{display:flex;flex-wrap:wrap}
+.scc-bb-item{flex:1 1 25%;min-width:120px;padding:12px 16px;border-right:1px solid #e6e6e6}
+.scc-bb-item:last-child{border-right:none}
+.scc-bb-lbl{font-size:10px;font-weight:700;color:#737B8B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.scc-bb-val{font-size:16px;font-weight:800;color:#312a2a}
+.scc-bb-sub{font-size:10px;color:#737B8B;margin-top:2px}
+.scc-faq details{border:1px solid #e6e6e6;border-radius:10px;padding:14px 18px;margin-bottom:8px;background:#fff}
+.scc-faq summary{font-weight:600;color:#312a2a;cursor:pointer;list-style:none;font-size:14px}
+.scc-faq summary::-webkit-details-marker{display:none}
+.scc-faq details p{margin-top:10px;color:#737B8B;font-size:13px;line-height:1.7}
+.scc-footer{text-align:center;padding:24px 0;font-size:12px;color:#737B8B;border-top:1px solid #e6e6e6}
+.scc-footer a{color:#886CC0;text-decoration:none}
+@media(max-width:600px){.scc-bb-item{flex:1 1 50%}.scc-bb-item:nth-child(2){border-right:none}}
+</style>
+
+<div class="scc-wrap">
+
+  <!-- HERO -->
+  <div class="scc-hero">
+    <span class="scc-badge scc-badge-purple" style="margin-bottom:12px">Free Tool</span>
+    <h2>SMS & <span>RCS</span> Character Counter</h2>
+    <p class="scc-hero-sub">Real-time encoding detection, fragment counting and RCS message type analysis. Supports GSM-7, Unicode and multiple languages.</p>
+    <div class="scc-hero-stats">
+      <span class="scc-badge scc-badge-gray"><strong>GSM-7</strong> 160 chars / 153 per fragment</span>
+      <span class="scc-badge scc-badge-gray"><strong>Unicode</strong> 70 chars / 67 per fragment</span>
+      <span class="scc-badge scc-badge-purple"><strong>RCS Basic</strong> 160 chars</span>
+      <span class="scc-badge scc-badge-purple"><strong>RCS Single</strong> 3,072 chars</span>
+    </div>
+  </div>
+
+  <!-- DESTINATION BAR -->
+  <div class="scc-card" style="padding:12px 16px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="scc-label">Sending to</span>
+      <div class="scc-dest-combo" id="destCombo">
+        <div style="position:relative;display:flex;align-items:center">
+          <input type="text" class="scc-textarea" id="destInput" style="min-height:auto;padding:8px 36px 8px 12px;font-size:13px;background:#fff" placeholder="Search country..." autocomplete="off" oninput="filterCountries(this.value)" onfocus="openCountryDrop()" onblur="onDestInputBlur()" onkeydown="onDestKey(event)">
+          <span style="position:absolute;right:10px;color:#737B8B;cursor:pointer;font-size:14px" onclick="toggleCountryDrop()">&#9662;</span>
+        </div>
+        <div class="scc-dest-combo-drop" id="destDrop"></div>
+      </div>
+      <span style="font-size:12px;color:#737B8B;flex:1;min-width:200px" id="destHint">Select a destination country to tailor SMS and RCS analysis for that market</span>
+    </div>
+  </div>
+
+  <!-- DESTINATION ADVISORY -->
+  <div class="scc-card scc-advisory" id="destAdvisory">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <strong style="font-size:15px" id="advCountry"></strong>
+      <span class="scc-badge" id="advPill"></span>
+    </div>
+    <div style="font-size:12px;color:#737B8B" id="advStatus"></div>
+    <div style="font-size:12px;color:#737B8B" id="advPct"></div>
+    <div style="font-size:13px;font-weight:600;margin-top:4px" id="advChannel"></div>
+    <div style="font-size:12px;color:#737B8B;margin-top:4px;line-height:1.6" id="advNote"></div>
+  </div>
+
+  <!-- UNICODE WARNING -->
+  <div class="scc-unicode-warn" id="unicodeWarn">
+    <strong>Unicode characters detected.</strong> SMS limit drops from <strong>160 to 70 chars</strong> (67 per fragment when concatenated). On RCS Basic, emojis count as 2 characters each.
+  </div>
+
+  <!-- RCS COST-SAVING NUDGE -->
+  <div class="scc-card scc-rcs-nudge" id="rcsNudge" style="background:rgba(136,108,192,.04);border-color:rgba(136,108,192,.25);align-items:flex-start;gap:14px;flex-wrap:wrap">
+    <div style="flex:1;min-width:260px">
+      <div style="font-size:14px;font-weight:700;color:#886CC0;margin-bottom:4px;display:flex;align-items:center;gap:10px">
+        Switch to RCS and save
+        <span class="scc-badge scc-badge-green" id="nudgeSavingsPill">Save on every send</span>
+      </div>
+      <div style="font-size:12px;color:#737B8B;line-height:1.6;margin-bottom:10px" id="nudgeText">
+        Your message spans <strong id="nudgeSegs">&mdash;</strong> SMS fragments &mdash; each billed separately.<span id="nudgeDestNote"></span>
+        A single <strong>RCS Single message</strong> delivers the same content for the price of <strong>one message</strong> (up to 3,072 chars).
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="text-align:center"><span class="scc-ns-val" id="nudgeSmsSegs">&mdash;</span><span class="scc-ns-lbl">SMS fragments</span></div>
+        <div style="text-align:center"><span class="scc-ns-val scc-ns-green">1</span><span class="scc-ns-lbl">RCS Single message</span></div>
+        <div style="text-align:center"><span class="scc-ns-val scc-ns-green" id="nudgeSaving">&mdash;</span><span class="scc-ns-lbl">Messages saved per send</span></div>
+      </div>
+      <a class="scc-btn-primary" href="https://www.quicksms.com/rcs-regulatory-index" target="_blank">Explore RCS messaging &rarr;</a>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="scc-row" style="margin-bottom:14px">
+    <!-- INPUT PANEL -->
+    <div class="scc-col-half">
+      <div class="scc-card" style="height:100%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+          <span class="scc-label">Your message</span>
+          <span class="scc-badge scc-badge-green" id="encBadge">GSM-7</span>
+        </div>
+        <div class="scc-textarea-wrap">
+          <textarea class="scc-textarea" id="msgInput" placeholder="Start typing your message here..." oninput="analyse()"></textarea>
+          <span class="scc-char-overlay" id="charOverlay">0 chars</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="scc-btn" onclick="clearMsg()">Clear</button>
+          <button class="scc-btn" onclick="copyMsg()">Copy</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+          <span class="scc-label">Encoding</span>
+          <select class="scc-select" id="langSelect" onchange="onLangChange(this.value)">
+            <option value="auto">Auto-detect</option>
+            <optgroup label="Force GSM-7"><option value="gsm">Force GSM-7</option></optgroup>
+            <optgroup label="Force Unicode"><option value="unicode">Force Unicode (UCS-2)</option></optgroup>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMS STATS PANEL -->
+    <div class="scc-col-half">
+      <div class="scc-card" style="height:100%">
+        <div style="margin-bottom:12px"><span class="scc-label">SMS Analysis</span></div>
+        <div class="scc-stat-grid">
+          <div class="scc-stat-card"><div class="scc-label">Characters (effective)</div><div class="scc-stat-val" id="smsCharCount">0</div></div>
+          <div class="scc-stat-card"><div class="scc-label">Encoding</div><div class="scc-stat-val" style="font-size:16px" id="smsEncoding">GSM-7</div></div>
+          <div class="scc-stat-card"><div class="scc-label">Fragments</div><div class="scc-stat-val" id="smsSegments">1</div></div>
+          <div class="scc-stat-card"><div class="scc-label">Remaining</div><div class="scc-stat-val scc-v-ok" id="smsRemaining">160</div></div>
+        </div>
+        <div class="scc-progress"><div class="scc-progress-fill scc-fill-purple" id="smsProgress" style="width:0%"></div></div>
+        <div class="scc-prog-label"><span id="smsSegFill">0 / 160</span><span id="smsSegLabel">Fragment 1</span></div>
+        <div style="margin-top:12px">
+          <div class="scc-seg-lbl">SMS Fragment Map</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <div class="scc-progress" style="flex:1;height:8px"><div class="scc-progress-fill scc-fill-purple" id="smsProgress2" style="width:0%"></div></div>
+            <span class="scc-seg-fill-info" id="smsNextSeg">&mdash; chars</span>
+          </div>
+          <div style="overflow-x:auto"><div class="scc-seg-grid" id="segGrid"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RCS PANEL -->
+  <div class="scc-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span class="scc-label">RCS Analysis</span>
+      <span class="scc-badge scc-badge-purple" id="rcsBadge">BASIC MESSAGE</span>
+    </div>
+    <div class="scc-row" style="margin-bottom:0">
+      <div class="scc-col-half">
+        <div class="scc-label" style="margin-bottom:8px">RCS Basic (up to 160 chars)</div>
+        <div class="scc-stat-grid">
+          <div class="scc-stat-card"><div class="scc-label">Characters (emoji x2)</div><div class="scc-stat-val" id="rcsCharCount">0</div></div>
+          <div class="scc-stat-card"><div class="scc-label">Emoji count</div><div class="scc-stat-val" style="font-size:16px" id="rcsEmojiCount">0</div></div>
+        </div>
+        <div class="scc-progress"><div class="scc-progress-fill scc-fill-green" id="rcsBasicProgress" style="width:0%"></div></div>
+        <div class="scc-prog-label"><span id="rcsBasicFill">0 / 160</span><span id="rcsBasicRemaining">160 remaining</span></div>
+      </div>
+      <div class="scc-col-half">
+        <div class="scc-label" style="margin-bottom:8px">RCS Single (up to 3,072 chars)</div>
+        <div class="scc-stat-grid">
+          <div class="scc-stat-card"><div class="scc-label">Characters (code points)</div><div class="scc-stat-val" id="rcsSingleCount">0</div></div>
+          <div class="scc-stat-card"><div class="scc-label">SMS equivalent</div><div class="scc-stat-val" style="font-size:16px" id="rcsSmsEquiv">&mdash;</div></div>
+        </div>
+        <div class="scc-progress"><div class="scc-progress-fill scc-fill-green" id="rcsSingleProgress" style="width:0%"></div></div>
+        <div class="scc-prog-label"><span id="rcsSingleFill">0 / 3,072</span><span id="rcsSingleRemaining">3,072 remaining</span></div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#737B8B;margin-top:12px;line-height:1.6" id="rcsTypeExplain">Start typing to see which RCS message type your content falls into.</div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="scc-card" style="padding:0">
+    <div class="scc-bb-grid">
+      <div class="scc-bb-item"><div class="scc-bb-lbl">SMS Chars</div><div class="scc-bb-val" id="b-smsChars">0</div><div class="scc-bb-sub" id="b-smsEnc">GSM-7</div></div>
+      <div class="scc-bb-item"><div class="scc-bb-lbl">Fragments</div><div class="scc-bb-val" id="b-smsSegs">1</div><div class="scc-bb-sub" id="b-smsRem">160 left</div></div>
+      <div class="scc-bb-item"><div class="scc-bb-lbl">RCS Type</div><div class="scc-bb-val" id="b-rcsType" style="font-size:14px">Basic</div><div class="scc-bb-sub" id="b-rcsLimit">160 limit</div></div>
+      <div class="scc-bb-item"><div class="scc-bb-lbl">RCS Chars</div><div class="scc-bb-val" id="b-rcsChars">0</div><div class="scc-bb-sub" id="b-rcsRem">160 left</div></div>
+    </div>
+  </div>
+
+  <div class="scc-footer">
+    <p><strong style="color:#312a2a">QuickSMS</strong> &middot; SMS, RCS &amp; WhatsApp messaging platform &middot; <a href="https://www.quicksms.com">quicksms.com</a> &middot; Character limits correct as of March 2026.</p>
+  </div>
+
+  <!-- FAQ -->
+  <section class="scc-faq" style="max-width:860px;margin:0 auto 48px">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">Frequently asked questions</h3>
+    <details><summary>How many characters can an SMS message contain?</summary><p>A standard SMS using GSM-7 encoding can contain <strong>160 characters</strong>. If your message requires Unicode (UCS-2) encoding &mdash; for emoji, accented characters outside the GSM-7 set, or non-Latin scripts &mdash; the limit drops to <strong>70 characters</strong> per single message.</p></details>
+    <details><summary>What is an SMS fragment or segment?</summary><p>When an SMS exceeds the single-message limit, it is split into multiple <strong>fragments</strong>. Each fragment in a concatenated GSM-7 message holds <strong>153 characters</strong> &mdash; 7 characters are used for the User Data Header (UDH). Unicode concatenated messages hold <strong>67 characters</strong> per fragment.</p></details>
+    <details><summary>What is the difference between GSM-7 and Unicode SMS encoding?</summary><p>GSM-7 supports the standard Latin alphabet, digits, and a small set of special characters &mdash; allowing 160 characters per SMS. Unicode (UCS-2) supports emoji, Arabic, Chinese, and accented Latin &mdash; but only 70 characters per single SMS. Sending a single emoji switches the entire message to Unicode.</p></details>
+    <details><summary>What is an RCS Basic message vs an RCS Single message?</summary><p>RCS Basic messages support up to <strong>160 characters</strong> and are billed similarly to a standard SMS. RCS Single messages support up to <strong>3,072 characters</strong> as one billable message. For messages spanning two or more SMS fragments, switching to RCS Single can deliver significant cost savings.</p></details>
+    <details><summary>Which characters count as two characters in GSM-7?</summary><p>The following extended GSM-7 characters each count as <strong>two characters</strong>: <code>{ } [ ] \ ^ ~ |</code> and the euro sign <code>&euro;</code>. They require an escape sequence, so your effective character count will be higher than the visible count.</p></details>
+    <details><summary>Is RCS available in my country?</summary><p>RCS for Business is available in over 60 countries. Select your destination country above to see whether RCS is available, the estimated network reach percentage, and whether switching from multi-fragment SMS to RCS Single could save you money.</p></details>
+  </section>
+
+</div>
+
+<script>
+(function(){
+var GSM7_BASIC=new Set(['@','\u00a3','$','\u00a5','\u00e8','\u00e9','\u00f9','\u00ec','\u00f2','\u00c7','\n','\u00d8','\u00f8','\r','\u00c5','\u00e5','\u0394','_','\u03a6','\u0393','\u039b','\u03a9','\u03a0','\u03a8','\u03a3','\u0398','\u039e','\x1b','\u00c6','\u00e6','\u00df','\u00c9',' ','!','"','#','\u00a4','%','&',"'",'(',')','*','+',',','-','.','/','\\','0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','?','\u00a1','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','\u00c4','\u00d6','\u00d1','\u00dc','\u00a7','\u00bf','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','\u00e4','\u00f6','\u00f1','\u00fc','\u00e0']);
+var GSM7_EXT=new Set(['{','}','[',']','\\','^','~','|','\u20ac']);
+function isGSMExt(ch){return GSM7_EXT.has(ch)}
+function isGSM7(ch){return GSM7_BASIC.has(ch)||GSM7_EXT.has(ch)}
+var forcedEnc='auto',_destValue='',_dropOpen=false,_hoveredIdx=-1;
+function detectEncoding(t){if(forcedEnc!=='auto')return forcedEnc;for(var ch of t){if(!isGSM7(ch))return'unicode'}return'gsm'}
+function ucs2Len(t){var n=0;for(var cp of t){n+=cp.codePointAt(0)>0xFFFF?2:1}return n}
+function countEmojis(t){if(typeof Intl!=='undefined'&&Intl.Segmenter){var s=new Intl.Segmenter('en',{granularity:'grapheme'}),c=0;for(var{segment}of s.segment(t)){if(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/u.test(segment))c++}return c}return(t.match(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu)||[]).length}
+function calcSMS(t,enc){var sL=enc==='gsm'?160:70,gL=enc==='gsm'?153:67,eL=0;if(enc==='gsm'){for(var ch of t)eL+=isGSMExt(ch)?2:1}else{eL=ucs2Len(t)}var segs,rem,fill,nxt;if(eL===0){segs=1;rem=sL;fill=0;nxt=sL+1}else if(eL<=sL){segs=1;rem=sL-eL;fill=eL;nxt=sL+1}else{segs=Math.ceil(eL/gL);var u=eL%gL||gL;rem=gL-u;fill=u;nxt=segs*gL+1}return{effectiveLen:eL,segs:segs,remaining:rem,fillInSeg:fill,singleLim:sL,segLim:gL,nextSegAt:nxt}}
+function rcsLengths(t,ec){var cp=[...t].length;return{basic:cp+ec,single:cp}}
+
+window.analyse=function(){
+  var text=document.getElementById('msgInput').value,rawLen=[...text].length,enc=detectEncoding(text);
+  document.getElementById('charOverlay').textContent=rawLen+' chars';
+  var eb=document.getElementById('encBadge');
+  eb.textContent=enc==='unicode'?'UNICODE':'GSM-7';
+  eb.className='scc-badge '+(enc==='unicode'?'scc-badge-amber':'scc-badge-green');
+  document.getElementById('unicodeWarn').classList.toggle('show',enc==='unicode'&&rawLen>0);
+  var sms=calcSMS(text,enc),emojis=countEmojis(text),rcs=rcsLengths(text,emojis);
+  updateSMS(sms,enc);updateRCS(rcs,emojis,rawLen,enc);buildSegGrid(sms,enc);
+  var nudge=document.getElementById('rcsNudge'),dd=_destValue?RCS_DB[_destValue]:null,dh=dd&&dd.avail;
+  if(sms.segs>=2&&dh){var sv=sms.segs-1;document.getElementById('nudgeSegs').textContent=sms.segs;document.getElementById('nudgeSmsSegs').textContent=sms.segs;document.getElementById('nudgeSaving').textContent=sv;document.getElementById('nudgeSavingsPill').textContent=sv+' message'+(sv>1?'s':'')+' saved per send';document.getElementById('nudgeDestNote').innerHTML=dd?' RCS is available in <strong>'+dd.name+'</strong> ('+dd.pct+'% reach).':'';nudge.classList.add('show')}else{nudge.classList.remove('show')}
+};
+
+function updateSMS(sms,enc){
+  document.getElementById('smsCharCount').textContent=sms.effectiveLen;
+  document.getElementById('smsEncoding').textContent=enc==='gsm'?'GSM-7':'Unicode (UCS-2)';
+  document.getElementById('smsSegments').textContent=sms.segs;
+  document.getElementById('smsRemaining').textContent=sms.remaining;
+  document.getElementById('smsNextSeg').textContent=sms.nextSegAt>9999?'\u2014':sms.nextSegAt+' chars';
+  var lim=sms.effectiveLen<=sms.singleLim?sms.singleLim:sms.segLim,pct=Math.min(100,(sms.fillInSeg/lim)*100);
+  var p=document.getElementById('smsProgress');p.style.width=pct+'%';p.className='scc-progress-fill '+(sms.remaining<=10?'scc-fill-amber':'scc-fill-purple');
+  document.getElementById('smsSegFill').textContent=sms.fillInSeg+' / '+lim;
+  document.getElementById('smsSegLabel').textContent='Fragment '+sms.segs;
+  document.getElementById('smsRemaining').className='scc-stat-val '+(sms.remaining<=20?'scc-v-warn':'scc-v-ok');
+  document.getElementById('b-smsChars').textContent=sms.effectiveLen;
+  document.getElementById('b-smsEnc').textContent=enc==='gsm'?'GSM-7':'Unicode';
+  document.getElementById('b-smsSegs').textContent=sms.segs;
+  document.getElementById('b-smsRem').textContent=sms.remaining+' left';
+}
+
+function updateRCS(rcs,emojis,rawLen,enc){
+  var bL=160,sL=3072,bC=rcs.basic,sC=rcs.single,isB=bC<=bL,bR=Math.max(0,bL-bC),sR=Math.max(0,sL-sC);
+  document.getElementById('rcsCharCount').textContent=bC;
+  document.getElementById('rcsEmojiCount').textContent=emojis>0?emojis+' emoji (x2)':'0';
+  document.getElementById('rcsBasicRemaining').textContent=bR+' remaining';
+  document.getElementById('rcsSingleCount').textContent=sC;
+  document.getElementById('rcsSingleRemaining').textContent=sR.toLocaleString()+' remaining';
+  var eq=rawLen===0?null:Math.ceil(rawLen/(enc==='gsm'?153:67));
+  document.getElementById('rcsSmsEquiv').textContent=eq?'~'+eq+' frag'+(eq>1?'s':''):'\u2014';
+  document.getElementById('rcsBasicProgress').style.width=Math.min(100,bC/bL*100)+'%';
+  document.getElementById('rcsBasicFill').textContent=bC+' / '+bL;
+  document.getElementById('rcsSingleProgress').style.width=Math.min(100,sC/sL*100)+'%';
+  document.getElementById('rcsSingleFill').textContent=sC.toLocaleString()+' / '+sL.toLocaleString();
+  var bd=document.getElementById('rcsBadge');bd.textContent=isB?'BASIC MESSAGE':'SINGLE MESSAGE';bd.className='scc-badge '+(isB?'scc-badge-purple':'scc-badge-pink');
+  var ex;if(rawLen===0){ex='Start typing to see which RCS message type your content falls into.'}else if(isB){var en=emojis>0?' ('+emojis+' emoji counted as 2 chars each)':'';ex=bC+' chars'+en+' \u2192 under 160 \u2192 <strong>RCS Basic</strong>. One billable message with automatic SMS fallback on non-RCS devices.'}else{var en2=emojis>0?' ('+emojis+' emoji x2)':'';ex=bC+' chars'+en2+' \u2192 over 160 \u2192 <strong>RCS Single</strong>. '+sC+' code points used of 3,072. One flat-rate message.'}
+  document.getElementById('rcsTypeExplain').innerHTML=ex;
+  var bt=document.getElementById('b-rcsType');bt.textContent=isB?'Basic':'Single';bt.style.color=isB?'#886CC0':'#a590cf';
+  document.getElementById('b-rcsChars').textContent=bC;document.getElementById('b-rcsLimit').textContent=isB?'160 limit':'3,072 limit';document.getElementById('b-rcsRem').textContent=(isB?bR:sR.toLocaleString())+' left';
+}
+
+function buildSegGrid(sms,enc){
+  var g=document.getElementById('segGrid');g.innerHTML='';var ts=Math.max(1,sms.segs),sL=enc==='gsm'?160:70,gL=enc==='gsm'?153:67,COLS=20,rs=Math.min(6,ts+1);
+  for(var s=0;s<rs;s++){var iF=s>=ts,cps=(ts===1)?sL:gL,fi=iF?0:(s<ts-1)?cps:sms.fillInSeg;
+    var lb=document.createElement('div');lb.className='scc-seg-row-label';lb.textContent=iF?'Next fragment':'Fragment '+(s+1)+'  ('+(iF?0:Math.min(fi,cps))+'/'+cps+')';g.appendChild(lb);
+    var rw=Math.ceil(cps/COLS);for(var r=0;r<rw;r++){var row=document.createElement('div');row.className='scc-seg-row';for(var c=0;c<COLS;c++){var idx=r*COLS+c;if(idx>=cps)break;var el=document.createElement('div');el.className='scc-seg-block'+(idx<fi?' '+(enc==='gsm'?'filled-gsm':'filled-uni'):'');row.appendChild(el)}g.appendChild(row)}
+    if(s<rs-1){var gp=document.createElement('div');gp.style.cssText='height:6px';g.appendChild(gp)}}
+  var lim=sms.effectiveLen<=sms.singleLim?sms.singleLim:sms.segLim;document.getElementById('smsProgress2').style.width=Math.min(100,(sms.fillInSeg/lim)*100)+'%';
+}
+
+function updateDestAdvisory(iso){
+  var adv=document.getElementById('destAdvisory'),hint=document.getElementById('destHint');
+  if(!iso){adv.classList.remove('show');hint.textContent='Select a destination country to tailor SMS and RCS analysis for that market';return}
+  var c=RCS_DB[iso];if(!c){adv.classList.remove('show');return}
+  adv.className='scc-card scc-advisory show';
+  adv.style.borderColor=c.avail?(c.status==='Limited'?'#cc9900':'#1cbb8c'):'#dc3545';
+  document.getElementById('advCountry').textContent=c.name;
+  var p=document.getElementById('advPill');
+  if(c.avail&&c.status==='Full Coverage'){p.textContent='Full RCS Coverage';p.className='scc-badge scc-badge-green'}
+  else if(c.avail&&c.status==='Limited'){p.textContent='RCS Limited';p.className='scc-badge scc-badge-amber'}
+  else if(c.avail){p.textContent='RCS Available';p.className='scc-badge scc-badge-green'}
+  else{p.textContent='RCS Not Available';p.className='scc-badge scc-badge-red'}
+  document.getElementById('advStatus').textContent=c.status;
+  document.getElementById('advPct').textContent=c.pct+'% of mobile users reachable';
+  var ch,nt;
+  if(c.avail&&c.status==='Full Coverage'){ch='RCS recommended \u2014 excellent coverage, SMS fallback automatic';nt='<strong>RCS is fully supported</strong> in '+c.name+' with '+c.pct+'% reach. Long messages (2+ SMS fragments) will be significantly cheaper as one RCS Single message. '+(c.notes||'')+' <a href="https://www.quicksms.com/rcs-regulatory-index" target="_blank" style="color:#886CC0;font-weight:600;text-decoration:none">View RCS Regulatory Index &rarr;</a>'}
+  else if(c.avail&&c.status==='Limited'){ch='RCS available but limited \u2014 SMS fallback recommended for full reach';nt='<strong>RCS has limited coverage</strong> in '+c.name+' ('+c.pct+'% reach). Consider using RCS with SMS fallback enabled. '+(c.notes||'')+' <a href="https://www.quicksms.com/rcs-regulatory-index" target="_blank" style="color:#886CC0;font-weight:600;text-decoration:none">View RCS Regulatory Index &rarr;</a>'}
+  else if(c.avail){ch='RCS available \u2014 SMS fallback covers non-RCS devices';nt='<strong>RCS is available</strong> in '+c.name+' ('+c.pct+'% reach). Long messages save cost as a single RCS message. '+(c.notes||'')+' <a href="https://www.quicksms.com/rcs-regulatory-index" target="_blank" style="color:#886CC0;font-weight:600;text-decoration:none">View RCS Regulatory Index &rarr;</a>'}
+  else{ch='SMS only \u2014 RCS is not available in this country';nt='<strong>RCS is not currently available</strong> in '+c.name+'. Send as SMS. Keep messages concise to optimise cost. '+(c.notes&&c.notes!=='Not available.'?c.notes:'')}
+  document.getElementById('advChannel').textContent=ch;document.getElementById('advNote').innerHTML=nt;
+  hint.textContent=c.name+' selected \u2014 '+(c.avail?'RCS available ('+c.pct+'% reach)':'SMS only market');
+}
+
+function buildCountryDrop(f){var d=document.getElementById('destDrop'),q=f.toLowerCase().trim();d.innerHTML='';var lg='';COUNTRIES.filter(function(c){return!q||c.l.toLowerCase().includes(q)||c.g.toLowerCase().includes(q)}).forEach(function(c){if(c.g!==lg){var gr=document.createElement('div');gr.className='scc-dest-combo-group';gr.textContent=c.g;d.appendChild(gr);lg=c.g}var o=document.createElement('div');o.className='scc-dest-combo-opt'+(c.v===_destValue?' selected':'');o.dataset.v=c.v;o.textContent=c.l;o.addEventListener('mousedown',function(){selectCountry(c.v,c.l)});d.appendChild(o)});if(!d.children.length){var n=document.createElement('div');n.style.cssText='padding:10px 12px;font-size:12px;color:#737B8B';n.textContent='No countries found';d.appendChild(n)}}
+window.openCountryDrop=function(){document.getElementById('destInput').value='';buildCountryDrop('');document.getElementById('destDrop').style.display='block';_dropOpen=true;setTimeout(function(){var s=document.querySelector('#destDrop .selected');if(s)s.scrollIntoView({block:'nearest'})},30)};
+window.toggleCountryDrop=function(){if(_dropOpen)closeCountryDrop();else{document.getElementById('destInput').focus();openCountryDrop()}};
+function closeCountryDrop(){document.getElementById('destDrop').style.display='none';_dropOpen=false;var f=COUNTRIES.find(function(c){return c.v===_destValue});document.getElementById('destInput').value=f?f.l:''}
+function selectCountry(iso,label){_destValue=iso;document.getElementById('destInput').value=label;document.getElementById('destDrop').style.display='none';_dropOpen=false;onDestChange(iso)}
+window.onDestInputBlur=function(){setTimeout(function(){if(_dropOpen)closeCountryDrop()},150)};
+window.filterCountries=function(v){if(!_dropOpen){document.getElementById('destDrop').style.display='block';_dropOpen=true}buildCountryDrop(v);_hoveredIdx=-1};
+window.onDestKey=function(e){var d=document.getElementById('destDrop'),opts=d.querySelectorAll('.scc-dest-combo-opt');if(e.key==='ArrowDown'){e.preventDefault();_hoveredIdx=Math.min(_hoveredIdx+1,opts.length-1);opts.forEach(function(o,i){o.classList.toggle('hovered',i===_hoveredIdx)});if(opts[_hoveredIdx])opts[_hoveredIdx].scrollIntoView({block:'nearest'})}else if(e.key==='ArrowUp'){e.preventDefault();_hoveredIdx=Math.max(_hoveredIdx-1,0);opts.forEach(function(o,i){o.classList.toggle('hovered',i===_hoveredIdx)});if(opts[_hoveredIdx])opts[_hoveredIdx].scrollIntoView({block:'nearest'})}else if(e.key==='Enter'){if(_hoveredIdx>=0&&opts[_hoveredIdx])selectCountry(opts[_hoveredIdx].dataset.v,opts[_hoveredIdx].textContent)}else if(e.key==='Escape'){closeCountryDrop()}};
+window.onLangChange=function(v){forcedEnc=v;analyse()};
+function onDestChange(iso){_destValue=iso;updateDestAdvisory(iso);analyse()}
+window.clearMsg=function(){document.getElementById('msgInput').value='';analyse()};
+window.copyMsg=function(){navigator.clipboard.writeText(document.getElementById('msgInput').value).catch(function(){})};
+
+var RCS_DB={
+'GB':{avail:true,status:'Full Coverage',pct:77,name:'United Kingdom',notes:'All major carriers. Strong RCS adoption.'},
+'US':{avail:true,status:'Full Coverage',pct:77,name:'United States',notes:'All major carriers. Apple iOS 18+ RCS Dec 2024.'},
+'CA':{avail:true,status:'Available',pct:77,name:'Canada',notes:'Major carriers.'},
+'DE':{avail:true,status:'Full Coverage',pct:80,name:'Germany',notes:'Strongest RCS market in Europe.'},
+'FR':{avail:true,status:'Available',pct:79,name:'France',notes:'Strong growth.'},
+'BE':{avail:true,status:'Available',pct:79,name:'Belgium',notes:'Partial coverage.'},
+'IT':{avail:true,status:'Available',pct:72,name:'Italy',notes:'Growing adoption.'},
+'ES':{avail:true,status:'Available',pct:74,name:'Spain',notes:'Telefonica leading.'},
+'PT':{avail:true,status:'Available',pct:68,name:'Portugal',notes:''},
+'NL':{avail:true,status:'Available',pct:71,name:'Netherlands',notes:''},
+'PL':{avail:true,status:'Available',pct:65,name:'Poland',notes:''},
+'SE':{avail:false,status:'Not Available',pct:34,name:'Sweden',notes:''},
+'NO':{avail:false,status:'Not Available',pct:30,name:'Norway',notes:''},
+'DK':{avail:false,status:'Not Available',pct:30,name:'Denmark',notes:''},
+'FI':{avail:false,status:'Not Available',pct:36,name:'Finland',notes:''},
+'IE':{avail:true,status:'Available',pct:70,name:'Ireland',notes:''},
+'CH':{avail:false,status:'Not Available',pct:38,name:'Switzerland',notes:''},
+'AT':{avail:false,status:'Not Available',pct:37,name:'Austria',notes:''},
+'CZ':{avail:false,status:'Not Available',pct:47,name:'Czech Republic',notes:''},
+'SK':{avail:false,status:'Not Available',pct:44,name:'Slovakia',notes:''},
+'HU':{avail:false,status:'Not Available',pct:45,name:'Hungary',notes:''},
+'RO':{avail:false,status:'Not Available',pct:50,name:'Romania',notes:''},
+'BG':{avail:false,status:'Not Available',pct:51,name:'Bulgaria',notes:''},
+'HR':{avail:false,status:'Not Available',pct:47,name:'Croatia',notes:''},
+'SI':{avail:false,status:'Not Available',pct:43,name:'Slovenia',notes:''},
+'RS':{avail:false,status:'Not Available',pct:48,name:'Serbia',notes:''},
+'GR':{avail:false,status:'Not Available',pct:44,name:'Greece',notes:''},
+'TR':{avail:true,status:'Available',pct:62,name:'Turkey',notes:''},
+'UA':{avail:false,status:'Not Available',pct:48,name:'Ukraine',notes:''},
+'RU':{avail:false,status:'Not Available',pct:55,name:'Russia',notes:''},
+'EE':{avail:false,status:'Not Available',pct:39,name:'Estonia',notes:''},
+'LV':{avail:false,status:'Not Available',pct:40,name:'Latvia',notes:''},
+'LT':{avail:false,status:'Not Available',pct:41,name:'Lithuania',notes:''},
+'LU':{avail:false,status:'Not Available',pct:36,name:'Luxembourg',notes:''},
+'MT':{avail:false,status:'Not Available',pct:38,name:'Malta',notes:''},
+'CY':{avail:false,status:'Not Available',pct:39,name:'Cyprus',notes:''},
+'IS':{avail:false,status:'Not Available',pct:30,name:'Iceland',notes:''},
+'AL':{avail:false,status:'Not Available',pct:50,name:'Albania',notes:''},
+'BA':{avail:false,status:'Not Available',pct:51,name:'Bosnia & Herzegovina',notes:''},
+'MK':{avail:false,status:'Not Available',pct:45,name:'North Macedonia',notes:''},
+'ME':{avail:false,status:'Not Available',pct:44,name:'Montenegro',notes:''},
+'MD':{avail:false,status:'Not Available',pct:47,name:'Moldova',notes:''},
+'BY':{avail:false,status:'Not Available',pct:50,name:'Belarus',notes:''},
+'GE':{avail:false,status:'Not Available',pct:45,name:'Georgia',notes:''},
+'AM':{avail:false,status:'Not Available',pct:43,name:'Armenia',notes:''},
+'AZ':{avail:false,status:'Not Available',pct:46,name:'Azerbaijan',notes:''},
+'MX':{avail:true,status:'Available',pct:58,name:'Mexico',notes:''},
+'BR':{avail:true,status:'Available',pct:65,name:'Brazil',notes:'Claro leading.'},
+'AR':{avail:false,status:'Not Available',pct:45,name:'Argentina',notes:''},
+'CO':{avail:false,status:'Not Available',pct:48,name:'Colombia',notes:''},
+'CL':{avail:false,status:'Not Available',pct:47,name:'Chile',notes:''},
+'PE':{avail:false,status:'Not Available',pct:44,name:'Peru',notes:''},
+'VE':{avail:false,status:'Not Available',pct:40,name:'Venezuela',notes:''},
+'EC':{avail:false,status:'Not Available',pct:42,name:'Ecuador',notes:''},
+'BO':{avail:false,status:'Not Available',pct:38,name:'Bolivia',notes:''},
+'PY':{avail:false,status:'Not Available',pct:36,name:'Paraguay',notes:''},
+'UY':{avail:false,status:'Not Available',pct:40,name:'Uruguay',notes:''},
+'JP':{avail:true,status:'Available',pct:70,name:'Japan',notes:''},
+'KR':{avail:true,status:'Full Coverage',pct:82,name:'South Korea',notes:'Leading RCS market globally.'},
+'CN':{avail:false,status:'Not Available',pct:60,name:'China',notes:''},
+'AU':{avail:true,status:'Available',pct:68,name:'Australia',notes:'Telstra leading.'},
+'NZ':{avail:false,status:'Not Available',pct:40,name:'New Zealand',notes:''},
+'IN':{avail:true,status:'Available',pct:55,name:'India',notes:'Jio and Airtel leading.'},
+'ID':{avail:false,status:'Not Available',pct:48,name:'Indonesia',notes:''},
+'PH':{avail:false,status:'Not Available',pct:44,name:'Philippines',notes:''},
+'MY':{avail:true,status:'Available',pct:62,name:'Malaysia',notes:''},
+'SG':{avail:true,status:'Available',pct:74,name:'Singapore',notes:''},
+'TH':{avail:false,status:'Not Available',pct:46,name:'Thailand',notes:''},
+'VN':{avail:false,status:'Not Available',pct:44,name:'Vietnam',notes:''},
+'PK':{avail:false,status:'Not Available',pct:42,name:'Pakistan',notes:''},
+'BD':{avail:false,status:'Not Available',pct:38,name:'Bangladesh',notes:''},
+'LK':{avail:false,status:'Not Available',pct:40,name:'Sri Lanka',notes:''},
+'NP':{avail:false,status:'Not Available',pct:35,name:'Nepal',notes:''},
+'HK':{avail:true,status:'Available',pct:70,name:'Hong Kong',notes:''},
+'TW':{avail:true,status:'Available',pct:68,name:'Taiwan',notes:''},
+'MN':{avail:false,status:'Not Available',pct:35,name:'Mongolia',notes:''},
+'KH':{avail:false,status:'Not Available',pct:36,name:'Cambodia',notes:''},
+'LA':{avail:false,status:'Not Available',pct:32,name:'Laos',notes:''},
+'MM':{avail:false,status:'Not Available',pct:38,name:'Myanmar',notes:''},
+'KZ':{avail:false,status:'Not Available',pct:44,name:'Kazakhstan',notes:''},
+'UZ':{avail:false,status:'Not Available',pct:40,name:'Uzbekistan',notes:''},
+'AE':{avail:true,status:'Available',pct:72,name:'United Arab Emirates',notes:''},
+'SA':{avail:true,status:'Available',pct:68,name:'Saudi Arabia',notes:''},
+'QA':{avail:false,status:'Not Available',pct:42,name:'Qatar',notes:''},
+'KW':{avail:false,status:'Not Available',pct:40,name:'Kuwait',notes:''},
+'BH':{avail:false,status:'Not Available',pct:38,name:'Bahrain',notes:''},
+'OM':{avail:false,status:'Not Available',pct:38,name:'Oman',notes:''},
+'IL':{avail:true,status:'Available',pct:68,name:'Israel',notes:''},
+'JO':{avail:false,status:'Not Available',pct:40,name:'Jordan',notes:''},
+'LB':{avail:false,status:'Not Available',pct:36,name:'Lebanon',notes:''},
+'IQ':{avail:false,status:'Not Available',pct:38,name:'Iraq',notes:''},
+'IR':{avail:false,status:'Not Available',pct:40,name:'Iran',notes:''},
+'AF':{avail:false,status:'Not Available',pct:28,name:'Afghanistan',notes:''},
+'ZA':{avail:true,status:'Available',pct:60,name:'South Africa',notes:''},
+'NG':{avail:false,status:'Not Available',pct:42,name:'Nigeria',notes:''},
+'KE':{avail:false,status:'Not Available',pct:40,name:'Kenya',notes:''},
+'EG':{avail:false,status:'Not Available',pct:44,name:'Egypt',notes:''},
+'GH':{avail:false,status:'Not Available',pct:38,name:'Ghana',notes:''},
+'TZ':{avail:false,status:'Not Available',pct:35,name:'Tanzania',notes:''},
+'ET':{avail:false,status:'Not Available',pct:30,name:'Ethiopia',notes:''},
+'UG':{avail:false,status:'Not Available',pct:33,name:'Uganda',notes:''},
+'MA':{avail:false,status:'Not Available',pct:42,name:'Morocco',notes:''},
+'DZ':{avail:false,status:'Not Available',pct:40,name:'Algeria',notes:''},
+'TN':{avail:false,status:'Not Available',pct:40,name:'Tunisia',notes:''},
+'SN':{avail:false,status:'Not Available',pct:35,name:'Senegal',notes:''},
+'CI':{avail:false,status:'Not Available',pct:34,name:"Cote d'Ivoire",notes:''},
+'CM':{avail:false,status:'Not Available',pct:32,name:'Cameroon',notes:''},
+'ZW':{avail:false,status:'Not Available',pct:34,name:'Zimbabwe',notes:''},
+'ZM':{avail:false,status:'Not Available',pct:32,name:'Zambia',notes:''},
+'AO':{avail:false,status:'Not Available',pct:30,name:'Angola',notes:''},
+'MZ':{avail:false,status:'Not Available',pct:30,name:'Mozambique',notes:''},
+'GT':{avail:false,status:'Not Available',pct:38,name:'Guatemala',notes:''},
+'CR':{avail:false,status:'Not Available',pct:40,name:'Costa Rica',notes:''},
+'PA':{avail:false,status:'Not Available',pct:40,name:'Panama',notes:''},
+'DO':{avail:false,status:'Not Available',pct:38,name:'Dominican Republic',notes:''},
+'JM':{avail:false,status:'Not Available',pct:43,name:'Jamaica',notes:''},
+'TT':{avail:false,status:'Not Available',pct:41,name:'Trinidad & Tobago',notes:''},
+'BB':{avail:false,status:'Not Available',pct:33,name:'Barbados',notes:''},
+'HN':{avail:false,status:'Not Available',pct:36,name:'Honduras',notes:''},
+'SV':{avail:false,status:'Not Available',pct:36,name:'El Salvador',notes:''},
+'NI':{avail:false,status:'Not Available',pct:34,name:'Nicaragua',notes:''},
+'CU':{avail:false,status:'Not Available',pct:30,name:'Cuba',notes:''},
+'HT':{avail:false,status:'Not Available',pct:28,name:'Haiti',notes:''},
+'PR':{avail:true,status:'Available',pct:70,name:'Puerto Rico',notes:'US carriers.'},
+'GU':{avail:true,status:'Available',pct:65,name:'Guam',notes:'US carriers.'},
+'VI':{avail:false,status:'Not Available',pct:42,name:'US Virgin Islands',notes:''},
+'GI':{avail:false,status:'Not Available',pct:36,name:'Gibraltar',notes:''},
+'GG':{avail:false,status:'Not Available',pct:36,name:'Guernsey',notes:''},
+'JE':{avail:false,status:'Not Available',pct:36,name:'Jersey',notes:''},
+'IM':{avail:false,status:'Not Available',pct:36,name:'Isle of Man',notes:''},
+'FJ':{avail:false,status:'Not Available',pct:32,name:'Fiji',notes:''},
+'PG':{avail:false,status:'Not Available',pct:28,name:'Papua New Guinea',notes:''}
+};
+
+var COUNTRIES=[
+{v:'GB',l:'United Kingdom',g:'Europe'},{v:'DE',l:'Germany',g:'Europe'},{v:'FR',l:'France',g:'Europe'},
+{v:'IT',l:'Italy',g:'Europe'},{v:'ES',l:'Spain',g:'Europe'},{v:'NL',l:'Netherlands',g:'Europe'},
+{v:'BE',l:'Belgium',g:'Europe'},{v:'CH',l:'Switzerland',g:'Europe'},{v:'AT',l:'Austria',g:'Europe'},
+{v:'SE',l:'Sweden',g:'Europe'},{v:'NO',l:'Norway',g:'Europe'},{v:'DK',l:'Denmark',g:'Europe'},
+{v:'FI',l:'Finland',g:'Europe'},{v:'IE',l:'Ireland',g:'Europe'},{v:'PT',l:'Portugal',g:'Europe'},
+{v:'PL',l:'Poland',g:'Europe'},{v:'CZ',l:'Czech Republic',g:'Europe'},{v:'SK',l:'Slovakia',g:'Europe'},
+{v:'HU',l:'Hungary',g:'Europe'},{v:'RO',l:'Romania',g:'Europe'},{v:'BG',l:'Bulgaria',g:'Europe'},
+{v:'HR',l:'Croatia',g:'Europe'},{v:'SI',l:'Slovenia',g:'Europe'},{v:'RS',l:'Serbia',g:'Europe'},
+{v:'GR',l:'Greece',g:'Europe'},{v:'TR',l:'Turkey',g:'Europe'},{v:'UA',l:'Ukraine',g:'Europe'},
+{v:'RU',l:'Russia',g:'Europe'},{v:'EE',l:'Estonia',g:'Europe'},{v:'LV',l:'Latvia',g:'Europe'},
+{v:'LT',l:'Lithuania',g:'Europe'},{v:'LU',l:'Luxembourg',g:'Europe'},{v:'MT',l:'Malta',g:'Europe'},
+{v:'CY',l:'Cyprus',g:'Europe'},{v:'IS',l:'Iceland',g:'Europe'},{v:'AL',l:'Albania',g:'Europe'},
+{v:'BA',l:'Bosnia & Herzegovina',g:'Europe'},{v:'MK',l:'North Macedonia',g:'Europe'},
+{v:'ME',l:'Montenegro',g:'Europe'},{v:'MD',l:'Moldova',g:'Europe'},{v:'BY',l:'Belarus',g:'Europe'},
+{v:'GE',l:'Georgia',g:'Europe'},{v:'AM',l:'Armenia',g:'Europe'},{v:'AZ',l:'Azerbaijan',g:'Europe'},
+{v:'US',l:'United States',g:'North America'},{v:'CA',l:'Canada',g:'North America'},{v:'MX',l:'Mexico',g:'North America'},
+{v:'BR',l:'Brazil',g:'South America'},{v:'AR',l:'Argentina',g:'South America'},{v:'CO',l:'Colombia',g:'South America'},
+{v:'CL',l:'Chile',g:'South America'},{v:'PE',l:'Peru',g:'South America'},{v:'VE',l:'Venezuela',g:'South America'},
+{v:'EC',l:'Ecuador',g:'South America'},{v:'BO',l:'Bolivia',g:'South America'},{v:'PY',l:'Paraguay',g:'South America'},
+{v:'UY',l:'Uruguay',g:'South America'},
+{v:'JP',l:'Japan',g:'Asia Pacific'},{v:'KR',l:'South Korea',g:'Asia Pacific'},{v:'CN',l:'China',g:'Asia Pacific'},
+{v:'AU',l:'Australia',g:'Asia Pacific'},{v:'NZ',l:'New Zealand',g:'Asia Pacific'},{v:'IN',l:'India',g:'Asia Pacific'},
+{v:'ID',l:'Indonesia',g:'Asia Pacific'},{v:'PH',l:'Philippines',g:'Asia Pacific'},{v:'MY',l:'Malaysia',g:'Asia Pacific'},
+{v:'SG',l:'Singapore',g:'Asia Pacific'},{v:'TH',l:'Thailand',g:'Asia Pacific'},{v:'VN',l:'Vietnam',g:'Asia Pacific'},
+{v:'PK',l:'Pakistan',g:'Asia Pacific'},{v:'BD',l:'Bangladesh',g:'Asia Pacific'},{v:'LK',l:'Sri Lanka',g:'Asia Pacific'},
+{v:'NP',l:'Nepal',g:'Asia Pacific'},{v:'HK',l:'Hong Kong',g:'Asia Pacific'},{v:'TW',l:'Taiwan',g:'Asia Pacific'},
+{v:'MN',l:'Mongolia',g:'Asia Pacific'},{v:'KH',l:'Cambodia',g:'Asia Pacific'},{v:'LA',l:'Laos',g:'Asia Pacific'},
+{v:'MM',l:'Myanmar',g:'Asia Pacific'},{v:'KZ',l:'Kazakhstan',g:'Asia Pacific'},
+{v:'AE',l:'United Arab Emirates',g:'Middle East'},{v:'SA',l:'Saudi Arabia',g:'Middle East'},
+{v:'QA',l:'Qatar',g:'Middle East'},{v:'KW',l:'Kuwait',g:'Middle East'},{v:'BH',l:'Bahrain',g:'Middle East'},
+{v:'OM',l:'Oman',g:'Middle East'},{v:'IL',l:'Israel',g:'Middle East'},{v:'JO',l:'Jordan',g:'Middle East'},
+{v:'LB',l:'Lebanon',g:'Middle East'},{v:'IQ',l:'Iraq',g:'Middle East'},{v:'IR',l:'Iran',g:'Middle East'},
+{v:'ZA',l:'South Africa',g:'Africa'},{v:'NG',l:'Nigeria',g:'Africa'},{v:'KE',l:'Kenya',g:'Africa'},
+{v:'EG',l:'Egypt',g:'Africa'},{v:'GH',l:'Ghana',g:'Africa'},{v:'TZ',l:'Tanzania',g:'Africa'},
+{v:'ET',l:'Ethiopia',g:'Africa'},{v:'UG',l:'Uganda',g:'Africa'},{v:'MA',l:'Morocco',g:'Africa'},
+{v:'DZ',l:'Algeria',g:'Africa'},{v:'TN',l:'Tunisia',g:'Africa'},{v:'SN',l:'Senegal',g:'Africa'},
+{v:'CI',l:"Cote d'Ivoire",g:'Africa'},{v:'CM',l:'Cameroon',g:'Africa'},{v:'ZW',l:'Zimbabwe',g:'Africa'},
+{v:'ZM',l:'Zambia',g:'Africa'},{v:'AO',l:'Angola',g:'Africa'},{v:'MZ',l:'Mozambique',g:'Africa'},
+{v:'GT',l:'Guatemala',g:'Central America & Caribbean'},{v:'CR',l:'Costa Rica',g:'Central America & Caribbean'},
+{v:'PA',l:'Panama',g:'Central America & Caribbean'},{v:'DO',l:'Dominican Republic',g:'Central America & Caribbean'},
+{v:'JM',l:'Jamaica',g:'Central America & Caribbean'},{v:'TT',l:'Trinidad & Tobago',g:'Central America & Caribbean'},
+{v:'BB',l:'Barbados',g:'Central America & Caribbean'},{v:'HN',l:'Honduras',g:'Central America & Caribbean'},
+{v:'SV',l:'El Salvador',g:'Central America & Caribbean'},{v:'NI',l:'Nicaragua',g:'Central America & Caribbean'},
+{v:'CU',l:'Cuba',g:'Central America & Caribbean'},{v:'HT',l:'Haiti',g:'Central America & Caribbean'},
+{v:'FJ',l:'Fiji',g:'Oceania'},{v:'PG',l:'Papua New Guinea',g:'Oceania'},
+{v:'GI',l:'Gibraltar',g:'UK Territories'},{v:'GG',l:'Guernsey',g:'UK Territories'},
+{v:'JE',l:'Jersey',g:'UK Territories'},{v:'IM',l:'Isle of Man',g:'UK Territories'},
+{v:'PR',l:'Puerto Rico',g:'US Territories'},{v:'GU',l:'Guam',g:'US Territories'},
+{v:'VI',l:'US Virgin Islands',g:'US Territories'}
+];
+
+function init(){var uk=COUNTRIES.find(function(c){return c.v==='GB'});if(uk){document.getElementById('destInput').value=uk.l;_destValue='GB';updateDestAdvisory('GB');analyse()}}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}else{init()}
+})();
+</script>
+<!-- End SMS & RCS Character Counter -->
