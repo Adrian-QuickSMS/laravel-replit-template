@@ -21,6 +21,12 @@ Route::prefix('o')->controller(\App\Http\Controllers\OptOutLandingController::cl
     Route::post('/{token}/confirm', 'confirm')->name('optout.confirm')->where('token', '[A-Za-z0-9]{8}');
 });
 
+// =====================================================
+// Public tools (no authentication required)
+// =====================================================
+Route::get('/tools/sms-character-counter', [\App\Http\Controllers\ToolsController::class, 'smsCharacterCounter'])
+    ->name('tools.sms-character-counter');
+
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/login', 'login')->name('auth.login');
