@@ -300,6 +300,16 @@ class Account extends Model
     }
 
     /**
+     * Partner (reseller) that owns this account, if any.
+     * NULL = direct QuickSMS customer.
+     * Not in $fillable — set by admin/partner controllers via explicit assignment.
+     */
+    public function partner(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Partner::class, 'partner_id');
+    }
+
+    /**
      * Account settings (one-to-one)
      */
     public function settings(): HasOne
