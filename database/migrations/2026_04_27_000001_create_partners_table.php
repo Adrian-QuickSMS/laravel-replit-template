@@ -16,60 +16,59 @@ use Illuminate\Support\Facades\Schema;
  *                   middleware in a later PR). Until that middleware exists,
  *                   portal_rw queries return zero rows (fail-closed).
  *
- * SCOPE OF THIS PR (Phase 0, PR-1):
- *   - Additive only. Creates `partners` table.
- *   - No code references this table yet (no controllers, no auth path).
- *   - RLS policies are in place ready for SetPartnerContext middleware.
- *   - Service-role policies (svc_red / ops_admin) are added defensively —
- *     skipped if the role does not exist in this environment.
+ * LIFECYCLE: status ('active' | 'suspended' | 'closed') is the only deletion
+ *            mechanism. No SoftDeletes — keeping a single lifecycle axis avoids
+ *            the orphan-relation problem where soft-deleted partners leave
+ *            child accounts.partner_id pointing at hidden rows.
+ *
+ * IDEMPOTENCY: every step is independently re-runnable so a partial failure
+ *              followed by re-run does not leave the table without RLS policies.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('partners')) {
-            return;
+        // Step 1: table.
+        if (! Schema::hasTable('partners')) {
+            Schema::create('partners', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+
+                $table->string('legal_name');
+                $table->string('trading_name')->nullable();
+
+                $table->string('status', 20)->default('active');
+                $table->string('contract_type', 40)->default('standard');
+                $table->char('currency', 3)->default('GBP');
+
+                // The partner's own QuickSMS account (their internal billing/admin
+                // identity inside QuickSMS). Optional — partners may exist before
+                // they have a billing account.
+                $table->uuid('owner_account_id')->nullable();
+
+                // Audit fields (match accounts table convention)
+                $table->string('created_by')->nullable();
+                $table->string('updated_by')->nullable();
+
+                $table->timestamps();
+
+                $table->index('status');
+                $table->index('owner_account_id');
+
+                $table->foreign('owner_account_id')
+                    ->references('id')->on('accounts')
+                    ->nullOnDelete();
+            });
         }
 
-        Schema::create('partners', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-
-            $table->string('legal_name');
-            $table->string('trading_name')->nullable();
-
-            $table->string('status', 20)->default('active');
-            $table->string('contract_type', 40)->default('standard');
-            $table->char('currency', 3)->default('GBP');
-
-            // The partner's own QuickSMS account (their internal billing/admin
-            // identity inside QuickSMS). Optional — partners may exist before
-            // they have a billing account.
-            $table->uuid('owner_account_id')->nullable();
-
-            // Audit fields (match accounts table convention)
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-
-            $table->timestamps();
-            $table->softDeletes();
-
-            $table->index('status');
-            $table->index('owner_account_id');
-
-            $table->foreign('owner_account_id')
-                ->references('id')->on('accounts')
-                ->nullOnDelete();
-        });
-
-        // Status check constraint — keeps the value space narrow without
-        // creating a Postgres ENUM type (those are painful to alter).
+        // Step 2: status check constraint. Drop-then-add for idempotency.
+        DB::statement("ALTER TABLE partners DROP CONSTRAINT IF EXISTS chk_partners_status");
         DB::statement("
             ALTER TABLE partners
             ADD CONSTRAINT chk_partners_status
             CHECK (status IN ('active', 'suspended', 'closed'))
         ");
 
-        // UUID auto-generation trigger (mirrors accounts / sub_accounts pattern)
+        // Step 3: UUID auto-generation function and trigger.
         DB::unprepared("
             CREATE OR REPLACE FUNCTION generate_uuid_partners()
             RETURNS TRIGGER AS \$\$
@@ -90,13 +89,15 @@ return new class extends Migration
             EXECUTE FUNCTION generate_uuid_partners();
         ");
 
-        // Row Level Security
+        // Step 4: Row Level Security. ENABLE/FORCE are idempotent in Postgres
+        // (re-running on an already-enabled table is a no-op).
         DB::unprepared("ALTER TABLE partners ENABLE ROW LEVEL SECURITY");
         DB::unprepared("ALTER TABLE partners FORCE ROW LEVEL SECURITY");
 
-        // Self-access: a partner_user session sees only their own partner row.
-        // app.current_partner_id is set by SetPartnerContext middleware (later PR).
-        // Until then, this policy matches zero rows for portal_rw — correct.
+        // Step 5: policies. Drop-then-create each so partial-failure recovery
+        // and re-runs are safe. CREATE POLICY has no IF NOT EXISTS form.
+
+        DB::unprepared("DROP POLICY IF EXISTS partners_self_access ON partners");
         DB::unprepared("
             CREATE POLICY partners_self_access ON partners
             FOR ALL
@@ -108,7 +109,9 @@ return new class extends Migration
             );
         ");
 
-        // Service / admin roles bypass — defensive, skip if role missing.
+        // Service / admin roles bypass — defensive: skip CREATE if role missing.
+        // DROP IF EXISTS is safe regardless of role existence.
+        DB::unprepared("DROP POLICY IF EXISTS partners_service_access ON partners");
         $this->safePolicy("
             CREATE POLICY partners_service_access ON partners
             FOR ALL
@@ -117,8 +120,7 @@ return new class extends Migration
             WITH CHECK (true);
         ");
 
-        // Application connects as postgres in dev; production may use a
-        // dedicated app role. Bypass policy keeps app code working.
+        DB::unprepared("DROP POLICY IF EXISTS partners_postgres_bypass ON partners");
         $this->safePolicy("
             CREATE POLICY partners_postgres_bypass ON partners
             FOR ALL
@@ -135,6 +137,7 @@ return new class extends Migration
         DB::unprepared("DROP POLICY IF EXISTS partners_self_access ON partners");
         DB::unprepared("DROP TRIGGER IF EXISTS before_insert_partners_uuid ON partners");
         DB::unprepared("DROP FUNCTION IF EXISTS generate_uuid_partners()");
+        DB::statement("ALTER TABLE IF EXISTS partners DROP CONSTRAINT IF EXISTS chk_partners_status");
 
         Schema::dropIfExists('partners');
     }
