@@ -2882,14 +2882,20 @@ document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) 
     // ---------- Tickets card ----------
     function renderTickets(d) {
         d = d || {};
-        document.getElementById('hc-tickets-total').textContent     = d.total != null ? d.total : 0;
-        document.getElementById('hc-tickets-awaiting').textContent  = d.awaiting_reply != null ? d.awaiting_reply : 0;
-        document.getElementById('hc-tickets-progress').textContent  = d.in_progress != null ? d.in_progress : 0;
-        document.getElementById('hc-tickets-resolved').textContent  = d.resolved != null ? d.resolved : 0;
+        // When the HubSpot call failed (configured but not live) we show
+        // em-dash placeholders so users do not mistake an outage for
+        // "0 open tickets". Mock/demo mode keeps the numeric values.
+        var failed = d.live === false && d.configured === true;
+        var fmt = function (v) { return failed ? '—' : (v != null ? v : 0); };
+
+        document.getElementById('hc-tickets-total').textContent     = fmt(d.total);
+        document.getElementById('hc-tickets-awaiting').textContent  = fmt(d.awaiting_reply);
+        document.getElementById('hc-tickets-progress').textContent  = fmt(d.in_progress);
+        document.getElementById('hc-tickets-resolved').textContent  = fmt(d.resolved);
 
         // "Live data unavailable" warning vs "Demo data" pill — different states.
         var err = document.getElementById('hc-tickets-error');
-        if (d.live === false && d.configured === true) {
+        if (failed) {
             err.classList.remove('d-none');
         } else {
             err.classList.add('d-none');

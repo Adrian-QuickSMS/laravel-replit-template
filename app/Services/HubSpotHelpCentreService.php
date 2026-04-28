@@ -86,7 +86,9 @@ class HubSpotHelpCentreService
             return $this->mockTicketCounts();
         }
 
-        $cacheKey = 'help_centre.tickets.' . md5(strtolower($email) . '|' . ($userKey ?? ''));
+        // Documented contract: per-user cache key. Falls back to an email
+        // hash for callers that did not supply a user key.
+        $cacheKey = 'help_centre.tickets.' . ($userKey ?: md5(strtolower($email)));
 
         return Cache::remember($cacheKey, self::TICKETS_CACHE_TTL, function () use ($email) {
             try {
@@ -150,7 +152,10 @@ class HubSpotHelpCentreService
             ];
         }
 
-        $cacheKey = 'help_centre.kb.' . md5(strtolower($query) . '|' . $limit);
+        // Documented contract: cache key is help_centre.kb.{md5(query)}.
+        // Different limits reuse the same cached payload (results array is
+        // sliced when needed in the response transformer below).
+        $cacheKey = 'help_centre.kb.' . md5(strtolower($query));
 
         return Cache::remember($cacheKey, self::KB_CACHE_TTL, function () use ($query, $limit) {
             if (!$this->isConfigured()) {
