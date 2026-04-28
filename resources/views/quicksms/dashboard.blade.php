@@ -344,11 +344,8 @@
                                     </div>
 
                                     <div class="unlock-rcs-cta-row mt-auto">
-                                        <a href="{{ route('messages.send') }}" class="btn unlock-rcs-cta-primary">
+                                        <a href="{{ route('management.rcs-agent') }}" class="btn unlock-rcs-cta-primary">
                                             <i class="fas fa-arrow-right me-2"></i>Start using RCS
-                                        </a>
-                                        <a href="#tile-test-rcs" class="btn unlock-rcs-cta-secondary">
-                                            View example message <i class="fas fa-external-link-alt ms-1"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -888,7 +885,8 @@
     overflow-x: hidden;
 }
 
-/* Below md (< 768px): Unlock RCS tile stacks vertically */
+/* Below md (< 768px): Unlock RCS tile stacks vertically; phone image renders
+   in normal flow (no breakout) so the stacked layout stays tidy. */
 @media (max-width: 767.98px) {
     #tile-rcs-advertisement .row {
         flex-direction: column;
@@ -901,12 +899,18 @@
     }
     #tile-rcs-advertisement .unlock-rcs-visual {
         order: -1;
-        min-height: 220px;
+        min-height: 280px;
         padding: 1.25rem 1rem 0;
-        border-radius: 0.625rem 0.625rem 0 0;
+        position: relative;
     }
     #tile-rcs-advertisement .unlock-rcs-image {
-        max-height: 260px;
+        position: static;
+        transform: none;
+        width: auto;
+        max-width: 90%;
+        max-height: 280px;
+        height: auto;
+        margin: 0 auto;
     }
 }
 
@@ -1456,42 +1460,37 @@
     box-shadow: 0 4px 10px rgba(136, 108, 192, 0.35);
     transform: translateY(-1px);
 }
-#tile-rcs-advertisement .unlock-rcs-cta-secondary {
-    background: transparent;
-    color: #6a4fa0;
-    border: 1px solid rgba(136, 108, 192, 0.35);
-    font-weight: 600;
-    font-size: 0.85rem;
-    padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
-    transition: background 0.18s ease, border-color 0.18s ease;
-}
-#tile-rcs-advertisement .unlock-rcs-cta-secondary:hover,
-#tile-rcs-advertisement .unlock-rcs-cta-secondary:focus {
-    background: rgba(136, 108, 192, 0.08);
-    border-color: #886CC0;
-    color: #6a4fa0;
-}
-#tile-rcs-advertisement .unlock-rcs-cta-secondary i {
-    font-size: 0.7rem;
-    opacity: 0.7;
+/* Allow the phone image to break out of the tile boundary on desktop */
+#tile-rcs-advertisement.dashboard-tile,
+#tile-rcs-advertisement .card-body,
+#tile-rcs-advertisement .card-body > .row {
+    overflow: visible;
 }
 #tile-rcs-advertisement .unlock-rcs-visual {
-    background: linear-gradient(160deg, rgba(136, 108, 192, 0.06) 0%, rgba(136, 108, 192, 0.02) 100%);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem;
-    border-radius: 0 0.625rem 0.625rem 0;
-    overflow: hidden;
+    padding: 0;
+    border-radius: 0;
+    overflow: visible;
+    position: relative;
+    min-height: 360px;
 }
 #tile-rcs-advertisement .unlock-rcs-image {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 145%;
+    max-width: none;
+    max-height: none;
     height: auto;
+    transform: translate(-50%, -52%);
     object-fit: contain;
     display: block;
+    filter: drop-shadow(0 24px 42px rgba(136, 108, 192, 0.30))
+            drop-shadow(0 6px 14px rgba(136, 108, 192, 0.18));
+    pointer-events: none;
 }
 
 /* ========================================
