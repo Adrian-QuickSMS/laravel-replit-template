@@ -42,6 +42,32 @@ class HelpCentreController extends Controller
     }
 
     /**
+     * GET /portal/api/help-centre/tickets/recently-resolved
+     *
+     * Returns the most recently closed tickets for the authenticated
+     * customer so they can verify what was completed without leaving
+     * the portal.
+     */
+    public function recentlyResolvedTickets(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'limit' => 'nullable|integer|min:1|max:25',
+        ]);
+
+        $user = $request->user();
+        $email = $user?->email;
+        $userKey = $user?->getKey();
+        $limit = (int) ($validated['limit'] ?? 10);
+
+        $payload = $this->hubspot->listRecentlyResolvedTicketsForEmail($email, $userKey, $limit);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $payload,
+        ]);
+    }
+
+    /**
      * GET /portal/api/help-centre/kb/search?q=...
      */
     public function kbSearch(Request $request): JsonResponse

@@ -24,8 +24,10 @@ class HubSpotHelpCentreService
     private const CONTACT_SEARCH_URL = 'https://api.hubapi.com/crm/v3/objects/contacts/search';
     private const KB_SEARCH_URL      = 'https://api.hubapi.com/cms/v3/site-search/search';
 
-    private const TICKETS_CACHE_TTL = 60;   // seconds
-    private const KB_CACHE_TTL      = 300;  // seconds
+    private const TICKETS_CACHE_TTL          = 60;   // seconds
+    private const KB_CACHE_TTL               = 300;  // seconds
+    private const RESOLVED_TICKETS_CACHE_TTL = 120;  // seconds
+    private const RESOLVED_TICKETS_LIMIT     = 10;
 
     /**
      * HubSpot ticket pipeline status -> internal bucket.
@@ -131,6 +133,112 @@ class HubSpotHelpCentreService
                     'error' => $e->getMessage(),
                 ]);
                 return $this->failureTicketCounts();
+            }
+        });
+    }
+
+    /**
+     * Return the most recently resolved tickets for $email.
+     *
+     * Distinct from {@see listOpenTicketsForEmail()} (counts only) — this
+     * one returns a small list of resolved tickets so customers can verify
+     * what was closed without leaving the portal.
+     *
+     * Shape:
+     *   [
+     *     'configured' => bool,
+     *     'live'       => bool,
+     *     'tickets'    => [
+     *        ['id','subject','closed_at' (ISO8601),'url' (nullable)],
+     *        ...
+     *     ],
+     *     'fetched_at' => ISO8601 string,
+     *   ]
+     */
+    public function listRecentlyResolvedTicketsForEmail(?string $email, ?string $userKey = null, int $limit = self::RESOLVED_TICKETS_LIMIT): array
+    {
+        $limit = max(1, min(25, $limit));
+
+        if (empty($email)) {
+            return $this->emptyResolvedTickets(true);
+        }
+
+        if (!$this->isConfigured()) {
+            return $this->mockResolvedTickets($limit);
+        }
+
+        $cacheKey = 'help_centre.tickets_resolved.' . ($userKey ?: md5(strtolower($email))) . '.' . $limit;
+
+        return Cache::remember($cacheKey, self::RESOLVED_TICKETS_CACHE_TTL, function () use ($email, $limit) {
+            try {
+                $contactId = $this->findContactIdByEmail($email);
+                if (!$contactId) {
+                    return $this->emptyResolvedTickets(true);
+                }
+
+                // Filter to the "resolved" pipeline stage(s). Mirror the
+                // STATUS_BUCKETS map so a customised pipeline still works.
+                $resolvedStageIds = array_keys(array_filter(self::STATUS_BUCKETS, fn ($b) => $b === 'resolved'));
+                if (empty($resolvedStageIds)) {
+                    $resolvedStageIds = ['4'];
+                }
+
+                $response = $this->client()->post(self::TICKET_SEARCH_URL, [
+                    'filterGroups' => [[
+                        'filters' => [
+                            [
+                                'propertyName' => 'associations.contact',
+                                'operator'     => 'EQ',
+                                'value'        => $contactId,
+                            ],
+                            [
+                                'propertyName' => 'hs_pipeline_stage',
+                                'operator'     => 'IN',
+                                'values'       => $resolvedStageIds,
+                            ],
+                        ],
+                    ]],
+                    'properties' => ['subject', 'hs_pipeline_stage', 'closed_date', 'hs_lastmodifieddate'],
+                    'limit'      => $limit,
+                    'sorts'      => [['propertyName' => 'closed_date', 'direction' => 'DESCENDING']],
+                ]);
+
+                if (!$response->successful()) {
+                    Log::warning('HelpCentre: HubSpot resolved ticket search failed', [
+                        'status' => $response->status(),
+                        'body'   => mb_substr($response->body(), 0, 500),
+                    ]);
+                    return $this->failureResolvedTickets();
+                }
+
+                $portalId = config('services.hubspot.portal_id');
+                $tickets = collect($response->json('results', []))
+                    ->map(function ($row) use ($portalId) {
+                        $props = $row['properties'] ?? [];
+                        $closed = $props['closed_date'] ?? $props['hs_lastmodifieddate'] ?? null;
+                        return [
+                            'id'        => (string) ($row['id'] ?? ''),
+                            'subject'   => (string) ($props['subject'] ?? 'Untitled ticket'),
+                            'closed_at' => $closed ? $this->normaliseTimestamp($closed) : null,
+                            'url'       => $portalId && !empty($row['id'])
+                                ? sprintf('https://app.hubspot.com/contacts/%s/ticket/%s', $portalId, $row['id'])
+                                : null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+
+                return [
+                    'configured' => true,
+                    'live'       => true,
+                    'tickets'    => $tickets,
+                    'fetched_at' => now()->toIso8601String(),
+                ];
+            } catch (\Throwable $e) {
+                Log::warning('HelpCentre: HubSpot resolved ticket lookup threw', [
+                    'error' => $e->getMessage(),
+                ]);
+                return $this->failureResolvedTickets();
             }
         });
     }
@@ -289,6 +397,76 @@ class HubSpotHelpCentreService
             'resolved'       => 0,
             'fetched_at'     => now()->toIso8601String(),
         ];
+    }
+
+    private function emptyResolvedTickets(bool $configured): array
+    {
+        return [
+            'configured' => $configured,
+            'live'       => true,
+            'tickets'    => [],
+            'fetched_at' => now()->toIso8601String(),
+        ];
+    }
+
+    private function failureResolvedTickets(): array
+    {
+        return [
+            'configured' => true,
+            'live'       => false,
+            'tickets'    => [],
+            'fetched_at' => now()->toIso8601String(),
+        ];
+    }
+
+    private function mockResolvedTickets(int $limit): array
+    {
+        $now = now();
+        $samples = [
+            ['subject' => 'Sender ID approval for marketing campaign', 'days' => 1],
+            ['subject' => 'Test mode limits on outbound SMS',          'days' => 2],
+            ['subject' => 'API webhook signature failing intermittently', 'days' => 4],
+            ['subject' => 'Invoice query — March top-up',              'days' => 6],
+            ['subject' => 'RCS agent verification status',              'days' => 9],
+        ];
+        $tickets = collect($samples)
+            ->take($limit)
+            ->map(function ($s, $i) use ($now) {
+                return [
+                    'id'        => 'demo-' . ($i + 1),
+                    'subject'   => $s['subject'],
+                    'closed_at' => $now->copy()->subDays($s['days'])->toIso8601String(),
+                    'url'       => null,
+                ];
+            })
+            ->all();
+
+        return [
+            'configured' => false,
+            'live'       => false,
+            'tickets'    => $tickets,
+            'fetched_at' => $now->toIso8601String(),
+        ];
+    }
+
+    /**
+     * HubSpot returns timestamps as either ISO8601 or epoch milliseconds.
+     * Normalise to ISO8601 strings for the front-end.
+     */
+    private function normaliseTimestamp($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        try {
+            // Numeric / numeric string => epoch ms
+            if (is_numeric($value)) {
+                return \Carbon\Carbon::createFromTimestampMs((int) $value)->toIso8601String();
+            }
+            return \Carbon\Carbon::parse((string) $value)->toIso8601String();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     private function mockTicketCounts(): array

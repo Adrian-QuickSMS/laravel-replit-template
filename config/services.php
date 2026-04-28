@@ -38,6 +38,7 @@ return [
         'webhook_secret' => env('HUBSPOT_WEBHOOK_SECRET'),
         'ticket_pipeline_id' => env('HUBSPOT_TICKET_PIPELINE_ID', '0'),
         'ticket_pipeline_stage_id' => env('HUBSPOT_TICKET_PIPELINE_STAGE_ID', '1'),
+        'portal_id' => env('HUBSPOT_PORTAL_ID'),
     ],
 
     'github' => [

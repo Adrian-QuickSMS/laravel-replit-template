@@ -157,6 +157,8 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])
 
         Route::middleware('throttle:60,1')->group(function () {
             Route::get('/tickets', 'tickets')->name('portal.help-centre.tickets');
+            Route::get('/tickets/recently-resolved', 'recentlyResolvedTickets')
+                ->name('portal.help-centre.tickets.recently-resolved');
             Route::get('/platform-updates', 'platformUpdates')->name('portal.help-centre.platform-updates');
             Route::post('/platform-updates/mark-read', 'markUpdatesRead')->name('portal.help-centre.platform-updates.mark-read');
         });

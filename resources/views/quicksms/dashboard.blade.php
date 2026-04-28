@@ -660,10 +660,30 @@
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="hc-stat-chip">
+                                <button type="button" class="hc-stat-chip hc-stat-chip-button"
+                                        id="hc-tickets-resolved-btn"
+                                        aria-expanded="false"
+                                        aria-controls="hc-resolved-panel"
+                                        title="View recently resolved tickets">
                                     <span class="hc-stat-value"><span class="hc-dot hc-dot-green"></span><span id="hc-tickets-resolved">—</span></span>
-                                    <small class="hc-stat-label">Resolved</small>
-                                </div>
+                                    <small class="hc-stat-label">Resolved <i class="fas fa-chevron-down hc-stat-caret ms-1" aria-hidden="true"></i></small>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="hc-resolved-panel d-none mb-3" id="hc-resolved-panel" role="region" aria-label="Recently resolved tickets">
+                            <div class="hc-resolved-header d-flex align-items-center justify-content-between mb-2">
+                                <span class="hc-resolved-title"><i class="fas fa-check-circle me-1 text-success"></i>Recently resolved</span>
+                                <button type="button" class="btn-close btn-close-sm" id="hc-resolved-close" aria-label="Close recently resolved tickets"></button>
+                            </div>
+                            <ul class="hc-resolved-list list-unstyled mb-0" id="hc-resolved-list">
+                                <li class="hc-resolved-loading text-muted small">Loading…</li>
+                            </ul>
+                            <div class="hc-resolved-empty text-muted small d-none" id="hc-resolved-empty">
+                                No tickets have been resolved recently.
+                            </div>
+                            <div class="hc-resolved-error alert alert-warning small py-2 px-3 mt-2 mb-0 d-none" id="hc-resolved-error" role="status">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Recently resolved tickets are temporarily unavailable.
                             </div>
                         </div>
 
@@ -1035,6 +1055,86 @@
 .hc-dot-red   { background: #dc3545; }
 .hc-dot-amber { background: #ffc107; }
 .hc-dot-green { background: #28a745; }
+
+/* Resolved chip is interactive — clicking expands the recently-resolved list */
+.hc-stat-chip-button {
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hc-stat-chip-button:hover {
+    background: #eef2fb;
+    border-color: rgba(136, 108, 192, 0.4);
+}
+.hc-stat-chip-button:focus-visible {
+    outline: 2px solid #886CC0;
+    outline-offset: 2px;
+}
+.hc-stat-chip-button[aria-expanded="true"] {
+    background: #eef2fb;
+    border-color: rgba(136, 108, 192, 0.5);
+    box-shadow: inset 0 0 0 1px rgba(136, 108, 192, 0.25);
+}
+.hc-stat-caret {
+    font-size: 0.65rem;
+    color: #6c757d;
+    transition: transform 0.15s ease;
+}
+.hc-stat-chip-button[aria-expanded="true"] .hc-stat-caret {
+    transform: rotate(180deg);
+}
+
+/* Recently resolved tickets panel (expands inside the tickets card) */
+.hc-resolved-panel {
+    background: #f7f8fb;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+}
+.hc-resolved-title {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.85rem;
+}
+.hc-resolved-list {
+    max-height: 240px;
+    overflow-y: auto;
+}
+.hc-resolved-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.hc-resolved-item:last-child { border-bottom: none; }
+.hc-resolved-item-main { min-width: 0; flex: 1 1 auto; }
+.hc-resolved-item-subject {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.hc-resolved-item-date {
+    display: block;
+    color: #6c757d;
+    font-size: 0.72rem;
+    margin-top: 0.1rem;
+}
+.hc-resolved-item-link {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    color: #886CC0;
+    text-decoration: none;
+    white-space: nowrap;
+    align-self: center;
+}
+.hc-resolved-item-link:hover { text-decoration: underline; }
 
 /* Help Centre buttons (override Bootstrap defaults to match Fillow) */
 .btn.hc-btn-primary {
@@ -2857,10 +2957,11 @@ document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) 
     if (!document.getElementById('helpCentre')) return;
 
     var endpoints = {
-        tickets:         @json(route('portal.help-centre.tickets')),
-        kbSearch:        @json(route('portal.help-centre.kb.search')),
-        platformUpdates: @json(route('portal.help-centre.platform-updates')),
-        markRead:        @json(route('portal.help-centre.platform-updates.mark-read')),
+        tickets:          @json(route('portal.help-centre.tickets')),
+        resolvedTickets:  @json(route('portal.help-centre.tickets.recently-resolved')),
+        kbSearch:         @json(route('portal.help-centre.kb.search')),
+        platformUpdates:  @json(route('portal.help-centre.platform-updates')),
+        markRead:         @json(route('portal.help-centre.platform-updates.mark-read')),
     };
     var csrfMeta = document.querySelector('meta[name="csrf-token"]');
     var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
@@ -2915,6 +3016,98 @@ document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) 
             .catch(function () {
                 renderTickets({ total: 0, awaiting_reply: 0, in_progress: 0, resolved: 0, live: false, configured: true });
             });
+    }
+
+    // ---------- Recently resolved tickets (expands inside the Tickets card) ----------
+    var resolvedBtn    = document.getElementById('hc-tickets-resolved-btn');
+    var resolvedPanel  = document.getElementById('hc-resolved-panel');
+    var resolvedList   = document.getElementById('hc-resolved-list');
+    var resolvedEmpty  = document.getElementById('hc-resolved-empty');
+    var resolvedError  = document.getElementById('hc-resolved-error');
+    var resolvedClose  = document.getElementById('hc-resolved-close');
+    var resolvedLoaded = false;
+    var resolvedLoading = false;
+
+    function fmtClosedDate(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso);
+            return d.toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
+        } catch (e) { return iso; }
+    }
+
+    function renderResolvedList(payload) {
+        var tickets = (payload && payload.tickets) || [];
+        resolvedError.classList.add('d-none');
+
+        if (payload && payload.live === false && payload.configured === true) {
+            resolvedList.innerHTML = '';
+            resolvedEmpty.classList.add('d-none');
+            resolvedError.classList.remove('d-none');
+            return;
+        }
+        if (tickets.length === 0) {
+            resolvedList.innerHTML = '';
+            resolvedEmpty.classList.remove('d-none');
+            return;
+        }
+        resolvedEmpty.classList.add('d-none');
+        resolvedList.innerHTML = tickets.map(function (t) {
+            var subject = escHtml(t.subject || 'Untitled ticket');
+            var closed = t.closed_at ? 'Closed ' + escHtml(fmtClosedDate(t.closed_at)) : '';
+            var link = t.url
+                ? '<a href="' + escHtml(t.url) + '" class="hc-resolved-item-link" target="_blank" rel="noopener">View <i class="fas fa-external-link-alt ms-1"></i></a>'
+                : '';
+            return '<li class="hc-resolved-item">' +
+                '<div class="hc-resolved-item-main">' +
+                    '<span class="hc-resolved-item-subject" title="' + subject + '">' + subject + '</span>' +
+                    (closed ? '<span class="hc-resolved-item-date">' + closed + '</span>' : '') +
+                '</div>' +
+                link +
+            '</li>';
+        }).join('');
+    }
+
+    function loadResolvedTickets(force) {
+        if (resolvedLoading) return Promise.resolve();
+        if (resolvedLoaded && !force) return Promise.resolve();
+        resolvedLoading = true;
+        resolvedError.classList.add('d-none');
+        resolvedEmpty.classList.add('d-none');
+        resolvedList.innerHTML = '<li class="hc-resolved-loading text-muted small">Loading…</li>';
+        return fetch(endpoints.resolvedTickets, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+                if (j && j.success) {
+                    renderResolvedList(j.data);
+                    resolvedLoaded = true;
+                } else {
+                    renderResolvedList({ tickets: [], live: false, configured: true });
+                }
+            })
+            .catch(function () {
+                renderResolvedList({ tickets: [], live: false, configured: true });
+            })
+            .finally(function () { resolvedLoading = false; });
+    }
+
+    function setResolvedPanelOpen(open) {
+        if (!resolvedPanel || !resolvedBtn) return;
+        resolvedPanel.classList.toggle('d-none', !open);
+        resolvedBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) loadResolvedTickets(false);
+    }
+
+    if (resolvedBtn) {
+        resolvedBtn.addEventListener('click', function () {
+            var open = resolvedBtn.getAttribute('aria-expanded') === 'true';
+            setResolvedPanelOpen(!open);
+        });
+    }
+    if (resolvedClose) {
+        resolvedClose.addEventListener('click', function () { setResolvedPanelOpen(false); });
     }
 
     // ---------- Knowledge Base search ----------
