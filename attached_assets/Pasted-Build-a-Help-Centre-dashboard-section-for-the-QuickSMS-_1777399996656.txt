@@ -1,0 +1,289 @@
+Build a Help Centre dashboard section for the QuickSMS portal using Bootstrap 5 and Fillow-style UI patterns.
+
+The Help Centre module replaces the current “Support & Notifications” section and connects to HubSpot Service Hub via API.
+
+The layout must contain three cards across the row:
+
+1) Open Support Tickets
+2) Knowledge Base Search
+3) Platform Updates
+
+Design requirements:
+
+Use QuickSMS styling:
+
+Cards must match Fillow dashboard visual hierarchy.
+
+--------------------------------------------------
+
+CARD 1: Open Support Tickets (HubSpot Integration)
+
+Title:
+
+Open Support Tickets
+
+Subtext:
+
+Tickets that need your attention
+
+Display dynamically from HubSpot:
+
+Total open tickets
+Awaiting reply count
+In progress count
+Resolved count
+
+Example layout:
+
+3 active tickets
+
+• 1 awaiting reply
+• 2 in progress
+• 0 resolved
+
+Buttons:
+
+Primary:
+
+View tickets
+
+Secondary:
+
+Create ticket
+
+API:
+
+Use HubSpot CRM Tickets API:
+
+GET /crm/v3/objects/tickets
+
+Filter tickets by:
+
+pipeline stage != closed
+
+If user email exists in session:
+
+Filter tickets by contact association
+
+Example:
+
+associations.contact=email
+
+--------------------------------------------------
+
+CARD 2: Knowledge Base (HubSpot Knowledge Base Integration)
+
+Title:
+
+Knowledge Base
+
+Subtext:
+
+Search guides, API docs and setup help
+
+Add:
+
+Search input box
+
+Placeholder:
+
+Search help articles…
+
+Below search:
+
+Popular topics:
+
+Getting started
+API integration
+RCS guides
+Billing & payments
+Account settings
+
+Clicking search:
+
+Calls HubSpot Knowledge Base Search API
+
+GET /knowledge-base/v3/articles/search
+
+Display dropdown results dynamically
+
+Include:
+
+Browse all articles button
+
+Link:
+
+/help-centre
+
+--------------------------------------------------
+
+CARD 3: Platform Updates
+
+Title:
+
+Platform Updates
+
+Subtext:
+
+Stay informed about service changes
+
+Show:
+
+System status indicator
+
+Example:
+
+All systems operational
+
+Green check icon
+
+Then:
+
+Show latest update count:
+
+1 new update
+
+Button:
+
+View all updates
+
+This card reads updates from:
+
+internal updates API endpoint:
+
+/api/platform-updates
+
+Example response:
+
+{
+  "updates": [
+    {
+      "type": "maintenance",
+      "title": "Scheduled Maintenance",
+      "date": "2026-01-04",
+      "status": "new"
+    }
+  ]
+}
+
+--------------------------------------------------
+
+SECOND ROW: Updates Feed Panel
+
+Below cards create:
+
+Platform Updates & Alerts panel
+
+Include tabs:
+
+All
+Updates
+Maintenance
+Features
+
+Add:
+
+Mark all as read button (top-right)
+
+Each update card contains:
+
+badge:
+
+Scheduled Maintenance
+New Feature
+
+title
+
+description
+
+posted timestamp
+
+Read more link
+
+Example card styling:
+
+Maintenance = amber background
+
+Feature = purple accent background
+
+General update = neutral background
+
+--------------------------------------------------
+
+AUTHENTICATION
+
+Use HubSpot Private App token:
+
+.env variable:
+
+HUBSPOT_PRIVATE_TOKEN
+
+Requests:
+
+Authorization: Bearer ${HUBSPOT_PRIVATE_TOKEN}
+
+--------------------------------------------------
+
+USER SESSION LINKING
+
+If logged-in QuickSMS user email exists:
+
+window.user.email
+
+Use it to fetch associated tickets:
+
+GET /crm/v4/objects/contacts/search
+
+Then retrieve associated tickets
+
+--------------------------------------------------
+
+JS FUNCTION STRUCTURE
+
+Create:
+
+loadHubSpotTickets()
+
+searchKnowledgeBase()
+
+loadPlatformUpdates()
+
+markUpdatesRead()
+
+Use async/await
+
+Use fetch()
+
+Render results dynamically into cards
+
+--------------------------------------------------
+
+RESPONSIVENESS
+
+Desktop:
+
+3 cards across
+
+Tablet:
+
+2 cards
+
+Mobile:
+
+stack vertically
+
+--------------------------------------------------
+
+OUTPUT
+
+Return complete:
+
+HTML
+
+Bootstrap styling
+
+JS integration
+
+HubSpot API calls
+
+mock fallback data if API unavailable
