@@ -376,48 +376,161 @@
         <div class="row">
             <div class="col-12 mb-3">
                 <div class="card dashboard-tile h-100" id="tile-rcs-calculator">
-                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2" style="color: #886CC0;"></i>RCS vs SMS Savings Calculator</h5>
-                        <small class="text-muted" id="calcModeIndicator">Mode: RCS Basic</small>
+                    <div class="card-header border-0 pb-0">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                            <div>
+                                <h5 class="card-title mb-1"><i class="fas fa-calculator me-2" style="color: #886CC0;"></i>RCS vs SMS Savings Calculator</h5>
+                                <p class="text-muted small mb-0">See how much you can save by moving suitable SMS traffic to RCS.</p>
+                            </div>
+                            <span class="calc-mode-badge" id="calcModeIndicator">RCS Basic</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-3 mb-3 calc-input-row">
-                            <div class="col-6 col-md-4 col-xl">
-                                <label class="form-label small mb-1">SMS Price (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcSmsPrice" value="{{ $pricingData['sms'] ?? '0' }}" readonly>
+                    <div class="card-body pt-3">
+                        <div class="row g-4">
+                            <div class="col-12 col-lg-7">
+                                <p class="calc-section-title"><i class="fas fa-sliders-h me-1"></i>Your inputs</p>
+                                <div class="calc-input-list">
+                                    <div class="calc-input-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">Monthly messages</p>
+                                            <p class="calc-input-help">Total messages you send per month</p>
+                                        </div>
+                                        <div class="calc-input-control">
+                                            <input type="number" class="form-control" id="calcMonthlyMessages" min="0" step="1000" value="{{ $calculatorData['monthly_messages'] }}">
+                                        </div>
+                                    </div>
+                                    <div class="calc-input-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">SMS cost per fragment</p>
+                                            <p class="calc-input-help">Cost of one SMS fragment</p>
+                                        </div>
+                                        <div class="calc-input-control">
+                                            <div class="calc-readonly">£{{ number_format($pricingData['sms'] ?? 0, 4) }}</div>
+                                            <input type="hidden" id="calcSmsPrice" value="{{ $pricingData['sms'] ?? 0 }}">
+                                        </div>
+                                    </div>
+                                    <div class="calc-input-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">RCS Basic cost</p>
+                                            <p class="calc-input-help">Cost per RCS Basic message</p>
+                                        </div>
+                                        <div class="calc-input-control">
+                                            <div class="calc-readonly">£{{ number_format($pricingData['rcs_basic'] ?? 0, 4) }}</div>
+                                            <input type="hidden" id="calcRcsBasicPrice" value="{{ $pricingData['rcs_basic'] ?? 0 }}">
+                                        </div>
+                                    </div>
+                                    <div class="calc-input-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">RCS Single cost</p>
+                                            <p class="calc-input-help">Cost per RCS Single message</p>
+                                        </div>
+                                        <div class="calc-input-control">
+                                            <div class="calc-readonly">£{{ number_format($pricingData['rcs_single'] ?? 0, 4) }}</div>
+                                            <input type="hidden" id="calcRcsSinglePrice" value="{{ $pricingData['rcs_single'] ?? 0 }}">
+                                        </div>
+                                    </div>
+                                    <div class="calc-input-row calc-slider-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">Average SMS fragments</p>
+                                            <p class="calc-input-help">Average number of fragments per SMS</p>
+                                        </div>
+                                        <div class="calc-slider-control">
+                                            <input type="range" class="form-range calc-slider" id="calcFragments" min="1" max="5" step="0.1" value="{{ $calculatorData['avg_fragments'] }}">
+                                            <span class="calc-slider-value" id="calcFragmentsValue">{{ number_format($calculatorData['avg_fragments'], 1) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="calc-input-row calc-slider-row">
+                                        <div class="calc-input-meta">
+                                            <p class="calc-input-label">RCS reach %</p>
+                                            <p class="calc-input-help">Percentage of users reachable on RCS</p>
+                                        </div>
+                                        <div class="calc-slider-control">
+                                            <input type="range" class="form-range calc-slider" id="calcPenetration" min="0" max="100" step="1" value="65">
+                                            <span class="calc-slider-value" id="calcPenetrationValue">65%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="calc-info-note mt-3">
+                                    <i class="fas fa-info-circle me-2 mt-1"></i>
+                                    <span>RCS Basic replaces short SMS (up to 160 characters). Longer messages use RCS Single. SMS fallback is used where RCS is unavailable.</span>
+                                </div>
                             </div>
-                            <div class="col-6 col-md-4 col-xl">
-                                <label class="form-label small mb-1">RCS Basic (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsBasicPrice" value="{{ $pricingData['rcs_basic'] ?? '0' }}" readonly>
-                            </div>
-                            <div class="col-6 col-md-4 col-xl">
-                                <label class="form-label small mb-1">RCS Single (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsSinglePrice" value="{{ $pricingData['rcs_single'] ?? '0' }}" readonly>
-                            </div>
-                            <div class="col-6 col-md-4 col-xl">
-                                <label class="form-label small mb-1">Avg Fragments</label>
-                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="1" min="1" step="0.1" value="1">
-                            </div>
-                            <div class="col-6 col-md-4 col-xl">
-                                <label class="form-label small mb-1">Penetration %</label>
-                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="65" min="0" max="100" value="65">
+                            <div class="col-12 col-lg-5">
+                                <div class="calc-hero-panel">
+                                    <p class="calc-hero-eyebrow">Estimated monthly saving</p>
+                                    <h2 class="calc-hero-figure" id="calcHeroSaving">£0</h2>
+                                    <p class="calc-hero-percent" id="calcHeroPercent">0% cheaper than SMS</p>
+                                    <div class="calc-hero-pill-wrap">
+                                        <span class="calc-hero-pill"><i class="fas fa-users me-2"></i><span id="calcReachBadge">Based on 65% RCS reach</span></span>
+                                    </div>
+                                    <div class="calc-hero-divider"></div>
+                                    <div class="d-flex justify-content-between align-items-center calc-hero-line">
+                                        <span>Current SMS cost</span>
+                                        <strong id="calcCurrentSmsCost">£0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center calc-hero-line">
+                                        <span>Blended RCS cost</span>
+                                        <strong id="calcBlendedCostMonthly">£0</strong>
+                                    </div>
+                                    <div class="calc-save-card">
+                                        <div class="calc-save-icon"><i class="fas fa-chart-line"></i></div>
+                                        <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <p class="calc-save-label mb-0">You save</p>
+                                            <p class="calc-save-value mb-0"><span id="calcSaveAmount">£0</span><small> / month</small></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="rounded p-3 mt-2" style="background: linear-gradient(135deg, #faf8ff 0%, #f3eefb 100%); border: 1px solid rgba(136, 108, 192, 0.12);">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-12 col-md-4 text-center">
-                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">Avg SMS Cost</p>
-                                    <h4 class="mb-0 fw-bold text-danger" id="calcSmsOnlyCost">£0.000</h4>
-                                </div>
-                                <div class="col-12 col-md-4 text-center">
-                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">Avg Blended Cost</p>
-                                    <h4 class="mb-0 fw-bold text-success" id="calcBlendedCost">£0.000</h4>
-                                </div>
-                                <div class="col-12 col-md-4 text-center">
-                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">You Save</p>
-                                    <h4 class="mb-0 fw-bold" style="color: #886CC0;" id="calcSavings">0%</h4>
+                        <div class="row g-3 mt-1 calc-metric-row">
+                            <div class="col-6 col-md-3">
+                                <div class="calc-metric-card calc-metric-purple">
+                                    <div class="calc-metric-icon"><i class="fas fa-comment"></i></div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <p class="calc-metric-label">Current SMS Cost</p>
+                                        <p class="calc-metric-value" id="calcMetricSmsCost">£0</p>
+                                        <p class="calc-metric-sub">per month</p>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="col-6 col-md-3">
+                                <div class="calc-metric-card calc-metric-green">
+                                    <div class="calc-metric-icon"><i class="fas fa-layer-group"></i></div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <p class="calc-metric-label">Blended RCS Cost</p>
+                                        <p class="calc-metric-value" id="calcMetricBlendedCost">£0</p>
+                                        <p class="calc-metric-sub">per month</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="calc-metric-card calc-metric-amber">
+                                    <div class="calc-metric-icon"><i class="fas fa-percent"></i></div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <p class="calc-metric-label">Saving</p>
+                                        <p class="calc-metric-value" id="calcMetricSavingPct">0%</p>
+                                        <p class="calc-metric-sub">cheaper</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="calc-metric-card calc-metric-blue">
+                                    <div class="calc-metric-icon"><i class="fas fa-wallet"></i></div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <p class="calc-metric-label">Annual Saving</p>
+                                        <p class="calc-metric-value" id="calcMetricAnnualSaving">£0</p>
+                                        <p class="calc-metric-sub">per year</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="calc-help-strip mt-4">
+                            <div class="calc-help-icon"><i class="fas fa-rocket"></i></div>
+                            <div class="flex-grow-1">
+                                <p class="calc-help-title">Maximise your savings</p>
+                                <p class="calc-help-text">Increase RCS reach by encouraging users to update their devices and enable RCS in messaging settings.</p>
+                            </div>
+                            <a href="https://www.quicksms.com/rcs-for-business" target="_blank" rel="noopener" class="btn calc-help-btn">Learn how to improve reach <i class="fas fa-arrow-right ms-1"></i></a>
                         </div>
                     </div>
                 </div>
@@ -716,11 +829,6 @@
         min-height: 150px !important;
     }
 
-    /* Calculator inputs 2-up at tablet width */
-    #tile-rcs-calculator .calc-input-row > [class*="col-"] {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
 }
 
 /* Mobile breakpoint (< 576px) */
@@ -787,12 +895,6 @@
         max-width: 100%;
     }
     
-    /* Calculator inputs single column */
-    #tile-rcs-calculator .calc-input-row > [class*="col-"] {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    
     /* Traffic graph period buttons wrap */
     #trafficToggle {
         flex-wrap: wrap;
@@ -812,9 +914,344 @@
 /* ========================================
    FORM INPUT CONSISTENCY
    ======================================== */
-#tile-rcs-calculator .form-control-sm,
 #tile-test-rcs .form-control {
     border-radius: 0.375rem;
+}
+
+/* ========================================
+   RCS SAVINGS CALCULATOR (premium)
+   ======================================== */
+#tile-rcs-calculator .calc-mode-badge {
+    background: rgba(136, 108, 192, 0.08);
+    color: #6a4fa0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    white-space: nowrap;
+}
+#tile-rcs-calculator .calc-section-title {
+    color: #6a4fa0;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+    margin-bottom: 0.85rem;
+}
+#tile-rcs-calculator .calc-input-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+#tile-rcs-calculator .calc-input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #fbfafd;
+    border: 1px solid #ece7f5;
+    border-radius: 0.7rem;
+    padding: 0.85rem 1.05rem;
+}
+#tile-rcs-calculator .calc-input-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#tile-rcs-calculator .calc-input-label {
+    font-weight: 600;
+    margin: 0;
+    color: #2c2640;
+    font-size: 0.9rem;
+}
+#tile-rcs-calculator .calc-input-help {
+    color: #8a83a0;
+    font-size: 0.78rem;
+    margin: 0.15rem 0 0;
+    line-height: 1.3;
+}
+#tile-rcs-calculator .calc-input-control {
+    width: 130px;
+    flex-shrink: 0;
+}
+#tile-rcs-calculator .calc-input-control .form-control,
+#tile-rcs-calculator .calc-input-control .calc-readonly {
+    border: 1px solid #e3dcef;
+    background: #fff;
+    border-radius: 0.5rem;
+    text-align: right;
+    font-weight: 600;
+    color: #2c2640;
+    font-size: 0.9rem;
+}
+#tile-rcs-calculator .calc-input-control .calc-readonly {
+    padding: 0.45rem 0.75rem;
+    line-height: 1.4;
+}
+#tile-rcs-calculator .calc-input-control .form-control:focus {
+    border-color: #886CC0;
+    box-shadow: 0 0 0 0.15rem rgba(136, 108, 192, 0.2);
+}
+#tile-rcs-calculator .calc-slider-row .calc-slider-control {
+    width: 240px;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-shrink: 0;
+}
+#tile-rcs-calculator .calc-slider {
+    flex: 1;
+    accent-color: #886CC0;
+    height: 0.4rem;
+}
+#tile-rcs-calculator .calc-slider-value {
+    font-weight: 700;
+    color: #886CC0;
+    min-width: 48px;
+    text-align: right;
+    font-size: 0.95rem;
+}
+#tile-rcs-calculator .calc-info-note {
+    display: flex;
+    align-items: flex-start;
+    background: rgba(136, 108, 192, 0.06);
+    border: 1px solid rgba(136, 108, 192, 0.15);
+    border-radius: 0.7rem;
+    padding: 0.85rem 1rem;
+    color: #6a4fa0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+#tile-rcs-calculator .calc-hero-panel {
+    background: linear-gradient(160deg, #f6f2fc 0%, #efe9fa 100%);
+    border-radius: 1rem;
+    padding: 1.75rem 1.5rem;
+    height: 100%;
+    border: 1px solid rgba(136, 108, 192, 0.12);
+    display: flex;
+    flex-direction: column;
+}
+#tile-rcs-calculator .calc-hero-eyebrow {
+    color: #6a4fa0;
+    font-weight: 600;
+    text-align: center;
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+}
+#tile-rcs-calculator .calc-hero-figure {
+    color: #6a4fa0;
+    font-weight: 800;
+    font-size: 3.25rem;
+    text-align: center;
+    margin: 0 0 0.25rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+}
+#tile-rcs-calculator .calc-hero-percent {
+    color: #2bb673;
+    font-weight: 600;
+    text-align: center;
+    margin: 0 0 0.85rem;
+    font-size: 0.95rem;
+}
+#tile-rcs-calculator .calc-hero-pill-wrap {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+#tile-rcs-calculator .calc-hero-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    color: #6a4fa0;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(136, 108, 192, 0.2);
+}
+#tile-rcs-calculator .calc-hero-divider {
+    border-top: 1px solid rgba(136, 108, 192, 0.18);
+    margin: 0.25rem 0 0.5rem;
+}
+#tile-rcs-calculator .calc-hero-line {
+    color: #2c2640;
+    padding: 0.4rem 0;
+    font-size: 0.95rem;
+}
+#tile-rcs-calculator .calc-hero-line strong {
+    color: #2c2640;
+    font-weight: 700;
+}
+#tile-rcs-calculator .calc-save-card {
+    margin-top: auto;
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    box-shadow: 0 4px 14px rgba(136, 108, 192, 0.08);
+}
+#tile-rcs-calculator .calc-save-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: rgba(43, 182, 115, 0.12);
+    color: #2bb673;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+#tile-rcs-calculator .calc-save-label {
+    color: #6a6580;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+#tile-rcs-calculator .calc-save-value {
+    color: #2bb673;
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+#tile-rcs-calculator .calc-save-value small {
+    color: #8a83a0;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+/* 4 metric cards */
+#tile-rcs-calculator .calc-metric-row { margin-top: 0.5rem; }
+#tile-rcs-calculator .calc-metric-card {
+    border-radius: 0.875rem;
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    height: 100%;
+}
+#tile-rcs-calculator .calc-metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+#tile-rcs-calculator .calc-metric-label {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    opacity: 0.95;
+}
+#tile-rcs-calculator .calc-metric-value {
+    margin: 0.1rem 0 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    overflow-wrap: break-word;
+}
+#tile-rcs-calculator .calc-metric-sub {
+    margin: 0.15rem 0 0;
+    font-size: 0.72rem;
+    opacity: 0.7;
+}
+#tile-rcs-calculator .calc-metric-purple { background: #f1ecfa; }
+#tile-rcs-calculator .calc-metric-purple .calc-metric-icon { background: rgba(136, 108, 192, 0.18); color: #6a4fa0; }
+#tile-rcs-calculator .calc-metric-purple .calc-metric-label,
+#tile-rcs-calculator .calc-metric-purple .calc-metric-value { color: #6a4fa0; }
+#tile-rcs-calculator .calc-metric-purple .calc-metric-sub { color: #8a7ab0; }
+#tile-rcs-calculator .calc-metric-green { background: #e8f7ee; }
+#tile-rcs-calculator .calc-metric-green .calc-metric-icon { background: rgba(43, 182, 115, 0.18); color: #2bb673; }
+#tile-rcs-calculator .calc-metric-green .calc-metric-label,
+#tile-rcs-calculator .calc-metric-green .calc-metric-value { color: #1e8b56; }
+#tile-rcs-calculator .calc-metric-green .calc-metric-sub { color: #66a585; }
+#tile-rcs-calculator .calc-metric-amber { background: #fdf3e2; }
+#tile-rcs-calculator .calc-metric-amber .calc-metric-icon { background: rgba(232, 158, 28, 0.2); color: #c98214; }
+#tile-rcs-calculator .calc-metric-amber .calc-metric-label,
+#tile-rcs-calculator .calc-metric-amber .calc-metric-value { color: #b87510; }
+#tile-rcs-calculator .calc-metric-amber .calc-metric-sub { color: #b69457; }
+#tile-rcs-calculator .calc-metric-blue { background: #eaf1fb; }
+#tile-rcs-calculator .calc-metric-blue .calc-metric-icon { background: rgba(81, 124, 196, 0.18); color: #4174c2; }
+#tile-rcs-calculator .calc-metric-blue .calc-metric-label,
+#tile-rcs-calculator .calc-metric-blue .calc-metric-value { color: #355d9b; }
+#tile-rcs-calculator .calc-metric-blue .calc-metric-sub { color: #7a91b5; }
+
+/* Help strip */
+#tile-rcs-calculator .calc-help-strip {
+    background: #fbfafd;
+    border: 1px solid #ece7f5;
+    border-radius: 0.875rem;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+#tile-rcs-calculator .calc-help-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(136, 108, 192, 0.14);
+    color: #6a4fa0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+#tile-rcs-calculator .calc-help-title {
+    margin: 0;
+    font-weight: 700;
+    color: #2c2640;
+    font-size: 0.95rem;
+}
+#tile-rcs-calculator .calc-help-text {
+    margin: 0.15rem 0 0;
+    color: #6a6580;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+#tile-rcs-calculator .calc-help-btn {
+    flex-shrink: 0;
+    border: 1px solid #886CC0;
+    color: #6a4fa0;
+    background: #fff;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+#tile-rcs-calculator .calc-help-btn:hover,
+#tile-rcs-calculator .calc-help-btn:focus {
+    background: #886CC0;
+    color: #fff;
+    border-color: #886CC0;
+}
+
+/* Calculator responsive: stack input rows on narrow screens */
+@media (max-width: 575.98px) {
+    #tile-rcs-calculator .calc-input-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+    }
+    #tile-rcs-calculator .calc-input-control,
+    #tile-rcs-calculator .calc-slider-row .calc-slider-control {
+        width: 100%;
+    }
+    #tile-rcs-calculator .calc-input-control .form-control,
+    #tile-rcs-calculator .calc-input-control .calc-readonly {
+        text-align: left;
+    }
+    #tile-rcs-calculator .calc-hero-figure { font-size: 2.5rem; }
+    #tile-rcs-calculator .calc-help-btn { width: 100%; text-align: center; }
 }
 
 /* Valid/invalid states */
@@ -1421,69 +1858,71 @@ function handleTestRcsError(error) {
     });
 }
 
+function calcFmtMoney(value, decimals) {
+    decimals = decimals || 0;
+    var n = isFinite(value) ? value : 0;
+    return '£' + n.toLocaleString('en-GB', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    });
+}
+
+function calcSetText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
 function calculateSavings() {
     var smsPrice = parseFloat(document.getElementById('calcSmsPrice').value) || 0;
     var rcsBasicPrice = parseFloat(document.getElementById('calcRcsBasicPrice').value) || 0;
     var rcsSinglePrice = parseFloat(document.getElementById('calcRcsSinglePrice').value) || 0;
+    var monthlyMessages = parseFloat(document.getElementById('calcMonthlyMessages').value) || 0;
     var avgFragments = parseFloat(document.getElementById('calcFragments').value) || 1;
-    var penetration = parseFloat(document.getElementById('calcPenetration').value) || 65;
-    
-    // Determine which RCS pricing mode to use based on avgFragments
+    var penetration = parseFloat(document.getElementById('calcPenetration').value) || 0;
+
+    // Update slider value displays
+    calcSetText('calcFragmentsValue', avgFragments.toFixed(1));
+    calcSetText('calcPenetrationValue', Math.round(penetration) + '%');
+
+    // Determine RCS pricing mode based on fragments
     var useRcsBasic = (avgFragments <= 1);
-    var modeIndicator = document.getElementById('calcModeIndicator');
-    
-    // Update mode indicator
-    if (modeIndicator) {
-        if (useRcsBasic) {
-            modeIndicator.textContent = 'Mode: RCS Basic';
-            modeIndicator.classList.remove('text-warning');
-            modeIndicator.classList.add('text-muted');
-        } else {
-            modeIndicator.textContent = 'Mode: RCS Single';
-            modeIndicator.classList.remove('text-muted');
-            modeIndicator.classList.add('text-warning');
-        }
-    }
-    
-    // Calculate average SMS cost per message (based on fragments)
+    calcSetText('calcModeIndicator', useRcsBasic ? 'RCS Basic' : 'RCS Single');
+
+    // Per-message costs
     var avgSmsCost = smsPrice * avgFragments;
-    
-    // Calculate blended cost based on formula:
-    // If avgFragments = 1: 65% RCS Basic + 35% SMS
-    // If avgFragments > 1: 65% RCS Single + 35% (SMS * avgFragments)
     var rcsPortion = penetration / 100;
     var smsPortion = 1 - rcsPortion;
-    
-    var avgBlendedCost;
-    if (useRcsBasic) {
-        // avgFragments = 1: Use RCS Basic price
-        avgBlendedCost = (rcsPortion * rcsBasicPrice) + (smsPortion * smsPrice);
-    } else {
-        // avgFragments > 1: Use RCS Single price, SMS uses fragments
-        avgBlendedCost = (rcsPortion * rcsSinglePrice) + (smsPortion * smsPrice * avgFragments);
-    }
-    
-    // Calculate savings percentage
-    var savings = avgSmsCost > 0 ? ((avgSmsCost - avgBlendedCost) / avgSmsCost) * 100 : 0;
-    
-    // Update display (show 3 decimal places for per-message costs)
-    document.getElementById('calcSmsOnlyCost').textContent = '£' + avgSmsCost.toFixed(3);
-    document.getElementById('calcBlendedCost').textContent = '£' + avgBlendedCost.toFixed(3);
-    document.getElementById('calcSavings').textContent = savings.toFixed(1) + '%';
-    
-    // Color coding for savings
-    var savingsEl = document.getElementById('calcSavings');
-    savingsEl.classList.remove('text-primary', 'text-success', 'text-danger');
-    if (savings > 10) {
-        savingsEl.classList.add('text-success');
-    } else if (savings > 0) {
-        savingsEl.classList.add('text-primary');
-    } else {
-        savingsEl.classList.add('text-danger');
-    }
+    var avgBlendedCost = useRcsBasic
+        ? (rcsPortion * rcsBasicPrice) + (smsPortion * smsPrice)
+        : (rcsPortion * rcsSinglePrice) + (smsPortion * smsPrice * avgFragments);
+
+    // Monthly totals
+    var totalSmsCost = avgSmsCost * monthlyMessages;
+    var totalBlendedCost = avgBlendedCost * monthlyMessages;
+    var monthlySaving = totalSmsCost - totalBlendedCost;
+    var savingPercent = totalSmsCost > 0 ? ((totalSmsCost - totalBlendedCost) / totalSmsCost) * 100 : 0;
+    var annualSaving = monthlySaving * 12;
+
+    // Hero figures (clamp negative to zero for display sanity)
+    var displaySaving = Math.max(0, monthlySaving);
+    var displayAnnual = Math.max(0, annualSaving);
+    var displayPercent = Math.max(0, savingPercent);
+
+    calcSetText('calcHeroSaving', calcFmtMoney(displaySaving, 0));
+    calcSetText('calcHeroPercent', displayPercent.toFixed(1) + '% cheaper than SMS');
+    calcSetText('calcReachBadge', 'Based on ' + Math.round(penetration) + '% RCS reach');
+    calcSetText('calcCurrentSmsCost', calcFmtMoney(totalSmsCost, 0));
+    calcSetText('calcBlendedCostMonthly', calcFmtMoney(totalBlendedCost, 0));
+    calcSetText('calcSaveAmount', calcFmtMoney(displaySaving, 0));
+
+    // Bottom 4 metric cards
+    calcSetText('calcMetricSmsCost', calcFmtMoney(totalSmsCost, 0));
+    calcSetText('calcMetricBlendedCost', calcFmtMoney(totalBlendedCost, 0));
+    calcSetText('calcMetricSavingPct', displayPercent.toFixed(1) + '%');
+    calcSetText('calcMetricAnnualSaving', calcFmtMoney(displayAnnual, 0));
 }
 
-// Add event listeners for calculator inputs
+// Add event listeners for calculator inputs (number + range)
 document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) {
     input.addEventListener('input', calculateSavings);
     input.addEventListener('change', calculateSavings);

@@ -1,0 +1,58 @@
+Create a Fillow-style Bootstrap 5 dashboard tile for the QuickSMS portal.
+
+Build a responsive “RCS vs SMS Savings Calculator” card that matches the existing QuickSMS dashboard design: soft white cards, light lavender background, purple brand accents, rounded corners, subtle shadows, clean spacing, and modern SaaS styling.
+
+The tile should replace the current flat calculator section and feel more premium and commercial.
+
+Requirements:
+
+1. Layout
+- Full-width dashboard card.
+- Header row with calculator icon, title: “RCS vs SMS Savings Calculator”.
+- Subtitle: “See how much you can save by moving suitable SMS traffic to RCS.”
+
+2. Main content
+Use a two-column layout on desktop and stacked layout on mobile.
+
+Left column: “Your inputs (this should still be based on the customer actual data, pricing sms fragments etc, however fragments and penetration can be changed”
+Include input rows/cards for:
+- Monthly messages
+- SMS cost per fragment
+- RCS Basic cost
+- RCS Single cost
+- Average SMS fragments
+- RCS reach %
+
+For Average SMS fragments and RCS reach %, use slider controls with the current value shown on the right.
+
+Right column: “Estimated monthly saving”
+Create a hero result panel with:
+- Large saving figure, e.g. “£3,240”
+- Green supporting text, e.g. “18.4% cheaper than SMS”
+- Pill badge: “Based on 65% RCS reach”
+- Breakdown lines:
+  - Current SMS cost: £17,600
+  - Blended RCS cost: £14,360
+- Highlight card:
+  - “You save”
+  - “£3,240 / month”
+- Primary purple button: “View full savings report” (THIS NOT NEEDED)
+
+3. Bottom summary cards
+Below the main content, add four mini metric cards:
+- Current SMS Cost — £17,600 per month
+- Blended RCS Cost — £14,360 per month
+- Saving — 18.4% cheaper
+- Annual Saving — £38,880 per year
+
+Each card should have a soft coloured icon circle, a clear label, a bold value, and small supporting text.
+
+4. Help strip
+Add a bottom callout strip:
+- Icon: rocket or lightbulb
+- Heading: “Maximise your savings”
+- Text: “Increase RCS reach by encouraging users to update their devices and enable RCS in messaging settings.”
+- Secondary button: “Learn more” creates new tab and goes to https://www.quicksms.com/rcs-for-business
+
+5. Styling
+Look at the design mock up and use fillow templates

@@ -350,10 +350,49 @@ class QuickSMSController extends Controller
             }
         }
 
+        // Compute customer's actual monthly run-rate from message_logs (last 30 days).
+        // The legacy message_logs.sub_account varchar may be either the account UUID
+        // or the account_number depending on origin — match either.
+        $calculatorData = [
+            'monthly_messages' => 0,
+            'avg_fragments' => 1.0,
+            'has_history' => false,
+        ];
+
+        if ($accountId) {
+            $accountNumber = $account->account_number ?? null;
+            $subAccountKeys = array_filter([(string) $accountId, $accountNumber]);
+
+            if (!empty($subAccountKeys)) {
+                $stats = \DB::table('message_logs')
+                    ->whereIn('sub_account', $subAccountKeys)
+                    ->where('sent_time', '>=', now()->subDays(30))
+                    ->selectRaw('COUNT(*) AS msg_count, COALESCE(AVG(fragments), 1) AS avg_frag')
+                    ->first();
+
+                $msgCount = (int) ($stats->msg_count ?? 0);
+                $avgFrag = (float) ($stats->avg_frag ?? 1);
+
+                if ($msgCount > 0) {
+                    $calculatorData['monthly_messages'] = $msgCount;
+                    $calculatorData['avg_fragments'] = round(max(1.0, min(5.0, $avgFrag)), 1);
+                    $calculatorData['has_history'] = true;
+                }
+            }
+        }
+
+        // Sensible defaults for accounts without sending history so the calculator
+        // is still useful as an illustrative tool.
+        if (!$calculatorData['has_history']) {
+            $calculatorData['monthly_messages'] = 10000;
+            $calculatorData['avg_fragments'] = 1.6;
+        }
+
         return view('quicksms.dashboard', [
             'page_title' => 'Dashboard',
             'balanceData' => $balanceData,
             'pricingData' => $pricingData,
+            'calculatorData' => $calculatorData,
         ]);
     }
 
