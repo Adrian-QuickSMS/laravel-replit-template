@@ -1968,8 +1968,13 @@
     box-shadow: 0 4px 10px rgba(136, 108, 192, 0.35);
     transform: translateY(-1px);
 }
-/* Allow the phone image to break out of the tile boundary on desktop */
-#tile-rcs-advertisement.dashboard-tile,
+/* Allow the phone image to break out of its own column (into the text
+   column) but never out of the tile itself — overflow:hidden on the
+   dashboard-tile clips at the card boundary so the image can't bleed
+   into the adjacent "Send a test RCS" tile. */
+#tile-rcs-advertisement.dashboard-tile {
+    overflow: hidden;
+}
 #tile-rcs-advertisement .card-body,
 #tile-rcs-advertisement .card-body > .row {
     overflow: visible;
@@ -1988,8 +1993,8 @@
 #tile-rcs-advertisement .unlock-rcs-image {
     position: absolute;
     top: 50%;
-    left: 50%;
-    width: 145%;
+    left: 44%;
+    width: 118%;
     max-width: none;
     max-height: none;
     height: auto;
