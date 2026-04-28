@@ -1,0 +1,169 @@
+TASK: Pull and verify branch `claude/reseller-whitelabel-prototype-cBCh8`. 
+This is a verification-only task. You are NOT to write, modify, or invent code.
+
+================================================================================
+RELEASE OVERVIEW — what you are pulling
+================================================================================
+
+Branch:   claude/reseller-whitelabel-prototype-cBCh8
+Commits:  9acf446 (initial PR-1) and ec18ca5 (review fixes)
+Phase:    0, PR-1 of a multi-phase reseller/whitelabel rollout
+
+WHAT IT DOES (the entire scope):
+  - Adds a new `partners` table with RLS enabled
+  - Adds a nullable `partner_id` UUID column to `accounts` (FK, indexed)
+  - Adds `app/Models/Partner.php` (Eloquent model, status transitions)
+  - Adds `partner()` belongsTo relation on `app/Models/Account.php`
+
+WHAT IT DOES NOT DO:
+  - No controllers, no routes, no views, no middleware
+  - No seeders touch partners
+  - No existing RLS policy is changed
+  - No customer-facing behaviour changes
+  - No partner data exists; partner_id is NULL for every existing account
+
+WHY THIS PR EXISTS:
+  Foundation only. partner_id is unused infrastructure today. Subsequent PRs 
+  (tenant-context helpers, RLS hierarchy, partner middleware, partner portal) 
+  build on this column. Today, every existing customer continues to work 
+  exactly as before because partner_id = NULL and no code path reads it.
+
+================================================================================
+HARD RULES — do NOT break these (anti-drift)
+================================================================================
+
+1. DO NOT modify any code on this branch. Verification only.
+2. DO NOT create new migrations, controllers, routes, views, services, 
+   middleware, models, seeders, or tests in this session.
+3. DO NOT run `migrate:fresh` (forbidden by CLAUDE.md HARD RULE 1).
+4. DO NOT rename, delete, or .bak any migration file.
+5. DO NOT seed partner data. The partners table MUST remain empty after this.
+6. DO NOT create SetPartnerContext middleware — that is a later PR.
+7. DO NOT extend any existing RLS policy to include partner scope — that is 
+   PR-3. The partners table has its own RLS; existing tables are unchanged.
+8. DO NOT add GRANTs to portal_rw on partners — that is PR-4 territory.
+9. DO NOT "improve", "clean up", or "refactor" anything you see, even if 
+   you have ideas. Out of scope.
+10. If `php artisan migrate --force` FAILS:
+    - Capture the full error output
+    - Do NOT attempt to fix the migration
+    - Do NOT delete migration rows from the migrations table
+    - Do NOT run any rollback unless explicitly instructed
+    - Report the failure and stop
+11. If verification reveals a regression in existing customer flows, 
+    REPORT it. Do not patch it.
+
+================================================================================
+STEPS
+================================================================================
+
+Step 1 — Pull the branch.
+
+    git fetch origin claude/reseller-whitelabel-prototype-cBCh8
+    git checkout claude/reseller-whitelabel-prototype-cBCh8
+    git log --oneline -3
+
+    Confirm you see commits ec18ca5 and 9acf446 at the top.
+
+Step 2 — Inspect what changed (read-only).
+
+    git show --stat ec18ca5
+    git show --stat 9acf446
+
+    Confirm the only files touched are:
+      - app/Models/Account.php          (relation method added)
+      - app/Models/Partner.php          (new file)
+      - database/migrations/2026_04_27_000001_create_partners_table.php  (new)
+      - database/migrations/2026_04_27_000002_add_partner_id_to_accounts.php (new)
+
+    If anything else appears, STOP and report.
+
+Step 3 — Run migrations from existing DB state.
+
+    php artisan migrate --force
+
+    Expected: both new migrations apply cleanly with no errors.
+    Capture full output.
+
+Step 4 — Verify schema landed correctly.
+
+    psql -h $DB_HOST -U $DB_USERNAME -d $DB_DATABASE -c "\d partners"
+    psql -h $DB_HOST -U $DB_USERNAME -d $DB_DATABASE -c "\d accounts" | grep -i partner
+
+    Expected (partners):
+      - Columns: id, legal_name, trading_name, status, contract_type, 
+        currency, owner_account_id, created_by, updated_by, 
+        created_at, updated_at  (NO deleted_at)
+      - Constraint chk_partners_status present
+      - "Row security policy" section showing 3 policies:
+          partners_self_access, partners_service_access, partners_postgres_bypass
+      - "FORCE ROW LEVEL SECURITY" enabled
+
+    Expected (accounts grep):
+      - partner_id UUID column visible
+      - Foreign key constraint to partners(id) ON DELETE SET NULL
+      - Index on partner_id
+
+Step 5 — Idempotency check (CRITICAL).
+
+    php artisan migrate --force
+
+    Expected: "Nothing to migrate." 
+    
+    If the migrator reports work to do or any error occurs, STOP and report.
+    The migration MUST be a no-op on second run.
+
+Step 6 — Regression check on existing customer flow.
+
+    Log into the customer portal as an existing test user.
+    Confirm:
+      - Login succeeds
+      - Dashboard loads with no errors
+      - One messaging-related page (Messages, Contacts, or Reporting) loads
+      - Browser console shows no new errors compared to before this branch
+
+    Log into the admin console as a QuickSMS admin.
+    Confirm:
+      - Login succeeds
+      - Customer accounts list loads
+      - Country Controls page loads (CLAUDE.md identifies this as canary)
+
+    If either portal shows errors, STOP and report. Do not patch.
+
+Step 7 — Verify partners table is empty and isolated.
+
+    psql -h $DB_HOST -U $DB_USERNAME -d $DB_DATABASE -c "SELECT COUNT(*) FROM partners"
+
+    Expected: 0
+
+    psql -h $DB_HOST -U $DB_USERNAME -d $DB_DATABASE -c "
+      SELECT COUNT(*) FROM accounts WHERE partner_id IS NOT NULL"
+
+    Expected: 0
+
+Step 8 — Read-only seeder sanity.
+
+    php artisan db:seed --class=CountryControlSeeder --force
+
+    Expected: completes without error. Country controls populate as before.
+    This proves no seeder is broken by the schema change.
+
+================================================================================
+WHAT TO REPORT BACK
+================================================================================
+
+Produce a single report containing:
+
+  1. git log output (top 3 commits)
+  2. Output of `php artisan migrate --force` (first run)
+  3. Output of `\d partners` and the partner_id grep on accounts
+  4. Output of `php artisan migrate --force` (second run — must say nothing to do)
+  5. Pass/fail for each portal smoke check in Step 6
+  6. Counts from Step 7
+  7. Result of seeder run in Step 8
+  8. PASS or FAIL overall verdict
+  9. If FAIL: the exact error, the step number, and ZERO speculation about fixes
+
+Do not write any analysis, recommendations, or code suggestions. Verification 
+report only. Fixes (if needed) will be authored in a separate session with 
+explicit scope.

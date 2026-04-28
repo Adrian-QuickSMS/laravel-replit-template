@@ -1,0 +1,482 @@
+TASK: Verify branch `claude/reseller-whitelabel-prototype-cBCh8` against this 
+Replit project. Verification only. You will write zero code in this session.
+
+================================================================================
+RELEASE OVERVIEW
+================================================================================
+
+Branch:   claude/reseller-whitelabel-prototype-cBCh8
+Commits:  9acf446 (initial PR-1) and ec18ca5 (P1 review fixes)
+Phase:    0, PR-1 of a multi-phase reseller / white-label rollout
+
+WHAT IT ADDS:
+  - `partners` table (RLS enabled, FORCE RLS, 3 policies, status check 
+    constraint, UUID auto-gen trigger). Empty on first migrate.
+  - Nullable `partner_id` UUID column on `accounts` (FK to partners.id 
+    ON DELETE SET NULL, indexed).
+  - app/Models/Partner.php (Eloquent model, status transitions, no soft delete).
+  - partner() belongsTo relation on app/Models/Account.php.
+
+WHAT IT DOES NOT ADD:
+  - No controllers, routes, views, middleware, services, jobs, seeders.
+  - No changes to existing RLS policies on any other table.
+  - No GRANT statements on the partners table.
+  - No partner data — partners table stays empty; partner_id NULL on every 
+    existing accounts row.
+
+WHY: foundation for later PRs (tenant-context helpers, RLS hierarchy, partner 
+middleware, partner portal). Today's behaviour for every existing customer 
+and admin is unchanged.
+
+================================================================================
+HARD RULES — DO NOT BREAK
+================================================================================
+
+1.  Verification only. Do NOT modify, create, refactor, or "improve" any file.
+2.  Do NOT create migrations, controllers, routes, views, middleware, models, 
+    services, jobs, seeders, or tests in this session.
+3.  Do NOT run `migrate:fresh`. Forbidden by CLAUDE.md HARD RULE 1.
+4.  Do NOT rename, delete, or .bak any migration file.
+5.  Do NOT seed any partner data. partners table MUST be empty at the end.
+6.  Do NOT create SetPartnerContext middleware (later PR).
+7.  Do NOT add GRANT statements on partners (later PR).
+8.  Do NOT extend any existing RLS policy to mention partner_id (later PR).
+9.  Do NOT delete or edit rows in the `migrations` tracking table.
+10. Do NOT run rollback unless explicitly listed in the recovery section.
+11. Do NOT use --pretend or any flag that simulates without applying.
+12. Do NOT attempt direct `git checkout` / `git fetch` / `git pull` of the 
+    feature branch. Destructive git ops are gated for the main agent in 
+    this project — they will fail. Use the project tasks system (see Step 1).
+13. If ANY step fails: capture full output, do NOT attempt repair, jump to 
+    the recovery section, and report.
+
+================================================================================
+PRE-FLIGHT
+================================================================================
+
+P1.  Confirm CLAUDE.md exists in repo root:
+        test -f CLAUDE.md && echo "CLAUDE.md present" || echo "MISSING"
+
+P2.  Confirm a clean working tree on whatever branch you are currently on:
+        git status --porcelain
+     If non-empty, STOP. Do NOT stash, commit, or discard. Ask the human 
+     operator to handle dirty state before proceeding.
+
+P3.  Confirm DATABASE_URL is set:
+        echo "${DATABASE_URL:+set}" 
+     Expected: "set". If empty, STOP.
+
+P4.  Confirm postgres roles needed for the RLS enforcement test exist:
+        psql "$DATABASE_URL" -tAc "
+          SELECT rolname FROM pg_roles 
+          WHERE rolname IN ('portal_ro','portal_rw','svc_red','ops_admin') 
+          ORDER BY rolname
+        "
+     Expected (verified previously in this project): all 4 present. 
+     Step 6 requires portal_rw specifically.
+
+P5.  Capture the current main HEAD as the merge baseline reference:
+        MAIN_BEFORE=$(git rev-parse HEAD)
+        echo "MAIN_BEFORE=$MAIN_BEFORE"
+     Save this value — Step 1 needs it after the merge.
+
+================================================================================
+BASELINE CAPTURE (before pulling)
+================================================================================
+
+B1.  Migrations applied:
+        php artisan migrate:status > /tmp/migrate_status_before.txt 2>&1
+
+B2.  accounts column list (parseable):
+        psql "$DATABASE_URL" -tAc "
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name='accounts' ORDER BY ordinal_position
+        " > /tmp/accounts_columns_before.txt
+
+B3.  laravel.log size baseline:
+        ls -la storage/logs/laravel.log 2>/dev/null | awk '{print $5}' > /tmp/log_size_before.txt
+        # If log doesn't exist yet, write 0
+        [ -s /tmp/log_size_before.txt ] || echo 0 > /tmp/log_size_before.txt
+
+B4.  Confirm partners table does not yet exist:
+        psql "$DATABASE_URL" -tAc "
+          SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='partners')
+        "
+     Expected: f
+
+================================================================================
+STEP 1 — Pull the branch via the PROJECT TASKS SYSTEM (only supported path)
+================================================================================
+
+The main agent in this Replit project is BLOCKED from `git checkout` / 
+`git fetch` of remote branches. Use the project tasks system.
+
+Create a project task titled exactly:
+
+    Merge claude/reseller-whitelabel-prototype-cBCh8 (verification only)
+
+Let the task complete. The tasks system will perform the merge into the 
+working branch (typically main).
+
+After the merge completes:
+
+S1.1  git log --oneline -5
+      Expected: ec18ca5 and 9acf446 visible at the top (or visible as merged 
+      commits, depending on merge strategy).
+
+S1.2  Diff against the captured pre-merge baseline:
+        git diff $MAIN_BEFORE..HEAD --stat
+
+      Expected: exactly these four files touched and nothing else:
+        - app/Models/Account.php
+        - app/Models/Partner.php
+        - database/migrations/2026_04_27_000001_create_partners_table.php
+        - database/migrations/2026_04_27_000002_add_partner_id_to_accounts.php
+
+      If the diff lists anything else, STOP and report.
+
+S1.3  Confirm the post-merge setup script (if any) ran cleanly:
+        ls -la .replit /tmp/replit-post-merge.log 2>/dev/null
+        # Capture any post-merge hook output. Watch for HOOK_NOT_FOUND 
+        # or any error exit. If a post-merge hook failed, STOP.
+
+================================================================================
+STEP 2 — Migration scope check (before applying)
+================================================================================
+
+S2.1  List pending migrations:
+          php artisan migrate:status | grep -i pending > /tmp/pending_before.txt
+          cat /tmp/pending_before.txt
+
+      Expected to include exactly:
+        2026_04_27_000001_create_partners_table
+        2026_04_27_000002_add_partner_id_to_accounts
+
+      If any OTHER pending migrations appear, capture the list and STOP. 
+      Do NOT proceed until a human operator confirms it is safe to apply 
+      unrelated migrations.
+
+      Note: future-dated timestamps (2026_04_27) are intentional. Laravel 
+      runs migrations in alphabetical order, so these run last.
+
+================================================================================
+STEP 3 — Apply migrations
+================================================================================
+
+S3.1  php artisan migrate --force 2>&1 | tee /tmp/migrate_output.txt
+
+      Expected: both migrations applied cleanly with no errors.
+
+================================================================================
+STEP 4 — Schema verification (parseable)
+================================================================================
+
+S4.1  partners columns (exact set, NO deleted_at):
+          psql "$DATABASE_URL" -c "
+            SELECT column_name, data_type, is_nullable, column_default
+            FROM information_schema.columns
+            WHERE table_name='partners'
+            ORDER BY ordinal_position
+          "
+      Expected columns: id, legal_name, trading_name, status, contract_type, 
+      currency, owner_account_id, created_by, updated_by, created_at, 
+      updated_at. NO deleted_at. created_by and updated_by both nullable.
+
+S4.2  partners CHECK constraint:
+          psql "$DATABASE_URL" -tAc "
+            SELECT conname FROM pg_constraint 
+            WHERE conrelid='partners'::regclass AND contype='c'
+          "
+      Expected: chk_partners_status
+
+S4.3  partners RLS state:
+          psql "$DATABASE_URL" -tAc "
+            SELECT relrowsecurity, relforcerowsecurity 
+            FROM pg_class WHERE relname='partners'
+          "
+      Expected: t|t
+
+S4.4  partners policies — exact count and names:
+          psql "$DATABASE_URL" -c "
+            SELECT policyname, roles::text, cmd 
+            FROM pg_policies WHERE tablename='partners' 
+            ORDER BY policyname
+          "
+      Expected: 3 policies — partners_postgres_bypass, partners_self_access, 
+      partners_service_access.
+
+S4.5  accounts.partner_id column + FK + index:
+          psql "$DATABASE_URL" -c "
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns
+            WHERE table_name='accounts' AND column_name='partner_id'
+          "
+          psql "$DATABASE_URL" -c "
+            SELECT conname, confdeltype 
+            FROM pg_constraint 
+            WHERE conrelid='accounts'::regclass 
+              AND confrelid='partners'::regclass
+          "
+          psql "$DATABASE_URL" -c "
+            SELECT indexname FROM pg_indexes 
+            WHERE tablename='accounts' AND indexdef LIKE '%partner_id%'
+          "
+      Expected: nullable UUID; FK confdeltype='n' (SET NULL); index present.
+
+S4.6  Confirm only partner_id was added to accounts:
+          psql "$DATABASE_URL" -tAc "
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name='accounts' ORDER BY ordinal_position
+          " > /tmp/accounts_columns_after.txt
+          diff /tmp/accounts_columns_before.txt /tmp/accounts_columns_after.txt
+      Expected: only `partner_id` added.
+
+================================================================================
+STEP 5 — Idempotency check
+================================================================================
+
+S5.1  php artisan migrate --force 2>&1 | tee /tmp/migrate_output_2.txt
+      Expected: "Nothing to migrate."
+      If anything else appears, STOP and jump to recovery R2.
+
+================================================================================
+STEP 6 — RLS enforcement test (proves policies, not just shape)
+================================================================================
+
+This step proves the partners_self_access USING clause actually filters rows. 
+Insert one row as superuser, query as portal_rw with three contexts, rollback 
+so no data persists.
+
+CRITICAL: must run inside an explicit transaction. `SET LOCAL ROLE` only 
+takes effect inside a transaction; with `psql -c` each statement is its 
+own implicit transaction and SET LOCAL is a no-op.
+
+S6.1  Run the entire block in one psql invocation (single transaction):
+
+      psql "$DATABASE_URL" <<'SQL'
+      \set ON_ERROR_STOP on
+      BEGIN;
+      INSERT INTO partners (legal_name, currency) 
+        VALUES ('RLS_ENFORCEMENT_TEST', 'GBP') 
+        RETURNING id \gset
+      
+      -- Without partner context — fail-closed expected (0 rows)
+      SET LOCAL ROLE portal_rw;
+      SELECT COUNT(*) AS without_context FROM partners;
+      
+      -- With matching partner context — should see the row (1)
+      SELECT set_config('app.current_partner_id', :'id', true);
+      SELECT COUNT(*) AS with_correct_context FROM partners;
+      
+      -- With wrong partner context — fail-closed expected (0)
+      SELECT set_config('app.current_partner_id', '00000000-0000-0000-0000-000000000000', true);
+      SELECT COUNT(*) AS with_wrong_context FROM partners;
+      
+      RESET ROLE;
+      ROLLBACK;
+      SQL
+
+      Expected:
+        without_context       = 0
+        with_correct_context  = 1
+        with_wrong_context    = 0
+
+      Any other result is an RLS enforcement failure — go to recovery R3.
+
+================================================================================
+STEP 7 — Eloquent model functional test (tinker)
+================================================================================
+
+Note: created_by and updated_by are declared NULLABLE in the migration (S4.1). 
+If `Partner::create` fails citing those columns, the schema does not match 
+the PR — that itself is a finding worth reporting.
+
+S7.1  Pipe a script to tinker that does NOT persist data:
+
+      php artisan tinker --execute="
+        DB::beginTransaction();
+        try {
+          \$p = App\Models\Partner::create([
+            'legal_name' => 'TEST_PARTNER_DELETE_ME',
+            'currency'   => 'GBP',
+          ]);
+          echo 'CREATE_OK id=' . \$p->id . ' status=' . \$p->status . PHP_EOL;
+
+          \$p->transitionTo('suspended');
+          echo 'TRANSITION_OK status=' . \$p->fresh()->status . PHP_EOL;
+
+          \$p->fresh()->transitionTo('active');
+          echo 'REACTIVATE_OK' . PHP_EOL;
+
+          // Account::partner() relation lookup (existing account, partner_id NULL)
+          \$a = App\Models\Account::first();
+          echo 'ACCOUNT_PARTNER_RELATION_OK value=' . var_export(\$a?->partner, true) . PHP_EOL;
+
+        } finally {
+          DB::rollBack();
+          echo 'ROLLED_BACK' . PHP_EOL;
+        }
+      "
+
+      Expected output lines (in order):
+        CREATE_OK id=<uuid> status=active
+        TRANSITION_OK status=suspended
+        REACTIVATE_OK
+        ACCOUNT_PARTNER_RELATION_OK value=NULL
+        ROLLED_BACK
+
+S7.2  Confirm rollback:
+          psql "$DATABASE_URL" -tAc "
+            SELECT COUNT(*) FROM partners 
+            WHERE legal_name='TEST_PARTNER_DELETE_ME'
+          "
+      Expected: 0
+
+================================================================================
+STEP 8 — Empty-data verification
+================================================================================
+
+S8.1  psql "$DATABASE_URL" -tAc "SELECT COUNT(*) FROM partners"
+      Expected: 0
+
+S8.2  psql "$DATABASE_URL" -tAc "
+          SELECT COUNT(*) FROM accounts WHERE partner_id IS NOT NULL
+        "
+      Expected: 0
+
+================================================================================
+STEP 9 — Targeted seeder sanity (NOT full DatabaseSeeder)
+================================================================================
+
+The full DatabaseSeeder is not idempotent in this project (account email 
+uniqueness, etc.) and will fail on second invocation regardless of this 
+PR. Run only seeders that are idempotent and that touch data this PR 
+might have broken.
+
+S9.1  php artisan db:seed --class=CountryControlSeeder --force 2>&1 | tee /tmp/seed_country.txt
+      Expected: completes without error.
+
+S9.2  php artisan db:seed --class=SystemAccountSeeder --force 2>&1 | tee /tmp/seed_sysacct.txt
+      Expected: completes without error. This seeder writes to accounts and 
+      proves the new partner_id column doesn't break existing account writes.
+
+      Skip any other seeders unless explicitly instructed.
+
+================================================================================
+STEP 10 — Regression smoke (verified URL list)
+================================================================================
+
+S10.1 First, verify the smoke URLs actually exist as routes:
+          php artisan route:list --columns=method,uri,name 2>&1 | tee /tmp/routes.txt
+
+      Cross-reference each URL below against /tmp/routes.txt. If a URL is 
+      missing, drop it from the smoke list and note it in the report. A 
+      404 on a URL not in route:list is NOT a regression caused by this PR.
+
+S10.2 Use this project's existing test session mechanism (whatever this 
+      Replit project uses for authenticated dev access — there is no 
+      ADMIN_DEV_AUTOLOGIN flag in this codebase, do not attempt to set 
+      one). If no scripted session helper is available, perform the smoke 
+      manually and report PASS/FAIL with first error line per URL.
+
+      Customer portal pages to load (drop any not in route:list):
+        - /                        (dashboard)
+        - /messages
+        - /contacts
+        - /billing
+        - /account/security        (canary — touched by every account migration)
+
+      Admin console pages to load (drop any not in route:list):
+        - /admin                   (landing)
+        - /admin/accounts          (lists accounts — first place a missing 
+                                    partner_id JOIN would explode)
+        - /admin/accounts/<id>     (account detail page — heavy reads)
+        - /admin/security/country-controls   (canary per CLAUDE.md)
+
+S10.3 Capture log delta and search for error patterns (not zero growth — 
+      INFO-level lines are normal):
+
+          AFTER=$(ls -la storage/logs/laravel.log | awk '{print $5}')
+          BEFORE=$(cat /tmp/log_size_before.txt)
+          DELTA=$((AFTER - BEFORE))
+          echo "Log grew by $DELTA bytes during smoke test"
+          
+          if [ "$DELTA" -gt 0 ]; then
+            tail -c "$DELTA" storage/logs/laravel.log > /tmp/log_delta.txt
+            echo "--- Log delta error scan ---"
+            grep -E "local\.ERROR|Stack trace|Uncaught|SQLSTATE|Fatal error" /tmp/log_delta.txt || echo "No error patterns found."
+          fi
+
+      Expected: no matches for the error pattern. INFO-level entries are 
+      acceptable.
+
+================================================================================
+RECOVERY — only run if explicitly directed by a step
+================================================================================
+
+R1. Migration applied but schema verification (Step 4) shows mismatch:
+        # Only valid if Step 2 (S2.1) confirmed exactly the two new 
+        # migrations were pending. If other migrations were pending, do 
+        # NOT use --step=2 — report and stop.
+        php artisan migrate:rollback --step=2 --force
+        psql "$DATABASE_URL" -tAc "SELECT EXISTS(
+          SELECT 1 FROM information_schema.tables WHERE table_name='partners'
+        )"
+    Expected after rollback: f
+    Then report the original failure.
+
+R2. Idempotency check failed (Step 5 reported pending migrations on 
+    second run):
+        Do NOT roll back. Capture migrate:status output. This indicates 
+        a non-idempotent migration — code bug, not DB-state bug.
+
+R3. RLS enforcement check failed (any of S6.1's three counts wrong):
+        Do NOT modify policies. Capture:
+          psql "$DATABASE_URL" -c "
+            SELECT policyname, roles::text, qual, with_check 
+            FROM pg_policies WHERE tablename='partners'
+          "
+        Report and stop. Tenant-isolation bug.
+
+R4. Eloquent test left a row behind (S7.2 returned > 0):
+        psql "$DATABASE_URL" -c "
+          DELETE FROM partners WHERE legal_name='TEST_PARTNER_DELETE_ME'
+        "
+    Then report the rollback failure in tinker.
+
+R5. Smoke test page returned 5xx (page is in route:list, errored on load):
+        Do NOT roll back. Capture URL, status code, /tmp/log_delta.txt 
+        excerpt. Fix happens in a separate session.
+
+================================================================================
+REPORT FORMAT
+================================================================================
+
+Produce a single report containing:
+
+  1.  Pre-flight: CLAUDE.md present, clean tree, DATABASE_URL set, roles 
+      present, MAIN_BEFORE rev
+  2.  Baseline: migration count before, accounts column count before, 
+      log size before
+  3.  Pull: tasks-system task ID/title, post-merge hook status, git log 
+      top 5, diff stat against MAIN_BEFORE, file-list match (yes/no)
+  4.  Migration scope: pending list, count delta (must be 2)
+  5.  Migration apply: full first-run output
+  6.  Schema verification: results of S4.1 through S4.6
+  7.  Idempotency: full second-run output
+  8.  RLS enforcement: the three counts from S6.1 (without_context, 
+      with_correct_context, with_wrong_context)
+  9.  Eloquent functional: tinker stdout, S7.2 result
+  10. Empty data: counts from S8.1, S8.2
+  11. Seeders: pass/fail for CountryControlSeeder and SystemAccountSeeder
+  12. Smoke: route:list match per URL, PASS/FAIL per URL, log delta bytes, 
+      error pattern matches (must be none)
+  13. Recovery actions taken (if any), with reason
+
+Final line, machine-readable:
+        VERDICT: PASS
+   or
+        VERDICT: FAIL  step=<N>  reason=<short string>
+
+Do NOT include analysis, fix suggestions, or code recommendations. 
+Verification report only.
