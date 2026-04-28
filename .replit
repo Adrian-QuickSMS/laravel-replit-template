@@ -103,3 +103,7 @@ externalPort = 80
 deploymentTarget = "autoscale"
 build = ["bash", "setup.sh"]
 run = ["php", "artisan", "serve", "--host=0.0.0.0", "--port=5000"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
