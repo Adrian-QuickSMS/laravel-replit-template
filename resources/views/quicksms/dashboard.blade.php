@@ -310,63 +310,137 @@
         </div>
         <div class="row">
             <div class="col-xl-6 col-lg-6 mb-3">
-                <a href="#" class="text-decoration-none" id="rcs-ad-link">
-                    <div class="card dashboard-tile h-100" id="tile-rcs-advertisement">
-                        <div class="row g-0 h-100">
-                            <div class="col-md-5">
-                                <div class="rcs-ad-image d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #886cc0 0%, #6a4fa0 100%); border-radius: 0.625rem 0 0 0.625rem; min-height: 200px;">
-                                    <div class="text-center text-white p-3">
-                                        <i class="fas fa-comment-dots fa-4x mb-2 opacity-75"></i>
-                                        <p class="mb-0 small opacity-75">Promo Image</p>
+                <div class="card dashboard-tile h-100" id="tile-rcs-advertisement">
+                    <div class="card-body p-0 h-100">
+                        <div class="row g-0 h-100 align-items-stretch">
+                            <div class="col-md-7 unlock-rcs-content">
+                                <div class="p-4 d-flex flex-column h-100">
+                                    <span class="unlock-rcs-badge mb-3">New</span>
+                                    <h3 class="unlock-rcs-heading mb-2">Unlock Rich Messaging with RCS</h3>
+                                    <p class="unlock-rcs-subtitle mb-4">Create engaging conversations with branded sender identity, images, buttons and more.</p>
+
+                                    <div class="unlock-rcs-features mb-4">
+                                        <div class="unlock-rcs-feature">
+                                            <div class="unlock-rcs-feature-icon"><i class="fas fa-shield-alt"></i></div>
+                                            <div class="unlock-rcs-feature-text">
+                                                <div class="unlock-rcs-feature-title">Verified sender identity</div>
+                                                <div class="unlock-rcs-feature-subtitle">Build trust with your brand</div>
+                                            </div>
+                                        </div>
+                                        <div class="unlock-rcs-feature">
+                                            <div class="unlock-rcs-feature-icon"><i class="fas fa-images"></i></div>
+                                            <div class="unlock-rcs-feature-text">
+                                                <div class="unlock-rcs-feature-title">Rich media &amp; interactive</div>
+                                                <div class="unlock-rcs-feature-subtitle">Images, videos, buttons and carousels</div>
+                                            </div>
+                                        </div>
+                                        <div class="unlock-rcs-feature">
+                                            <div class="unlock-rcs-feature-icon"><i class="fas fa-comment-dots"></i></div>
+                                            <div class="unlock-rcs-feature-text">
+                                                <div class="unlock-rcs-feature-title">SMS fallback included</div>
+                                                <div class="unlock-rcs-feature-subtitle">Reach every customer, every time</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="unlock-rcs-cta-row mt-auto">
+                                        <a href="{{ route('messages.send') }}" class="btn unlock-rcs-cta-primary">
+                                            <i class="fas fa-arrow-right me-2"></i>Start using RCS
+                                        </a>
+                                        <a href="#tile-test-rcs" class="btn unlock-rcs-cta-secondary">
+                                            View example message <i class="fas fa-external-link-alt ms-1"></i>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-7">
-                                <div class="card-body d-flex flex-column justify-content-center h-100">
-                                    <span class="badge bg-primary mb-2" style="width: fit-content;">New Feature</span>
-                                    <h4 class="card-title mb-2" id="rcs-ad-header">Unlock RCS Messaging</h4>
-                                    <p class="card-text text-muted mb-3" id="rcs-ad-subtitle">Transform your customer engagement with rich, interactive messages. Get higher open rates and better conversions.</p>
-                                    <button class="btn btn-primary" style="width: fit-content;" id="rcs-ad-cta">
-                                        <i class="fas fa-arrow-right me-2"></i>Get Started
-                                    </button>
-                                </div>
+                            <div class="col-md-5 unlock-rcs-visual">
+                                <img src="{{ asset('images/rcs-phone-mockup.png') }}"
+                                     alt="QuickSMS RCS rich messaging shown on a mobile phone with branded sender, rich media and interactive buttons"
+                                     class="unlock-rcs-image"
+                                     loading="lazy">
                             </div>
                         </div>
                     </div>
-                </a>
+                </div>
             </div>
 
             <div class="col-xl-6 col-lg-6 mb-3">
                 <div class="card dashboard-tile h-100" id="tile-test-rcs">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0"><i class="fas fa-mobile-alt me-2" style="color: #886CC0;"></i>Test RCS Message</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
-                        <div class="mb-3">
-                            <label class="form-label small mb-1">Message Type</label>
-                            <select class="form-select" id="testRcsMessageType" style="height: 45px;">
-                                <option value="basic-text" selected>Basic Text</option>
-                                <option value="rich-card">Rich Card</option>
-                                <option value="appointment-reminder">Appointment Reminder</option>
-                                <option value="carousel">Carousel</option>
-                            </select>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start mb-4">
+                            <div class="test-rcs-icon me-3"><i class="fas fa-mobile-alt"></i></div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">Send yourself a test RCS message</h5>
+                                <p class="text-muted small mb-0">Experience how your customers will receive rich messaging.</p>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small mb-1">UK Mobile Number</label>
-                            <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000" aria-describedby="testRcsFeedback" style="height: 45px;">
+
+                        {{-- Hidden input keeps existing JS hook (sendTestRcs reads/writes via id="testRcsMessageType") --}}
+                        <input type="hidden" id="testRcsMessageType" value="basic-text">
+
+                        <div class="mb-4">
+                            <div class="test-rcs-step-label mb-2" id="testRcsTypeLabel">1. Choose test message type</div>
+                            <div class="test-rcs-radios" role="radiogroup" aria-labelledby="testRcsTypeLabel">
+                                <label class="test-rcs-radio selected" data-value="basic-text">
+                                    <input type="radio" name="testRcsType" value="basic-text" checked class="visually-hidden">
+                                    <span class="test-rcs-radio-circle" aria-hidden="true"></span>
+                                    <span class="test-rcs-radio-text">
+                                        <span class="test-rcs-radio-title">Basic RCS message</span>
+                                        <span class="test-rcs-radio-subtitle">Simple text message</span>
+                                    </span>
+                                </label>
+                                <label class="test-rcs-radio" data-value="rich-card">
+                                    <input type="radio" name="testRcsType" value="rich-card" class="visually-hidden">
+                                    <span class="test-rcs-radio-circle" aria-hidden="true"></span>
+                                    <span class="test-rcs-radio-text">
+                                        <span class="test-rcs-radio-title">Rich card message</span>
+                                        <span class="test-rcs-radio-subtitle">Image, text and buttons</span>
+                                    </span>
+                                </label>
+                                <label class="test-rcs-radio" data-value="carousel">
+                                    <input type="radio" name="testRcsType" value="carousel" class="visually-hidden">
+                                    <span class="test-rcs-radio-circle" aria-hidden="true"></span>
+                                    <span class="test-rcs-radio-text">
+                                        <span class="test-rcs-radio-title">Carousel message</span>
+                                        <span class="test-rcs-radio-subtitle">Swipeable cards</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="test-rcs-step-label mb-2">2. Enter your mobile number</div>
+                            <div class="test-rcs-input-group">
+                                <span class="test-rcs-flag" aria-hidden="true">
+                                    <span class="test-rcs-flag-emoji">🇬🇧</span>
+                                    <span class="test-rcs-flag-code">+44</span>
+                                </span>
+                                <input type="tel" class="form-control test-rcs-mobile-input" id="testRcsMobile"
+                                       placeholder="7700 900000" aria-describedby="testRcsFeedback">
+                            </div>
                             <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number</div>
+                            <div class="test-rcs-helper mt-2">
+                                <i class="fas fa-shield-alt me-1"></i>Your number is safe and only used for testing.
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <button class="btn btn-primary btn-rounded" id="btnSendTestRcs" onclick="sendTestRcs()">Send Test</button>
+
+                        <div class="mt-4 mb-3">
+                            <button class="btn test-rcs-cta w-100" id="btnSendTestRcs" onclick="sendTestRcs()">
+                                <i class="fas fa-paper-plane me-2"></i>Send me a test RCS message
+                            </button>
                         </div>
-                        <div class="d-none" id="testRcsResult">
+
+                        <div class="d-none mb-3" id="testRcsResult">
                             <div class="alert alert-success mb-0 py-2" id="testRcsSuccess">
                                 <span id="testRcsSuccessMessage">Test message sent successfully!</span>
                             </div>
                             <div class="alert alert-danger mb-0 py-2 d-none" id="testRcsFail">
                                 <span id="testRcsFailMessage">Failed to send test message. Please try again.</span>
                             </div>
+                        </div>
+
+                        <div class="test-rcs-footer-note">
+                            <i class="fas fa-info-circle me-1"></i>Sent via your registered RCS agent with SMS fallback if unavailable.
                         </div>
                     </div>
                 </div>
@@ -814,21 +888,26 @@
     overflow-x: hidden;
 }
 
-/* Tablet breakpoint (< 992px) */
-@media (max-width: 991.98px) {
-    /* RCS Advertisement tile stacks vertically */
+/* Below md (< 768px): Unlock RCS tile stacks vertically */
+@media (max-width: 767.98px) {
     #tile-rcs-advertisement .row {
         flex-direction: column;
     }
     #tile-rcs-advertisement .col-md-5,
     #tile-rcs-advertisement .col-md-7 {
         width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
     }
-    #tile-rcs-advertisement .rcs-ad-image {
-        border-radius: 0.625rem 0.625rem 0 0 !important;
-        min-height: 150px !important;
+    #tile-rcs-advertisement .unlock-rcs-visual {
+        order: -1;
+        min-height: 220px;
+        padding: 1.25rem 1rem 0;
+        border-radius: 0.625rem 0.625rem 0 0;
     }
-
+    #tile-rcs-advertisement .unlock-rcs-image {
+        max-height: 260px;
+    }
 }
 
 /* Mobile breakpoint (< 576px) */
@@ -859,18 +938,28 @@
         font-size: 0.65rem;
     }
     
-    /* Test RCS input stacks */
-    #tile-test-rcs .row.g-2 {
+    /* Test RCS tile mobile tweaks */
+    #tile-test-rcs .test-rcs-radio {
+        padding: 0.75rem 0.85rem;
+    }
+    #tile-test-rcs .test-rcs-radio-title {
+        font-size: 0.9rem;
+    }
+    #tile-test-rcs .test-rcs-cta {
+        font-size: 0.95rem;
+    }
+    #tile-rcs-advertisement .unlock-rcs-heading {
+        font-size: 1.25rem;
+    }
+    #tile-rcs-advertisement .unlock-rcs-cta-row {
         flex-direction: column;
+        align-items: stretch;
     }
-    #tile-test-rcs .col-auto {
+    #tile-rcs-advertisement .unlock-rcs-cta-row .btn {
         width: 100%;
-        margin-top: 0.5rem;
+        text-align: center;
     }
-    #tile-test-rcs .btn {
-        width: 100%;
-    }
-    
+
     /* Notifications tile adjustments */
     .notification-item {
         padding: 0.75rem !important;
@@ -1269,6 +1358,340 @@
 #testRcsResult .alert {
     border-radius: 0.375rem;
     font-size: 0.875rem;
+}
+
+/* ========================================
+   UNLOCK RCS TILE (premium Fillow style)
+   ======================================== */
+#tile-rcs-advertisement {
+    overflow: hidden;
+}
+#tile-rcs-advertisement .unlock-rcs-content {
+    background: #ffffff;
+}
+#tile-rcs-advertisement .unlock-rcs-badge {
+    display: inline-block;
+    width: fit-content;
+    background: rgba(136, 108, 192, 0.12);
+    color: #6a4fa0;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    padding: 0.32rem 0.85rem;
+    border-radius: 999px;
+    text-transform: none;
+}
+#tile-rcs-advertisement .unlock-rcs-heading {
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+#tile-rcs-advertisement .unlock-rcs-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+#tile-rcs-advertisement .unlock-rcs-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+}
+#tile-rcs-advertisement .unlock-rcs-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+#tile-rcs-advertisement .unlock-rcs-feature-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(136, 108, 192, 0.10);
+    color: #6a4fa0;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+#tile-rcs-advertisement .unlock-rcs-feature-text {
+    flex: 1;
+    min-width: 0;
+}
+#tile-rcs-advertisement .unlock-rcs-feature-title {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.92rem;
+    line-height: 1.3;
+}
+#tile-rcs-advertisement .unlock-rcs-feature-subtitle {
+    color: #6b7280;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-top: 0.1rem;
+}
+#tile-rcs-advertisement .unlock-rcs-cta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+#tile-rcs-advertisement .unlock-rcs-cta-primary {
+    background: #886CC0;
+    color: #ffffff;
+    border: 1px solid #886CC0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 6px rgba(136, 108, 192, 0.25);
+    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+#tile-rcs-advertisement .unlock-rcs-cta-primary:hover,
+#tile-rcs-advertisement .unlock-rcs-cta-primary:focus {
+    background: #6a4fa0;
+    border-color: #6a4fa0;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(136, 108, 192, 0.35);
+    transform: translateY(-1px);
+}
+#tile-rcs-advertisement .unlock-rcs-cta-secondary {
+    background: transparent;
+    color: #6a4fa0;
+    border: 1px solid rgba(136, 108, 192, 0.35);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+#tile-rcs-advertisement .unlock-rcs-cta-secondary:hover,
+#tile-rcs-advertisement .unlock-rcs-cta-secondary:focus {
+    background: rgba(136, 108, 192, 0.08);
+    border-color: #886CC0;
+    color: #6a4fa0;
+}
+#tile-rcs-advertisement .unlock-rcs-cta-secondary i {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+#tile-rcs-advertisement .unlock-rcs-visual {
+    background: linear-gradient(160deg, rgba(136, 108, 192, 0.06) 0%, rgba(136, 108, 192, 0.02) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    border-radius: 0 0.625rem 0.625rem 0;
+    overflow: hidden;
+}
+#tile-rcs-advertisement .unlock-rcs-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* ========================================
+   TEST RCS TILE (premium Fillow style)
+   ======================================== */
+#tile-test-rcs .test-rcs-icon {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(136, 108, 192, 0.10);
+    color: #6a4fa0;
+    border-radius: 10px;
+    font-size: 1.05rem;
+}
+#tile-test-rcs .card-title {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+#tile-test-rcs .test-rcs-step-label {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+#tile-test-rcs .test-rcs-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+#tile-test-rcs .test-rcs-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.625rem;
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    margin-bottom: 0;
+}
+#tile-test-rcs .test-rcs-radio:hover {
+    border-color: rgba(136, 108, 192, 0.45);
+    background: rgba(136, 108, 192, 0.03);
+}
+#tile-test-rcs .test-rcs-radio.selected {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.06);
+    box-shadow: 0 0 0 1px #886CC0 inset;
+}
+#tile-test-rcs .test-rcs-radio-circle {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    background: #ffffff;
+    position: relative;
+    transition: border-color 0.15s ease;
+}
+#tile-test-rcs .test-rcs-radio.selected .test-rcs-radio-circle {
+    border-color: #886CC0;
+}
+#tile-test-rcs .test-rcs-radio.selected .test-rcs-radio-circle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #886CC0;
+    transform: translate(-50%, -50%);
+}
+#tile-test-rcs .test-rcs-radio-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+#tile-test-rcs .test-rcs-radio-title {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.92rem;
+    line-height: 1.25;
+}
+#tile-test-rcs .test-rcs-radio-subtitle {
+    color: #6b7280;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-top: 0.1rem;
+}
+#tile-test-rcs .test-rcs-input-group {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #ffffff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#tile-test-rcs .test-rcs-input-group:focus-within {
+    border-color: #886CC0;
+    box-shadow: 0 0 0 3px rgba(136, 108, 192, 0.15);
+}
+#tile-test-rcs .test-rcs-flag {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.85rem;
+    background: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.92rem;
+    white-space: nowrap;
+}
+#tile-test-rcs .test-rcs-flag-emoji {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+#tile-test-rcs .test-rcs-mobile-input {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.95rem;
+    height: auto;
+}
+#tile-test-rcs .test-rcs-mobile-input:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
+}
+#tile-test-rcs .test-rcs-mobile-input.is-invalid,
+#tile-test-rcs .test-rcs-mobile-input.is-valid {
+    background-image: none;
+    border: none;
+    padding-right: 0.85rem;
+}
+/* Invalid state — explicit class fallback (set by JS observer) plus :has() progressive enhancement */
+#tile-test-rcs .test-rcs-input-group.has-error,
+#tile-test-rcs:has(.test-rcs-mobile-input.is-invalid) .test-rcs-input-group {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+}
+#tile-test-rcs .test-rcs-input-group.has-error ~ #testRcsFeedback,
+#tile-test-rcs:has(.test-rcs-mobile-input.is-invalid) #testRcsFeedback {
+    display: block;
+}
+#tile-test-rcs .test-rcs-helper {
+    color: #6b7280;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+}
+#tile-test-rcs .test-rcs-helper i {
+    color: #886CC0;
+    opacity: 0.85;
+}
+#tile-test-rcs .test-rcs-cta {
+    background: #886CC0;
+    color: #ffffff;
+    border: 1px solid #886CC0;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 6px rgba(136, 108, 192, 0.25);
+    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+#tile-test-rcs .test-rcs-cta:hover:not(:disabled),
+#tile-test-rcs .test-rcs-cta:focus:not(:disabled) {
+    background: #6a4fa0;
+    border-color: #6a4fa0;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(136, 108, 192, 0.35);
+    transform: translateY(-1px);
+}
+#tile-test-rcs .test-rcs-cta:disabled {
+    background: #886CC0;
+    border-color: #886CC0;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+#tile-test-rcs .test-rcs-footer-note {
+    color: #6b7280;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f3f5;
+    display: flex;
+    align-items: flex-start;
+}
+#tile-test-rcs .test-rcs-footer-note i {
+    color: #886CC0;
+    margin-top: 0.15rem;
 }
 </style>
 @endpush
@@ -1846,7 +2269,7 @@ function handleTestRcsResponse(response) {
     
     // Reset button
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send Test';
+    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send me a test RCS message';
 }
 
 // TODO: Add error handler for network/API errors
@@ -1952,6 +2375,93 @@ function dismissNotification(notificationId) {
     // TODO: API call to mark notification as dismissed
     // POST /api/notifications/dismiss { id: notificationId }
 }
+
+// ========================================
+// TEST RCS — radio card selection + accessibility
+// ========================================
+(function initTestRcsRadios() {
+    var init = function() {
+        var radios = Array.prototype.slice.call(document.querySelectorAll('#tile-test-rcs .test-rcs-radio'));
+        var hidden = document.getElementById('testRcsMessageType');
+        if (!radios.length || !hidden) return;
+
+        function syncAria() {
+            radios.forEach(function(c, i) {
+                var selected = c.classList.contains('selected');
+                c.setAttribute('aria-checked', selected ? 'true' : 'false');
+                // Roving tabindex: only the selected card is in the tab order
+                c.setAttribute('tabindex', selected ? '0' : '-1');
+            });
+        }
+
+        function selectByIndex(idx, focus) {
+            if (idx < 0) idx = radios.length - 1;
+            if (idx >= radios.length) idx = 0;
+            var target = radios[idx];
+            var value = target.getAttribute('data-value');
+            radios.forEach(function(c) { c.classList.remove('selected'); });
+            target.classList.add('selected');
+            var input = target.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+            hidden.value = value;
+            syncAria();
+            if (focus) target.focus();
+        }
+
+        radios.forEach(function(card, idx) {
+            card.setAttribute('role', 'radio');
+            card.addEventListener('click', function() {
+                selectByIndex(idx, false);
+            });
+            card.addEventListener('keydown', function(e) {
+                switch (e.key) {
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        selectByIndex(idx, true);
+                        break;
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        selectByIndex(idx + 1, true);
+                        break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        selectByIndex(idx - 1, true);
+                        break;
+                }
+            });
+        });
+        syncAria();
+
+        // ----- Mobile-input invalid-state observer -----
+        // sendTestRcs() toggles .is-invalid on #testRcsMobile but the input is now
+        // nested inside .test-rcs-input-group, so the default Bootstrap sibling rule
+        // for .invalid-feedback no longer fires. Mirror the state onto the wrapper
+        // (and aria-invalid on the input) as a robust fallback alongside the :has()
+        // CSS selector.
+        var mobileInput = document.getElementById('testRcsMobile');
+        var wrapper = mobileInput ? mobileInput.closest('.test-rcs-input-group') : null;
+        if (mobileInput && wrapper && 'MutationObserver' in window) {
+            var sync = function() {
+                var invalid = mobileInput.classList.contains('is-invalid');
+                wrapper.classList.toggle('has-error', invalid);
+                mobileInput.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+            };
+            new MutationObserver(sync).observe(mobileInput, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+            sync();
+        }
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 </script>
 @endpush
 @endsection
