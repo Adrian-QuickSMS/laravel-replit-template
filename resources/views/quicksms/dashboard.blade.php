@@ -2131,16 +2131,18 @@ function validateUKMobile(mobile) {
     var cleaned = mobile.replace(/[\s\-\(\)\.]/g, '');
     
     // UK mobile patterns:
-    // +447xxxxxxxxx (13 chars)
-    // 447xxxxxxxxx (12 chars)
-    // 07xxxxxxxxx (11 chars)
-    
+    // +447xxxxxxxxx (13 chars) — full international
+    // 447xxxxxxxxx  (12 chars) — international, no '+'
+    // 07xxxxxxxxx   (11 chars) — UK national format with leading 0
+    // 7xxxxxxxxx    (10 chars) — bare local digits, paired with the +44 prefix shown in the UI
+
     var patterns = [
         /^\+44(7\d{9})$/,      // +447xxxxxxxxx
         /^44(7\d{9})$/,        // 447xxxxxxxxx
-        /^0(7\d{9})$/          // 07xxxxxxxxx
+        /^0(7\d{9})$/,         // 07xxxxxxxxx
+        /^(7\d{9})$/           // 7xxxxxxxxx (matches the "+44 | 7700 900000" UI hint)
     ];
-    
+
     for (var i = 0; i < patterns.length; i++) {
         var match = cleaned.match(patterns[i]);
         if (match) {
@@ -2156,7 +2158,7 @@ function validateUKMobile(mobile) {
     return { 
         valid: false, 
         normalized: null, 
-        error: 'Please enter a valid UK mobile number (e.g., +44 7700 900000 or 07700 900000)' 
+        error: 'Please enter a valid UK mobile number (e.g., 7700 900000, 07700 900000, or +44 7700 900000)' 
     };
 }
 
