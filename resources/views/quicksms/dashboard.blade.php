@@ -1367,11 +1367,13 @@
 /* ========================================
    UNLOCK RCS TILE (premium Fillow style)
    ======================================== */
-#tile-rcs-advertisement {
-    overflow: hidden;
-}
 #tile-rcs-advertisement .unlock-rcs-content {
-    background: #ffffff;
+    /* Transparent on purpose: the .card already paints a white, rounded
+       background. A white background here would be a rectangle, which —
+       once the card has overflow:visible to allow the phone image to
+       break out — would extend past the card's rounded corners and make
+       the top-left / bottom-left corners look square. */
+    background: transparent;
 }
 #tile-rcs-advertisement .unlock-rcs-badge {
     display: inline-block;
