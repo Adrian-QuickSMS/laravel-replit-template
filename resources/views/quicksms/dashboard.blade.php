@@ -335,59 +335,7 @@
                     </div>
                 </a>
             </div>
-            
-            <div class="col-xl-6 col-lg-6 mb-3">
-                <div class="card dashboard-tile h-100" id="tile-rcs-calculator">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2" style="color: #886CC0;"></i>RCS vs SMS Savings Calculator</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-2 mb-3">
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">SMS Price (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcSmsPrice" value="{{ $pricingData['sms'] ?? '0' }}" readonly>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">RCS Basic (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsBasicPrice" value="{{ $pricingData['rcs_basic'] ?? '0' }}" readonly>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">RCS Single (£)</label>
-                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsSinglePrice" value="{{ $pricingData['rcs_single'] ?? '0' }}" readonly>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">Avg Fragments</label>
-                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="1" min="1" step="0.1" value="1">
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">Penetration %</label>
-                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="65" min="0" max="100" value="65">
-                            </div>
-                            <div class="col-6 col-md-4 d-flex align-items-end">
-                                <small class="text-muted" id="calcModeIndicator">Mode: RCS Basic</small>
-                            </div>
-                        </div>
-                        <hr class="my-2">
-                        <div class="row g-2">
-                            <div class="col-4 text-center">
-                                <p class="mb-1 text-muted small">Avg SMS Cost</p>
-                                <h5 class="mb-0 text-danger" id="calcSmsOnlyCost">£0.000</h5>
-                            </div>
-                            <div class="col-4 text-center">
-                                <p class="mb-1 text-muted small">Avg Blended Cost</p>
-                                <h5 class="mb-0 text-success" id="calcBlendedCost">£0.000</h5>
-                            </div>
-                            <div class="col-4 text-center">
-                                <p class="mb-1 text-muted small">You Save</p>
-                                <h5 class="mb-0 text-primary" id="calcSavings">0%</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
+
             <div class="col-xl-6 col-lg-6 mb-3">
                 <div class="card dashboard-tile h-100" id="tile-test-rcs">
                     <div class="card-header border-0 pb-0">
@@ -423,22 +371,53 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-xl-6 col-lg-6 mb-3" id="tile-register-rcs-wrapper">
-                <div class="card tryal-gradient h-100" id="tile-register-rcs">
-                    <div class="card-body tryal row">
-                        <div class="col-xl-7 col-sm-7">
-                            <h2 class="mb-0">Register for RCS</h2>
-                            <span>Get your brand verified and start sending rich, interactive messages to your customers.</span>
-                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-rounded" id="btnRegisterRcs" style="background: transparent; border: 2px solid rgba(255,255,255,0.8); color: #fff;">Register Now</a>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-rcs-calculator">
+                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2" style="color: #886CC0;"></i>RCS vs SMS Savings Calculator</h5>
+                        <small class="text-muted" id="calcModeIndicator">Mode: RCS Basic</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-3 calc-input-row">
+                            <div class="col-6 col-md-4 col-xl">
+                                <label class="form-label small mb-1">SMS Price (£)</label>
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcSmsPrice" value="{{ $pricingData['sms'] ?? '0' }}" readonly>
+                            </div>
+                            <div class="col-6 col-md-4 col-xl">
+                                <label class="form-label small mb-1">RCS Basic (£)</label>
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsBasicPrice" value="{{ $pricingData['rcs_basic'] ?? '0' }}" readonly>
+                            </div>
+                            <div class="col-6 col-md-4 col-xl">
+                                <label class="form-label small mb-1">RCS Single (£)</label>
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsSinglePrice" value="{{ $pricingData['rcs_single'] ?? '0' }}" readonly>
+                            </div>
+                            <div class="col-6 col-md-4 col-xl">
+                                <label class="form-label small mb-1">Avg Fragments</label>
+                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="1" min="1" step="0.1" value="1">
+                            </div>
+                            <div class="col-6 col-md-4 col-xl">
+                                <label class="form-label small mb-1">Penetration %</label>
+                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="65" min="0" max="100" value="65">
+                            </div>
                         </div>
-                        <div class="col-xl-5 col-sm-5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sd-shape">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                <circle cx="9" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
-                                <circle cx="12" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
-                                <circle cx="15" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
-                            </svg>
+                        <div class="rounded p-3 mt-2" style="background: linear-gradient(135deg, #faf8ff 0%, #f3eefb 100%); border: 1px solid rgba(136, 108, 192, 0.12);">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12 col-md-4 text-center">
+                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">Avg SMS Cost</p>
+                                    <h4 class="mb-0 fw-bold text-danger" id="calcSmsOnlyCost">£0.000</h4>
+                                </div>
+                                <div class="col-12 col-md-4 text-center">
+                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">Avg Blended Cost</p>
+                                    <h4 class="mb-0 fw-bold text-success" id="calcBlendedCost">£0.000</h4>
+                                </div>
+                                <div class="col-12 col-md-4 text-center">
+                                    <p class="mb-1 text-muted small text-uppercase" style="letter-spacing: 0.5px;">You Save</p>
+                                    <h4 class="mb-0 fw-bold" style="color: #886CC0;" id="calcSavings">0%</h4>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -642,10 +621,6 @@
     text-align: center;
 }
 
-/* Calculator outputs centered */
-#tile-rcs-calculator .col-4 h5 {
-    text-align: center;
-}
 
 /* ========================================
    SKELETON LOADING ANIMATION
@@ -686,8 +661,7 @@
    ======================================== */
 #rcsPromotion .btn,
 #supportNotifications .btn,
-#tile-test-rcs .btn,
-#tile-register-rcs .btn {
+#tile-test-rcs .btn {
     font-weight: 500;
     border-radius: 0.375rem;
     padding: 0.5rem 1rem;
@@ -695,12 +669,10 @@
 }
 
 /* Primary CTA */
-#tile-rcs-advertisement .btn-primary,
-#tile-register-rcs .btn-warning {
+#tile-rcs-advertisement .btn-primary {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-#tile-rcs-advertisement .btn-primary:hover,
-#tile-register-rcs .btn-warning:hover {
+#tile-rcs-advertisement .btn-primary:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
 }
@@ -743,23 +715,6 @@
         border-radius: 0.625rem 0.625rem 0 0 !important;
         min-height: 150px !important;
     }
-    
-    /* Register RCS tile stacks */
-    #tile-register-rcs .card-body {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-    #tile-register-rcs .btn {
-        margin-left: 0 !important;
-        margin-top: 0.5rem;
-    }
-    
-    /* Calculator inputs 2 per row */
-    #tile-rcs-calculator .col-md-4 {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
 }
 
 /* Mobile breakpoint (< 576px) */
@@ -782,12 +737,12 @@
         font-size: 1.25rem;
     }
     
-    /* Calculator outputs smaller */
-    #tile-rcs-calculator .col-4 h5 {
-        font-size: 0.9rem;
+    /* Calculator result figures smaller */
+    #tile-rcs-calculator h4 {
+        font-size: 1.1rem;
     }
-    #tile-rcs-calculator .col-4 p {
-        font-size: 0.7rem;
+    #tile-rcs-calculator .text-uppercase {
+        font-size: 0.65rem;
     }
     
     /* Test RCS input stacks */
@@ -818,8 +773,8 @@
     }
 }
 
-/* Extra small devices (< 400px) */
-@media (max-width: 399.98px) {
+/* Extra small devices (<= 400px) */
+@media (max-width: 400px) {
     /* Metric tiles single column */
     #operationalOverview .col-sm-6 {
         flex: 0 0 100%;
@@ -827,7 +782,7 @@
     }
     
     /* Calculator inputs single column */
-    #tile-rcs-calculator .col-6 {
+    #tile-rcs-calculator .calc-input-row > [class*="col-"] {
         flex: 0 0 100%;
         max-width: 100%;
     }
