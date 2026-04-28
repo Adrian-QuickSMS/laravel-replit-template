@@ -715,6 +715,12 @@
         border-radius: 0.625rem 0.625rem 0 0 !important;
         min-height: 150px !important;
     }
+
+    /* Calculator inputs 2-up at tablet width */
+    #tile-rcs-calculator .calc-input-row > [class*="col-"] {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
 }
 
 /* Mobile breakpoint (< 576px) */
