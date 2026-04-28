@@ -54,6 +54,7 @@
                     <li><a href="{{ route('admin.assets.email-to-sms') }}" class="{{ request()->routeIs('admin.assets.email-to-sms') ? 'mm-active' : '' }}">Email-to-SMS</a></li>
                     <li><a href="{{ route('admin.management.pricing') }}" class="{{ request()->routeIs('admin.management.pricing') ? 'mm-active' : '' }}">Pricing</a></li>
                     <li><a href="{{ route('admin.management.notification-centre') }}" class="{{ request()->routeIs('admin.management.notification-centre') ? 'mm-active' : '' }}">Notification Centre</a></li>
+                    <li><a href="{{ route('admin.platform-updates.index') }}" class="{{ request()->routeIs('admin.platform-updates.*') ? 'mm-active' : '' }}">Platform Updates</a></li>
                 </ul>
             </li>
             

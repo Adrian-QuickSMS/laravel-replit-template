@@ -913,7 +913,17 @@ Route::prefix('admin')->group(function () {
                 Route::get('/{id}/audit', 'audit')->name('admin.api.numbers.audit');
             });
 
-            // Pricing Management — view + API
+            // Platform Updates — admin CRUD for Help Centre announcements
+            Route::get('/platform-updates', [\App\Http\Controllers\Admin\PlatformUpdateAdminController::class, 'index'])->name('admin.platform-updates.index');
+            Route::prefix('api/platform-updates')->controller(\App\Http\Controllers\Admin\PlatformUpdateAdminController::class)->group(function () {
+                Route::get('/', 'apiIndex')->name('admin.api.platform-updates.index');
+                Route::post('/', 'store')->name('admin.api.platform-updates.store');
+                Route::get('/{id}', 'apiShow')->name('admin.api.platform-updates.show');
+                Route::put('/{id}', 'update')->name('admin.api.platform-updates.update');
+                Route::post('/{id}/toggle-publish', 'togglePublish')->name('admin.api.platform-updates.toggle-publish');
+                Route::delete('/{id}', 'destroy')->name('admin.api.platform-updates.destroy');
+            });
+
             Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
             Route::get('/management/notification-centre', function () {
                 return view('admin.management.notification-centre', ['page_title' => 'Notification Centre']);

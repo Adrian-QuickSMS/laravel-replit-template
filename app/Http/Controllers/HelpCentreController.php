@@ -71,6 +71,9 @@ class HelpCentreController extends Controller
 
         $updates = PlatformUpdate::query()
             ->where('published', true)
+            ->where(function ($q) {
+                $q->whereNull('posted_at')->orWhere('posted_at', '<=', now());
+            })
             ->orderByDesc('posted_at')
             ->limit(50)
             ->get();
@@ -126,6 +129,9 @@ class HelpCentreController extends Controller
         $now = now();
         $rows = PlatformUpdate::query()
             ->where('published', true)
+            ->where(function ($q) {
+                $q->whereNull('posted_at')->orWhere('posted_at', '<=', now());
+            })
             ->pluck('id')
             ->map(function ($id) use ($userId, $now) {
                 return [
