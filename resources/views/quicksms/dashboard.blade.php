@@ -609,80 +609,195 @@
         </div>
     </section>
     
-    <section class="mb-4" id="supportNotifications">
-        <div class="d-flex align-items-center mb-3">
-            <h4 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>Support & Notifications</h4>
+    {{-- ============================================================
+         HELP CENTRE — top row of three cards
+         (Replaces the previous "Support & Notifications" section.)
+         ============================================================ --}}
+    <section class="mb-4" id="helpCentre">
+        <div class="d-flex align-items-start mb-3">
+            <div class="help-centre-section-icon me-2">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div>
+                <h4 class="mb-0">Help Centre</h4>
+                <small class="text-muted">Get support, find answers and stay up to date.</small>
+            </div>
         </div>
-        <div class="row">
-            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                <a href="{{ route('support.dashboard') }}" class="text-decoration-none">
-                    <div class="card dashboard-tile h-100" id="tile-support-tickets">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
-                            <div class="icon-box bg-danger rounded-circle mb-3" style="width: 56px; height: 56px;">
-                                <i class="fas fa-ticket-alt text-white fa-lg"></i>
+        <div class="row g-3">
+            {{-- Card 1: Open Support Tickets (HubSpot Service Hub) --}}
+            <div class="col-lg-4 col-md-6">
+                <div class="card dashboard-tile help-centre-card h-100" id="card-help-tickets">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="hc-icon-chip hc-chip-orange me-3">
+                                <i class="fas fa-ticket-alt"></i>
                             </div>
-                            <h2 class="mb-1 text-dark" id="support-tickets-count">3</h2>
-                            <span class="text-muted small">Open Support Tickets</span>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="mb-1">Open Support Tickets</h5>
+                                    <span class="hc-demo-badge d-none" id="hc-tickets-demo-badge" title="HubSpot is not connected — showing sample data.">Demo data</span>
+                                </div>
+                                <p class="text-muted small mb-0">You have active tickets that need attention</p>
+                            </div>
+                        </div>
+
+                        <div class="hc-tickets-summary mb-3">
+                            <span class="hc-tickets-count" id="hc-tickets-total">—</span>
+                            <span class="hc-tickets-count-label">active tickets</span>
+                        </div>
+
+                        <div class="hc-tickets-stats row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="hc-stat-chip">
+                                    <span class="hc-stat-value"><span class="hc-dot hc-dot-red"></span><span id="hc-tickets-awaiting">—</span></span>
+                                    <small class="hc-stat-label">Awaiting reply</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="hc-stat-chip">
+                                    <span class="hc-stat-value"><span class="hc-dot hc-dot-amber"></span><span id="hc-tickets-progress">—</span></span>
+                                    <small class="hc-stat-label">In progress</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="hc-stat-chip">
+                                    <span class="hc-stat-value"><span class="hc-dot hc-dot-green"></span><span id="hc-tickets-resolved">—</span></span>
+                                    <small class="hc-stat-label">Resolved</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning small py-2 px-3 mb-3 d-none" id="hc-tickets-error" role="status">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Live ticket data is temporarily unavailable.
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap mt-auto">
+                            <a href="{{ route('support.dashboard') }}" class="btn hc-btn-primary">
+                                View tickets <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                            <a href="{{ route('support.create-ticket') }}" class="btn hc-btn-secondary">
+                                <i class="fas fa-plus me-1"></i>Create ticket
+                            </a>
                         </div>
                     </div>
-                </a>
+                </div>
             </div>
-            
-            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                <div class="card dashboard-tile h-100" id="tile-knowledge-base">
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
-                        <div class="icon-box bg-info rounded-circle mb-3" style="width: 56px; height: 56px;">
-                            <i class="fas fa-book text-white fa-lg"></i>
+
+            {{-- Card 2: Knowledge Base (HubSpot KB search) --}}
+            <div class="col-lg-4 col-md-6">
+                <div class="card dashboard-tile help-centre-card h-100" id="card-help-kb">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="hc-icon-chip hc-chip-blue me-3">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="mb-1">Knowledge Base</h5>
+                                    <span class="hc-demo-badge d-none" id="hc-kb-demo-badge" title="HubSpot is not connected — showing sample articles.">Demo data</span>
+                                </div>
+                                <p class="text-muted small mb-0">Search guides, API docs and setup help</p>
+                            </div>
                         </div>
-                        <h5 class="mb-2 text-dark">Knowledge Base</h5>
-                        <p class="text-muted small mb-3">Find answers to common questions</p>
-                        <a href="#" target="_blank" class="btn btn-info btn-sm" id="btnOpenKnowledgeBase">
-                            <i class="fas fa-external-link-alt me-1"></i>Open Knowledge Base
+
+                        <form id="hc-kb-form" class="hc-kb-search position-relative mb-3" autocomplete="off" role="search">
+                            <i class="fas fa-search hc-kb-search-icon" aria-hidden="true"></i>
+                            <input type="search" class="form-control" id="hc-kb-input" name="q"
+                                placeholder="Search help articles…" maxlength="200" aria-label="Search the knowledge base">
+                            <ul class="hc-kb-results d-none list-unstyled mb-0" id="hc-kb-results" role="listbox"></ul>
+                        </form>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-2">Popular topics</small>
+                            <div class="d-flex flex-wrap gap-2 hc-topic-pills">
+                                <button type="button" class="hc-topic-pill" data-topic="Getting started">Getting started</button>
+                                <button type="button" class="hc-topic-pill" data-topic="API integration">API integration</button>
+                                <button type="button" class="hc-topic-pill" data-topic="RCS guides">RCS guides</button>
+                                <button type="button" class="hc-topic-pill" data-topic="Billing &amp; payments">Billing &amp; payments</button>
+                                <button type="button" class="hc-topic-pill" data-topic="Account settings">Account settings</button>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('support.knowledge-base') }}" class="hc-link-arrow mt-auto">
+                            Browse all articles <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-xl-6 col-lg-8 mb-3">
-                <div class="card dashboard-tile h-100" id="tile-notifications">
-                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0"><i class="fas fa-bullhorn me-2 text-warning"></i>Announcements</h5>
-                        <span class="badge bg-warning text-dark">1 New</span>
+
+            {{-- Card 3: Platform Updates --}}
+            <div class="col-lg-4 col-md-12">
+                <div class="card dashboard-tile help-centre-card h-100" id="card-help-updates">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="hc-icon-chip hc-chip-purple me-3">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">Platform Updates</h5>
+                                <p class="text-muted small mb-0">Stay informed about changes and updates</p>
+                            </div>
+                        </div>
+
+                        <div class="hc-tickets-summary mb-3">
+                            <span class="hc-tickets-count" id="hc-updates-count">—</span>
+                            <span class="hc-tickets-count-label" id="hc-updates-count-label">new updates</span>
+                        </div>
+
+                        <div class="hc-status-panel hc-status-operational mb-3" id="hc-status-panel">
+                            <div class="hc-status-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="hc-status-text">
+                                <div class="fw-semibold" id="hc-status-title">All systems operational</div>
+                                <small class="text-muted" id="hc-status-checked">Last checked just now</small>
+                            </div>
+                        </div>
+
+                        <a href="#platformUpdatesFeed" class="btn hc-btn-outline w-100 mt-auto" id="hc-view-all-updates">
+                            View all updates <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div class="notification-item p-3 rounded mb-2" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); border-left: 3px solid #ffc107;" id="notification-1">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0 fw-semibold">Platform Maintenance Scheduled</h6>
-                                <button class="btn btn-sm btn-link text-muted p-0" onclick="dismissNotification('notification-1')" title="Dismiss">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <p class="mb-2 small text-muted">We will be performing scheduled maintenance on Saturday, January 4th from 02:00 - 04:00 GMT. Some services may be temporarily unavailable.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small" id="notification-1-timestamp">
-                                    <i class="fas fa-clock me-1"></i>Posted: Dec 28, 2025 at 14:30
-                                </span>
-                                <a href="#" class="small text-primary">Read more</a>
-                            </div>
-                        </div>
-                        
-                        <div class="notification-item p-3 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;" id="notification-2">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0 fw-semibold text-muted">New RCS Features Available</h6>
-                                <button class="btn btn-sm btn-link text-muted p-0" onclick="dismissNotification('notification-2')" title="Dismiss">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <p class="mb-2 small text-muted">Check out our new RCS carousel templates and rich card builder in the Templates section.</p>
-                            <span class="text-muted small" id="notification-2-timestamp">
-                                <i class="fas fa-clock me-1"></i>Posted: Dec 20, 2025 at 09:15
-                            </span>
-                        </div>
-                        
-                        <div class="text-center mt-3 d-none" id="no-notifications">
-                            <p class="text-muted small mb-0"><i class="fas fa-check-circle me-1"></i>No new announcements</p>
-                        </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- ============================================================
+         PLATFORM UPDATES & ALERTS — full-width feed panel
+         ============================================================ --}}
+    <section class="mb-4" id="platformUpdatesFeed">
+        <div class="card dashboard-tile help-centre-feed">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap align-items-start justify-content-between mb-3 hc-feed-header">
+                    <div class="me-3 mb-2">
+                        <h5 class="mb-1">Platform Updates &amp; Alerts</h5>
+                        <small class="text-muted">Important announcements, maintenance and new features</small>
                     </div>
+                    <div class="d-flex align-items-center gap-3 hc-feed-controls flex-wrap">
+                        <ul class="nav hc-feed-tabs mb-0" role="tablist" id="hc-feed-tabs">
+                            <li class="nav-item"><button type="button" class="hc-feed-tab active" data-filter="all">All</button></li>
+                            <li class="nav-item"><button type="button" class="hc-feed-tab" data-filter="update">Updates</button></li>
+                            <li class="nav-item"><button type="button" class="hc-feed-tab" data-filter="maintenance">Maintenance</button></li>
+                            <li class="nav-item"><button type="button" class="hc-feed-tab" data-filter="feature">Features</button></li>
+                        </ul>
+                        <button type="button" class="btn btn-link btn-sm p-0 hc-mark-read" id="hc-mark-read-btn">
+                            <i class="fas fa-check me-1"></i>Mark all as read
+                        </button>
+                    </div>
+                </div>
+
+                <div id="hc-feed-list" class="hc-feed-list" aria-live="polite">
+                    <div class="hc-feed-skeleton skeleton-shimmer"></div>
+                    <div class="hc-feed-skeleton skeleton-shimmer mt-2"></div>
+                </div>
+
+                <div class="text-center mt-3 d-none" id="hc-feed-empty">
+                    <p class="text-muted small mb-0"><i class="fas fa-check-circle me-1"></i>No updates in this category yet.</p>
+                </div>
+
+                <div class="text-center mt-4 hc-feed-footer d-none" id="hc-feed-footer">
+                    <span class="text-muted small">View all updates <i class="fas fa-chevron-down ms-1"></i></span>
                 </div>
             </div>
         </div>
@@ -698,21 +813,22 @@
 /* Consistent section spacing */
 #operationalOverview,
 #rcsPromotion,
-#supportNotifications {
+#helpCentre,
+#platformUpdatesFeed {
     margin-bottom: 1.5rem;
 }
 
 /* Section headers consistent spacing */
 #operationalOverview > .d-flex,
 #rcsPromotion > .d-flex,
-#supportNotifications > .d-flex {
+#helpCentre > .d-flex {
     margin-bottom: 1rem !important;
 }
 
 /* Ensure rows have consistent gutters */
 #operationalOverview .row,
 #rcsPromotion .row,
-#supportNotifications .row {
+#helpCentre .row {
     --bs-gutter-x: 1rem;
     --bs-gutter-y: 1rem;
 }
@@ -800,11 +916,411 @@
     text-align: left;
 }
 
-/* Support ticket count centered */
-#tile-support-tickets h2 {
-    text-align: center;
+/* ========================================
+   HELP CENTRE — section header & cards
+   ======================================== */
+#helpCentre .help-centre-section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(136, 108, 192, 0.12);
+    color: #886CC0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
 }
 
+.help-centre-card,
+.help-centre-feed {
+    border-radius: 0.625rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+    cursor: default;
+}
+.help-centre-card:hover,
+.help-centre-feed:hover {
+    transform: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.06);
+}
+
+.help-centre-card h5,
+.help-centre-feed h5 {
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+/* "Demo data" pill — surfaced when HUBSPOT_ACCESS_TOKEN is missing
+   so users know the figures are samples, not live HubSpot data. */
+.hc-demo-badge {
+    display: inline-block;
+    background: rgba(255, 193, 7, 0.16);
+    color: #8a6100;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: help;
+}
+
+/* Soft pastel icon chips reused for cards and feed items */
+.hc-icon-chip {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+}
+.hc-chip-orange { background: rgba(255, 138, 77, 0.14); color: #e87a3a; }
+.hc-chip-blue   { background: rgba(56, 128, 255, 0.12); color: #3a7bdc; }
+.hc-chip-purple { background: rgba(136, 108, 192, 0.14); color: #6a4fa0; }
+.hc-chip-amber  { background: rgba(255, 193, 7, 0.16);  color: #b27a00; }
+.hc-chip-grey   { background: rgba(108, 117, 125, 0.12); color: #5a6268; }
+
+/* Big purple count + label (used by Tickets and Updates cards) */
+.hc-tickets-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+.hc-tickets-count {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #886CC0;
+    line-height: 1;
+}
+.hc-tickets-count-label {
+    font-size: 0.95rem;
+    color: #886CC0;
+    font-weight: 600;
+}
+
+/* Sub-stat chips inside the Tickets card */
+.hc-stat-chip {
+    background: #f7f8fb;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    padding: 0.55rem 0.5rem;
+    text-align: center;
+    height: 100%;
+}
+.hc-stat-chip .hc-stat-value {
+    display: block;
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+.hc-stat-chip .hc-stat-label {
+    color: #6c757d;
+    font-size: 0.72rem;
+    line-height: 1.1;
+}
+.hc-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+}
+.hc-dot-red   { background: #dc3545; }
+.hc-dot-amber { background: #ffc107; }
+.hc-dot-green { background: #28a745; }
+
+/* Help Centre buttons (override Bootstrap defaults to match Fillow) */
+.btn.hc-btn-primary {
+    background: #886CC0;
+    border: 1px solid #886CC0;
+    border-radius: 10px;
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+.btn.hc-btn-primary:hover,
+.btn.hc-btn-primary:focus {
+    background: #6a4fa0;
+    border-color: #6a4fa0;
+    color: #fff;
+}
+.btn.hc-btn-secondary {
+    border-radius: 10px;
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #1f2937;
+    background: #fff;
+}
+.btn.hc-btn-secondary:hover,
+.btn.hc-btn-secondary:focus {
+    background: #f5f5f7;
+    border-color: rgba(0, 0, 0, 0.18);
+    color: #1f2937;
+}
+.btn.hc-btn-outline {
+    border-radius: 10px;
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    border: 1px solid rgba(136, 108, 192, 0.4);
+    color: #886CC0;
+    background: #fff;
+}
+.btn.hc-btn-outline:hover,
+.btn.hc-btn-outline:focus {
+    background: rgba(136, 108, 192, 0.08);
+    border-color: #886CC0;
+    color: #6a4fa0;
+}
+
+/* KB search box */
+.hc-kb-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.85rem;
+    transform: translateY(-50%);
+    color: #9aa0aa;
+    pointer-events: none;
+    z-index: 2;
+}
+.hc-kb-search input {
+    border-radius: 10px;
+    padding-left: 2.4rem;
+    background: #fafbfd;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+.hc-kb-search input:focus {
+    background: #fff;
+    border-color: #886CC0;
+    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.12);
+}
+.hc-kb-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    max-height: 320px;
+    overflow-y: auto;
+}
+.hc-kb-results li a {
+    display: block;
+    padding: 0.65rem 0.85rem;
+    color: #1f2937;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.hc-kb-results li:last-child a { border-bottom: none; }
+.hc-kb-results li a:hover { background: #f7f8fb; }
+.hc-kb-result-title { font-weight: 600; font-size: 0.9rem; display: block; }
+.hc-kb-result-snippet { display: block; color: #6c757d; font-size: 0.78rem; margin-top: 2px; }
+.hc-kb-empty { padding: 0.65rem 0.85rem; color: #6c757d; font-size: 0.85rem; }
+
+/* Popular topic pills */
+.hc-topic-pill {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #495057;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.hc-topic-pill:hover {
+    background: rgba(136, 108, 192, 0.08);
+    border-color: #886CC0;
+    color: #6a4fa0;
+}
+
+.hc-link-arrow {
+    color: #886CC0;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    align-self: flex-start;
+}
+.hc-link-arrow:hover { color: #6a4fa0; }
+
+/* Status panel */
+.hc-status-panel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 12px;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid transparent;
+}
+.hc-status-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+.hc-status-operational {
+    background: rgba(40, 167, 69, 0.08);
+    border-color: rgba(40, 167, 69, 0.2);
+}
+.hc-status-operational .hc-status-icon { background: #28a745; }
+.hc-status-degraded {
+    background: rgba(255, 193, 7, 0.10);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+.hc-status-degraded .hc-status-icon { background: #ffc107; color: #1f2937; }
+.hc-status-outage {
+    background: rgba(220, 53, 69, 0.08);
+    border-color: rgba(220, 53, 69, 0.25);
+}
+.hc-status-outage .hc-status-icon { background: #dc3545; }
+
+/* ========================================
+   PLATFORM UPDATES & ALERTS — feed panel
+   ======================================== */
+.hc-feed-tabs {
+    display: flex;
+    background: #f5f4f9;
+    border-radius: 10px;
+    padding: 0.25rem;
+    gap: 2px;
+    list-style: none;
+}
+.hc-feed-tab {
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    padding: 0.4rem 0.95rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.hc-feed-tab:hover { color: #1f2937; }
+.hc-feed-tab.active {
+    background: #fff;
+    color: #886CC0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.hc-mark-read {
+    color: #6c757d !important;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+}
+.hc-mark-read:hover { color: #886CC0 !important; }
+
+.hc-feed-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.hc-feed-skeleton { height: 110px; border-radius: 12px; }
+
+.hc-feed-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-radius: 12px;
+    border-left: 4px solid #d1d5db;
+    background: #f7f8fb;
+    transition: opacity 0.2s ease;
+}
+.hc-feed-item.is-read { opacity: 0.65; }
+.hc-feed-item.type-maintenance {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    border-left-color: #ffc107;
+}
+.hc-feed-item.type-feature {
+    background: rgba(136, 108, 192, 0.07);
+    border-left-color: #886CC0;
+}
+.hc-feed-item.type-update {
+    background: #f7f8fb;
+    border-left-color: #6c757d;
+}
+.hc-feed-item .hc-icon-chip {
+    width: 48px;
+    height: 48px;
+    font-size: 1.05rem;
+    border-radius: 12px;
+}
+.hc-feed-item-body { flex: 1; min-width: 0; }
+.hc-feed-item-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.7);
+    color: #6c4d20;
+    font-weight: 600;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    margin-bottom: 0.35rem;
+}
+.hc-feed-item.type-feature .hc-feed-item-badge { color: #6a4fa0; }
+.hc-feed-item.type-update .hc-feed-item-badge { color: #495057; background: #ffffff; }
+.hc-feed-item-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+.hc-feed-item-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+.hc-feed-item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.hc-feed-item-time { color: #9aa0aa; font-size: 0.78rem; }
+.hc-feed-item-time i { margin-right: 0.25rem; }
+.hc-feed-item-readmore {
+    color: #886CC0;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-decoration: none;
+}
+.hc-feed-item-readmore:hover { color: #6a4fa0; }
+.hc-feed-item-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+.hc-new-pill {
+    background: #ffe69c;
+    color: #6c4d20;
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+}
+.hc-feed-item.is-read .hc-new-pill { display: none; }
+
+@media (max-width: 768px) {
+    .hc-feed-header { flex-direction: column; align-items: stretch !important; }
+    .hc-feed-controls { width: 100%; justify-content: space-between; }
+    .hc-feed-tabs { width: 100%; overflow-x: auto; }
+    .hc-feed-item { flex-wrap: wrap; }
+}
 
 /* ========================================
    SKELETON LOADING ANIMATION
@@ -831,12 +1347,10 @@
    CARD HOVER EFFECTS
    ======================================== */
 #operationalOverview .card,
-#rcsPromotion .card,
-#supportNotifications .card {
+#rcsPromotion .card {
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
-#rcsPromotion .card:hover,
-#supportNotifications .card:hover {
+#rcsPromotion .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
@@ -844,7 +1358,6 @@
    CTA BUTTONS - PLATFORM CONSISTENT STYLE
    ======================================== */
 #rcsPromotion .btn,
-#supportNotifications .btn,
 #tile-test-rcs .btn {
     font-weight: 500;
     border-radius: 0.375rem;
@@ -919,7 +1432,7 @@
     /* Section headers smaller */
     #operationalOverview h4,
     #rcsPromotion h4,
-    #supportNotifications h4 {
+    #helpCentre h4 {
         font-size: 1.1rem;
     }
     
@@ -964,17 +1477,10 @@
         text-align: center;
     }
 
-    /* Notifications tile adjustments */
-    .notification-item {
-        padding: 0.75rem !important;
-    }
-    .notification-item h6 {
-        font-size: 0.9rem;
-    }
-    
-    /* Support tiles stack nicely */
-    #supportNotifications .col-xl-3,
-    #supportNotifications .col-lg-4 {
+    /* Help Centre cards stack nicely */
+    #helpCentre .col-lg-4,
+    #helpCentre .col-md-6,
+    #helpCentre .col-md-12 {
         flex: 0 0 100%;
         max-width: 100%;
     }
@@ -1963,25 +2469,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    function loadSupportTickets() {
-        var ticketCountEl = document.getElementById('support-tickets-count');
-        if (!ticketCountEl) return;
-        
-        // Show loading state inline
-        ticketCountEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        MockAPI.getSupportTickets()
-            .then(function(data) {
-                if (data.open !== undefined) {
-                    ticketCountEl.textContent = data.open;
-                }
-            })
-            .catch(function(err) {
-                console.error('Support tickets error:', err);
-                ticketCountEl.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-            });
-    }
-    
     function loadCalculatorDefaults() {
         calculateSavings();
     }
@@ -1994,7 +2481,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadInboundUnresponded();
     loadMessagesToday();
     loadDeliveryRate();
-    loadSupportTickets();
     loadCalculatorDefaults();
     
     window.setTileLoading = setTileLoading;
@@ -2359,30 +2845,256 @@ document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) 
     input.addEventListener('change', calculateSavings);
 });
 
-function dismissNotification(notificationId) {
-    var notification = document.getElementById(notificationId);
-    if (notification) {
-        notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(20px)';
-        
-        setTimeout(function() {
-            notification.remove();
-            
-            // Check if any notifications remain
-            var remaining = document.querySelectorAll('#tile-notifications .notification-item');
-            if (remaining.length === 0) {
-                document.getElementById('no-notifications').classList.remove('d-none');
-                // Update badge
-                var badge = document.querySelector('#tile-notifications .badge');
-                if (badge) badge.remove();
-            }
-        }, 300);
+// ========================================
+// HELP CENTRE — tickets, KB search, platform updates feed
+// ========================================
+(function initHelpCentre() {
+    if (!document.getElementById('helpCentre')) return;
+
+    var endpoints = {
+        tickets:         @json(route('portal.help-centre.tickets')),
+        kbSearch:        @json(route('portal.help-centre.kb.search')),
+        platformUpdates: @json(route('portal.help-centre.platform-updates')),
+        markRead:        @json(route('portal.help-centre.platform-updates.mark-read')),
+    };
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    var state = { updates: [], filter: 'all' };
+
+    // ---------- Helpers ----------
+    function escHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+        });
     }
-    
-    // TODO: API call to mark notification as dismissed
-    // POST /api/notifications/dismiss { id: notificationId }
-}
+    function fmtDate(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso);
+            return d.toLocaleString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            });
+        } catch (e) { return iso; }
+    }
+
+    // ---------- Tickets card ----------
+    function renderTickets(d) {
+        d = d || {};
+        document.getElementById('hc-tickets-total').textContent     = d.total != null ? d.total : 0;
+        document.getElementById('hc-tickets-awaiting').textContent  = d.awaiting_reply != null ? d.awaiting_reply : 0;
+        document.getElementById('hc-tickets-progress').textContent  = d.in_progress != null ? d.in_progress : 0;
+        document.getElementById('hc-tickets-resolved').textContent  = d.resolved != null ? d.resolved : 0;
+
+        // "Live data unavailable" warning vs "Demo data" pill — different states.
+        var err = document.getElementById('hc-tickets-error');
+        if (d.live === false && d.configured === true) {
+            err.classList.remove('d-none');
+        } else {
+            err.classList.add('d-none');
+        }
+        var demo = document.getElementById('hc-tickets-demo-badge');
+        if (demo) demo.classList.toggle('d-none', d.configured !== false);
+    }
+    function loadTickets() {
+        return fetch(endpoints.tickets, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (j && j.success) renderTickets(j.data); })
+            .catch(function () {
+                renderTickets({ total: 0, awaiting_reply: 0, in_progress: 0, resolved: 0, live: false, configured: true });
+            });
+    }
+
+    // ---------- Knowledge Base search ----------
+    var kbInput   = document.getElementById('hc-kb-input');
+    var kbResults = document.getElementById('hc-kb-results');
+    var kbForm    = document.getElementById('hc-kb-form');
+    var kbDebounce;
+
+    function renderKbResults(payload) {
+        var results = (payload && payload.results) || [];
+        var demo = document.getElementById('hc-kb-demo-badge');
+        if (demo) demo.classList.toggle('d-none', payload && payload.live !== false);
+        if (results.length === 0) {
+            kbResults.innerHTML = '<li class="hc-kb-empty">No results — try different keywords.</li>';
+        } else {
+            kbResults.innerHTML = results.map(function (r) {
+                var url = r.url || '#';
+                return '<li role="option"><a href="' + escHtml(url) + '" target="_blank" rel="noopener">' +
+                    '<span class="hc-kb-result-title">' + escHtml(r.title || 'Untitled') + '</span>' +
+                    (r.snippet ? '<span class="hc-kb-result-snippet">' + escHtml(r.snippet) + '</span>' : '') +
+                '</a></li>';
+            }).join('');
+        }
+        kbResults.classList.remove('d-none');
+    }
+    function searchKnowledgeBase(q) {
+        if (!q || q.length < 2) { kbResults.classList.add('d-none'); return; }
+        fetch(endpoints.kbSearch + '?q=' + encodeURIComponent(q), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (j && j.success) renderKbResults(j.data); })
+            .catch(function () {
+                kbResults.innerHTML = '<li class="hc-kb-empty">Search is temporarily unavailable, try again shortly.</li>';
+                kbResults.classList.remove('d-none');
+            });
+    }
+    if (kbInput) {
+        kbInput.addEventListener('input', function () {
+            clearTimeout(kbDebounce);
+            kbDebounce = setTimeout(function () { searchKnowledgeBase(kbInput.value.trim()); }, 250);
+        });
+        kbInput.addEventListener('focus', function () {
+            if (kbInput.value.trim().length >= 2) kbResults.classList.remove('d-none');
+        });
+        document.addEventListener('click', function (e) {
+            if (kbForm && !kbForm.contains(e.target)) kbResults.classList.add('d-none');
+        });
+    }
+    if (kbForm) {
+        kbForm.addEventListener('submit', function (e) { e.preventDefault(); searchKnowledgeBase(kbInput.value.trim()); });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.hc-topic-pill'), function (btn) {
+        btn.addEventListener('click', function () {
+            var topic = btn.getAttribute('data-topic') || '';
+            if (kbInput) {
+                kbInput.value = topic;
+                kbInput.focus();
+                searchKnowledgeBase(topic);
+            }
+        });
+    });
+
+    // ---------- Platform Updates feed ----------
+    var feedList   = document.getElementById('hc-feed-list');
+    var feedEmpty  = document.getElementById('hc-feed-empty');
+    var feedFooter = document.getElementById('hc-feed-footer');
+
+    var typeMeta = {
+        maintenance: { label: 'Scheduled Maintenance', icon: 'fas fa-wrench',     chip: 'hc-chip-amber' },
+        feature:     { label: 'New Feature',           icon: 'fas fa-rocket',     chip: 'hc-chip-purple' },
+        update:      { label: 'Update',                icon: 'fas fa-info-circle', chip: 'hc-chip-grey' }
+    };
+
+    function renderFeed() {
+        var items = state.updates.filter(function (u) {
+            return state.filter === 'all' || u.type === state.filter;
+        });
+        if (items.length === 0) {
+            feedList.innerHTML = '';
+            feedEmpty.classList.remove('d-none');
+            feedFooter.classList.add('d-none');
+            return;
+        }
+        feedEmpty.classList.add('d-none');
+        feedFooter.classList.toggle('d-none', items.length <= 3);
+
+        feedList.innerHTML = items.map(function (u) {
+            var meta = typeMeta[u.type] || typeMeta.update;
+            return '<article class="hc-feed-item type-' + escHtml(u.type) + (u.is_read ? ' is-read' : '') + '">' +
+                '<div class="hc-icon-chip ' + meta.chip + '"><i class="' + meta.icon + '"></i></div>' +
+                '<div class="hc-feed-item-body">' +
+                    '<span class="hc-feed-item-badge">' + escHtml(meta.label) + '</span>' +
+                    '<h6 class="hc-feed-item-title">' + escHtml(u.title) + '</h6>' +
+                    '<p class="hc-feed-item-text">' + escHtml(u.body) + '</p>' +
+                    '<div class="hc-feed-item-meta">' +
+                        '<span class="hc-feed-item-time"><i class="fas fa-clock"></i>Posted: ' + escHtml(fmtDate(u.posted_at)) + '</span>' +
+                        (u.link_url
+                            ? '<a href="' + escHtml(u.link_url) + '" class="hc-feed-item-readmore" target="_blank" rel="noopener">Read more <i class="fas fa-arrow-right ms-1"></i></a>'
+                            : '') +
+                    '</div>' +
+                '</div>' +
+                '<div class="hc-feed-item-aside">' +
+                    (!u.is_read ? '<span class="hc-new-pill">New</span>' : '') +
+                '</div>' +
+            '</article>';
+        }).join('');
+    }
+
+    function renderUpdatesCard(data) {
+        var unread = data.unread_count || 0;
+        document.getElementById('hc-updates-count').textContent       = unread;
+        document.getElementById('hc-updates-count-label').textContent = unread === 1 ? 'new update' : 'new updates';
+
+        var panel   = document.getElementById('hc-status-panel');
+        var title   = document.getElementById('hc-status-title');
+        var checked = document.getElementById('hc-status-checked');
+        panel.classList.remove('hc-status-operational', 'hc-status-degraded', 'hc-status-outage');
+        var statusMap = {
+            operational: { cls: 'hc-status-operational', label: 'All systems operational' },
+            degraded:    { cls: 'hc-status-degraded',    label: 'Some systems degraded' },
+            outage:      { cls: 'hc-status-outage',      label: 'Active outage in progress' }
+        };
+        var s = statusMap[data.system_status] || statusMap.operational;
+        panel.classList.add(s.cls);
+        title.textContent = s.label;
+        checked.textContent = 'Last checked just now';
+    }
+
+    function loadPlatformUpdates() {
+        return fetch(endpoints.platformUpdates, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+                if (!j || !j.success) throw new Error('failed');
+                state.updates = j.data.updates || [];
+                renderUpdatesCard(j.data);
+                renderFeed();
+            })
+            .catch(function () {
+                feedList.innerHTML = '';
+                feedEmpty.classList.remove('d-none');
+                var p = feedEmpty.querySelector('p');
+                if (p) p.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Updates are temporarily unavailable.';
+            });
+    }
+
+    // Tab switching
+    Array.prototype.forEach.call(document.querySelectorAll('.hc-feed-tab'), function (tab) {
+        tab.addEventListener('click', function () {
+            Array.prototype.forEach.call(document.querySelectorAll('.hc-feed-tab'), function (t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            state.filter = tab.getAttribute('data-filter') || 'all';
+            renderFeed();
+        });
+    });
+
+    // Mark all as read
+    var markBtn = document.getElementById('hc-mark-read-btn');
+    if (markBtn) {
+        markBtn.addEventListener('click', function () {
+            fetch(endpoints.markRead, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            }).then(function (res) {
+                if (!res.ok) return;
+                state.updates.forEach(function (u) { u.is_read = true; });
+                renderUpdatesCard({ unread_count: 0, system_status: 'operational' });
+                renderFeed();
+            }).catch(function () { /* silent — non-critical */ });
+        });
+    }
+
+    // "View all updates" → smooth scroll to feed
+    var viewAllBtn = document.getElementById('hc-view-all-updates');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', function (e) {
+            var target = document.getElementById('platformUpdatesFeed');
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+
+    // Kick off initial loads
+    loadTickets();
+    loadPlatformUpdates();
+})();
 
 // ========================================
 // TEST RCS — radio card selection + accessibility

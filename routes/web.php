@@ -144,6 +144,24 @@ Route::middleware(['customer.auth', 'customer.ip_allowlist'])->controller(QuickS
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });
 
+// Help Centre dashboard endpoints (GREEN — session-authenticated, per-user)
+Route::middleware(['customer.auth', 'customer.ip_allowlist'])
+    ->prefix('portal/api/help-centre')
+    ->controller(\App\Http\Controllers\HelpCentreController::class)
+    ->group(function () {
+        // KB search has its own higher throttle to accommodate fast typing
+        // (250 ms debounce can still burst close to 60/min on long queries).
+        Route::get('/kb/search', 'kbSearch')
+            ->middleware('throttle:120,1')
+            ->name('portal.help-centre.kb.search');
+
+        Route::middleware('throttle:60,1')->group(function () {
+            Route::get('/tickets', 'tickets')->name('portal.help-centre.tickets');
+            Route::get('/platform-updates', 'platformUpdates')->name('portal.help-centre.platform-updates');
+            Route::post('/platform-updates/mark-read', 'markUpdatesRead')->name('portal.help-centre.platform-updates.mark-read');
+        });
+    });
+
 // Flow Builder routes
 Route::middleware(['customer.auth', 'customer.ip_allowlist'])->prefix('flows')->controller(\App\Http\Controllers\FlowBuilderController::class)->group(function () {
     Route::get('/', 'index')->name('flows.index');
