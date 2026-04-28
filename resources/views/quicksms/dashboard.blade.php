@@ -2195,11 +2195,16 @@ function sendTestRcs() {
     // Show sending state
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
-    
+
+    // Read selected message type from the radio cards' hidden input
+    // (basic-text | rich-card | carousel) — populated by initTestRcsRadios().
+    var typeEl = document.getElementById('testRcsMessageType');
+    var selectedType = (typeEl && typeEl.value) ? typeEl.value : 'basic-text';
+
     // Prepare payload for API
     var payload = {
         mobile: validation.normalized,  // Normalized UK format: +447xxxxxxxxx
-        messageType: 'rcs_test',
+        messageType: selectedType,
         timestamp: new Date().toISOString(),
         // TODO: Add user/session context when available
         // userId: getCurrentUserId(),
